@@ -1946,28 +1946,28 @@ a {
 .composer {
   position: relative;
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
   padding-top: 12px;
   border-top: 1px solid var(--section-divider);
 }
 
 .composerInputFrame {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 10px;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: end;
+  gap: 8px;
 }
 
 .composerUploadButton {
   position: relative;
   display: grid;
-  width: 48px;
-  min-height: 78px;
+  width: 38px;
+  height: 38px;
   place-items: center;
-  align-content: center;
-  gap: 5px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 999px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
     var(--surface-1);
@@ -1999,10 +1999,13 @@ a {
 }
 
 .composerUploadButton span {
-  font-size: 9px;
-  font-weight: 850;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .composer:has(input:disabled) .composerUploadButton {
@@ -2012,11 +2015,12 @@ a {
 }
 
 .composer textarea {
-  min-height: 78px;
+  min-height: 48px;
+  max-height: 168px;
   resize: none;
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 13px 14px;
+  border-radius: 18px;
+  padding: 13px 15px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
     var(--surface-1);
@@ -2039,12 +2043,12 @@ a {
 
 .sendButton {
   display: grid;
-  width: 48px;
-  min-height: 48px;
+  width: 42px;
+  min-height: 42px;
   place-items: center;
   align-self: end;
   border: 1px solid rgba(var(--accent-rgb), 0.24);
-  border-radius: 14px;
+  border-radius: 999px;
   color: var(--accent-ink);
   background: linear-gradient(
     180deg,

@@ -53,7 +53,7 @@ export const demoModeScenarios = [
     expectedOutput:
       "Single-file Three.js scene with optional user-gesture audio controls",
     complexity: "High",
-    recommendedForDemo: "Primary wow moment",
+    recommendedForDemo: "3D visual system",
     presentationTime: "75-90s",
     talkingPoint:
       "Shows visual ambition, browser audio constraints, and conservative fallback handling.",
@@ -92,7 +92,7 @@ export const demoModeScenarios = [
     expectedOutput:
       "Browser-safe p5.js sketch with growth techniques and controls",
     complexity: "High",
-    recommendedForDemo: "Primary creative-quality proof",
+    recommendedForDemo: "Generative growth system",
     presentationTime: "60-75s",
     talkingPoint:
       "Connects computational growth techniques to concrete p5.js implementation choices.",
@@ -130,7 +130,7 @@ export const demoModeScenarios = [
     expectedOutput:
       "Fragment shader or post-processing visual with runtime failure notes",
     complexity: "Medium-high",
-    recommendedForDemo: "Primary technical proof",
+    recommendedForDemo: "Shader validation",
     presentationTime: "60-90s",
     talkingPoint:
       "Shows direct WebGL validation without claiming display-FPS benchmarking.",
@@ -169,7 +169,7 @@ export const demoModeScenarios = [
     expectedOutput:
       "Hydra feedback lattice rendered nonblank through local hydra-synth QA",
     complexity: "High boundary sensitivity",
-    recommendedForDemo: "Artifact fallback only",
+    recommendedForDemo: "Feedback-pattern runtime",
     presentationTime: "30-45s",
     talkingPoint:
       "Hydra is supported only through the validated local hydra-synth artifact path.",
@@ -207,7 +207,7 @@ export const demoModeScenarios = [
     expectedOutput:
       "Source-grounded creative-coding answer with visible boundaries",
     complexity: "Medium",
-    recommendedForDemo: "Q&A credibility proof",
+    recommendedForDemo: "Source-grounded answer",
     presentationTime: "45-60s",
     talkingPoint:
       "Raw private rows stay local while reviewer-safe fixtures carry evaluator evidence.",
@@ -246,7 +246,7 @@ export const demoModeScenarios = [
     expectedOutput:
       "Operational visual system guidance with runtime and interaction choices",
     complexity: "Medium",
-    recommendedForDemo: "Narrative bridge",
+    recommendedForDemo: "Concept translation",
     presentationTime: "60-90s",
     talkingPoint:
       "Demonstrates creative translation while keeping interpretation aesthetic and operational.",
@@ -284,7 +284,7 @@ export const demoModeScenarios = [
     expectedOutput:
       "Browser-oriented generative system plan with runtime selection and controls",
     complexity: "High",
-    recommendedForDemo: "Secondary systems-depth proof",
+    recommendedForDemo: "Multi-runtime morphogenesis",
     presentationTime: "60-90s",
     talkingPoint:
       "Shows emergent form through inspectable rules rather than unsupported authority claims.",
@@ -323,7 +323,7 @@ export const demoModeScenarios = [
     expectedOutput:
       "Local browser installation plan with demo sequence and handoff boundaries",
     complexity: "Medium-high",
-    recommendedForDemo: "Best Q&A demo",
+    recommendedForDemo: "Installation planning",
     presentationTime: "45-60s",
     talkingPoint:
       "Shows delivery judgment: local browser demo target, not public deployment or external execution.",
@@ -348,31 +348,31 @@ export const demoModeScenarioCount = demoModeScenarios.length;
 
 export const demoModeRecommendedLiveSequence = [
   {
-    role: "Fastest reliable demo",
+    role: "Source grounding",
     scenarioId: "retrieval-grounded-creative-coding-answer",
     title: "Retrieval-grounded answer",
-    rationale: "19.2s optimized smoke, 5 retrieved contexts, best quick proof."
+    rationale: "19.2s optimized smoke, 5 retrieved contexts."
   },
   {
-    role: "Most visually impressive demo",
+    role: "3D audiovisual",
     scenarioId: "three-audio-reactive-visual-system",
     title: "Three.js audio-reactive visual",
-    rationale: "68.8s optimized smoke with artifact events and strongest wow factor."
+    rationale: "68.8s optimized smoke with artifact events."
   },
   {
-    role: "Safest fallback demo",
+    role: "Shader preview",
     scenarioId: "glsl-shader-post-processing-visual",
     title: "GLSL shader visual",
-    rationale: "32.8s optimized smoke plus direct WebGL golden artifact QA."
+    rationale: "32.8s optimized smoke plus WebGL artifact QA."
   },
   {
-    role: "Best RAG demo",
+    role: "Retrieval evidence",
     scenarioId: "retrieval-grounded-creative-coding-answer",
     title: "Source-grounded creative answer",
-    rationale: "Shortest provider-backed route with clear retrieval and RAGAs evidence."
+    rationale: "Provider-backed route with clear retrieval and RAGAs evidence."
   },
   {
-    role: "Best Q&A demo",
+    role: "Installation scope",
     scenarioId: "installation-immersive-scene-planning",
     title: "Installation planning",
     rationale: "52.2s optimized smoke, useful for scope, ethics, and handoff questions."

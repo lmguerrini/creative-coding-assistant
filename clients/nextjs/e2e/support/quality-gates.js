@@ -155,11 +155,11 @@ async function expectGeneratedPreview(page) {
 
 async function expectWorkspacePersistence(page) {
   await page.getByRole("button", { name: "Settings" }).click();
-  await page.getByRole("button", { name: "Use Terminal theme" }).click();
+  await page.getByRole("button", { name: "Use Matrix theme" }).click();
   await page.getByRole("button", { name: "Compact" }).click();
-  await expect(page.locator(".workstation")).toHaveAttribute("data-theme", "terminal");
+  await expect(page.locator(".workstation")).toHaveAttribute("data-theme", "matrix");
   await page.reload();
-  await expect(page.locator(".workstation")).toHaveAttribute("data-theme", "terminal");
+  await expect(page.locator(".workstation")).toHaveAttribute("data-theme", "matrix");
   await expect(page.locator(".workstation")).toHaveAttribute("data-density", "compact");
 }
 

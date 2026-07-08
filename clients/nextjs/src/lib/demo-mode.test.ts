@@ -85,11 +85,11 @@ describe("demo mode scenarios", () => {
 
   it("defines the presenter recommended live sequence", () => {
     expect(demoModeRecommendedLiveSequence.map((item) => item.role)).toEqual([
-      "Fastest reliable demo",
-      "Most visually impressive demo",
-      "Safest fallback demo",
-      "Best RAG demo",
-      "Best Q&A demo"
+      "Source grounding",
+      "3D audiovisual",
+      "Shader preview",
+      "Retrieval evidence",
+      "Installation scope"
     ]);
     expect(demoModeRecommendedLiveSequence[0].scenarioId).toBe(
       "retrieval-grounded-creative-coding-answer"

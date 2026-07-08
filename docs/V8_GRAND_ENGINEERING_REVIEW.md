@@ -44,7 +44,7 @@ Validation:
   boundaries, and output guidance in the workstation.
 - Polished Demo Mode with smoke-derived generation timing, token usage,
   workflow type, provider/retrieval requirements, preview/fallback status,
-  expected output, complexity, presenter timing, and talking points. Bounded
+  expected output, complexity, presenter timing, and output guidance. Bounded
   flows distinguish provider-backed smoke from artifact-QA support.
 - Optimized Demo Mode prompts for live demo speed while preserving source
   boundaries, artifact guidance, and chat/code separation. Optimized live smoke
@@ -54,6 +54,10 @@ Validation:
   evidence remain available behind Developer Mode.
 - Kept the main conversation concise by summarizing long generated outputs and
   directing generated code to Code, artifact, and preview surfaces.
+- Final product-polish pass made Demo Mode labels capability-oriented, kept
+  raw evidence paths and diagnostic inspector tabs behind Developer Mode,
+  reduced theme choices to Aqua, Codex, and Matrix, and replaced the image
+  upload affordance with a compact add-attachment control.
 - Preserved unsupported-runtime boundaries for live external DCC/MCP
   execution, autonomous delivery, certification, public cloud deployment, and
   metaphysical or medical truth claims.

@@ -1019,9 +1019,9 @@ describe("WorkstationShell", () => {
     expect(
       within(demoMode).getByText("39,645 total / 2,839 output tokens")
     ).toBeVisible();
-    expect(within(demoMode).getByText("Primary creative-quality proof")).toBeVisible();
+    expect(within(demoMode).getByText("Generative growth system")).toBeVisible();
     expect(
-      within(demoMode).getByRole("button", { name: /Fastest reliable demo/ })
+      within(demoMode).getByRole("button", { name: /Source grounding/ })
     ).toBeVisible();
     expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
       "User"
@@ -1175,22 +1175,27 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("dialog", { name: "Workspace settings" })).toBeVisible();
   });
 
-  it("renders all workspace theme presets and applies them", () => {
+  it("renders available workspace theme presets and applies them", () => {
     renderShell();
 
     for (const [label, theme] of [
       ["Aqua", "aqua"],
       ["Codex", "codex"],
-      ["Matrix", "matrix"],
-      ["Terminal", "terminal"],
-      ["Horizon", "horizon"],
-      ["Zen", "zen"],
-      ["Blueprint", "blueprint"]
+      ["Matrix", "matrix"]
     ] as const) {
       fireEvent.click(screen.getByRole("button", { name: "Theme" }));
       fireEvent.click(screen.getByRole("button", { name: `Use ${label} theme` }));
       expect(document.documentElement).toHaveAttribute("data-cca-theme", theme);
     }
+
+    fireEvent.click(screen.getByRole("button", { name: "Theme" }));
+    expect(
+      screen.queryByRole("button", { name: "Use Terminal theme" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Use Horizon theme" })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Use Zen theme" })).not.toBeInTheDocument();
   });
 
   it("collapses the inspector into a compact rail and expands it again", () => {
@@ -1570,7 +1575,7 @@ describe("WorkstationShell", () => {
     renderShell();
 
     fireEvent.click(screen.getByRole("button", { name: "Command menu" }));
-    fireEvent.click(screen.getByRole("button", { name: /Code inspector/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Code Open the active/ }));
 
     expect(screen.getByRole("tab", { name: "Code" })).toHaveAttribute(
       "aria-selected",
@@ -2131,7 +2136,7 @@ describe("WorkstationShell", () => {
 
     renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
 
-    const uploadInput = screen.getByLabelText("Upload image reference");
+    const uploadInput = screen.getByLabelText("Add attachment");
     const imageFile = new File(["palette-bytes"], "palette.png", {
       type: "image/png"
     });
@@ -2189,7 +2194,7 @@ describe("WorkstationShell", () => {
     renderShell();
 
     await act(async () => {
-      fireEvent.change(screen.getByLabelText("Upload image reference"), {
+      fireEvent.change(screen.getByLabelText("Add attachment"), {
         target: {
           files: [new File(["notes"], "notes.txt", { type: "text/plain" })]
         }
@@ -2495,9 +2500,9 @@ describe("WorkstationShell", () => {
     vi.mocked(persistenceClient.save).mockClear();
 
     fireEvent.click(screen.getByRole("button", { name: "Theme" }));
-    fireEvent.click(screen.getByRole("button", { name: "Use Blueprint theme" }));
+    fireEvent.click(screen.getByRole("button", { name: "Use Matrix theme" }));
 
-    expect(document.documentElement).toHaveAttribute("data-cca-theme", "blueprint");
+    expect(document.documentElement).toHaveAttribute("data-cca-theme", "matrix");
 
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     const settingsPanel = screen.getByRole("dialog", { name: "Workspace settings" });
@@ -2508,7 +2513,7 @@ describe("WorkstationShell", () => {
       expect(persistenceClient.save).toHaveBeenLastCalledWith(
         expect.objectContaining({
           preferences: {
-            theme: "blueprint",
+            theme: "matrix",
             autoOpenPreview: false,
             showDebugPanels: false
           }
@@ -2544,7 +2549,7 @@ describe("WorkstationShell", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("hides workflow traces and keeps preview closed when auto-open is disabled", async () => {
+  it("hides developer traces and keeps preview closed when auto-open is disabled", async () => {
     const backendStream = vi.fn(() =>
       streamEvents([
         {
@@ -2585,11 +2590,8 @@ describe("WorkstationShell", () => {
     fireEvent.click(within(settingsPanel).getByRole("button", { name: "Display mode" }));
     fireEvent.click(within(settingsPanel).getByRole("button", { name: "Preview auto-open" }));
 
-    fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
-
-    expect(
-      screen.getByRole("group", { name: "Workflow traces hidden" })
-    ).toBeVisible();
+    expect(screen.queryByRole("tab", { name: "Workflow" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Telemetry" })).not.toBeInTheDocument();
     expect(
       screen.queryByRole("group", { name: "Workflow transition trace" })
     ).not.toBeInTheDocument();

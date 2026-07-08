@@ -56,18 +56,18 @@ Primary path:
 In-app Demo Mode scenario cards show optimized live-smoke timing and token
 usage when available, plus workflow type, provider/retrieval needs, preview
 availability, fallback path, expected output, complexity, presenter time, and
-talking point. Hydra is labeled as a bounded no-provider artifact-QA support
+output guidance. Hydra is labeled as a bounded no-provider artifact-QA support
 path; installation planning now has optimized live-smoke evidence.
 
 Recommended live sequence:
 
 | Scenario | Presenter time | Use |
 |---|---:|---|
-| Retrieval-grounded creative-coding answer | 45-60s | Fastest reliable live path, source grounding, RAGAs, and privacy-safe evidence. |
+| Retrieval-grounded creative-coding answer | 45-60s | Source grounding, RAGAs, and privacy-safe evidence. |
 | p5.js generative morphogenesis sketch | 60-75s | Creative quality and computational growth vocabulary. |
 | GLSL shader / post-processing visual | 60-75s | WebGL technical proof and nonblank render evidence. |
-| Three.js audio-reactive visual system | 75-90s | Primary visual impact and browser-audio boundary. |
-| Installation planning or concept-to-visual | 45-60s | Q&A-ready scope, ethics, fallback, and handoff discussion. |
+| Three.js audio-reactive visual system | 75-90s | 3D audiovisual system and browser-audio boundary. |
+| Installation planning or concept-to-visual | 45-60s | Scope, ethics, fallback, and handoff discussion. |
 
 ## 5-Minute Q&A Prep
 

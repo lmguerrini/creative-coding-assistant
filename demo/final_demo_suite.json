@@ -79,11 +79,11 @@
       }
     },
     "recommended_live_sequence": {
-      "fastest_reliable_demo": "Retrieval-grounded answer: 19.2s optimized live smoke.",
-      "most_visually_impressive_demo": "Three.js audio-reactive visual: 68.8s optimized live smoke with artifact events.",
-      "safest_fallback_demo": "GLSL shader visual: 32.8s optimized live smoke plus WebGL golden QA.",
-      "best_rag_demo": "Retrieval-grounded answer with 5 retrieved contexts and RAGAs evidence.",
-      "best_q_and_a_demo": "Installation planning: 52.2s optimized live smoke."
+      "source_grounding": "Retrieval-grounded answer: 19.2s optimized live smoke.",
+      "3d_audiovisual": "Three.js audio-reactive visual: 68.8s optimized live smoke with artifact events.",
+      "shader_preview": "GLSL shader visual: 32.8s optimized live smoke plus WebGL golden QA.",
+      "retrieval_evidence": "Retrieval-grounded answer with 5 retrieved contexts and RAGAs evidence.",
+      "installation_scope": "Installation planning: 52.2s optimized live smoke."
     }
   },
   "demos": [

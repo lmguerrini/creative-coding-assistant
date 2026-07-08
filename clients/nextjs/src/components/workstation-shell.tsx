@@ -19,13 +19,13 @@ import {
   ChevronDown,
   Command,
   Gauge,
-  ImagePlus,
   LayoutGrid,
   Maximize2,
   Minimize2,
   Moon,
   PanelRight,
   Play,
+  Plus,
   RefreshCw,
   RotateCcw,
   SendHorizontal,
@@ -306,6 +306,12 @@ type PendingArtifactRefinement = AssistantArtifactRefinementRequest & {
 const localWorkflowIntervalMs = 850;
 const artifactFeedbackDurationMs = 1400;
 const defaultWorkspacePersistenceClient = createWorkspacePersistenceClient();
+const userModeInspectorTabs = new Set<InspectorTabName>([
+  "Overview",
+  "Preview",
+  "Code",
+  "Artifacts"
+]);
 const persistenceStateLabels = {
   loading: "Restoring session",
   ready: "Local session ready",
@@ -347,38 +353,6 @@ const themePresetOptions = [
     accent: "#9fe870",
     surface:
       "linear-gradient(135deg, rgba(159, 232, 112, 0.16), rgba(38, 58, 30, 0.16), rgba(7, 11, 6, 0.26))"
-  },
-  {
-    value: "terminal",
-    label: "Terminal",
-    description: "Focused command-console shell with warm phosphor highlights.",
-    accent: "#f1c56f",
-    surface:
-      "linear-gradient(135deg, rgba(241, 197, 111, 0.18), rgba(86, 74, 42, 0.14), rgba(9, 10, 11, 0.28))"
-  },
-  {
-    value: "horizon",
-    label: "Horizon",
-    description: "Warm dusk palette tuned for cinematic creative sessions.",
-    accent: "#f4a36e",
-    surface:
-      "linear-gradient(135deg, rgba(244, 163, 110, 0.18), rgba(124, 84, 132, 0.14), rgba(19, 18, 28, 0.28))"
-  },
-  {
-    value: "zen",
-    label: "Zen",
-    description: "Calm, low-noise workspace with soft sage-blue guidance.",
-    accent: "#8fd4c7",
-    surface:
-      "linear-gradient(135deg, rgba(143, 212, 199, 0.16), rgba(112, 142, 154, 0.14), rgba(15, 20, 21, 0.28))"
-  },
-  {
-    value: "blueprint",
-    label: "Blueprint",
-    description: "Technical drafting atmosphere with crisp cyan planning cues.",
-    accent: "#7fd4ff",
-    surface:
-      "linear-gradient(135deg, rgba(127, 212, 255, 0.18), rgba(53, 95, 152, 0.14), rgba(8, 16, 31, 0.28))"
   }
 ] satisfies readonly ThemePresetOption[];
 
@@ -523,6 +497,15 @@ export function WorkstationShell({
       delete document.documentElement.dataset.ccaTheme;
     };
   }, [workspacePreferences.theme]);
+
+  useEffect(() => {
+    if (
+      !workspacePreferences.showDebugPanels &&
+      !userModeInspectorTabs.has(activeTab)
+    ) {
+      setActiveTab("Overview");
+    }
+  }, [activeTab, workspacePreferences.showDebugPanels]);
 
   useEffect(() => {
     const chatLog = chatLogRef.current;
@@ -1088,6 +1071,13 @@ export function WorkstationShell({
           : tab
       ),
     [interactiveSnapshot.inspectorTabs, runtimeConsole.badge]
+  );
+  const visibleInspectorTabs = useMemo(
+    () =>
+      workspacePreferences.showDebugPanels
+        ? inspectorTabs
+        : inspectorTabs.filter((tab) => userModeInspectorTabs.has(tab.label)),
+    [inspectorTabs, workspacePreferences.showDebugPanels]
   );
   const activeTabSummary =
     activeTab === "Runtime"
@@ -1990,6 +1980,7 @@ export function WorkstationShell({
 
     setIsDemoModeOpen(nextOpen);
     if (nextOpen) {
+      setActiveTab("Overview");
       updateWorkspacePreferences({ showDebugPanels: false });
     }
     setOpenUtilityPanel(null);
@@ -1998,6 +1989,7 @@ export function WorkstationShell({
   function handleDemoScenarioLoad(scenario: DemoModeScenario) {
     setActiveDemoScenarioId(scenario.id);
     setIsDemoModeOpen(true);
+    setActiveTab("Overview");
     setComposerValue(scenario.prompt);
     updateWorkspacePreferences({ showDebugPanels: false });
     setOpenUtilityPanel(null);
@@ -2702,6 +2694,7 @@ export function WorkstationShell({
                 }}
                 onOpenTab={revealInspectorTab}
                 onPreviewToggle={handlePreviewShelfFromControl}
+                showDebugPanels={workspacePreferences.showDebugPanels}
                 onWorkspaceClear={() =>
                   requestOperatorApproval({
                     actionId: "workspace_clear",
@@ -2868,6 +2861,7 @@ export function WorkstationShell({
                   isPromptLoaded={composerValue === activeDemoScenario.prompt}
                   scenarios={demoModeScenarios}
                   onLoadScenario={handleDemoScenarioLoad}
+                  showDebugPanels={workspacePreferences.showDebugPanels}
                 />
               ) : null}
             </div>
@@ -2883,39 +2877,46 @@ export function WorkstationShell({
               {conversationEntries.length === 0 && !isStreaming ? (
                 <EmptyWorkspaceState onSelectPrompt={handleEmptyStatePromptSelect} />
               ) : null}
-              {conversationEntries.map((message, index) => (
-                <article
-                  className="message"
-                  data-fresh={index >= snapshot.messages.length ? "true" : undefined}
-                  data-role={message.role}
-                  data-stream-phase={message.phase}
-                  key={message.id}
-                >
-                  <div className="messageMeta">
-                    <span>{message.role}</span>
-                    <div className="messageMetaDetail">
-                      {message.role === "assistant" ? (
-                        <small data-phase={message.phase}>
-                          {getConversationPhaseBadge(message.phase)}
-                        </small>
+              {conversationEntries.map((message, index) => {
+                const displayContent = getConversationDisplayContent(
+                  message,
+                  workspacePreferences.showDebugPanels
+                );
+
+                return (
+                  <article
+                    className="message"
+                    data-fresh={index >= snapshot.messages.length ? "true" : undefined}
+                    data-role={message.role}
+                    data-stream-phase={message.phase}
+                    key={message.id}
+                  >
+                    <div className="messageMeta">
+                      <span>{message.role}</span>
+                      <div className="messageMetaDetail">
+                        {message.role === "assistant" ? (
+                          <small data-phase={message.phase}>
+                            {getConversationPhaseBadge(message.phase)}
+                          </small>
+                        ) : null}
+                        <span>{message.time}</span>
+                      </div>
+                    </div>
+                    <p>
+                      {displayContent || getConversationPhasePlaceholder(message.phase)}
+                      {message.phase === "streaming" ? (
+                        <span className="streamingCaret" aria-hidden="true" />
                       ) : null}
-                      <span>{message.time}</span>
-                    </div>
-                  </div>
-                  <p>
-                    {message.content || getConversationPhasePlaceholder(message.phase)}
-                    {message.phase === "streaming" ? (
-                      <span className="streamingCaret" aria-hidden="true" />
+                    </p>
+                    {message.activity && message.phase !== "complete" ? (
+                      <div className="messageActivity">
+                        <span aria-hidden="true" />
+                        <small>{message.activity}</small>
+                      </div>
                     ) : null}
-                  </p>
-                  {message.activity && message.phase !== "complete" ? (
-                    <div className="messageActivity">
-                      <span aria-hidden="true" />
-                      <small>{message.activity}</small>
-                    </div>
-                  ) : null}
-                </article>
-              ))}
+                  </article>
+                );
+              })}
             </div>
             {streamError ? (
               <SubsystemErrorCallout
@@ -2945,17 +2946,17 @@ export function WorkstationShell({
               onSubmit={handleComposerSubmit}
             >
               <div className="composerInputFrame">
-                <label className="composerUploadButton">
+                <label className="composerUploadButton" title="Add attachment">
                   <input
                     accept={supportedImageUploadAccept}
-                    aria-label="Upload image reference"
+                    aria-label="Add attachment"
                     disabled={isStreaming}
                     multiple
                     onChange={(event) => void handleImageUploadChange(event)}
                     type="file"
                   />
-                  <ImagePlus size={16} aria-hidden="true" />
-                  <span>Image</span>
+                  <Plus size={17} aria-hidden="true" />
+                  <span>Add attachment</span>
                 </label>
                 <textarea
                   aria-label="Assistant prompt"
@@ -3061,7 +3062,7 @@ export function WorkstationShell({
                   </header>
 
                   <div className="inspectorTabs" role="tablist" aria-label="Inspector tabs">
-                    {inspectorTabs.map((tab) => {
+                    {visibleInspectorTabs.map((tab) => {
                       const Icon = inspectorTabIcons[tab.label];
 
                       return (
@@ -3301,15 +3302,20 @@ function DemoModePanel({
   activeScenario,
   isPromptLoaded,
   onLoadScenario,
-  scenarios
+  scenarios,
+  showDebugPanels
 }: {
   activeScenario: DemoModeScenario;
   isPromptLoaded: boolean;
   onLoadScenario: (scenario: DemoModeScenario) => void;
   scenarios: readonly DemoModeScenario[];
+  showDebugPanels: boolean;
 }) {
   const scenarioFacts = [
+    ["Capability", activeScenario.recommendedForDemo],
+    ["Technology", activeScenario.runtime],
     ["Generation", activeScenario.estimatedGenerationTime],
+    ["Presenter time", activeScenario.presentationTime],
     ["Tokens", activeScenario.estimatedTokenUsage],
     ["Workflow", activeScenario.workflowType],
     ["Provider", activeScenario.providerRequirement],
@@ -3317,10 +3323,7 @@ function DemoModePanel({
     ["Preview", activeScenario.previewAvailability],
     ["Fallback", activeScenario.fallbackAvailability],
     ["Expected output", activeScenario.expectedOutput],
-    ["Complexity", activeScenario.complexity],
-    ["Demo pick", activeScenario.recommendedForDemo],
-    ["Presenter time", activeScenario.presentationTime],
-    ["Talking point", activeScenario.talkingPoint]
+    ["Complexity", activeScenario.complexity]
   ] as const;
 
   return (
@@ -3341,7 +3344,7 @@ function DemoModePanel({
         <span className="demoModeCount">{scenarios.length} flows</span>
       </header>
 
-      <div className="demoLiveSequence" aria-label="Recommended live sequence">
+      <div className="demoLiveSequence" aria-label="Featured demo paths">
         {demoModeRecommendedLiveSequence.map((item) => (
           <button
             key={`${item.role}-${item.scenarioId}`}
@@ -3448,7 +3451,9 @@ function DemoModePanel({
             <span>Evidence</span>
             <div>
               {activeScenario.evidence.map((item) => (
-                <code key={item}>{item}</code>
+                <code key={item}>
+                  {showDebugPanels ? item : formatDemoEvidenceLabel(item)}
+                </code>
               ))}
             </div>
           </div>
@@ -3535,15 +3540,17 @@ function PreviewShelf({
               </small>
             </div>
             <div className="previewToolbarActions" aria-label="Preview controls">
-              <button
-                aria-label="Collapse preview"
-                className="previewControlButton"
-                onClick={() => onToggle(false)}
-                title="Collapse preview"
-                type="button"
-              >
-                <ChevronDown size={15} />
-              </button>
+              {showDebugPanels ? (
+                <button
+                  aria-label="Collapse preview"
+                  className="previewControlButton"
+                  onClick={() => onToggle(false)}
+                  title="Collapse preview"
+                  type="button"
+                >
+                  <ChevronDown size={15} />
+                </button>
+              ) : null}
               <button
                 aria-label={
                   controller.isFullscreen
@@ -3577,36 +3584,40 @@ function PreviewShelf({
               >
                 <RotateCcw size={15} />
               </button>
-              <button
-                aria-label="Clear preview state"
-                className="previewControlButton"
-                disabled={!controller.canClear}
-                onClick={onClear}
-                title="Clear preview state"
-                type="button"
-              >
-                <X size={15} />
-              </button>
-              <button
-                aria-label="Reload preview state"
-                className="previewControlButton"
-                disabled={!controller.canReload}
-                onClick={onReload}
-                title="Reload preview state"
-                type="button"
-              >
-                <RefreshCw size={15} />
-              </button>
-              <button
-                aria-label="Reset preview session"
-                className="previewControlButton"
-                disabled={!controller.canReset}
-                onClick={onReset}
-                title="Reset preview session"
-                type="button"
-              >
-                <Undo2 size={15} />
-              </button>
+              {showDebugPanels ? (
+                <>
+                  <button
+                    aria-label="Clear preview state"
+                    className="previewControlButton"
+                    disabled={!controller.canClear}
+                    onClick={onClear}
+                    title="Clear preview state"
+                    type="button"
+                  >
+                    <X size={15} />
+                  </button>
+                  <button
+                    aria-label="Reload preview state"
+                    className="previewControlButton"
+                    disabled={!controller.canReload}
+                    onClick={onReload}
+                    title="Reload preview state"
+                    type="button"
+                  >
+                    <RefreshCw size={15} />
+                  </button>
+                  <button
+                    aria-label="Reset preview session"
+                    className="previewControlButton"
+                    disabled={!controller.canReset}
+                    onClick={onReset}
+                    title="Reset preview session"
+                    type="button"
+                  >
+                    <Undo2 size={15} />
+                  </button>
+                </>
+              ) : null}
             </div>
           </div>
           <div className="previewBody">
@@ -5206,6 +5217,7 @@ type CommandMenuPanelProps = {
   onOpenTab: (tab: InspectorTabName) => void;
   onPreviewToggle: () => void;
   onWorkspaceClear: () => void;
+  showDebugPanels: boolean;
 };
 
 function CommandMenuPanel({
@@ -5217,7 +5229,8 @@ function CommandMenuPanel({
   onFocusModeToggle,
   onOpenTab,
   onPreviewToggle,
-  onWorkspaceClear
+  onWorkspaceClear,
+  showDebugPanels
 }: CommandMenuPanelProps) {
   return (
     <section
@@ -5236,7 +5249,7 @@ function CommandMenuPanel({
           onClick={() => onOpenTab("Overview")}
           type="button"
         >
-          <strong>Overview inspector</strong>
+          <strong>Overview</strong>
           <span>Return to the compact session summary.</span>
         </button>
         <button
@@ -5244,41 +5257,47 @@ function CommandMenuPanel({
           onClick={() => onOpenTab("Preview")}
           type="button"
         >
-          <strong>Preview inspector</strong>
-          <span>Review runtime, renderer, source, and preview health metadata.</span>
+          <strong>Preview</strong>
+          <span>Inspect the current visual output and preview readiness.</span>
         </button>
-        <button
-          data-active={activeTab === "Runtime"}
-          onClick={() => onOpenTab("Runtime")}
-          type="button"
-        >
-          <strong>Runtime console</strong>
-          <span>Inspect live runtime status, FPS, reloads, and renderer errors.</span>
-        </button>
+        {showDebugPanels ? (
+          <button
+            data-active={activeTab === "Runtime"}
+            onClick={() => onOpenTab("Runtime")}
+            type="button"
+          >
+            <strong>Runtime console</strong>
+            <span>Inspect live runtime status, FPS, reloads, and renderer errors.</span>
+          </button>
+        ) : null}
         <button
           data-active={activeTab === "Code"}
           onClick={() => onOpenTab("Code")}
           type="button"
         >
-          <strong>Code inspector</strong>
-          <span>Open the active document in the full-height inspector.</span>
+          <strong>Code</strong>
+          <span>Open the active generated file.</span>
         </button>
-        <button
-          data-active={activeTab === "Workflow"}
-          onClick={() => onOpenTab("Workflow")}
-          type="button"
-        >
-          <strong>Workflow inspector</strong>
-          <span>Review the live orchestration runtime.</span>
-        </button>
-        <button
-          data-active={activeTab === "Telemetry"}
-          onClick={() => onOpenTab("Telemetry")}
-          type="button"
-        >
-          <strong>Telemetry dashboard</strong>
-          <span>Inspect runtime, provider, retrieval, and observability signals.</span>
-        </button>
+        {showDebugPanels ? (
+          <>
+            <button
+              data-active={activeTab === "Workflow"}
+              onClick={() => onOpenTab("Workflow")}
+              type="button"
+            >
+              <strong>Workflow inspector</strong>
+              <span>Review the live orchestration runtime.</span>
+            </button>
+            <button
+              data-active={activeTab === "Telemetry"}
+              onClick={() => onOpenTab("Telemetry")}
+              type="button"
+            >
+              <strong>Telemetry dashboard</strong>
+              <span>Inspect runtime, provider, retrieval, and observability signals.</span>
+            </button>
+          </>
+        ) : null}
         <button
           aria-label="Toggle preview shelf"
           disabled={!isPreviewAvailable}
@@ -6560,6 +6579,33 @@ function formatRuntimeCode(value: string) {
     .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
+function formatDemoEvidenceLabel(value: string) {
+  const normalizedValue = value.toLowerCase();
+  const knownLabels: Array<[string, string]> = [
+    ["browser_full_runtime_qa", "Browser render QA"],
+    ["qa_manifest", "Artifact QA manifest"],
+    ["golden_demo_dataset", "Offline demo dataset"],
+    ["capstone_evaluation_ethics", "Evaluation and ethics"],
+    ["v8_capstone_evidence_matrix", "Evidence matrix"],
+    ["v8_grand_engineering_review", "Grand Review evidence"],
+    ["hydra_feedback_lattice", "Hydra artifact"],
+    ["redacted_live_session_ragas", "Redacted RAGAs results"],
+    ["sanitized_ragas", "Sanitized RAGAs results"],
+    ["eval_pipeline", "Evaluation pipeline"],
+    ["demo_prompt_library", "Prompt library"],
+    ["final_demo_suite", "Demo suite metadata"],
+    ["final_demo_launcher", "Static fallback launcher"]
+  ];
+  const match = knownLabels.find(([needle]) => normalizedValue.includes(needle));
+
+  if (match) {
+    return match[1];
+  }
+
+  const fileName = value.split("/").pop() ?? value;
+  return formatRuntimeCode(fileName.replace(/\.[^.]+$/, ""));
+}
+
 function readPayloadText(
   event: AssistantStreamEvent,
   key: string
@@ -6581,6 +6627,56 @@ const streamingConversationSummary =
 
 const generatedCodePattern =
   /```|<!doctype|<html|<script|function\s+(setup|draw)\s*\(|import\s+\*\s+as\s+THREE|gl_FragColor|void\s+main\s*\(/i;
+
+function getConversationDisplayContent(
+  message: ConversationEntry,
+  showDebugPanels: boolean
+) {
+  if (message.role !== "assistant" || showDebugPanels) {
+    return message.content;
+  }
+
+  return buildUserModeAssistantSummary(message.content);
+}
+
+function buildUserModeAssistantSummary(content: string) {
+  const trimmedContent = content.trim();
+
+  if (!trimmedContent) {
+    return "";
+  }
+
+  if (/^live response (error|unavailable)/i.test(trimmedContent)) {
+    return "The live response could not complete. Retry from the composer, switch to prepared demo evidence, or inspect details in Developer Mode.";
+  }
+
+  const containsGeneratedCode = generatedCodePattern.test(trimmedContent);
+  const strippedContent = trimmedContent
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<!doctype[\s\S]*?<body[^>]*>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (containsGeneratedCode) {
+    const summary = strippedContent
+      ? truncateConversationSummary(strippedContent, 220)
+      : "Generated code is ready.";
+
+    return `${summary}\n\nCode and long-form output are in Code, Artifacts, and Preview.`;
+  }
+
+  if (strippedContent.length > 520) {
+    return `${truncateConversationSummary(
+      strippedContent,
+      360
+    )}\n\nOpen Developer Mode for the full response details.`;
+  }
+
+  return strippedContent;
+}
 
 function buildAssistantConversationSummary(answer: string) {
   const trimmedAnswer = answer.trim();

@@ -134,7 +134,7 @@ Weak-row analysis:
 
 | Scenario | Artistic review | Improvement applied |
 |---|---|---|
-| Three.js audio-reactive visual system | Strong wow factor from 3D motion, bloom, and audio mapping. | Kept as primary high-impact flow. |
+| Three.js audio-reactive visual system | Strong visual communication from 3D motion, bloom, and audio mapping. | Kept as the primary high-impact visual system flow. |
 | p5.js generative morphogenesis sketch | Clear educational value; needed richer growth vocabulary. | Added differential growth, diffusion-limited aggregation, branching, and clearer growth-story language. |
 | GLSL shader / post-processing visual | Strong technical/visual credibility through WebGL QA. | Kept focused on glow, uniforms, failure risks, and fallback. |
 | Hydra feedback-pattern demo | Strong live-code aesthetic when bounded honestly. | Added moire-like motion and kept support limited to local `hydra-synth` artifact QA. |
