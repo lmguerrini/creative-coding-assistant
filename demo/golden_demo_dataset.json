@@ -1,0 +1,94 @@
+{
+  "schema_version": "v8.8-demo-dataset.v1",
+  "source_plan_serialization_version": "demo_showcase_plan.v1",
+  "purpose": "Deterministic operator dataset for the Turing College AI Capstone demo fallback and rehearsal flow.",
+  "claim_boundary": "This dataset supports manual demo rehearsal and offline fallback. It is not a live provider response, live retrieval result, generated artifact, or evaluation run.",
+  "capstone_cases": [
+    "case_1_rag_knowledge_assistant",
+    "case_2_bounded_agent_automation",
+    "case_3_source_grounded_search",
+    "case_5_ai_coding_assistant",
+    "case_6_advanced_llm_tools"
+  ],
+  "golden_flows": [
+    {
+      "flow_id": "primary_creative_coding_flow",
+      "title": "Prompt to grounded creative-coding artifact",
+      "duration_seconds": 420,
+      "primary_prompt_id": "luminous_audio_reactive_three_scene",
+      "fallback_trigger": "provider_failure"
+    },
+    {
+      "flow_id": "case_alignment_flow",
+      "title": "Capstone case alignment walkthrough",
+      "duration_seconds": 90,
+      "primary_prompt_id": "offline_showcase_walkthrough",
+      "fallback_trigger": "time_overrun"
+    },
+    {
+      "flow_id": "evaluation_ethics_flow",
+      "title": "Evaluation and ethical AI summary",
+      "duration_seconds": 60,
+      "primary_prompt_id": "shader_post_fx_pipeline",
+      "fallback_trigger": "retrieval_unavailable"
+    },
+    {
+      "flow_id": "offline_fallback_flow",
+      "title": "Offline demo fallback",
+      "duration_seconds": 30,
+      "primary_prompt_id": "offline_showcase_walkthrough",
+      "fallback_trigger": "network_unavailable"
+    }
+  ],
+  "prompt_library": [
+    {
+      "prompt_id": "luminous_audio_reactive_three_scene",
+      "title": "Luminous audio-reactive Three.js capstone scene",
+      "prompt_text": "Create a luminous audio-reactive Three.js scene for a capstone demo: concentric geometry, subtle bloom, FFT-driven motion accents, and a clear explanation of provider choice, execution mode, estimates, fallback, and escalation boundaries."
+    },
+    {
+      "prompt_id": "symbol_to_art_operational_translation",
+      "title": "Symbol to operational browser visual",
+      "prompt_text": "Turn a concentric mandala motif into a practical browser visual system with motion, rhythm, runtime choices, source-grounded constraints, and a clear boundary between symbolic inspiration and operational creative-coding guidance."
+    },
+    {
+      "prompt_id": "creative_debugging_silent_audio",
+      "title": "Debug silent browser audio",
+      "prompt_text": "My browser audio-reactive sketch stays silent until a click and the analyser looks flat. What should I check first, and how should I explain the browser-audio constraints?"
+    },
+    {
+      "prompt_id": "shader_post_fx_pipeline",
+      "title": "Glow-heavy shader and post-processing pipeline",
+      "prompt_text": "How do I build a glow-heavy kaleidoscopic browser visual with shaders or post-processing passes? Give source-grounded runtime tradeoffs, failure risks, and fallback implementation options."
+    },
+    {
+      "prompt_id": "offline_showcase_walkthrough",
+      "title": "Offline showcase walkthrough",
+      "prompt_text": "Walk through the prepared Creative Coding Assistant demo offline: problem, solution, data, evaluation, ethical considerations, fallback plan, challenges, and next steps."
+    }
+  ],
+  "fallback_triggers": [
+    "provider_failure",
+    "retrieval_unavailable",
+    "preview_unavailable",
+    "network_unavailable",
+    "time_overrun"
+  ],
+  "prepared_assets": [
+    "assets/preview_current.png",
+    "assets/preview_v1.png",
+    "assets/preview_v2.png",
+    "README.md",
+    "docs/CAPSTONE_DEMO_SHOWCASE.md",
+    "docs/CAPSTONE_EVALUATION_ETHICS.md",
+    "demo/demo_prompt_library.md",
+    "demo/manual_demo_checklist.md",
+    "demo/showcase_upload_preparation.md"
+  ],
+  "known_limitations": [
+    "Provider calls can fail or be slow; use the offline prompt and preview dataset if needed.",
+    "RAGAs evaluation is manual and uses recorded sessions; V8.8 does not rerun live evaluation.",
+    "Internal preview fallback uses prepared screenshots when live preview is unavailable.",
+    "External DCC/MCP execution, HoloMind, HOLOiVERSE, merge, push, tag, freeze, and Grand Review are out of scope."
+  ]
+}

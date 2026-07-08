@@ -196,6 +196,42 @@ observed through live preview and runtime inspection from the same interface.
 
 ![Creative Coding Assistant](assets/preview_current.png)
 
+## Capstone Demo Readiness
+
+V8.8 prepares the project for the final Turing College AI Capstone demo and
+showcase. The demo story is: Creative Coding Assistant helps creative coders
+turn expressive audiovisual intent into grounded browser creative-coding
+guidance, with retrieval support, workflow orchestration, preview surfaces, and
+manual evaluation evidence.
+
+Primary Capstone alignment:
+
+- Case 5: AI coding assistant for creative coding
+- Case 1: RAG-powered knowledge assistant
+- Case 6: advanced LLM tools through LangGraph, Chroma, preview, and
+  evaluation workflows
+
+Guarded support only:
+
+- Case 2: bounded workflow explanation and advisory metadata, not autonomous
+  agent swarms
+- Case 3: registered-source creative-coding KB search, not generic document
+  search
+
+Demo materials:
+
+- `docs/CAPSTONE_DEMO_SHOWCASE.md` for the 10-minute demo and 5-minute Q&A
+- `docs/CAPSTONE_EVALUATION_ETHICS.md` for metrics, evidence, ethics, and
+  limitations
+- `demo/demo_prompt_library.md` for golden prompts
+- `demo/golden_demo_dataset.json` for rehearsal and offline fallback
+- `demo/manual_demo_checklist.md` for reliability validation
+- `demo/showcase_upload_preparation.md` for showcase packaging
+
+V8.8 does not add live external DCC/MCP execution, HoloMind, HOLOiVERSE,
+autonomous workflow control, automatic provider failover, live metric
+collection, merge, push, tag, freeze, or Grand Review behavior.
+
 ## Highlights
 
 - AI-native workstation UX with chat, a compact bottom preview shelf, and

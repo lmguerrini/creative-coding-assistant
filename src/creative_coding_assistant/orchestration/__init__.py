@@ -749,6 +749,9 @@ _PRODUCTION_ARCHITECTURE_CONSISTENCY = (
 _PRODUCTION_RELEASE_FAILURE_PATH_AUDIT = (
     "creative_coding_assistant.orchestration.production_release_failure_path_audit"
 )
+_DEMO_SHOWCASE_EXPERIENCE = (
+    "creative_coding_assistant.orchestration.demo_showcase_experience"
+)
 
 _EXPORT_MAP = {
     "ASSISTANT_WORKFLOW_NODE_ORDER": _WORKFLOW_GRAPH,
@@ -1138,6 +1141,15 @@ _EXPORT_MAP = {
     "ProductionReleaseFailurePathAuditRegistry": (
         _PRODUCTION_RELEASE_FAILURE_PATH_AUDIT
     ),
+    "CapstoneCaseAlignment": _DEMO_SHOWCASE_EXPERIENCE,
+    "DemoChecklistItem": _DEMO_SHOWCASE_EXPERIENCE,
+    "DemoFallbackPlan": _DEMO_SHOWCASE_EXPERIENCE,
+    "DemoMetricSummary": _DEMO_SHOWCASE_EXPERIENCE,
+    "DemoPresentationSegment": _DEMO_SHOWCASE_EXPERIENCE,
+    "DemoPromptRecord": _DEMO_SHOWCASE_EXPERIENCE,
+    "DemoShowcaseCoverageRecord": _DEMO_SHOWCASE_EXPERIENCE,
+    "DemoShowcasePlan": _DEMO_SHOWCASE_EXPERIENCE,
+    "GoldenDemoFlow": _DEMO_SHOWCASE_EXPERIENCE,
     "ArtifactDependencyEdge": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyGraph": _ARTIFACT_DEPENDENCY_GRAPH,
     "ArtifactDependencyNode": _ARTIFACT_DEPENDENCY_GRAPH,
@@ -3402,6 +3414,11 @@ _EXPORT_MAP = {
     "production_release_failure_path_audits_for_surface": (
         _PRODUCTION_RELEASE_FAILURE_PATH_AUDIT
     ),
+    "build_demo_showcase_plan": _DEMO_SHOWCASE_EXPERIENCE,
+    "demo_showcase_coverage_by_item": _DEMO_SHOWCASE_EXPERIENCE,
+    "demo_showcase_fallback_by_trigger": _DEMO_SHOWCASE_EXPERIENCE,
+    "demo_showcase_flow_by_id": _DEMO_SHOWCASE_EXPERIENCE,
+    "demo_showcase_prompt_by_id": _DEMO_SHOWCASE_EXPERIENCE,
     "select_execution_strategy": _EXECUTION_STRATEGY_SELECTION,
     "summarize_memory_context": _MEMORY_SUMMARIZATION,
     "sacred_geometry_prompt_lines": _SACRED_GEOMETRY,
