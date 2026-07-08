@@ -57,6 +57,6 @@ and no automatic generated-output scoring are claimed for V8.8.
 ```text
 The evaluation story is intentionally conservative: CCA has retrieval scenario
 coverage, demo asset readiness, manual RAGAs evaluation support, and explicit
-limitations. V8.8 prepares this evidence for a truthful showcase; Grand Review
-will harden it before final release decisions.
+limitations. V8 Grand Engineering Review hardens this evidence before final
+release decisions.
 ```

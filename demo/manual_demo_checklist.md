@@ -5,8 +5,8 @@ showcase session.
 
 ## Preflight
 
-- Confirm branch: `feature/demo-showcase`.
-- Confirm no merge, push, tag, freeze, or V8 Grand Review action is planned.
+- Confirm branch: `version-review/v8` during Grand Review rehearsal.
+- Confirm no merge, push, tag, or freeze action is planned without HITL.
 - Keep `README.md`, `docs/CAPSTONE_DEMO_SHOWCASE.md`, and
   `docs/CAPSTONE_EVALUATION_ETHICS.md` open.
 - Keep `demo/golden_demo_dataset.json` and `demo/demo_prompt_library.md` open.
@@ -49,5 +49,4 @@ If preview is unavailable:
 
 ## HITL Gate
 
-Stop for HITL review before showcase upload, merge, push, tag, freeze, or V8
-Grand Review.
+Stop for HITL review before showcase upload, merge, push, tag, or freeze.

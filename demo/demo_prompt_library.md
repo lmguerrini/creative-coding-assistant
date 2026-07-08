@@ -61,3 +61,61 @@ and next steps.
 ```
 
 Use if live systems are unavailable or timing requires a shorter path.
+
+**p5.js sacred geometry sketch**
+
+```text
+Create a p5.js sketch that turns golden-ratio circles and recursive polygons
+into a calm morphogenetic field. Include source-grounded runtime constraints,
+interaction notes, and a clear line between sacred-geometry inspiration and
+implemented browser code guidance.
+```
+
+Use when the demo needs a simpler canvas-based fallback for p5.js and Sacred
+Geometry.
+
+**Hydra and GLSL feedback texture chain**
+
+```text
+Design a Hydra-style feedback texture chain and a GLSL fragment-shader fallback
+for a luminous kaleidoscopic scene. Explain what is actually supported
+in-browser, what should be treated as pseudocode or adaptation guidance, and
+how to recover if a runtime is unavailable.
+```
+
+Use when asked about Hydra support, shader tradeoffs, or unsupported runtime
+fallbacks.
+
+**Sacred architecture installation brief**
+
+```text
+Translate a basilica axis, mandala grid, and gallery circulation constraint
+into a browser-based installation concept. Include geometry, audience movement,
+preview strategy, and boundaries: no LIDAR, photogrammetry, engineering
+certification, or historical authority claims.
+```
+
+Use for Sacred Architecture, installation planning, and portfolio story
+questions.
+
+**Mythopoetic narrative arc**
+
+```text
+Build a mythopoetic narrative arc for an audiovisual sketch: threshold,
+transformation, return, visual motifs, audio rhythm, and audience explanation.
+Keep it as creative storytelling guidance, not religious, psychological,
+medical, or metaphysical truth.
+```
+
+Use when reviewers ask how the project explains artistic meaning safely.
+
+**HoloGenesis planner bundle**
+
+```text
+Plan a HoloGenesis-style creative project bundle for a browser installation:
+concept, runtimes, retrieval needs, preview plan, artifact package, evaluation
+checks, fallback route, and handoff boundaries. Do not claim HoloMind,
+HOLOiVERSE, external DCC execution, or autonomous delivery.
+```
+
+Use for senior-reviewer questions about system direction and next steps.

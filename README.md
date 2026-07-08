@@ -232,6 +232,11 @@ V8.8 does not add live external DCC/MCP execution, HoloMind, HOLOiVERSE,
 autonomous workflow control, automatic provider failover, live metric
 collection, merge, push, tag, freeze, or Grand Review behavior.
 
+V8 Grand Engineering Review is a separate release-candidate validation program
+on `version-review/v8`. It validates the V8.8 demo evidence, product smoke
+paths, documentation, Capstone alignment, and final freeze readiness while
+keeping merge, push, tag, and freeze actions behind HITL approval.
+
 ## Highlights
 
 - AI-native workstation UX with chat, a compact bottom preview shelf, and

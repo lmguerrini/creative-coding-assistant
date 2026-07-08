@@ -1,7 +1,8 @@
 # Showcase Upload Preparation
 
-This is a preparation checklist only. V8.8 does not upload, publish, merge,
-push, tag, freeze, or start Grand Review.
+This is a preparation checklist only. It does not upload, publish, merge, push,
+tag, or freeze. V8 Grand Review uses this checklist as release-candidate
+evidence on `version-review/v8`.
 
 | Item | Status | Source |
 |---|---|---|
@@ -12,7 +13,7 @@ push, tag, freeze, or start Grand Review.
 | Golden demo dataset | Ready | `demo/golden_demo_dataset.json` |
 | Manual demo checklist | Ready | `demo/manual_demo_checklist.md` |
 | Preview screenshots | Ready | `assets/preview_current.png`, `assets/preview_v1.png`, `assets/preview_v2.png` |
-| Final public claims review | Blocked until HITL | V8.8 HITL review |
+| Final public claims review | In Grand Review | `version-review/v8` |
 | Final demo rehearsal | Manual | Presenter action |
 | Public showcase upload | Blocked until HITL | Showcase gate |
 

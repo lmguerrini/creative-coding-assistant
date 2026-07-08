@@ -661,6 +661,72 @@ def _prompt_library(*, demo_source: ProductionDemoAssetPlan) -> tuple[DemoPrompt
                 "Do not imply the offline flow is live.",
             ),
         ),
+        DemoPromptRecord(
+            prompt_id="p5_sacred_geometry_sketch",
+            title="p5.js sacred geometry sketch",
+            capstone_cases=("case_1_rag_knowledge_assistant", "case_5_ai_coding_assistant"),
+            prompt_text=(
+                "Create a p5.js sketch that turns golden-ratio circles and recursive polygons into a calm "
+                "morphogenetic field. Include source-grounded runtime constraints, interaction notes, and "
+                "a clear line between sacred-geometry inspiration and implemented browser code guidance."
+            ),
+            expected_demo_value="Covers p5.js and Sacred Geometry as a bounded browser creative-coding path.",
+            fallback_notes=("Use this when the primary Three.js path needs a simpler canvas-based fallback.",),
+        ),
+        DemoPromptRecord(
+            prompt_id="hydra_feedback_texture_chain",
+            title="Hydra and GLSL feedback texture chain",
+            capstone_cases=("case_1_rag_knowledge_assistant", "case_5_ai_coding_assistant"),
+            prompt_text=(
+                "Design a Hydra-style feedback texture chain and a GLSL fragment-shader fallback for a luminous "
+                "kaleidoscopic scene. Explain what is actually supported in-browser, what should be treated as "
+                "pseudocode or adaptation guidance, and how to recover if a runtime is unavailable."
+            ),
+            expected_demo_value="Covers Hydra-if-supported and GLSL with explicit runtime fallback boundaries.",
+            fallback_notes=("Use only as bounded runtime guidance if Hydra execution is not available.",),
+        ),
+        DemoPromptRecord(
+            prompt_id="sacred_architecture_installation_brief",
+            title="Sacred architecture installation brief",
+            capstone_cases=("case_1_rag_knowledge_assistant", "case_5_ai_coding_assistant"),
+            prompt_text=(
+                "Translate a basilica axis, mandala grid, and gallery circulation constraint into a browser-based "
+                "installation concept. Include geometry, audience movement, preview strategy, and boundaries: "
+                "no LIDAR, photogrammetry, engineering certification, or historical authority claims."
+            ),
+            expected_demo_value=(
+                "Covers Sacred Architecture as creative installation planning without reconstruction overclaims."
+            ),
+            fallback_notes=("Use for architecture Q&A or portfolio/storytelling review.",),
+        ),
+        DemoPromptRecord(
+            prompt_id="mythopoetic_narrative_arc",
+            title="Mythopoetic narrative arc",
+            capstone_cases=("case_2_bounded_agent_automation", "case_5_ai_coding_assistant"),
+            prompt_text=(
+                "Build a mythopoetic narrative arc for an audiovisual sketch: threshold, transformation, return, "
+                "visual motifs, audio rhythm, and audience explanation. Keep it as creative storytelling guidance, "
+                "not religious, psychological, medical, or metaphysical truth."
+            ),
+            expected_demo_value="Covers Mythopoetic Narrative with explicit ethics and claim boundaries.",
+            fallback_notes=("Use when reviewers ask how the project explains artistic meaning.",),
+        ),
+        DemoPromptRecord(
+            prompt_id="hologenesis_planner_bundle",
+            title="HoloGenesis planner bundle",
+            capstone_cases=(
+                "case_2_bounded_agent_automation",
+                "case_5_ai_coding_assistant",
+                "case_6_advanced_llm_tools",
+            ),
+            prompt_text=(
+                "Plan a HoloGenesis-style creative project bundle for a browser installation: concept, runtimes, "
+                "retrieval needs, preview plan, artifact package, evaluation checks, fallback route, and handoff "
+                "boundaries. Do not claim HoloMind, HOLOiVERSE, external DCC execution, or autonomous delivery."
+            ),
+            expected_demo_value="Covers HoloGenesis Planner as bounded planning metadata and handoff guidance.",
+            fallback_notes=("Use for senior-reviewer questions about system direction and next steps.",),
+        ),
     )
 
 
@@ -730,6 +796,66 @@ def _golden_demo_flows(*, prompts: tuple[DemoPromptRecord, ...]) -> tuple[Golden
             ),
             evidence_refs=("demo/golden_demo_dataset.json", "assets/preview_current.png"),
             fallback_trigger="network_unavailable",
+        ),
+        GoldenDemoFlow(
+            flow_id="p5_sacred_geometry_flow",
+            title="p5.js and Sacred Geometry fallback flow",
+            duration_seconds=120,
+            primary_prompt_id="p5_sacred_geometry_sketch",
+            capstone_cases=("case_1_rag_knowledge_assistant", "case_5_ai_coding_assistant"),
+            operator_steps=(
+                "Switch to a canvas-first p5.js prompt.",
+                "Show how geometric inspiration becomes practical code guidance.",
+                "State that preview/demo assets are fallback evidence, not live generated proof.",
+            ),
+            evidence_refs=("demo/demo_prompt_library.md", "demo/golden_demo_dataset.json"),
+            fallback_trigger="preview_unavailable",
+        ),
+        GoldenDemoFlow(
+            flow_id="hydra_glsl_runtime_flow",
+            title="Hydra-if-supported and GLSL runtime fallback flow",
+            duration_seconds=120,
+            primary_prompt_id="hydra_feedback_texture_chain",
+            capstone_cases=("case_1_rag_knowledge_assistant", "case_5_ai_coding_assistant"),
+            operator_steps=(
+                "Use the runtime prompt to discuss Hydra support honestly.",
+                "Show GLSL as the stable browser-shader fallback.",
+                "Explain unsupported runtime handling without claiming execution.",
+            ),
+            evidence_refs=("demo/demo_prompt_library.md", "docs/eval_pipeline.md"),
+            fallback_trigger="preview_unavailable",
+        ),
+        GoldenDemoFlow(
+            flow_id="architecture_myth_flow",
+            title="Sacred architecture and mythopoetic narrative flow",
+            duration_seconds=150,
+            primary_prompt_id="sacred_architecture_installation_brief",
+            capstone_cases=("case_1_rag_knowledge_assistant", "case_5_ai_coding_assistant"),
+            operator_steps=(
+                "Use the architecture prompt to frame spatial planning.",
+                "Pair it with the mythopoetic prompt for audience explanation.",
+                "Name reconstruction, certification, and cultural-authority boundaries.",
+            ),
+            evidence_refs=("demo/demo_prompt_library.md", "docs/CAPSTONE_EVALUATION_ETHICS.md"),
+            fallback_trigger="time_overrun",
+        ),
+        GoldenDemoFlow(
+            flow_id="hologenesis_planner_flow",
+            title="HoloGenesis planner handoff flow",
+            duration_seconds=180,
+            primary_prompt_id="hologenesis_planner_bundle",
+            capstone_cases=(
+                "case_2_bounded_agent_automation",
+                "case_5_ai_coding_assistant",
+                "case_6_advanced_llm_tools",
+            ),
+            operator_steps=(
+                "Present HoloGenesis as bounded planner metadata.",
+                "Show concept, runtime, retrieval, preview, artifact, evaluation, and fallback handoff points.",
+                "Repeat no HoloMind, HOLOiVERSE, external DCC execution, or autonomous delivery claims.",
+            ),
+            evidence_refs=("README.md", "demo/golden_demo_dataset.json"),
+            fallback_trigger="provider_failure",
         ),
     )
 

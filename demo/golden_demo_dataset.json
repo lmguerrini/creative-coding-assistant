@@ -38,6 +38,34 @@
       "duration_seconds": 30,
       "primary_prompt_id": "offline_showcase_walkthrough",
       "fallback_trigger": "network_unavailable"
+    },
+    {
+      "flow_id": "p5_sacred_geometry_flow",
+      "title": "p5.js and Sacred Geometry fallback flow",
+      "duration_seconds": 120,
+      "primary_prompt_id": "p5_sacred_geometry_sketch",
+      "fallback_trigger": "preview_unavailable"
+    },
+    {
+      "flow_id": "hydra_glsl_runtime_flow",
+      "title": "Hydra-if-supported and GLSL runtime fallback flow",
+      "duration_seconds": 120,
+      "primary_prompt_id": "hydra_feedback_texture_chain",
+      "fallback_trigger": "preview_unavailable"
+    },
+    {
+      "flow_id": "architecture_myth_flow",
+      "title": "Sacred architecture and mythopoetic narrative flow",
+      "duration_seconds": 150,
+      "primary_prompt_id": "sacred_architecture_installation_brief",
+      "fallback_trigger": "time_overrun"
+    },
+    {
+      "flow_id": "hologenesis_planner_flow",
+      "title": "HoloGenesis planner handoff flow",
+      "duration_seconds": 180,
+      "primary_prompt_id": "hologenesis_planner_bundle",
+      "fallback_trigger": "provider_failure"
     }
   ],
   "prompt_library": [
@@ -65,6 +93,31 @@
       "prompt_id": "offline_showcase_walkthrough",
       "title": "Offline showcase walkthrough",
       "prompt_text": "Walk through the prepared Creative Coding Assistant demo offline: problem, solution, data, evaluation, ethical considerations, fallback plan, challenges, and next steps."
+    },
+    {
+      "prompt_id": "p5_sacred_geometry_sketch",
+      "title": "p5.js sacred geometry sketch",
+      "prompt_text": "Create a p5.js sketch that turns golden-ratio circles and recursive polygons into a calm morphogenetic field. Include source-grounded runtime constraints, interaction notes, and a clear line between sacred-geometry inspiration and implemented browser code guidance."
+    },
+    {
+      "prompt_id": "hydra_feedback_texture_chain",
+      "title": "Hydra and GLSL feedback texture chain",
+      "prompt_text": "Design a Hydra-style feedback texture chain and a GLSL fragment-shader fallback for a luminous kaleidoscopic scene. Explain what is actually supported in-browser, what should be treated as pseudocode or adaptation guidance, and how to recover if a runtime is unavailable."
+    },
+    {
+      "prompt_id": "sacred_architecture_installation_brief",
+      "title": "Sacred architecture installation brief",
+      "prompt_text": "Translate a basilica axis, mandala grid, and gallery circulation constraint into a browser-based installation concept. Include geometry, audience movement, preview strategy, and boundaries: no LIDAR, photogrammetry, engineering certification, or historical authority claims."
+    },
+    {
+      "prompt_id": "mythopoetic_narrative_arc",
+      "title": "Mythopoetic narrative arc",
+      "prompt_text": "Build a mythopoetic narrative arc for an audiovisual sketch: threshold, transformation, return, visual motifs, audio rhythm, and audience explanation. Keep it as creative storytelling guidance, not religious, psychological, medical, or metaphysical truth."
+    },
+    {
+      "prompt_id": "hologenesis_planner_bundle",
+      "title": "HoloGenesis planner bundle",
+      "prompt_text": "Plan a HoloGenesis-style creative project bundle for a browser installation: concept, runtimes, retrieval needs, preview plan, artifact package, evaluation checks, fallback route, and handoff boundaries. Do not claim HoloMind, HOLOiVERSE, external DCC execution, or autonomous delivery."
     }
   ],
   "fallback_triggers": [
@@ -89,6 +142,6 @@
     "Provider calls can fail or be slow; use the offline prompt and preview dataset if needed.",
     "RAGAs evaluation is manual and uses recorded sessions; V8.8 does not rerun live evaluation.",
     "Internal preview fallback uses prepared screenshots when live preview is unavailable.",
-    "External DCC/MCP execution, HoloMind, HOLOiVERSE, merge, push, tag, freeze, and Grand Review are out of scope."
+    "External DCC/MCP execution, HoloMind, HOLOiVERSE, merge, push, tag, and freeze are out of scope without HITL. Grand Review uses this dataset as release-candidate evidence."
   ]
 }

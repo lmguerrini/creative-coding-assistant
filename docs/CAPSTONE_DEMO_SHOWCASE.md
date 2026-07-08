@@ -1,8 +1,9 @@
 # Capstone Demo And Showcase Guide
 
 V8.8 prepares Creative Coding Assistant for the final Turing College AI
-Capstone demo and showcase. It is a demo-readiness layer over existing product
-behavior, not a release freeze or Grand Review.
+Capstone demo and showcase. The V8 Grand Engineering Review uses this guide as
+release-candidate evidence on `version-review/v8`; it is still not a release
+freeze.
 
 ## Purpose, Problem, Solution
 
@@ -104,7 +105,7 @@ live provider, retrieval, or preview result.
 
 ## Next Steps
 
-- Complete V8.8 HITL review.
-- Apply scoped fixes if HITL finds claim or reliability issues.
+- Complete V8 Grand Engineering Review validation.
+- Apply scoped fixes for claim, reliability, or demo-readiness issues.
 - Run final demo rehearsal and focused validation.
-- Start V8 Grand Review only after explicit HITL authorization.
+- Stop for HITL before showcase upload, merge, push, tag, or final freeze.

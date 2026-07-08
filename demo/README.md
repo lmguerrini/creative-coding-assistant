@@ -29,4 +29,6 @@ project output narrative.
 - No HoloMind or HOLOiVERSE behavior is claimed.
 - No autonomous agent swarm or unattended workflow control is claimed.
 - Case 2 and Case 3 are guarded support claims only.
-- Merge, push, tag, freeze, and V8 Grand Review are out of scope for V8.8.
+- Merge, push, tag, and freeze remain HITL-blocked.
+- V8 Grand Review is handled separately on `version-review/v8` as a
+  release-candidate validation program.
