@@ -22,8 +22,9 @@ remaining risks below.
   both ran with provider-backed evaluator calls.
 - Golden artifact QA: p5.js, Three.js, GLSL, and Hydra artifacts have syntax
   and browser/runtime QA records.
-- Demo validation: integrated in-app Demo Mode is primary; the static launcher
-  remains fallback/reviewer evidence.
+- Demo validation: integrated in-app Demo Mode is primary, exposes measured
+  full-app smoke metadata where available, and labels unmeasured flows
+  conservatively; the static launcher remains fallback/reviewer evidence.
 - Privacy boundary: raw private live-session rows remain local-only.
 - Deployment boundary: Capstone target is local demo, not public cloud
   deployment.
@@ -36,9 +37,9 @@ remaining risks below.
 | Code Quality | Typed models, focused tests, artifact QA tests, RAGAs foundation tests, and public-claim tests. | Chroma/Pydantic warnings remain third-party dependency noise. |
 | Testing | Backend, frontend, smoke E2E, focused demo, focused RAGAs, and artifact checks. | Live provider/RAGAs tests remain opt-in because they use credentials and may incur cost. |
 | Documentation | README, Capstone demo guide, ethics guide, deployment target, Grand Review, and demo docs. | Documentation is still broad; presenter should use the start-here path. |
-| Demo Reliability | Integrated Demo Mode covers 8 scenarios; fallback launcher and manual checklist exist. | Final spoken rehearsal is still a human activity outside CI. |
+| Demo Reliability | Integrated Demo Mode covers 8 scenarios with timing/token/workflow/provider/retrieval/preview/fallback metadata; fallback launcher and manual checklist exist. | Final spoken rehearsal is still a human activity outside CI. |
 | Capstone Alignment | Cases 1, 2, 3, 5, and 6 are mapped conservatively in demo docs. | Official reviewer preferences may differ from local evidence mapping. |
-| Presentation Readiness | 10-minute demo, 5-minute Q&A, fallback triggers, and reviewer answers are documented. | Delivery quality depends on presenter timing and live environment. |
+| Presentation Readiness | 10-minute demo, 5-minute Q&A, scenario presenter timing, fallback triggers, and reviewer answers are documented. | Delivery quality depends on presenter timing and live environment. |
 | Product Robustness | Local backend/frontend/API smoke, artifact QA, retrieval evidence, and fallback paths are present. | No broad chaos, load, soak, or display-FPS benchmark is claimed. |
 | RAG/Retrieval Quality | Sanitized RAGAs, redacted latest-live RAGAs, retrieval smoke, and source-boundary docs. | Redacted latest-live fixture is p5.js-only and includes one weak faithfulness row. |
 | Output Quality | Golden artifacts render nonblank in the strongest local QA path available for p5.js, Three.js, GLSL, and Hydra. | Runtime QA used temporary dependencies; product preview integration is separate. |
@@ -127,8 +128,9 @@ Internal advisory surfaces used as engineering reviewers:
 
 These surfaces are treated as internal review evidence, not objective truth or
 automatic grading. The practical improvements from this pass were README
-clarity, public/private naming cleanup, prompt quality, RAGAs weak-row
-analysis, and removal of public self-scores.
+clarity, public/private naming cleanup, prompt quality, smoke-derived Demo Mode
+metadata, User/Developer display-mode polish, RAGAs weak-row analysis, and
+removal of public self-scores.
 
 Latest advisory-review run:
 

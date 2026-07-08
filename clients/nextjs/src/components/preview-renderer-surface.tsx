@@ -28,6 +28,7 @@ type PreviewRendererSurfaceProps = {
   route: PreviewRendererRoute;
   runtimeSessionKey: string;
   runtimeSource: PreviewRuntimeSource;
+  showDiagnostics?: boolean;
 };
 
 type PreviewRuntimeCallbackProps = {
@@ -75,7 +76,8 @@ export function PreviewRendererSurface({
   preview,
   route,
   runtimeSessionKey,
-  runtimeSource
+  runtimeSource,
+  showDiagnostics = true
 }: PreviewRendererSurfaceProps) {
   return (
     <section
@@ -110,7 +112,8 @@ export function PreviewRendererSurface({
         preview,
         route,
         runtimeSessionKey,
-        runtimeSource
+        runtimeSource,
+        showDiagnostics
       })}
       {chrome === "default" ? (
         <>
@@ -142,7 +145,8 @@ function renderPreviewSurfaceStage({
   preview,
   route,
   runtimeSessionKey,
-  runtimeSource
+  runtimeSource,
+  showDiagnostics = true
 }: PreviewRendererSurfaceProps) {
   if (route.surfaceKind === "unsupported") {
     return (
@@ -196,6 +200,7 @@ function renderPreviewSurfaceStage({
           preview={preview}
           route={route}
           runtimeSessionKey={runtimeSessionKey}
+          showDiagnostics={showDiagnostics}
           source={runtimeSource}
         />
       );

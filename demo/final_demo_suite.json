@@ -11,6 +11,52 @@
     "artifact_qa": "serve /private/tmp/v8_runtime_qa after npm install p5 three hydra-synth and open /demo/golden_artifacts/browser_full_runtime_qa.html"
   },
   "global_fallback": "Use the integrated Demo Mode prompt list, demo/final_demo_launcher.html, demo/golden_demo_dataset.json, demo/demo_prompt_library.md, assets/preview_current.png, redacted/sanitized RAGAs evidence, and golden artifact QA without implying unavailable live components succeeded.",
+  "full_app_smoke_metadata": {
+    "source_boundary": "Summarized from completed local full-app smoke evidence; raw private live-session rows are not tracked or exported.",
+    "provider_when_measured": "openai / gpt-5-mini-2025-08-07",
+    "measured_scenarios": {
+      "primary_three_creative_coding_demo": {
+        "generation_time": "94.1s",
+        "token_usage": "41,960 total / 4,000 output",
+        "workflow_type": "single-domain generation with retrieval",
+        "retrieval_usage": "3 contexts"
+      },
+      "p5_generative_sketch_demo": {
+        "generation_time": "100.5s",
+        "token_usage": "40,760 total / 4,000 output",
+        "workflow_type": "single-domain generation with retrieval",
+        "retrieval_usage": "5 contexts"
+      },
+      "glsl_shader_post_processing_demo": {
+        "generation_time": "97.5s",
+        "token_usage": "40,348 total / 3,368 output",
+        "workflow_type": "single-domain generation with retrieval",
+        "retrieval_usage": "5 contexts"
+      },
+      "retrieval_rag_grounded_answer_demo": {
+        "generation_time": "76.5s",
+        "token_usage": "40,394 total / 2,813 output",
+        "workflow_type": "hybrid retrieval-grounded generation",
+        "retrieval_usage": "5 contexts"
+      },
+      "concept_to_visual_translation_demo": {
+        "generation_time": "103.4s",
+        "token_usage": "40,381 total / 3,624 output",
+        "workflow_type": "single-domain creative translation with retrieval",
+        "retrieval_usage": "5 contexts"
+      },
+      "geometry_morphogenesis_visual_system_demo": {
+        "generation_time": "97.4s",
+        "token_usage": "40,345 total / 3,128 output",
+        "workflow_type": "multi-domain generation with retrieval",
+        "retrieval_usage": "5 contexts"
+      }
+    },
+    "unmeasured_scenarios": {
+      "hydra_feedback_pattern_demo": "Not live-smoke measured; support is bounded to validated hydra-synth artifact QA.",
+      "installation_immersive_scene_planning_demo": "Not live-smoke measured; planning evidence and fallback docs only."
+    }
+  },
   "demos": [
     {
       "demo_id": "primary_three_creative_coding_demo",

@@ -47,6 +47,7 @@ type PreviewRuntimeStageProps = {
   preview: PreviewSummary;
   route: PreviewRendererRoute;
   runtimeSessionKey: string;
+  showDiagnostics?: boolean;
   source: PreviewRuntimeSource;
 };
 
@@ -59,6 +60,7 @@ export function PreviewRuntimeStage({
   preview,
   route,
   runtimeSessionKey,
+  showDiagnostics = true,
   source
 }: PreviewRuntimeStageProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -226,24 +228,26 @@ export function PreviewRuntimeStage({
           </span>
         </div>
         <span>{status.detail}</span>
-        <div
-          aria-label="Renderer health overlay"
-          className="previewRuntimeMetrics"
-          role="list"
-        >
-          {overlay.metrics.map((metric) => (
-            <div
-              className="previewRuntimeMetric"
-              data-tone={metric.tone}
-              key={metric.id}
-              role="listitem"
-            >
-              <span>{metric.label}</span>
-              <strong>{metric.value}</strong>
-            </div>
-          ))}
-        </div>
-        {overlay.diagnostics.length > 0 ? (
+        {showDiagnostics ? (
+          <div
+            aria-label="Renderer health overlay"
+            className="previewRuntimeMetrics"
+            role="list"
+          >
+            {overlay.metrics.map((metric) => (
+              <div
+                className="previewRuntimeMetric"
+                data-tone={metric.tone}
+                key={metric.id}
+                role="listitem"
+              >
+                <span>{metric.label}</span>
+                <strong>{metric.value}</strong>
+              </div>
+            ))}
+          </div>
+        ) : null}
+        {showDiagnostics && overlay.diagnostics.length > 0 ? (
           <div className="previewRuntimeDiagnostics" aria-label="Runtime notes">
             {overlay.diagnostics.map((diagnostic) => (
               <span key={diagnostic}>{diagnostic}</span>
@@ -271,12 +275,14 @@ export function PreviewRuntimeStage({
           ) : null}
         </div>
       ) : null}
-      <div className="previewRuntimeMeta" aria-label="Preview runtime source">
-        <span>{source.title}</span>
-        <small>
-          {source.lineCount} lines / {source.fingerprint}
-        </small>
-      </div>
+      {showDiagnostics ? (
+        <div className="previewRuntimeMeta" aria-label="Preview runtime source">
+          <span>{source.title}</span>
+          <small>
+            {source.lineCount} lines / {source.fingerprint}
+          </small>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1993,6 +1993,7 @@ export function WorkstationShell({
     setActiveDemoScenarioId(scenario.id);
     setIsDemoModeOpen(true);
     setComposerValue(scenario.prompt);
+    updateWorkspacePreferences({ showDebugPanels: false });
     setOpenUtilityPanel(null);
 
     window.requestAnimationFrame(() => {
@@ -2154,7 +2155,7 @@ export function WorkstationShell({
                 activity: artifactRefinement
                   ? "Refining selected artifact."
                   : "Generating response.",
-                content: streamedAnswer,
+                content: streamingConversationSummary,
                 phase: "streaming"
               });
             });
@@ -2168,7 +2169,7 @@ export function WorkstationShell({
             activity: artifactRefinement
               ? "Refinement completed."
               : "Response completed.",
-            content: streamedAnswer,
+            content: buildAssistantConversationSummary(streamedAnswer),
             phase: "complete"
           });
         }
@@ -2190,7 +2191,9 @@ export function WorkstationShell({
           finalizeStreamingAssistantMessage({
             activity: error.userMessage,
             content: streamedAnswer
-              ? `${streamedAnswer}\n\nLive response error: ${error.userMessage}`
+              ? `${buildAssistantConversationSummary(
+                  streamedAnswer
+                )}\n\nLive response error: ${error.userMessage}`
               : `Live response error: ${error.userMessage}`,
             phase: "error"
           });
@@ -2202,7 +2205,7 @@ export function WorkstationShell({
           activity: artifactRefinement
             ? "Refinement completed."
             : "Response completed.",
-          content: streamedAnswer,
+          content: buildAssistantConversationSummary(streamedAnswer),
           phase: "complete"
         });
       } else if (streamingAssistantIdRef.current) {
@@ -2628,6 +2631,25 @@ export function WorkstationShell({
             <span>Demo Mode</span>
           </button>
           <button
+            aria-label="Display mode"
+            aria-pressed={workspacePreferences.showDebugPanels}
+            className="toolbarToggle"
+            onClick={() =>
+              updateWorkspacePreferences({
+                showDebugPanels: !workspacePreferences.showDebugPanels
+              })
+            }
+            title={
+              workspacePreferences.showDebugPanels
+                ? "Switch to User Mode"
+                : "Switch to Developer Mode"
+            }
+            type="button"
+          >
+            <Braces size={16} />
+            <span>{workspacePreferences.showDebugPanels ? "Developer" : "User"}</span>
+          </button>
+          <button
             aria-label="Focus mode"
             aria-pressed={isFocusMode}
             className="toolbarToggle"
@@ -2972,6 +2994,7 @@ export function WorkstationShell({
               runtimeSessionKey={previewRuntimeSessionKey}
               runtimeSource={previewRuntimeSource}
               resizing={activeResizeTarget === "preview"}
+              showDebugPanels={workspacePreferences.showDebugPanels}
               snapshot={interactiveSnapshot}
             />
           ) : null}
@@ -3119,6 +3142,7 @@ type PreviewShelfProps = WorkstationShellProps & {
   runtimeSessionKey: string;
   runtimeSource: ReturnType<typeof buildPreviewRuntimeSource>;
   resizing: boolean;
+  showDebugPanels: boolean;
 };
 
 function ImageReferenceShelf({
@@ -3278,6 +3302,21 @@ function DemoModePanel({
   onLoadScenario: (scenario: DemoModeScenario) => void;
   scenarios: readonly DemoModeScenario[];
 }) {
+  const scenarioFacts = [
+    ["Generation", activeScenario.estimatedGenerationTime],
+    ["Tokens", activeScenario.estimatedTokenUsage],
+    ["Workflow", activeScenario.workflowType],
+    ["Provider", activeScenario.providerRequirement],
+    ["Retrieval", activeScenario.retrievalRequirement],
+    ["Preview", activeScenario.previewAvailability],
+    ["Fallback", activeScenario.fallbackAvailability],
+    ["Expected output", activeScenario.expectedOutput],
+    ["Complexity", activeScenario.complexity],
+    ["Demo pick", activeScenario.recommendedForDemo],
+    ["Presenter time", activeScenario.presentationTime],
+    ["Talking point", activeScenario.talkingPoint]
+  ] as const;
+
   return (
     <section
       aria-label="Demo Mode"
@@ -3316,7 +3355,7 @@ function DemoModePanel({
               >
                 <span>{scenario.runtime}</span>
                 <strong>{scenario.title}</strong>
-                <small>{scenario.category}</small>
+                <small>{`${scenario.category} / ${scenario.recommendedForDemo}`}</small>
                 {isActive ? <ChevronDown size={14} aria-hidden="true" /> : null}
               </button>
             );
@@ -3341,6 +3380,17 @@ function DemoModePanel({
               <span>{isPromptLoaded ? "Prompt loaded" : "Load prompt"}</span>
             </button>
           </header>
+
+          <p className="demoScenarioDescription">{activeScenario.description}</p>
+
+          <dl className="demoScenarioQuickFacts">
+            {scenarioFacts.map(([label, value]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
 
           <p className="demoPromptPreview">{activeScenario.prompt}</p>
 
@@ -3399,6 +3449,7 @@ function PreviewShelf({
   runtimeSessionKey,
   runtimeSource,
   resizing,
+  showDebugPanels,
   snapshot
 }: PreviewShelfProps) {
   function handleSummaryClick(event: MouseEvent<HTMLElement>) {
@@ -3450,7 +3501,11 @@ function PreviewShelf({
             <div className="previewToolbarFocus" aria-label="Focused preview context">
               <span>{route.surfaceEyebrow}</span>
               <strong>{route.surfaceTitle}</strong>
-              <small>{`${snapshot.preview.status} / ${route.rendererLabel}`}</small>
+              <small>
+                {showDebugPanels
+                  ? `${snapshot.preview.status} / ${route.rendererLabel}`
+                  : snapshot.preview.status}
+              </small>
             </div>
             <div className="previewToolbarActions" aria-label="Preview controls">
               <button
@@ -3545,6 +3600,7 @@ function PreviewShelf({
               route={route}
               runtimeSessionKey={runtimeSessionKey}
               runtimeSource={runtimeSource}
+              showDiagnostics={showDebugPanels}
             />
           </div>
         </div>
@@ -5341,11 +5397,11 @@ function WorkspaceSettingsPanel({
       <div className="settingsSection">
         <div className="settingsToggle">
           <div>
-            <strong>Advanced traces</strong>
-            <p>Show or hide workflow transition and event trace panels in the inspector.</p>
+            <strong>Display mode</strong>
+            <p>User Mode keeps the workspace quiet; Developer Mode exposes traces.</p>
           </div>
           <button
-            aria-label="Advanced traces"
+            aria-label="Display mode"
             aria-pressed={preferences.showDebugPanels}
             data-active={preferences.showDebugPanels}
             onClick={() =>
@@ -5355,7 +5411,7 @@ function WorkspaceSettingsPanel({
             }
             type="button"
           >
-            {preferences.showDebugPanels ? "Visible" : "Hidden"}
+            {preferences.showDebugPanels ? "Developer" : "User"}
           </button>
         </div>
       </div>
@@ -6491,6 +6547,54 @@ function formatMessageTime() {
     hour12: false,
     minute: "2-digit"
   }).format(new Date());
+}
+
+const streamingConversationSummary =
+  "Generating response. Code and long-form output will appear in the Code panel, artifacts, and preview surfaces when the run completes.";
+
+const generatedCodePattern =
+  /```|<!doctype|<html|<script|function\s+(setup|draw)\s*\(|import\s+\*\s+as\s+THREE|gl_FragColor|void\s+main\s*\(/i;
+
+function buildAssistantConversationSummary(answer: string) {
+  const trimmedAnswer = answer.trim();
+
+  if (!trimmedAnswer) {
+    return "Response completed. Check Code, Preview, and Retrieval for output details.";
+  }
+
+  const lineCount = trimmedAnswer.split(/\r?\n/).length;
+  const shouldSummarize =
+    generatedCodePattern.test(trimmedAnswer) ||
+    trimmedAnswer.length > 900 ||
+    lineCount > 14;
+
+  if (!shouldSummarize) {
+    return trimmedAnswer;
+  }
+
+  const textOnly = trimmedAnswer
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ");
+  const summary =
+    textOnly
+      .split(/\r?\n+/)
+      .map((line) => line.replace(/\s+/g, " ").trim())
+      .find((line) => line.length > 0 && !/^file(name)?:/i.test(line)) ??
+    "The assistant generated a reviewable creative-coding output.";
+
+  return `${truncateConversationSummary(
+    summary,
+    240
+  )}\n\nCode and long-form output are available in the Code panel, artifacts, and preview surfaces. Next: inspect Preview, Code, and Retrieval evidence.`;
+}
+
+function truncateConversationSummary(value: string, maxLength: number) {
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, Math.max(0, maxLength - 1)).trim()}...`;
 }
 
 function buildLocalDraftReply(prompt: string, artifactTitle: string) {

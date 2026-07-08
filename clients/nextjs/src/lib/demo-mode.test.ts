@@ -24,8 +24,21 @@ describe("demo mode scenarios", () => {
     const appFacingText = demoModeScenarios
       .flatMap((scenario) => [
         scenario.title,
+        scenario.description,
         scenario.category,
         scenario.prompt,
+        scenario.estimatedGenerationTime,
+        scenario.estimatedTokenUsage,
+        scenario.workflowType,
+        scenario.providerRequirement,
+        scenario.retrievalRequirement,
+        scenario.previewAvailability,
+        scenario.fallbackAvailability,
+        scenario.expectedOutput,
+        scenario.complexity,
+        scenario.recommendedForDemo,
+        scenario.presentationTime,
+        scenario.talkingPoint,
         scenario.expectedBehavior,
         scenario.fallback,
         scenario.outputGuidance,
@@ -38,6 +51,35 @@ describe("demo mode scenarios", () => {
     expect(appFacingText).not.toMatch(/HoloGenesis/i);
     expect(appFacingText).not.toMatch(/\bsacred\b/i);
     expect(appFacingText).not.toMatch(/\bsymbolic\b/i);
+  });
+
+  it("exposes reviewer-ready metadata for every scenario", () => {
+    for (const scenario of demoModeScenarios) {
+      expect(scenario.description).toBeTruthy();
+      expect(scenario.estimatedGenerationTime).toBeTruthy();
+      expect(scenario.estimatedTokenUsage).toBeTruthy();
+      expect(scenario.workflowType).toBeTruthy();
+      expect(scenario.providerRequirement).toBeTruthy();
+      expect(scenario.retrievalRequirement).toBeTruthy();
+      expect(scenario.previewAvailability).toBeTruthy();
+      expect(scenario.fallbackAvailability).toBeTruthy();
+      expect(scenario.expectedOutput).toBeTruthy();
+      expect(scenario.complexity).toBeTruthy();
+      expect(scenario.recommendedForDemo).toBeTruthy();
+      expect(scenario.presentationTime).toBeTruthy();
+      expect(scenario.talkingPoint).toBeTruthy();
+    }
+
+    expect(
+      demoModeScenarios.find(
+        (scenario) => scenario.id === "three-audio-reactive-visual-system"
+      )?.estimatedGenerationTime
+    ).toBe("94.1s measured full-app smoke");
+    expect(
+      demoModeScenarios.find(
+        (scenario) => scenario.id === "hydra-feedback-pattern-demo"
+      )?.estimatedGenerationTime
+    ).toBe("Not live-smoke measured; artifact QA only");
   });
 
   it("defaults to the Three.js scenario for presenter startup", () => {

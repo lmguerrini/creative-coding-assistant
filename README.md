@@ -165,6 +165,10 @@ then send the prompt through the standard workflow or use the documented
 fallback evidence if a provider, retrieval, frontend, backend, or preview path
 fails.
 
+Scenario cards show measured full-app smoke timing and token usage when those
+rows exist. Artifact-only or planning-only flows are labeled as unmeasured
+rather than estimated.
+
 Hydra support is limited to the validated local `hydra-synth` browser artifact
 path recorded in `demo/golden_artifacts/browser_full_runtime_qa_results.json`.
 

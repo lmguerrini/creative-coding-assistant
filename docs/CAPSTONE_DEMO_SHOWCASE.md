@@ -53,6 +53,22 @@ Primary path:
 | Evaluation and ethics | 1:30 | RAGAs workflow, source grounding, limitations, and evidence boundaries. |
 | Challenges and next steps | 1:30 | Demo reliability, fallback mode, Grand Review, post-capstone hardening. |
 
+In-app Demo Mode scenario cards show measured full-app smoke timing and token
+usage when available, plus workflow type, provider/retrieval needs, preview
+availability, fallback path, expected output, complexity, presenter time, and
+talking point. Hydra and installation-planning flows are labeled as unmeasured
+instead of estimated.
+
+Recommended live sequence:
+
+| Scenario | Presenter time | Use |
+|---|---:|---|
+| Three.js audio-reactive visual system | 90-120s | Primary visual impact and browser-audio boundary. |
+| p5.js generative morphogenesis sketch | 90-120s | Creative quality and computational growth vocabulary. |
+| Retrieval-grounded creative-coding answer | 60-90s | Source grounding, RAGAs, and privacy-safe evidence. |
+| GLSL shader / post-processing visual | 60-90s | WebGL technical proof and nonblank render evidence. |
+| Concept-to-visual translation or geometry/morphogenesis | 60-90s | Choose based on reviewer interest and remaining time. |
+
 ## 5-Minute Q&A Prep
 
 Likely questions:

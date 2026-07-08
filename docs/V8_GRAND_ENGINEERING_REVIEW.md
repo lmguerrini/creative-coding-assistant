@@ -42,6 +42,15 @@ Validation:
   Capstone presenter can choose curated scenarios, load prompts into the normal
   assistant composer, and keep expected behavior, fallback, evidence, source
   boundaries, and output guidance in the workstation.
+- Polished Demo Mode with smoke-derived generation timing, token usage,
+  workflow type, provider/retrieval requirements, preview/fallback status,
+  expected output, complexity, presenter timing, and talking points. Flows
+  without measured full-app smoke rows are explicitly labeled as unmeasured.
+- Added User/Developer display-mode controls so Demo Mode starts quietly for
+  reviewers while runtime traces, renderer details, and LangSmith/developer
+  evidence remain available behind Developer Mode.
+- Kept the main conversation concise by summarizing long generated outputs and
+  directing generated code to Code, artifact, and preview surfaces.
 - Preserved unsupported-runtime boundaries for live external DCC/MCP
   execution, autonomous delivery, certification, public cloud deployment, and
   metaphysical or medical truth claims.
@@ -60,12 +69,24 @@ Backend:
 Frontend:
 
 - `npm run typecheck` passed.
-- `npm run test` passed: 59 files, 395 tests.
+- `npm run test` passed: 59 files, 398 tests.
 - `npm run build` passed after local `node_modules` dependency repair without
   package metadata changes; webpack cache snapshot warnings were non-blocking.
 - `npm run test:e2e:smoke` passed: 3 tests, including integrated Demo
   Mode scenario selection and prompt prefill.
 - Previous full `npm run test:e2e` evidence remains available: 5 tests.
+
+LangSmith:
+
+- Current local config audit: tracing disabled, reason `tracing_disabled`,
+  project `creative-coding-assistant`, and no LangSmith API key loaded.
+- Focused LangSmith observability tests passed: `tests/test_langsmith_observability.py`
+  collected 5 tests and passed all 5, with the existing Chroma deprecation
+  warning.
+- External LangSmith trace visibility is not claimed for this environment. To
+  enable it, set `LANGSMITH_TRACING=true`, `LANGSMITH_API_KEY`, and optionally
+  `LANGSMITH_PROJECT` and `LANGSMITH_ENDPOINT`, then rerun a representative
+  Demo Mode workflow or RAGAs evaluation and verify the trace in LangSmith.
 
 Product smoke:
 
@@ -143,6 +164,9 @@ Evaluation:
   public deployment, or broad product-preview-runtime benchmark is claimed.
 - Integrated Demo Mode is now the primary local demo path inside Creative
   Coding Assistant. The static launcher remains fallback/reviewer evidence.
+- The integrated Demo Mode now exposes measured full-app smoke metadata for the
+  six measured core flows and labels Hydra and installation planning as
+  artifact-QA/planning evidence rather than invented timing estimates.
 - One-click local launcher validation passed for
   `demo/final_demo_launcher.html`: the page loaded from the local static QA
   server, rendered all 8 demo flows from `demo/final_demo_suite.json`, loaded

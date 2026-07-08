@@ -980,6 +980,7 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("complementary", { name: "Right inspector" })).toBeVisible();
     expect(screen.getByRole("tablist", { name: "Inspector tabs" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Focus mode" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Display mode" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Workspace density" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Command menu" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Theme" })).toBeVisible();
@@ -1011,6 +1012,14 @@ describe("WorkstationShell", () => {
     expect(
       within(demoMode).getByRole("button", { name: /Prompt loaded/ })
     ).toBeVisible();
+    expect(within(demoMode).getByText("100.5s measured full-app smoke")).toBeVisible();
+    expect(
+      within(demoMode).getByText("40,760 total / 4,000 output tokens")
+    ).toBeVisible();
+    expect(within(demoMode).getByText("Primary creative-quality proof")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
+      "User"
+    );
     const composer = screen.getByRole("textbox", {
       name: "Assistant prompt"
     }) as HTMLTextAreaElement;
@@ -2412,7 +2421,11 @@ describe("WorkstationShell", () => {
       await Promise.resolve();
     });
 
-    expect(screen.getByText("Live draft")).toBeVisible();
+    expect(
+      screen.getByText(
+        "Generating response. Code and long-form output will appear in the Code panel, artifacts, and preview surfaces when the run completes."
+      )
+    ).toBeVisible();
     expect(screen.getByText("Generating response")).toBeVisible();
     expect(screen.getAllByText("Live").length).toBeGreaterThan(0);
 
@@ -2423,6 +2436,45 @@ describe("WorkstationShell", () => {
       "aria-busy",
       "false"
     );
+  });
+
+  it("keeps generated code out of the conversation summary", async () => {
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "final",
+          sequence: 0,
+          payload: {
+            answer: [
+              "Here is a browser-ready p5 sketch.",
+              "",
+              "```js",
+              "function setup() {",
+              "  createCanvas(640, 360);",
+              "}",
+              "function draw() {",
+              "  background(12);",
+              "}",
+              "```"
+            ].join("\n")
+          }
+        }
+      ])
+    );
+
+    renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Generate a p5 sketch." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    const conversation = screen.getByRole("log", { name: "Conversation" });
+
+    expect(
+      await within(conversation).findByText(/Code and long-form output are available/)
+    ).toBeVisible();
+    expect(within(conversation).queryByText(/function draw/)).not.toBeInTheDocument();
   });
 
   it("applies theme and settings preferences and persists them", async () => {
@@ -2442,8 +2494,9 @@ describe("WorkstationShell", () => {
     expect(document.documentElement).toHaveAttribute("data-cca-theme", "blueprint");
 
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    const settingsPanel = screen.getByRole("dialog", { name: "Workspace settings" });
     fireEvent.click(screen.getByRole("button", { name: "Preview auto-open" }));
-    fireEvent.click(screen.getByRole("button", { name: "Advanced traces" }));
+    fireEvent.click(within(settingsPanel).getByRole("button", { name: "Display mode" }));
 
     await waitFor(() => {
       expect(persistenceClient.save).toHaveBeenLastCalledWith(
@@ -2522,8 +2575,9 @@ describe("WorkstationShell", () => {
     renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
 
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
-    fireEvent.click(screen.getByRole("button", { name: "Advanced traces" }));
-    fireEvent.click(screen.getByRole("button", { name: "Preview auto-open" }));
+    const settingsPanel = screen.getByRole("dialog", { name: "Workspace settings" });
+    fireEvent.click(within(settingsPanel).getByRole("button", { name: "Display mode" }));
+    fireEvent.click(within(settingsPanel).getByRole("button", { name: "Preview auto-open" }));
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
 
@@ -2545,7 +2599,13 @@ describe("WorkstationShell", () => {
     expect(await screen.findByText("Preview left closed.")).toBeVisible();
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
-    expect(within(preview).getByText("Ready when opened")).toBeVisible();
+    expect(within(preview).getAllByText("Ready when opened").length).toBeGreaterThan(0);
+    expect(
+      within(preview).queryByRole("list", { name: "Renderer health overlay" })
+    ).not.toBeInTheDocument();
+    expect(
+      within(preview).queryByLabelText("Preview runtime source")
+    ).not.toBeInTheDocument();
     expect(
       within(preview).getByText("aurora-field.p5.js", { selector: "summary span" })
     ).toBeVisible();
@@ -5136,7 +5196,9 @@ describe("WorkstationShell", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
 
-    expect(await screen.findByText(/refined/)).toBeVisible();
+    expect(
+      await screen.findByText(/Code and long-form output are available/)
+    ).toBeVisible();
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
 

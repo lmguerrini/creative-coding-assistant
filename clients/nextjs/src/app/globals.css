@@ -1291,6 +1291,14 @@ a {
   white-space: nowrap;
 }
 
+.demoScenarioDescription {
+  max-width: 74ch;
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .demoModeBody {
   display: grid;
   grid-template-columns: minmax(220px, 0.52fr) minmax(0, 1fr);
@@ -1388,6 +1396,42 @@ a {
   letter-spacing: 0.05em;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+.demoScenarioQuickFacts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.demoScenarioQuickFacts div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.demoScenarioQuickFacts dt {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.demoScenarioQuickFacts dd {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .demoPromptPreview {
@@ -10451,6 +10495,7 @@ html[data-cca-theme="blueprint"] .codeViewer {
   }
 
   .demoModeBody,
+  .demoScenarioQuickFacts,
   .demoScenarioMeta {
     grid-template-columns: minmax(0, 1fr);
   }
