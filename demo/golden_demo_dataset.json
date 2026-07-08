@@ -134,13 +134,15 @@
     "README.md",
     "docs/CAPSTONE_DEMO_SHOWCASE.md",
     "docs/CAPSTONE_EVALUATION_ETHICS.md",
+    "demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl",
+    "demo/golden_artifacts/qa_manifest.json",
     "demo/demo_prompt_library.md",
     "demo/manual_demo_checklist.md",
     "demo/showcase_upload_preparation.md"
   ],
   "known_limitations": [
     "Provider calls can fail or be slow; use the offline prompt and preview dataset if needed.",
-    "RAGAs evaluation is manual and uses recorded sessions; V8.8 does not rerun live evaluation.",
+    "Sanitized RAGAs evaluation has been run for release-candidate evidence; private recorded-session RAGAs remains HITL/privacy-gated.",
     "Internal preview fallback uses prepared screenshots when live preview is unavailable.",
     "External DCC/MCP execution, HoloMind, HOLOiVERSE, merge, push, tag, and freeze are out of scope without HITL. Grand Review uses this dataset as release-candidate evidence."
   ]

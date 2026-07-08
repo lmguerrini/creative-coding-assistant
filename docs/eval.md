@@ -21,6 +21,10 @@ Running RAGAs may call evaluator LLM APIs and can incur provider cost. Keep
 `OPENAI_API_KEY` or the evaluator provider configuration available when the
 selected RAGAs metrics require it.
 
+Recorded live-session rows under `data/eval/` are private local runtime
+artifacts. Do not send them to an external evaluator without HITL/privacy
+approval.
+
 ## Examples
 
 Run a low-cost smoke evaluation over the first eligible sample:
@@ -38,6 +42,20 @@ Run selected metrics explicitly:
   --metric faithfulness
 ```
 
+Run the V8 release-candidate sanitized fixture:
+
+```bash
+.venv/bin/python scripts/eval_live_sessions.py \
+  --input-path demo/evaluation/sanitized_ragas_live_sessions.jsonl \
+  --output-path demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl \
+  --metric context_precision \
+  --allow-provider-calls
+```
+
+That fixture is synthetic and public/reviewer-safe. The 2026-07-08 run scored
+4 of 4 eligible rows with zero skips, zero metric failures, and average context
+precision `0.999999999925`.
+
 ## Behavior
 
 The runner evaluates only recorded live samples that include:
@@ -46,8 +64,9 @@ The runner evaluates only recorded live samples that include:
 - answer
 - retrieved contexts
 
-Samples without retrieved contexts are skipped. No synthetic samples or
-automatic ground truth are generated.
+Samples without retrieved contexts are skipped. The runner does not generate
+synthetic samples or automatic ground truth; any sanitized fixture must be
+created and reviewed separately before use.
 
 By default, the CLI runs only the safer smoke metric:
 
@@ -77,3 +96,6 @@ Optional environment variables:
 - `CCA_EVAL_RAGAS_MAX_WORKERS`
 
 Runtime result files under `data/eval/` remain local and ignored by git.
+Public sanitized result files under `demo/evaluation/` may be tracked when they
+contain no private session text, workspace paths, secrets, or local Chroma
+content.

@@ -1,0 +1,53 @@
+{
+  "schema_version": "v8.golden_artifact_qa.v1",
+  "date": "2026-07-08",
+  "branch": "version-review/v8",
+  "artifacts": [
+    {
+      "artifact_id": "p5_sacred_geometry_sketch",
+      "path": "demo/golden_artifacts/p5_sacred_geometry_sketch.js",
+      "runtime": "p5.js",
+      "qa_status": "generated_static_qa_passed",
+      "syntax_check": "node --check",
+      "creative_quality": 96,
+      "output_quality": 96,
+      "boundary": "Aesthetic/symbolic composition only; no metaphysical, medical, religious, historical, or certification authority claim."
+    },
+    {
+      "artifact_id": "three_audio_reactive_scene",
+      "path": "demo/golden_artifacts/three_audio_reactive_scene.js",
+      "runtime": "Three.js",
+      "qa_status": "generated_static_qa_passed",
+      "syntax_check": "node --check",
+      "creative_quality": 96,
+      "output_quality": 95,
+      "boundary": "Browser module requires caller-provided THREE, canvas, and optional audio element; no DCC/MCP execution claim."
+    },
+    {
+      "artifact_id": "glsl_kaleidoscope_field",
+      "path": "demo/golden_artifacts/glsl_kaleidoscope_field.frag",
+      "runtime": "GLSL",
+      "qa_status": "generated_static_qa_passed",
+      "syntax_check": "static shader structure check",
+      "creative_quality": 95,
+      "output_quality": 94,
+      "boundary": "Fragment shader code only; host integration must provide uniforms and preview runtime."
+    },
+    {
+      "artifact_id": "hydra",
+      "path": null,
+      "runtime": "Hydra",
+      "qa_status": "not_generated",
+      "syntax_check": "not_applicable",
+      "creative_quality": null,
+      "output_quality": null,
+      "boundary": "Hydra remains guidance-only because V8 has not validated a live executable Hydra preview path."
+    }
+  ],
+  "claim_boundaries": [
+    "No HoloMind implementation claim.",
+    "No HOLOiVERSE implementation claim.",
+    "No live external DCC/MCP execution claim.",
+    "No unsupported Hydra live-runtime claim."
+  ]
+}

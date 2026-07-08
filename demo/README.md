@@ -12,8 +12,11 @@ Use demo mode as a manual operating posture:
 1. Start from `docs/CAPSTONE_DEMO_SHOWCASE.md`.
 2. Keep `demo/demo_prompt_library.md` open.
 3. Use `demo/golden_demo_dataset.json` for rehearsal and offline fallback.
-4. Keep `assets/preview_current.png` ready if live preview is unavailable.
-5. Use `docs/CAPSTONE_EVALUATION_ETHICS.md` for evaluation and ethics answers.
+4. Keep `demo/golden_artifacts/` ready as generated p5.js, Three.js, and GLSL
+   artifact evidence.
+5. Keep `demo/evaluation/` ready as the sanitized RAGAs evidence path.
+6. Keep `assets/preview_current.png` ready if live preview is unavailable.
+7. Use `docs/CAPSTONE_EVALUATION_ETHICS.md` for evaluation and ethics answers.
 
 ## Golden Flow
 
@@ -32,3 +35,5 @@ project output narrative.
 - Merge, push, tag, and freeze remain HITL-blocked.
 - V8 Grand Review is handled separately on `version-review/v8` as a
   release-candidate validation program.
+- Hydra is guidance-only unless a live execution path is installed, wired, and
+  QA tested.

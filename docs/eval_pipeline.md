@@ -16,6 +16,12 @@ is append-only. `--limit` walks oldest-first and can easily evaluate stale
 samples from before a KB sync, source change, or retrieval fix. `--latest`
 keeps the evaluation focused on the most recent live app behavior.
 
+For release-candidate evidence that can be sent to an external evaluator
+without exposing private sessions, use the sanitized fixture in
+`demo/evaluation/`. That path is separate from private live-session evaluation
+and should not be treated as proof that every private recorded session has the
+same score.
+
 ## Standard Workflow
 
 1. Add or refine KB sources when retrieval is weak for a domain.
@@ -77,6 +83,20 @@ Example:
   --latest 4 \
   --metric context_precision
 ```
+
+Privacy-approved sanitized fixture example:
+
+```bash
+.venv/bin/python scripts/eval_live_sessions.py \
+  --input-path demo/evaluation/sanitized_ragas_live_sessions.jsonl \
+  --output-path demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl \
+  --metric context_precision \
+  --allow-provider-calls
+```
+
+The 2026-07-08 sanitized release-candidate run produced 4 result rows, 0
+skipped rows, 0 metric failures, and average context precision
+`0.999999999925`.
 
 ### Step 5: Inspect Scores and Sources
 

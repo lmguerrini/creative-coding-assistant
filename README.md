@@ -204,6 +204,34 @@ turn expressive audiovisual intent into grounded browser creative-coding
 guidance, with retrieval support, workflow orchestration, preview surfaces, and
 manual evaluation evidence.
 
+## Capstone Evaluator — Start Here
+
+For a reviewer or evaluator, use this shortest evidence path:
+
+1. Read `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md` for the current release
+   candidate scorecard, exact evidence, conservative limitations, and remaining
+   risks.
+2. Read `docs/CAPSTONE_DEMO_SHOWCASE.md` for the 10-minute demo, 5-minute Q&A,
+   fallback path, SCR framing, and SMART framing.
+3. Review `docs/CAPSTONE_EVALUATION_ETHICS.md` for evaluation metrics, RAGAs
+   boundaries, source grounding, privacy, and ethics.
+4. Inspect `demo/golden_artifacts/` for generated p5.js, Three.js, and GLSL
+   artifacts plus static QA evidence. Hydra is intentionally guidance-only
+   until a live execution path is installed, wired, and tested.
+5. Inspect `demo/evaluation/` for the sanitized, privacy-approved RAGAs fixture
+   and result rows. Private live-session data under `data/eval/` remains local
+   and requires separate HITL/privacy approval before external scoring.
+
+Minimum reviewer setup path:
+
+```bash
+.venv/bin/python --version
+.venv/bin/pytest tests/test_golden_artifacts.py tests/test_ragas_live_eval_foundation.py tests/test_demo_showcase_experience.py tests/test_retrieval_demo_pack.py
+cd clients/nextjs
+npm run typecheck
+npm run test
+```
+
 Primary Capstone alignment:
 
 - Case 5: AI coding assistant for creative coding
@@ -222,11 +250,16 @@ Demo materials:
 
 - `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md` for the detailed engineering,
   reviewer, golden demo, and production readiness scorecard
+- `docs/PUBLIC_DOCUMENTATION_BOUNDARY_AUDIT.md` for the public/private
+  documentation classification over `docs/` and `demo/`
 - `docs/CAPSTONE_DEMO_SHOWCASE.md` for the 10-minute demo and 5-minute Q&A
 - `docs/CAPSTONE_EVALUATION_ETHICS.md` for metrics, evidence, ethics, and
   limitations
 - `demo/demo_prompt_library.md` for golden prompts
 - `demo/golden_demo_dataset.json` for rehearsal and offline fallback
+- `demo/golden_artifacts/` for generated and QA-checked p5.js, Three.js, and
+  GLSL public artifacts
+- `demo/evaluation/` for sanitized RAGAs fixture/result evidence
 - `demo/manual_demo_checklist.md` for reliability validation
 - `demo/showcase_upload_preparation.md` for showcase packaging
 
@@ -1516,7 +1549,8 @@ invoke agents, mutate storage, execute artifacts, or mutate generated output.
 - Three.js live runtime
 - React Three Fiber live runtime
 - GLSL live runtime
-- Hydra live runtime
+- Hydra guidance/fallback only until a live execution path is installed, wired,
+  and QA tested
 - Tone.js live runtime
 - GSAP live runtime
 - SVG live runtime
@@ -2095,6 +2129,21 @@ Or use the helper:
 ```bash
 scripts/run_eval_latest.sh 4
 ```
+
+Privacy-approved release-candidate RAGAs fixture:
+
+```bash
+.venv/bin/python scripts/eval_live_sessions.py \
+  --input-path demo/evaluation/sanitized_ragas_live_sessions.jsonl \
+  --output-path demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl \
+  --metric context_precision \
+  --allow-provider-calls
+```
+
+Only the sanitized fixture above is approved for external evaluator provider
+calls in this release-candidate evidence set. Recorded live-session data in
+`data/eval/` remains local/private unless a separate HITL privacy decision
+approves external scoring.
 
 ## Validation
 

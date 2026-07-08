@@ -50,7 +50,7 @@ Backend:
 - `.venv/bin/python -m compileall -q src tests scripts clients/streamlit` passed.
 - `.venv/bin/pytest` passed: 2604 tests, 1 warning.
 - Focused post-fix demo/readiness tests passed: 20 tests, 1 warning.
-- Focused Chroma and retrieval stabilization tests passed: 52 tests, 266
+- Focused Chroma and retrieval warning check passed: 42 tests, 266
   warnings from Chroma telemetry and Pydantic deprecations.
 
 Frontend:
@@ -78,6 +78,15 @@ Evaluation:
 - Capstone retrieval smoke passed against local Chroma with OpenAI query
   embeddings over committed demo scenario queries: 7 of 7 scenarios returned
   results, with 9 expected-source overlaps.
+- Privacy-approved sanitized RAGAs execution passed against
+  `demo/evaluation/sanitized_ragas_live_sessions.jsonl`: 4 total samples,
+  4 eligible samples, 0 skipped samples, metric `context_precision`,
+  provider calls explicitly allowed for synthetic/public fixture content, and
+  0 metric failures.
+- Exact sanitized RAGAs context precision values:
+  `0.9999999999`, `0.9999999999`, `0.99999999995`, and `0.99999999995`;
+  average `0.999999999925`, minimum `0.9999999999`, maximum
+  `0.99999999995`.
 - Latest RAGAs dry-run regeneration passed for
   `data/eval/live_sessions.jsonl`: 60 total samples, 1 latest eligible sample,
   59 skipped by selection/eligibility, metric `context_precision`, and no
@@ -88,12 +97,19 @@ Evaluation:
 - Secret-pattern scan over `data/eval` found no obvious API key, bearer token,
   password, or cloud credential patterns.
 - Live RAGAs evaluator execution was not rerun because it would send recorded
-  local sample text and retrieved contexts to an external provider. That remains
-  a privacy/HITL boundary rather than a technical failure.
+  local sample text and retrieved contexts to an external provider. That
+  private-data path remains a privacy/HITL boundary rather than a technical
+  failure; the sanitized public fixture path above was run successfully.
 - Existing completed local RAGAs evidence remains available:
   `ragas_latest2_after_kb_quality.jsonl` scored 2 rows with average context
   precision 0.8604; `ragas_latest4_context_precision_after_glsl_fix.jsonl`
   scored 4 rows with average context precision 0.5986.
+- Generated golden artifacts were added and QA checked:
+  `demo/golden_artifacts/p5_sacred_geometry_sketch.js` and
+  `demo/golden_artifacts/three_audio_reactive_scene.js` pass `node --check`;
+  `demo/golden_artifacts/glsl_kaleidoscope_field.frag` passes static fragment
+  shader structure checks. Hydra was intentionally not generated because a live
+  Hydra execution path has not been installed, wired, and tested.
 
 Security:
 
@@ -129,8 +145,9 @@ solution, data sources, evaluation, ethical considerations, limitations,
 fallbacks, and future work are documented without overstating live execution.
 
 Golden demo coverage is release-candidate ready as a bounded rehearsal and
-evidence set. Live showcase upload and final public claims approval still need
-HITL.
+evidence set. The public artifact set now includes generated p5.js, Three.js,
+and GLSL examples with static QA. Live showcase upload and final public claims
+approval still need HITL.
 
 ## Readiness Assessment
 
@@ -138,9 +155,12 @@ Detailed engineering scorecard:
 `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md`.
 
 The Grand Review no longer uses a single overall score. Production readiness is
-one category in the detailed scorecard and remains 94/100; the higher-level
-release-candidate judgment is based on category evidence, remaining risks, and
-HITL boundaries.
+one category in the detailed scorecard and is now 96/100 after the sanitized
+RAGAs run, generated artifact QA, public/private docs audit, README evaluator
+path, and timed-demo evidence update. The higher-level release-candidate
+judgment is based on category evidence, remaining risks, and HITL boundaries.
+The advisory aggregate across the 13 requested Capstone Excellence categories
+is 97.3/100.
 
 AI review readiness: ready for final reviewer evaluation with bounded claims.
 
@@ -170,13 +190,11 @@ Remaining risks:
 
 - Live provider smoke has passed, but it is a minimal connectivity/content
   check and not a broad provider benchmark.
-- Live RAGAs scoring still requires explicit HITL because it sends recorded eval
-  content to an external provider. The safe dry-run and existing historical
-  scores are documented.
-- Fresh generated-output artifact scoring was not performed because no persisted
-  generated artifacts are available under `data/artifacts`; the golden demo
-  benchmark remains prepared-flow evidence until approved artifacts are
-  generated and QA reviewed.
+- Private live-session RAGAs scoring still requires explicit HITL because it
+  sends recorded eval content to an external provider. The sanitized fixture
+  run is complete and exact scores are documented.
+- Generated-output artifact QA is now available for p5.js, Three.js, and GLSL,
+  but it is static QA rather than full browser render/FPS validation.
 - External DCC/MCP execution, HoloMind, and HOLOiVERSE remain unsupported
   future-scope items.
 - Chroma/Pydantic deprecation warnings are non-blocking dependency warnings with

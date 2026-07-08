@@ -1,0 +1,135 @@
+{
+  "run_id": "8e9030876ae04c23abaa45366f65fd3f",
+  "dataset": {
+    "dataset_id": "8e9030876ae04c23abaa45366f65fd3f",
+    "created_at": "2026-07-08T14:33:10.786692Z",
+    "source_path": "demo/evaluation/sanitized_ragas_live_sessions.jsonl",
+    "total_samples": 4,
+    "rows": [
+      {
+        "sample_id": "sanitized_ragas_p5_setup_draw",
+        "user_input": "How should a p5.js sketch structure setup(), draw(), and interaction state for a reviewer-safe animated sacred geometry demo?",
+        "response": "Use setup() for one-time canvas and state initialization, then use draw() for the repeated animation loop. Keep interaction state explicit in simple variables, use frameCount or elapsed time for motion, and describe the sacred-geometry language as an aesthetic reference rather than an authority claim.",
+        "retrieved_contexts": [
+          "The setup() function is used for initialization and runs once when the p5 sketch starts. The draw() function is called repeatedly and is the usual place for animation updates and rendering.",
+          "Sacred geometry prompts should be framed as visual composition and symbolic design guidance. They must not claim religious, historical, medical, psychological, or metaphysical authority."
+        ],
+        "ground_truth": null,
+        "source_ids": [
+          "p5_reference_setup_draw",
+          "cca_sacred_geometry_boundary"
+        ],
+        "domains": [
+          "p5_js"
+        ],
+        "retrieval_scores": [
+          0.97,
+          0.93
+        ],
+        "provider_metadata": null,
+        "observability_metadata": null,
+        "recorded_at": "2026-07-08T12:00:10Z"
+      },
+      {
+        "sample_id": "sanitized_ragas_three_audio_postfx",
+        "user_input": "What is the safest Three.js plan for an audio-reactive luminous scene with post-processing in the capstone demo?",
+        "response": "Build the scene around a renderer, camera, lights, and reusable geometry, then add post-processing as a bounded visual layer. For audio reaction, read frequency data from a Web Audio analyser after a user gesture and map the normalized values to material color, bloom strength, or mesh motion with a fallback if audio input is unavailable.",
+        "retrieved_contexts": [
+          "Three.js post-processing renders a scene through one or more passes, commonly using an effect composer so visual effects can be layered after the main scene render.",
+          "A typical Three.js program creates a renderer, scene, camera, geometry, material, mesh, and animation loop. The loop updates state and renders the scene for each frame.",
+          "An AnalyserNode exposes time-domain and frequency-domain data that can be sampled for visualization. Browser audio capture and playback flows generally require explicit user activation."
+        ],
+        "ground_truth": null,
+        "source_ids": [
+          "three_manual_post_processing",
+          "three_manual_fundamentals",
+          "mdn_web_audio_analyser"
+        ],
+        "domains": [
+          "three_js",
+          "web_audio_api"
+        ],
+        "retrieval_scores": [
+          0.96,
+          0.94,
+          0.92
+        ],
+        "provider_metadata": null,
+        "observability_metadata": null,
+        "recorded_at": "2026-07-08T12:01:13Z"
+      },
+      {
+        "sample_id": "sanitized_ragas_glsl_kaleidoscope",
+        "user_input": "How should the assistant describe a GLSL kaleidoscope fragment shader artifact without overclaiming runtime support?",
+        "response": "Describe the shader as a fragment program that maps normalized pixel coordinates into repeated angular sectors, animates with a time uniform, and uses color functions to produce a luminous field. Keep the runtime claim limited to shader code or browser-preview guidance unless a specific host such as Shadertoy or a Three.js ShaderMaterial is actually wired up.",
+        "retrieved_contexts": [
+          "GLSL fragment shaders compute output color for fragments using inputs such as coordinates, uniforms, and varyings. Uniform variables are supplied by the host program and can drive animation or parameters.",
+          "Shadertoy-style fragment shaders commonly use uniforms for resolution and time, then derive color from normalized fragment coordinates in a main image function.",
+          "A Three.js ShaderMaterial lets a browser scene provide custom vertex and fragment shader code together with uniforms managed by the application."
+        ],
+        "ground_truth": null,
+        "source_ids": [
+          "opengl_glsl_fragment_shader",
+          "shadertoy_uniforms_guide",
+          "three_shader_material_reference"
+        ],
+        "domains": [
+          "glsl",
+          "shadertoy",
+          "three_js"
+        ],
+        "retrieval_scores": [
+          0.95,
+          0.9,
+          0.89
+        ],
+        "provider_metadata": null,
+        "observability_metadata": null,
+        "recorded_at": "2026-07-08T12:02:12Z"
+      },
+      {
+        "sample_id": "sanitized_ragas_hydra_boundary",
+        "user_input": "How should the capstone demo discuss Hydra support if Hydra is not confirmed as a live executable preview path?",
+        "response": "Treat Hydra as supported only for bounded guidance and fallback discussion unless the live runtime path is explicitly installed, wired, and tested. The demo should say that p5.js, Three.js, and GLSL artifacts were generated and QA reviewed in this pass, while Hydra remains a non-generated or guidance-only boundary for V8.",
+        "retrieved_contexts": [
+          "The demo pack prepares the demo and does not execute the assistant, call providers, run retrieval, render previews, or publish showcase assets. It makes no live DCC, HoloMind, HOLOiVERSE, or autonomous workflow claims.",
+          "Hydra should be bounded as guidance or fallback unless actual live execution has been validated. Runtime claims should stay conservative when support is not confirmed."
+        ],
+        "ground_truth": null,
+        "source_ids": [
+          "cca_demo_pack_boundaries",
+          "cca_capstone_scorecard_hydra_boundary"
+        ],
+        "domains": [
+          "hydra"
+        ],
+        "retrieval_scores": [
+          0.94,
+          0.91
+        ],
+        "provider_metadata": null,
+        "observability_metadata": null,
+        "recorded_at": "2026-07-08T12:03:09Z"
+      }
+    ],
+    "skipped": [],
+    "metrics": [
+      "context_precision"
+    ],
+    "eligible_samples": 4,
+    "skipped_samples": 0
+  },
+  "input_path": "demo/evaluation/sanitized_ragas_live_sessions.jsonl",
+  "output_path": "demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl",
+  "manifest_path": "demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl.manifest.json",
+  "metrics": [
+    "context_precision"
+  ],
+  "dry_run": false,
+  "provider_calls_allowed": true,
+  "cost_warning": "Provider calls explicitly enabled: RAGAs may call evaluator LLM and embedding APIs and incur cost.",
+  "result_rows": 4,
+  "metric_failures": 0,
+  "langsmith": null,
+  "evaluated_at": "2026-07-08T14:33:10.786692Z"
+}

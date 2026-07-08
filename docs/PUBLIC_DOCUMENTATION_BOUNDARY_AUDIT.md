@@ -1,0 +1,65 @@
+# Public Documentation Boundary Audit
+
+Date: 2026-07-08
+Branch: `version-review/v8`
+
+This audit classifies every tracked file under `docs/` and `demo/` after the
+V8 release-candidate excellence pass. The goal is to keep reviewer/user
+evidence and product documentation public while keeping private runtime evidence
+out of Git.
+
+No tracked `docs/` or `demo/` file was moved or removed in this pass. The
+review found no file that should be reclassified as private engineering
+evidence or obsolete/internal. Private live-session records, Runtime Pack state,
+local Chroma data, environment files, and generated test output remain outside
+the public docs/demo tree and are ignored.
+
+## Docs Classification
+
+| File | Classification | Action | Rationale |
+|---|---|---|---|
+| `docs/ARCHITECTURE_DECISIONS.md` | Public product documentation | Keep tracked | Explains architecture choices useful to reviewers and future maintainers. |
+| `docs/CAPSTONE_DEMO_SHOWCASE.md` | Public reviewer/user evidence | Keep tracked | Defines purpose, problem, solution, 10-minute demo, 5-minute Q&A, fallback, SCR, and SMART framing. |
+| `docs/CAPSTONE_EVALUATION_ETHICS.md` | Public reviewer/user evidence | Keep tracked | Documents evaluation evidence, ethics, privacy, and limitations. |
+| `docs/IMPLEMENTATION_ROADMAP.md` | Public product documentation | Keep tracked | Gives high-level product/version context without private runtime data. |
+| `docs/ORCHESTRATION_PACKAGE_BOUNDARIES.md` | Public product documentation | Keep tracked | Clarifies active/passive orchestration ownership and claim boundaries. |
+| `docs/PRODUCTION_DEPLOYMENT.md` | Public product documentation | Keep tracked | Provides production deployment posture and setup guidance. |
+| `docs/PROJECT_CONTEXT.md` | Public product documentation | Keep tracked | Summarizes project purpose and context. |
+| `docs/PUBLIC_DOCUMENTATION_BOUNDARY_AUDIT.md` | Public reviewer/user evidence | Keep tracked | Records this public/private boundary review. |
+| `docs/RUNTIME_VALIDATION.md` | Public product documentation | Keep tracked | Documents runtime validation posture and supported validation paths. |
+| `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md` | Public reviewer/user evidence | Keep tracked | Primary release-candidate scorecard and evidence map. |
+| `docs/V8_GRAND_ENGINEERING_REVIEW.md` | Public reviewer/user evidence | Keep tracked | Final Grand Review release-candidate evidence and HITL boundaries. |
+| `docs/eval.md` | Public product documentation | Keep tracked | Explains evaluation approach and reviewer-relevant commands. |
+| `docs/eval_pipeline.md` | Public product documentation | Keep tracked | Details manual eval/RAGAs pipeline and privacy boundaries. |
+| `docs/sync.md` | Public product documentation | Keep tracked | Documents source sync posture for the knowledge base. |
+
+## Demo Classification
+
+| File | Classification | Action | Rationale |
+|---|---|---|---|
+| `demo/README.md` | Public reviewer/user evidence | Keep tracked | Explains demo mode, golden flow, and unsupported-claim boundaries. |
+| `demo/demo_prompt_library.md` | Public reviewer/user evidence | Keep tracked | Reviewer-facing prompt set for golden flows and fallback. |
+| `demo/evaluation/README.md` | Public reviewer/user evidence | Keep tracked | Explains sanitized RAGAs fixture privacy posture. |
+| `demo/evaluation/sanitized_ragas_live_sessions.jsonl` | Public reviewer/user evidence | Keep tracked | Synthetic, schema-valid, privacy-approved RAGAs input fixture. |
+| `demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl` | Public reviewer/user evidence | Keep tracked | Exact sanitized RAGAs metric result rows. |
+| `demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl.manifest.json` | Public reviewer/user evidence | Keep tracked | Exact sanitized RAGAs run manifest and metric summary. |
+| `demo/golden_artifacts/README.md` | Public reviewer/user evidence | Keep tracked | Explains generated artifact scope and Hydra boundary. |
+| `demo/golden_artifacts/p5_sacred_geometry_sketch.js` | Public reviewer/user evidence | Keep tracked | Generated p5.js artifact for output/creative quality inspection. |
+| `demo/golden_artifacts/three_audio_reactive_scene.js` | Public reviewer/user evidence | Keep tracked | Generated Three.js artifact for output/creative quality inspection. |
+| `demo/golden_artifacts/glsl_kaleidoscope_field.frag` | Public reviewer/user evidence | Keep tracked | Generated GLSL artifact for output/creative quality inspection. |
+| `demo/golden_artifacts/qa_manifest.json` | Public reviewer/user evidence | Keep tracked | Static QA evidence and unsupported-runtime boundary. |
+| `demo/golden_demo_dataset.json` | Public reviewer/user evidence | Keep tracked | Rehearsal and offline fallback dataset. |
+| `demo/manual_demo_checklist.md` | Public reviewer/user evidence | Keep tracked | Manual timed-demo reliability checklist. |
+| `demo/showcase_upload_preparation.md` | Public reviewer/user evidence | Keep tracked | Showcase packaging and final public-claims review checklist. |
+
+## Private/Obsolete Result
+
+Private engineering evidence moved to `.runtime_pack/active/` or
+`.chatgpt_context/`: none from `docs/` or `demo/`.
+
+Obsolete/internal files removed or ignored: none from tracked `docs/` or
+`demo/`.
+
+Untracked sandbox-only RAGAs failure files created during the first network
+attempt were removed before commit. The committed RAGAs result is the successful
+privacy-approved external run over sanitized data.

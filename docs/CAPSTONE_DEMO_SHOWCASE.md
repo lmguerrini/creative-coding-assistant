@@ -59,11 +59,11 @@ Likely questions:
   Registered creative-coding sources, local KB chunks, and recorded live-session
   evaluation samples. Do not claim generic web or document coverage.
 - How is it evaluated?
-  Manual RAGAs workflows over recorded sessions, retrieval scenario coverage,
-  demo asset readiness, creative readiness summaries, Grand Review provider
-  smoke, and local Chroma retrieval smoke. Fresh live RAGAs scoring still needs
-  HITL/privacy approval before local session content is sent to an external
-  evaluator.
+  Sanitized RAGAs context-precision scoring over a privacy-approved fixture,
+  retrieval scenario coverage, generated artifact QA, demo asset readiness,
+  creative readiness summaries, Grand Review provider smoke, and local Chroma
+  retrieval smoke. Private live-session RAGAs still needs HITL/privacy approval
+  before local session content is sent to an external evaluator.
 - What are the biggest limitations?
   Provider availability, retrieval freshness, preview reliability, and careful
   public claim boundaries.
@@ -111,4 +111,6 @@ live provider, retrieval, or preview result.
 - Apply scoped fixes for claim, reliability, or demo-readiness issues.
 - Run final demo rehearsal and focused validation.
 - Use `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md` as the reviewer evidence map.
+- Use `demo/evaluation/` for sanitized RAGAs evidence and
+  `demo/golden_artifacts/` for generated p5.js, Three.js, and GLSL artifact QA.
 - Stop for HITL before showcase upload, merge, push, tag, or final freeze.

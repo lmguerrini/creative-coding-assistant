@@ -11,12 +11,18 @@ showcase session.
   `docs/CAPSTONE_EVALUATION_ETHICS.md` open.
 - Keep `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md` open for reviewer questions.
 - Keep `demo/golden_demo_dataset.json` and `demo/demo_prompt_library.md` open.
+- Keep `demo/evaluation/` open for sanitized RAGAs input/results.
+- Keep `demo/golden_artifacts/` open for generated p5.js, Three.js, and GLSL
+  artifact QA evidence.
 - Confirm `assets/preview_current.png`, `assets/preview_v1.png`, and
   `assets/preview_v2.png` exist.
 
 ## Reliability
 
-- Rehearse the primary flow in 7 minutes.
+- Rehearse the full 10-minute demo: 1:15 problem/purpose, 1:30 architecture,
+  4:15 primary golden flow, 1:30 evaluation/ethics, 1:30 challenges/next steps.
+- Rehearse the 5-minute Q&A with the scorecard open.
+- Rehearse the primary flow in 7 minutes as a compressed fallback.
 - Rehearse the case-alignment summary in 90 seconds.
 - Rehearse the evaluation and ethics summary in 60 seconds.
 - Rehearse the offline fallback in 30 seconds.
@@ -39,7 +45,8 @@ If retrieval is unavailable:
 
 1. Say retrieval is not being run live.
 2. Show the retrieval demo pack and evaluation workflow references.
-3. Explain that recorded-session RAGAs evaluation is manual.
+3. Show the sanitized RAGAs result rows and explain that private recorded-session
+   RAGAs remains HITL/privacy-gated.
 
 ## Preview Failure Recovery
 
@@ -47,7 +54,8 @@ If preview is unavailable:
 
 1. Use `assets/preview_current.png`.
 2. Explain that V8.8 did not change preview runtime behavior.
-3. Continue with code/artifact planning and critique/refinement explanation.
+3. Show `demo/golden_artifacts/` as static QA evidence.
+4. Continue with code/artifact planning and critique/refinement explanation.
 
 ## HITL Gate
 
