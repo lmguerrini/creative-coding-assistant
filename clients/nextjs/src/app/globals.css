@@ -164,6 +164,31 @@ html[data-cca-theme="aqua"] {
   width: 100%;
 }
 
+.previewRuntimePresenterFallback {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid rgba(var(--accent-rgb), 0.24);
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.15), rgba(9, 14, 20, 0.86)),
+    rgba(12, 17, 24, 0.92);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.24);
+}
+
+.previewRuntimePresenterFallback strong {
+  color: var(--foreground);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.previewRuntimePresenterFallback p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .previewRuntimeRecoveryButton {
   justify-self: end;
   padding: 7px 10px;

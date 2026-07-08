@@ -41,7 +41,7 @@ export const demoModeScenarios = [
     category: "3D browser scene",
     runtime: "Three.js",
     prompt:
-      "Create a concise Three.js capstone artifact: concentric audio-reactive geometry, subtle bloom-like glow, FFT motion accents, camera movement, browser-safe audio controls, and a fallback if live audio or preview is unavailable. Return a brief plan, compact browser code/artifact direction, validation notes, and fallback. Keep it demo-ready and under 120 code lines or 700 words.",
+      "Create a demo-ready Three.js visual: concentric audio-reactive geometry, glow, camera motion, browser-safe audio controls, compact code/artifact direction, validation notes, and fallback. Keep it under 90 code lines or 450 words.",
     estimatedGenerationTime: "68.8s optimized live smoke",
     estimatedTokenUsage: "41,518 total / 2,817 output tokens",
     workflowType: "Single-domain generation with retrieval",
@@ -80,7 +80,7 @@ export const demoModeScenarios = [
     category: "2D generative sketch",
     runtime: "p5.js",
     prompt:
-      "Create a concise p5.js generative morphogenesis sketch using reaction diffusion, flow fields, particles, branching, and emergent form. Include interaction controls, browser-safe notes, source boundaries, compact code/artifact direction, and fallback. Keep the p5.js generative morphogenesis sketch demo-ready and under 120 code lines or 700 words.",
+      "Create a demo-ready p5.js generative morphogenesis sketch using reaction diffusion, flow fields, particles, branching, and emergent form. Include controls, browser-safe notes, source boundaries, compact artifact direction, and fallback. Keep it under 90 code lines or 450 words.",
     estimatedGenerationTime: "33.9s optimized live smoke",
     estimatedTokenUsage: "39,645 total / 2,839 output tokens",
     workflowType: "Single-domain generation with retrieval",
@@ -119,7 +119,7 @@ export const demoModeScenarios = [
     category: "Shader visual",
     runtime: "GLSL",
     prompt:
-      "Design a concise GLSL fragment shader or post-processing visual for a browser creative-coding scene. Include uniforms, resolution/time handling, glow, texture movement, WebGL risks, compact shader/artifact direction, and static fallback. Keep it demo-ready and under 100 shader lines or 600 words.",
+      "Design a demo-ready GLSL fragment shader or post-processing visual. Include uniforms, resolution/time handling, glow, texture movement, WebGL risks, compact artifact direction, and static fallback. Keep it under 80 shader lines or 400 words.",
     estimatedGenerationTime: "32.8s optimized live smoke",
     estimatedTokenUsage: "39,400 total / 2,343 output tokens",
     workflowType: "Single-domain generation with retrieval",
@@ -157,7 +157,7 @@ export const demoModeScenarios = [
     category: "Live-code visual pattern",
     runtime: "Hydra",
     prompt:
-      "Create a concise Hydra feedback-pattern demo for the validated local hydra-synth browser artifact path. Use oscillator layers, modulation, feedback, moire-like motion, output routing, bounded runtime assumptions, and fallback to GLSL/static evidence. Keep it demo-ready and under 80 Hydra lines or 500 words.",
+      "Create a bounded Hydra feedback-pattern demo for the validated local hydra-synth browser artifact path. Use oscillator layers, modulation, feedback, output routing, runtime assumptions, and GLSL/static fallback. Keep it under 60 Hydra lines or 350 words.",
     estimatedGenerationTime: "0.4s optimized bounded route; no provider call",
     estimatedTokenUsage: "N/A; no provider token usage captured",
     workflowType: "Bounded multi-domain route; artifact QA support only",
@@ -196,7 +196,7 @@ export const demoModeScenarios = [
     category: "RAG answer",
     runtime: "Assistant workflow",
     prompt:
-      "Answer a creative-coding runtime question with registered source grounding. In under 600 words, explain the retrieved sources, source boundaries, browser validation steps, and fallback if retrieval is unavailable.",
+      "Answer a creative-coding runtime question with registered source grounding. In under 350 words, name the retrieved sources, source boundaries, browser validation steps, and retrieval fallback.",
     estimatedGenerationTime: "19.2s optimized live smoke",
     estimatedTokenUsage: "38,778 total / 1,286 output tokens",
     workflowType: "Hybrid retrieval-grounded generation",
@@ -234,7 +234,7 @@ export const demoModeScenarios = [
     category: "Creative translation",
     runtime: "Assistant workflow",
     prompt:
-      "Translate threshold, recursion, and return into a practical browser visual system. Keep the answer concise: geometry, motion, color, runtime choice, interaction, implementation constraints, and claim boundaries. Avoid spiritual, therapeutic, or authority claims. Target under 650 words.",
+      "Translate threshold, recursion, and return into a practical browser visual system. Cover geometry, motion, color, runtime, interaction, constraints, and claim boundaries. Avoid spiritual, therapeutic, or authority claims. Keep it under 400 words.",
     estimatedGenerationTime: "26.3s optimized live smoke",
     estimatedTokenUsage: "38,919 total / 2,109 output tokens",
     workflowType: "Single-domain creative translation with retrieval",
@@ -273,7 +273,7 @@ export const demoModeScenarios = [
     category: "Generative systems",
     runtime: "p5.js / GLSL",
     prompt:
-      "Design a concise geometry and morphogenesis browser visual system. Combine radial structures, recursive growth, reaction diffusion, branching, flow fields, and particle trails. Include runtime selection, preview strategy, source boundaries, compact artifact direction, and graceful fallback. Target under 750 words.",
+      "Design a geometry/morphogenesis browser visual system using radial structure, recursive growth, reaction diffusion, branching, flow fields, and particles. Include runtime choice, preview strategy, source boundaries, compact artifact direction, and fallback. Keep it under 450 words.",
     estimatedGenerationTime: "21.5s optimized live smoke",
     estimatedTokenUsage: "38,556 total / 1,639 output tokens",
     workflowType: "Multi-domain generation with retrieval",
@@ -311,7 +311,7 @@ export const demoModeScenarios = [
     category: "Planning workflow",
     runtime: "Assistant workflow",
     prompt:
-      "Plan a concise browser-based installation or immersive scene for a gallery demo. Include concept, geometry, audience movement, runtimes, retrieval needs, preview plan, artifact package, evaluation checks, fallback route, and handoff boundaries. Target under 700 words.",
+      "Plan a browser-based installation or immersive scene for a gallery demo. Include concept, geometry, audience movement, runtimes, retrieval needs, preview plan, artifact package, evaluation checks, fallback, and handoff boundaries. Keep it under 450 words.",
     estimatedGenerationTime: "52.2s optimized live smoke",
     estimatedTokenUsage: "37,699 total / 1,370 output tokens",
     workflowType: "Planning workflow with retrieval",

@@ -996,6 +996,9 @@ describe("WorkstationShell", () => {
 
     const demoMode = screen.getByRole("region", { name: "Demo Mode" });
     expect(demoMode).toBeVisible();
+    expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
+      "User"
+    );
     expect(within(demoMode).getByText("Capstone scenarios")).toBeVisible();
     expect(
       within(demoMode).getByRole("button", {
@@ -3533,6 +3536,51 @@ describe("WorkstationShell", () => {
 
     expect(within(events).getByText("Preview Runtime Error")).toBeVisible();
     expect(within(events).getByText("Preview Runtime Recovered")).toBeVisible();
+  });
+
+  it("keeps preview runtime failures presenter-friendly in User Mode", async () => {
+    renderShell(snapshotWithThreePreview());
+
+    fireEvent.click(screen.getByRole("button", { name: "Demo Mode" }));
+    expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
+      "User"
+    );
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const summary = within(preview).getByText("Preview available").closest("summary");
+
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+
+    const surface = within(preview).getByRole("group", {
+      name: "Preview renderer surface"
+    });
+    const frame = await waitForSandboxRuntimeFrame(
+      surface,
+      "Three.js preview runtime frame"
+    );
+
+    dispatchSandboxRuntimeStatus(frame, {
+      detail: "WebGL is unavailable in the preview frame.",
+      error: {
+        message: "WebGL is unavailable in the preview frame.",
+        type: "webgl_unavailable"
+      },
+      label: "Three.js runtime failed",
+      state: "error"
+    });
+
+    expect(
+      await within(surface).findByText("Preview fallback available")
+    ).toBeVisible();
+    expect(within(surface).getByText("Preview fallback ready")).toBeVisible();
+    expect(within(surface).queryByText("Renderer runtime failed")).toBeNull();
+    expect(
+      within(surface).queryByText("WebGL is unavailable in the preview frame.")
+    ).toBeNull();
+    expect(
+      within(surface).getByRole("button", { name: "Reload preview runtime" })
+    ).toBeVisible();
   });
 
   it("shows runtime errors and reload requests inside the runtime console", async () => {

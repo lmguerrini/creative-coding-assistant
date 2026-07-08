@@ -90,7 +90,7 @@
     {
       "demo_id": "primary_three_creative_coding_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Create a luminous audio-reactive Three.js scene for a capstone demo: concentric geometry, subtle bloom, FFT-driven motion accents, and a clear explanation of provider choice, execution mode, estimates, fallback, and escalation boundaries.",
+      "prompt": "Create a demo-ready Three.js visual: concentric audio-reactive geometry, glow, camera motion, browser-safe audio controls, compact code/artifact direction, validation notes, and fallback. Keep it under 90 code lines or 450 words.",
       "expected_behavior": "Presenter shows a Three.js creative-coding answer path and the generated Three.js artifact evidence.",
       "fallback_path": "Use the generated Three.js artifact and browser full-runtime QA result if live generation or provider access fails.",
       "success_criteria": "Real Three.js package renders the artifact nonblank in browser QA; no unsupported DCC/MCP or autonomous execution claims.",
@@ -100,7 +100,7 @@
     {
       "demo_id": "p5_generative_sketch_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Create a p5.js generative morphogenesis sketch using reaction diffusion, cellular automata, L-systems, flow fields, particle systems, differential growth, diffusion-limited aggregation, branching, self-organization, and emergent form. Keep it browser-safe, explain interaction controls, and cite retrieval/source boundaries conservatively.",
+      "prompt": "Create a demo-ready p5.js generative morphogenesis sketch using reaction diffusion, flow fields, particles, branching, and emergent form. Include controls, browser-safe notes, source boundaries, compact artifact direction, and fallback. Keep it under 90 code lines or 450 words.",
       "expected_behavior": "Presenter shows a p5.js generative visual with practical morphogenesis technique guidance and a clear visual growth story.",
       "fallback_path": "Use the p5 golden artifact and browser full-runtime QA result if live generation fails.",
       "success_criteria": "Real p5 package renders the artifact nonblank in browser QA; no metaphysical, medical, religious, or historical authority claim.",
@@ -110,7 +110,7 @@
     {
       "demo_id": "glsl_shader_post_processing_demo",
       "classification": "FULLY VALIDATED",
-      "prompt": "How do I build a glow-heavy kaleidoscopic browser visual with shaders or post-processing passes? Give source-grounded runtime tradeoffs, failure risks, and fallback implementation options.",
+      "prompt": "Design a demo-ready GLSL fragment shader or post-processing visual. Include uniforms, resolution/time handling, glow, texture movement, WebGL risks, compact artifact direction, and static fallback. Keep it under 80 shader lines or 400 words.",
       "expected_behavior": "Presenter shows shader/post-processing guidance and the generated GLSL artifact.",
       "fallback_path": "Use glsl_kaleidoscope_field.frag and WebGL QA evidence if live preview is unavailable.",
       "success_criteria": "GLSL compiles, links, draws, and pixel-checks nonblank in local WebGL.",
@@ -120,7 +120,7 @@
     {
       "demo_id": "hydra_feedback_pattern_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Create a Hydra feedback-pattern demo for a browser visual performance. Use oscillator layers, modulation, feedback, moire-like pattern motion, output routing, visual pattern explanation, and a fallback to GLSL or static artifact evidence when the Hydra runtime is unavailable.",
+      "prompt": "Create a bounded Hydra feedback-pattern demo for the validated local hydra-synth browser artifact path. Use oscillator layers, modulation, feedback, output routing, runtime assumptions, and GLSL/static fallback. Keep it under 60 Hydra lines or 350 words.",
       "expected_behavior": "Presenter shows a bounded Hydra-compatible pattern chain and the exact runtime support boundary.",
       "fallback_path": "Use hydra_feedback_lattice.js and browser full-runtime QA result if live generation or preview fails.",
       "success_criteria": "Hydra synth artifact renders nonblank through real local hydra-synth QA with no microphone or full editor claim.",
@@ -130,7 +130,7 @@
     {
       "demo_id": "retrieval_rag_grounded_answer_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Answer a creative-coding runtime question with registered source grounding and explain which retrieved sources shaped the response.",
+      "prompt": "Answer a creative-coding runtime question with registered source grounding. In under 350 words, name the retrieved sources, source boundaries, browser validation steps, and retrieval fallback.",
       "expected_behavior": "Presenter shows retrieval-grounded guidance and explains source boundaries.",
       "fallback_path": "Use redacted latest-live RAGAs, sanitized RAGAs result rows, and retrieval smoke evidence if live retrieval is unavailable.",
       "success_criteria": "Local Chroma retrieval returns results for 7/7 capstone scenarios; redacted latest-live RAGAs has 4 rows, 0 skipped, 0 metric failures across context_precision, faithfulness, and answer_relevancy.",
@@ -140,7 +140,7 @@
     {
       "demo_id": "concept_to_visual_translation_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Translate the concept of threshold, recursion, and return into a practical browser visual system. Use geometry, motion, color, runtime choice, interaction, and implementation constraints without making spiritual, therapeutic, or authority claims.",
+      "prompt": "Translate threshold, recursion, and return into a practical browser visual system. Cover geometry, motion, color, runtime, interaction, constraints, and claim boundaries. Avoid spiritual, therapeutic, or authority claims. Keep it under 400 words.",
       "expected_behavior": "Presenter shows abstract concept language translated into operational visual structure.",
       "fallback_path": "Use the p5 artifact, prompt library, and claim-safety explanation.",
       "success_criteria": "Concept language remains aesthetic/operational; p5 artifact renders nonblank through real p5 QA.",
@@ -150,7 +150,7 @@
     {
       "demo_id": "geometry_morphogenesis_visual_system_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Design a geometry and morphogenesis visual system for the browser. Combine radial structures, recursive growth, reaction diffusion, diffusion-limited aggregation, branching, flow fields, and particle trails. Include runtime selection, preview strategy, source boundaries, and a graceful fallback plan.",
+      "prompt": "Design a geometry/morphogenesis browser visual system using radial structure, recursive growth, reaction diffusion, branching, flow fields, and particles. Include runtime choice, preview strategy, source boundaries, compact artifact direction, and fallback. Keep it under 450 words.",
       "expected_behavior": "Presenter shows generative system planning with geometry, computational growth, and practical runtime choices.",
       "fallback_path": "Use the p5.js and GLSL golden QA records plus offline prompts if live generation or preview fails.",
       "success_criteria": "Output remains implementation guidance with source boundaries and browser-runtime constraints.",
@@ -160,7 +160,7 @@
     {
       "demo_id": "installation_immersive_scene_planning_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Plan a browser-based installation or immersive scene for a gallery demo. Include concept, geometry, audience movement, runtimes, retrieval needs, preview plan, artifact package, evaluation checks, fallback route, and handoff boundaries.",
+      "prompt": "Plan a browser-based installation or immersive scene for a gallery demo. Include concept, geometry, audience movement, runtimes, retrieval needs, preview plan, artifact package, evaluation checks, fallback, and handoff boundaries. Keep it under 450 words.",
       "expected_behavior": "Presenter shows a project-bundle planning handoff with explicit local-demo and future-scope boundaries.",
       "fallback_path": "Use the integrated Demo Mode list, offline dataset, launcher fallback, and evidence boundaries; do not claim live DCC/MCP, autonomous delivery, or public deployment.",
       "success_criteria": "Planner output is bounded as project planning and handoff notes only.",

@@ -116,6 +116,15 @@ Product smoke:
 - Workflow coverage: single-domain live demos passed, hybrid/RAG live demo
   passed, and multi-domain geometry/morphogenesis live demo passed. No live
   multi-agent execution path is validated or claimed.
+- Final token audit after that run trimmed app-facing Demo Mode prompts to
+  roughly 48-71 approximate prompt tokens each. The measured 37k-41k totals
+  remain dominated by structured orchestration/runtime context, retrieval
+  excerpts, and provider cached input, so no unmeasured lower token totals are
+  claimed.
+- Final UI/UX audit confirmed Demo Mode opens in User Mode, all 8 scenarios are
+  visible, scenario selection preloads the normal composer, presenter mode hides
+  raw preview runtime diagnostics behind a clean fallback card, and Developer
+  Mode still exposes runtime diagnostics, telemetry, and workflow surfaces.
 - Quality dashboard generation passed and reported complete roadmap coverage for
   23 quality gates.
 - Internal advisory review surfaces ran as engineering reviewers, not

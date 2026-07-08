@@ -168,6 +168,9 @@ fails.
 Scenario cards show optimized live-smoke timing and token usage when those rows
 exist. The current optimized run brought the core live demos into a 19-69s
 range, while Hydra remains bounded to a no-provider artifact-QA support path.
+Final app-facing prompts are intentionally short; the remaining recorded token
+cost is mostly structured workflow context, retrieval excerpts, and provider
+cached input rather than scenario copy.
 
 Hydra support is limited to the validated local `hydra-synth` browser artifact
 path recorded in `demo/golden_artifacts/browser_full_runtime_qa_results.json`.

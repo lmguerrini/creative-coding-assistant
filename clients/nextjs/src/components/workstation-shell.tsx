@@ -1986,7 +1986,12 @@ export function WorkstationShell({
   }
 
   function handleDemoModeToggle() {
-    setIsDemoModeOpen((currentValue) => !currentValue);
+    const nextOpen = !isDemoModeOpen;
+
+    setIsDemoModeOpen(nextOpen);
+    if (nextOpen) {
+      updateWorkspacePreferences({ showDebugPanels: false });
+    }
     setOpenUtilityPanel(null);
   }
 

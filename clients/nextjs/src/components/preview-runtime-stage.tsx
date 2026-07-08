@@ -86,6 +86,12 @@ export function PreviewRuntimeStage({
     snapshot: metrics,
     status
   });
+  const presenterStatusLabel =
+    !showDiagnostics && status.error ? "Preview fallback available" : status.label;
+  const presenterStatusDetail =
+    !showDiagnostics && status.error
+      ? "This artifact needs a compatible preview route. Use the reload control after selecting runnable code, or continue with artifact evidence."
+      : status.detail;
 
   useEffect(() => {
     onRuntimeDiagnosticsRef.current = onRuntimeDiagnostics;
@@ -219,7 +225,7 @@ export function PreviewRuntimeStage({
       />
       <div className="previewRuntimeOverlay" aria-live="polite">
         <div className="previewRuntimeOverlayHeader">
-          <small>{status.label}</small>
+          <small>{presenterStatusLabel}</small>
           <span
             className="previewRuntimeOverlayHealth"
             data-tone={overlay.healthTone}
@@ -227,7 +233,7 @@ export function PreviewRuntimeStage({
             {overlay.healthLabel}
           </span>
         </div>
-        <span>{status.detail}</span>
+        <span>{presenterStatusDetail}</span>
         {showDiagnostics ? (
           <div
             aria-label="Renderer health overlay"
@@ -257,12 +263,23 @@ export function PreviewRuntimeStage({
       </div>
       {status.error ? (
         <div className="previewRuntimeErrorBoundary" role="alert">
-          <SubsystemErrorCallout
-            className="previewRuntimeErrorCallout"
-            error={status.error}
-            role="status"
-            title="Renderer runtime failed"
-          />
+          {showDiagnostics ? (
+            <SubsystemErrorCallout
+              className="previewRuntimeErrorCallout"
+              error={status.error}
+              role="status"
+              title="Renderer runtime failed"
+            />
+          ) : (
+            <div className="previewRuntimePresenterFallback" role="status">
+              <strong>Preview fallback ready</strong>
+              <p>
+                The current artifact is not runnable in this preview route. Use
+                a compatible artifact, reload preview, or continue with the
+                documented artifact evidence.
+              </p>
+            </div>
+          )}
           {onReload ? (
             <button
               aria-label="Reload preview runtime"

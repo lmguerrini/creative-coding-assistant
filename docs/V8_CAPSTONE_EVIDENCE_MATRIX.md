@@ -62,6 +62,25 @@ Run: `v8-speed-live-smoke-1783543600`.
 | Hydra feedback | Unmeasured | 0.4s / no provider tokens | N/A | Artifact-QA support only |
 | Installation planning | Unmeasured | 52.2s / 37,699 total | N/A -> 1,370 output | Planning workflow pass |
 
+Final token-budget closure:
+
+- App-facing Demo Mode prompts were trimmed again after the optimized smoke run
+  from roughly 256-305 approximate prompt tokens each to roughly 48-71.
+- The 37k-41k recorded totals above are retained as measured evidence from
+  `v8-speed-live-smoke-1783543600`; they were not overwritten with estimates.
+- Remaining token cost is primarily fixed runtime context: the structured
+  orchestration system prompt, typed creative/runtime guidance, retrieval
+  excerpts, and provider cached input. Further large reductions would require
+  a separate context-pruning change and fresh live validation, so it is outside
+  this closure audit.
+- Cheapest/fastest demo sequence remains retrieval-grounded answer first,
+  then p5.js or GLSL, with Three.js reserved for the visual-impact moment and
+  Hydra kept as artifact-QA fallback.
+- Final browser UI audit confirmed Demo Mode opens in User Mode, preloads the
+  selected scenario into the normal composer, hides raw preview diagnostics in
+  presenter mode behind a clean fallback card, and leaves Developer Mode
+  diagnostics available.
+
 Workflow coverage:
 
 - Single-domain live workflow: Three.js, p5.js, GLSL, concept-to-visual, and
