@@ -180,6 +180,7 @@ import {
   type HitlApprovalRequest
 } from "@/lib/hitl-runtime";
 import {
+  demoModeRecommendedLiveSequence,
   demoModeScenarios,
   getDefaultDemoModeScenario,
   type DemoModeScenario
@@ -3334,6 +3335,27 @@ function DemoModePanel({
         </div>
         <span className="demoModeCount">{scenarios.length} flows</span>
       </header>
+
+      <div className="demoLiveSequence" aria-label="Recommended live sequence">
+        {demoModeRecommendedLiveSequence.map((item) => (
+          <button
+            key={`${item.role}-${item.scenarioId}`}
+            onClick={() => {
+              const scenario = scenarios.find(
+                (candidate) => candidate.id === item.scenarioId
+              );
+              if (scenario) {
+                onLoadScenario(scenario);
+              }
+            }}
+            type="button"
+          >
+            <span>{item.role}</span>
+            <strong>{item.title}</strong>
+            <small>{item.rationale}</small>
+          </button>
+        ))}
+      </div>
 
       <div className="demoModeBody">
         <div

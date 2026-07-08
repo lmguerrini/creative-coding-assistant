@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  demoModeRecommendedLiveSequence,
   demoModeScenarioCount,
   demoModeScenarios,
   getDefaultDemoModeScenario
@@ -74,12 +75,25 @@ describe("demo mode scenarios", () => {
       demoModeScenarios.find(
         (scenario) => scenario.id === "three-audio-reactive-visual-system"
       )?.estimatedGenerationTime
-    ).toBe("94.1s measured full-app smoke");
+    ).toBe("68.8s optimized live smoke");
     expect(
       demoModeScenarios.find(
         (scenario) => scenario.id === "hydra-feedback-pattern-demo"
       )?.estimatedGenerationTime
-    ).toBe("Not live-smoke measured; artifact QA only");
+    ).toBe("0.4s optimized bounded route; no provider call");
+  });
+
+  it("defines the presenter recommended live sequence", () => {
+    expect(demoModeRecommendedLiveSequence.map((item) => item.role)).toEqual([
+      "Fastest reliable demo",
+      "Most visually impressive demo",
+      "Safest fallback demo",
+      "Best RAG demo",
+      "Best Q&A demo"
+    ]);
+    expect(demoModeRecommendedLiveSequence[0].scenarioId).toBe(
+      "retrieval-grounded-creative-coding-answer"
+    );
   });
 
   it("defaults to the Three.js scenario for presenter startup", () => {

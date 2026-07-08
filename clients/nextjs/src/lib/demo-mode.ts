@@ -25,6 +25,13 @@ export type DemoModeScenario = {
   validationPath: string;
 };
 
+export type DemoModeRecommendation = {
+  role: string;
+  scenarioId: DemoModeScenario["id"];
+  title: string;
+  rationale: string;
+};
+
 export const demoModeScenarios = [
   {
     id: "three-audio-reactive-visual-system",
@@ -34,20 +41,20 @@ export const demoModeScenarios = [
     category: "3D browser scene",
     runtime: "Three.js",
     prompt:
-      "Create an audio-reactive Three.js visual system for a capstone demo. Use concentric geometry, subtle bloom, FFT-driven motion accents, camera movement, browser-safe runtime notes, interaction guidance, and a clear fallback if live audio or preview is unavailable.",
-    estimatedGenerationTime: "94.1s measured full-app smoke",
-    estimatedTokenUsage: "41,960 total / 4,000 output tokens",
+      "Create a concise Three.js capstone artifact: concentric audio-reactive geometry, subtle bloom-like glow, FFT motion accents, camera movement, browser-safe audio controls, and a fallback if live audio or preview is unavailable. Return a brief plan, compact browser code/artifact direction, validation notes, and fallback. Keep it demo-ready and under 120 code lines or 700 words.",
+    estimatedGenerationTime: "68.8s optimized live smoke",
+    estimatedTokenUsage: "41,518 total / 2,817 output tokens",
     workflowType: "Single-domain generation with retrieval",
     providerRequirement: "OpenAI provider configured for live generation",
-    retrievalRequirement: "3 retrieved contexts in measured smoke",
+    retrievalRequirement: "4 retrieved contexts in optimized smoke",
     previewAvailability:
-      "Golden Three.js browser QA; generated HTML/code may need Code panel handoff",
+      "Optimized smoke produced artifact events; golden Three.js browser QA remains fallback",
     fallbackAvailability: "Committed Three.js artifact QA and static launcher",
     expectedOutput:
       "Single-file Three.js scene with optional user-gesture audio controls",
     complexity: "High",
     recommendedForDemo: "Primary wow moment",
-    presentationTime: "90-120s",
+    presentationTime: "75-90s",
     talkingPoint:
       "Shows visual ambition, browser audio constraints, and conservative fallback handling.",
     expectedBehavior:
@@ -73,20 +80,20 @@ export const demoModeScenarios = [
     category: "2D generative sketch",
     runtime: "p5.js",
     prompt:
-      "Create a p5.js generative morphogenesis sketch using reaction diffusion, cellular automata, L-systems, flow fields, particle systems, differential growth, diffusion-limited aggregation, branching, self-organization, and emergent form. Keep it browser-safe, explain interaction controls, and cite retrieval/source boundaries conservatively.",
-    estimatedGenerationTime: "100.5s measured full-app smoke",
-    estimatedTokenUsage: "40,760 total / 4,000 output tokens",
+      "Create a concise p5.js generative morphogenesis sketch using reaction diffusion, flow fields, particles, branching, and emergent form. Include interaction controls, browser-safe notes, source boundaries, compact code/artifact direction, and fallback. Keep the p5.js generative morphogenesis sketch demo-ready and under 120 code lines or 700 words.",
+    estimatedGenerationTime: "33.9s optimized live smoke",
+    estimatedTokenUsage: "39,645 total / 2,839 output tokens",
     workflowType: "Single-domain generation with retrieval",
     providerRequirement: "OpenAI provider configured for live generation",
-    retrievalRequirement: "5 retrieved contexts in measured smoke",
+    retrievalRequirement: "5 retrieved contexts in optimized smoke",
     previewAvailability:
-      "Golden p5.js browser QA; generated HTML/code can be inspected as an artifact",
+      "Optimized smoke produced artifact events; golden p5.js browser QA remains fallback",
     fallbackAvailability: "Committed p5.js artifact QA and offline demo dataset",
     expectedOutput:
       "Browser-safe p5.js sketch with growth techniques and controls",
     complexity: "High",
     recommendedForDemo: "Primary creative-quality proof",
-    presentationTime: "90-120s",
+    presentationTime: "60-75s",
     talkingPoint:
       "Connects computational growth techniques to concrete p5.js implementation choices.",
     expectedBehavior:
@@ -112,12 +119,12 @@ export const demoModeScenarios = [
     category: "Shader visual",
     runtime: "GLSL",
     prompt:
-      "Design a GLSL fragment shader or post-processing visual for a browser creative-coding scene. Include uniforms, resolution/time handling, glow, texture movement, WebGL failure risks, and a static-code fallback if runtime preview is unavailable.",
-    estimatedGenerationTime: "97.5s measured full-app smoke",
-    estimatedTokenUsage: "40,348 total / 3,368 output tokens",
+      "Design a concise GLSL fragment shader or post-processing visual for a browser creative-coding scene. Include uniforms, resolution/time handling, glow, texture movement, WebGL risks, compact shader/artifact direction, and static fallback. Keep it demo-ready and under 100 shader lines or 600 words.",
+    estimatedGenerationTime: "32.8s optimized live smoke",
+    estimatedTokenUsage: "39,400 total / 2,343 output tokens",
     workflowType: "Single-domain generation with retrieval",
     providerRequirement: "OpenAI provider configured for live generation",
-    retrievalRequirement: "5 retrieved contexts in measured smoke",
+    retrievalRequirement: "5 retrieved contexts in optimized smoke",
     previewAvailability: "GLSL/WebGL golden artifact compiled and drew nonblank",
     fallbackAvailability: "Committed GLSL artifact and WebGL QA record",
     expectedOutput:
@@ -150,19 +157,19 @@ export const demoModeScenarios = [
     category: "Live-code visual pattern",
     runtime: "Hydra",
     prompt:
-      "Create a Hydra feedback-pattern demo for a browser visual performance. Use oscillator layers, modulation, feedback, moire-like pattern motion, output routing, visual pattern explanation, and a fallback to GLSL or static artifact evidence when the Hydra runtime is unavailable.",
-    estimatedGenerationTime: "Not live-smoke measured; artifact QA only",
-    estimatedTokenUsage: "Not measured in full-app provider smoke",
-    workflowType: "Artifact QA with optional assistant explanation",
-    providerRequirement: "No provider required for golden artifact; optional for live explanation",
-    retrievalRequirement: "No retrieval required for artifact QA",
+      "Create a concise Hydra feedback-pattern demo for the validated local hydra-synth browser artifact path. Use oscillator layers, modulation, feedback, moire-like motion, output routing, bounded runtime assumptions, and fallback to GLSL/static evidence. Keep it demo-ready and under 80 Hydra lines or 500 words.",
+    estimatedGenerationTime: "0.4s optimized bounded route; no provider call",
+    estimatedTokenUsage: "N/A; no provider token usage captured",
+    workflowType: "Bounded multi-domain route; artifact QA support only",
+    providerRequirement: "No provider call in optimized smoke; optional for live explanation",
+    retrievalRequirement: "5 retrieved contexts in optimized bounded smoke",
     previewAvailability:
       "Validated local hydra-synth browser artifact path only",
     fallbackAvailability: "Hydra QA record, GLSL guidance, or static artifact evidence",
     expectedOutput:
       "Hydra feedback lattice rendered nonblank through local hydra-synth QA",
     complexity: "High boundary sensitivity",
-    recommendedForDemo: "Optional if time permits",
+    recommendedForDemo: "Artifact fallback only",
     presentationTime: "30-45s",
     talkingPoint:
       "Hydra is supported only through the validated local hydra-synth artifact path.",
@@ -189,9 +196,9 @@ export const demoModeScenarios = [
     category: "RAG answer",
     runtime: "Assistant workflow",
     prompt:
-      "Answer a creative-coding runtime question with registered source grounding. Explain which retrieved sources shaped the response, what the source boundaries are, and how the answer should be validated before using it in a browser sketch.",
-    estimatedGenerationTime: "76.5s measured full-app smoke",
-    estimatedTokenUsage: "40,394 total / 2,813 output tokens",
+      "Answer a creative-coding runtime question with registered source grounding. In under 600 words, explain the retrieved sources, source boundaries, browser validation steps, and fallback if retrieval is unavailable.",
+    estimatedGenerationTime: "19.2s optimized live smoke",
+    estimatedTokenUsage: "38,778 total / 1,286 output tokens",
     workflowType: "Hybrid retrieval-grounded generation",
     providerRequirement: "OpenAI provider configured for live answer",
     retrievalRequirement: "5 retrieved contexts plus redacted/sanitized RAGAs evidence",
@@ -201,7 +208,7 @@ export const demoModeScenarios = [
       "Source-grounded creative-coding answer with visible boundaries",
     complexity: "Medium",
     recommendedForDemo: "Q&A credibility proof",
-    presentationTime: "60-90s",
+    presentationTime: "45-60s",
     talkingPoint:
       "Raw private rows stay local while reviewer-safe fixtures carry evaluator evidence.",
     expectedBehavior:
@@ -227,12 +234,12 @@ export const demoModeScenarios = [
     category: "Creative translation",
     runtime: "Assistant workflow",
     prompt:
-      "Translate the concept of threshold, recursion, and return into a practical browser visual system. Use geometry, motion, color, runtime choice, interaction, and implementation constraints without making spiritual, therapeutic, or authority claims.",
-    estimatedGenerationTime: "103.4s measured full-app smoke",
-    estimatedTokenUsage: "40,381 total / 3,624 output tokens",
+      "Translate threshold, recursion, and return into a practical browser visual system. Keep the answer concise: geometry, motion, color, runtime choice, interaction, implementation constraints, and claim boundaries. Avoid spiritual, therapeutic, or authority claims. Target under 650 words.",
+    estimatedGenerationTime: "26.3s optimized live smoke",
+    estimatedTokenUsage: "38,919 total / 2,109 output tokens",
     workflowType: "Single-domain creative translation with retrieval",
     providerRequirement: "OpenAI provider configured for live generation",
-    retrievalRequirement: "5 retrieved contexts in measured smoke",
+    retrievalRequirement: "5 retrieved contexts in optimized smoke",
     previewAvailability:
       "Generated browser artifact can be inspected when extraction succeeds",
     fallbackAvailability: "Prompt library, generated artifact QA, and claim-safety explanation",
@@ -266,12 +273,12 @@ export const demoModeScenarios = [
     category: "Generative systems",
     runtime: "p5.js / GLSL",
     prompt:
-      "Design a geometry and morphogenesis visual system for the browser. Combine radial structures, recursive growth, reaction diffusion, diffusion-limited aggregation, branching, flow fields, and particle trails. Include runtime selection, preview strategy, source boundaries, and a graceful fallback plan.",
-    estimatedGenerationTime: "97.4s measured full-app smoke",
-    estimatedTokenUsage: "40,345 total / 3,128 output tokens",
+      "Design a concise geometry and morphogenesis browser visual system. Combine radial structures, recursive growth, reaction diffusion, branching, flow fields, and particle trails. Include runtime selection, preview strategy, source boundaries, compact artifact direction, and graceful fallback. Target under 750 words.",
+    estimatedGenerationTime: "21.5s optimized live smoke",
+    estimatedTokenUsage: "38,556 total / 1,639 output tokens",
     workflowType: "Multi-domain generation with retrieval",
     providerRequirement: "OpenAI provider configured for live generation",
-    retrievalRequirement: "5 retrieved contexts in measured smoke",
+    retrievalRequirement: "5 retrieved contexts in optimized smoke",
     previewAvailability: "p5.js and GLSL golden artifacts have browser QA evidence",
     fallbackAvailability: "p5.js and GLSL QA records plus offline prompts",
     expectedOutput:
@@ -304,20 +311,20 @@ export const demoModeScenarios = [
     category: "Planning workflow",
     runtime: "Assistant workflow",
     prompt:
-      "Plan a browser-based installation or immersive scene for a gallery demo. Include concept, geometry, audience movement, runtimes, retrieval needs, preview plan, artifact package, evaluation checks, fallback route, and handoff boundaries.",
-    estimatedGenerationTime: "Not live-smoke measured; planning evidence only",
-    estimatedTokenUsage: "Not measured in full-app provider smoke",
-    workflowType: "Planning workflow with advisory evidence",
-    providerRequirement: "Provider optional for live planning; offline evidence is available",
-    retrievalRequirement: "Retrieval optional; source boundaries must be stated if used",
+      "Plan a concise browser-based installation or immersive scene for a gallery demo. Include concept, geometry, audience movement, runtimes, retrieval needs, preview plan, artifact package, evaluation checks, fallback route, and handoff boundaries. Target under 700 words.",
+    estimatedGenerationTime: "52.2s optimized live smoke",
+    estimatedTokenUsage: "37,699 total / 1,370 output tokens",
+    workflowType: "Planning workflow with retrieval",
+    providerRequirement: "OpenAI provider configured for live planning",
+    retrievalRequirement: "5 retrieved contexts in optimized smoke",
     previewAvailability: "Preview depends on generated artifact choice",
     fallbackAvailability:
       "Integrated Demo Mode, static launcher, offline dataset, and evidence docs",
     expectedOutput:
       "Local browser installation plan with demo sequence and handoff boundaries",
     complexity: "Medium-high",
-    recommendedForDemo: "Fallback or Q&A planning proof",
-    presentationTime: "45-75s",
+    recommendedForDemo: "Best Q&A demo",
+    presentationTime: "45-60s",
     talkingPoint:
       "Shows delivery judgment: local browser demo target, not public deployment or external execution.",
     expectedBehavior:
@@ -338,6 +345,39 @@ export const demoModeScenarios = [
 ] as const satisfies readonly DemoModeScenario[];
 
 export const demoModeScenarioCount = demoModeScenarios.length;
+
+export const demoModeRecommendedLiveSequence = [
+  {
+    role: "Fastest reliable demo",
+    scenarioId: "retrieval-grounded-creative-coding-answer",
+    title: "Retrieval-grounded answer",
+    rationale: "19.2s optimized smoke, 5 retrieved contexts, best quick proof."
+  },
+  {
+    role: "Most visually impressive demo",
+    scenarioId: "three-audio-reactive-visual-system",
+    title: "Three.js audio-reactive visual",
+    rationale: "68.8s optimized smoke with artifact events and strongest wow factor."
+  },
+  {
+    role: "Safest fallback demo",
+    scenarioId: "glsl-shader-post-processing-visual",
+    title: "GLSL shader visual",
+    rationale: "32.8s optimized smoke plus direct WebGL golden artifact QA."
+  },
+  {
+    role: "Best RAG demo",
+    scenarioId: "retrieval-grounded-creative-coding-answer",
+    title: "Source-grounded creative answer",
+    rationale: "Shortest provider-backed route with clear retrieval and RAGAs evidence."
+  },
+  {
+    role: "Best Q&A demo",
+    scenarioId: "installation-immersive-scene-planning",
+    title: "Installation planning",
+    rationale: "52.2s optimized smoke, useful for scope, ethics, and handoff questions."
+  }
+] as const satisfies readonly DemoModeRecommendation[];
 
 export function getDefaultDemoModeScenario(): DemoModeScenario {
   return demoModeScenarios[0];

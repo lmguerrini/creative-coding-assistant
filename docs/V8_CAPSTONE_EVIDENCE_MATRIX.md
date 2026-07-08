@@ -23,7 +23,7 @@ remaining risks below.
 - Golden artifact QA: p5.js, Three.js, GLSL, and Hydra artifacts have syntax
   and browser/runtime QA records.
 - Demo validation: integrated in-app Demo Mode is primary, exposes measured
-  full-app smoke metadata where available, and labels unmeasured flows
+  optimized live-smoke metadata where available, and labels bounded flows
   conservatively; the static launcher remains fallback/reviewer evidence.
 - Privacy boundary: raw private live-session rows remain local-only.
 - Deployment boundary: Capstone target is local demo, not public cloud
@@ -37,15 +37,40 @@ remaining risks below.
 | Code Quality | Typed models, focused tests, artifact QA tests, RAGAs foundation tests, and public-claim tests. | Chroma/Pydantic warnings remain third-party dependency noise. |
 | Testing | Backend, frontend, smoke E2E, focused demo, focused RAGAs, and artifact checks. | Live provider/RAGAs tests remain opt-in because they use credentials and may incur cost. |
 | Documentation | README, Capstone demo guide, ethics guide, deployment target, Grand Review, and demo docs. | Documentation is still broad; presenter should use the start-here path. |
-| Demo Reliability | Integrated Demo Mode covers 8 scenarios with timing/token/workflow/provider/retrieval/preview/fallback metadata; fallback launcher and manual checklist exist. | Final spoken rehearsal is still a human activity outside CI. |
+| Demo Reliability | Optimized live smoke completed all 8 integrated scenarios; provider-backed scenarios now complete in 19.2-68.8s, with Hydra bounded to no-provider artifact-QA support. | Final spoken rehearsal is still a human activity outside CI. |
 | Capstone Alignment | Cases 1, 2, 3, 5, and 6 are mapped conservatively in demo docs. | Official reviewer preferences may differ from local evidence mapping. |
-| Presentation Readiness | 10-minute demo, 5-minute Q&A, scenario presenter timing, fallback triggers, and reviewer answers are documented. | Delivery quality depends on presenter timing and live environment. |
-| Product Robustness | Local backend/frontend/API smoke, artifact QA, retrieval evidence, and fallback paths are present. | No broad chaos, load, soak, or display-FPS benchmark is claimed. |
+| Presentation Readiness | 10-minute demo, 5-minute Q&A, optimized scenario timing, recommended live sequence, fallback triggers, and reviewer answers are documented. | Delivery quality depends on presenter timing and live environment. |
+| Product Robustness | Local backend/frontend/API smoke, optimized live scenario smoke, artifact QA, retrieval evidence, and fallback paths are present. | No broad chaos, load, soak, or display-FPS benchmark is claimed. |
 | RAG/Retrieval Quality | Sanitized RAGAs, redacted latest-live RAGAs, retrieval smoke, and source-boundary docs. | Redacted latest-live fixture is p5.js-only and includes one weak faithfulness row. |
 | Output Quality | Golden artifacts render nonblank in the strongest local QA path available for p5.js, Three.js, GLSL, and Hydra. | Runtime QA used temporary dependencies; product preview integration is separate. |
 | Creative Quality | Demo prompts now emphasize audio-reactive systems, morphogenesis, feedback patterns, geometry, and installation planning. | Creative impact remains partly subjective and benefits from presenter curation. |
 | Security/Privacy | Sanitized/redacted evaluator fixtures, ignored runtime data, local `.env`, and documented private-data boundaries. | Secret scan should rerun immediately before any public release action. |
 | Production Readiness | Local demo target, fallback path, HITL boundaries, validation evidence, and dependency warning path are documented. | Final freeze, public release, tag, push, and Chroma upgrade require HITL or follow-up validation. |
+
+## Optimized Live-Smoke Results
+
+Run: `v8-speed-live-smoke-1783543600`.
+
+| Scenario | Before | Optimized | Token change | Classification |
+|---|---:|---:|---:|---|
+| Three.js audio-reactive visual | 94.1s / 41,960 total | 68.8s / 41,518 total | 4,000 -> 2,817 output | Full pass with artifact events |
+| p5.js morphogenesis | 100.5s / 40,760 total | 33.9s / 39,645 total | 4,000 -> 2,839 output | Full pass with artifact events |
+| GLSL shader | 97.5s / 40,348 total | 32.8s / 39,400 total | 3,368 -> 2,343 output | Full pass with artifact events |
+| Retrieval-grounded answer | 76.5s / 40,394 total | 19.2s / 38,778 total | 2,813 -> 1,286 output | Pass with RAG boundary |
+| Concept-to-visual | 103.4s / 40,381 total | 26.3s / 38,919 total | 3,624 -> 2,109 output | Full pass with artifact events |
+| Geometry/morphogenesis | 97.4s / 40,345 total | 21.5s / 38,556 total | 3,128 -> 1,639 output | Multi-domain bounded pass |
+| Hydra feedback | Unmeasured | 0.4s / no provider tokens | N/A | Artifact-QA support only |
+| Installation planning | Unmeasured | 52.2s / 37,699 total | N/A -> 1,370 output | Planning workflow pass |
+
+Workflow coverage:
+
+- Single-domain live workflow: Three.js, p5.js, GLSL, concept-to-visual, and
+  installation planning passed optimized live smoke.
+- Hybrid/RAG workflow: retrieval-grounded answer passed optimized live smoke
+  with 5 retrieved contexts.
+- Multi-domain workflow: geometry/morphogenesis passed optimized live smoke.
+- Multi-agent workflow: no live multi-agent execution path is validated or
+  claimed.
 
 ## RAGAs And Retrieval Analysis
 

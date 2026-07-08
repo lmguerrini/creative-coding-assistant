@@ -1012,11 +1012,14 @@ describe("WorkstationShell", () => {
     expect(
       within(demoMode).getByRole("button", { name: /Prompt loaded/ })
     ).toBeVisible();
-    expect(within(demoMode).getByText("100.5s measured full-app smoke")).toBeVisible();
+    expect(within(demoMode).getByText("33.9s optimized live smoke")).toBeVisible();
     expect(
-      within(demoMode).getByText("40,760 total / 4,000 output tokens")
+      within(demoMode).getByText("39,645 total / 2,839 output tokens")
     ).toBeVisible();
     expect(within(demoMode).getByText("Primary creative-quality proof")).toBeVisible();
+    expect(
+      within(demoMode).getByRole("button", { name: /Fastest reliable demo/ })
+    ).toBeVisible();
     expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
       "User"
     );

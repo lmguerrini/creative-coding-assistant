@@ -13,48 +13,77 @@
   "global_fallback": "Use the integrated Demo Mode prompt list, demo/final_demo_launcher.html, demo/golden_demo_dataset.json, demo/demo_prompt_library.md, assets/preview_current.png, redacted/sanitized RAGAs evidence, and golden artifact QA without implying unavailable live components succeeded.",
   "full_app_smoke_metadata": {
     "source_boundary": "Summarized from completed local full-app smoke evidence; raw private live-session rows are not tracked or exported.",
+    "optimized_run_id": "v8-speed-live-smoke-1783543600",
     "provider_when_measured": "openai / gpt-5-mini-2025-08-07",
+    "workflow_coverage": {
+      "single_domain": "Three.js, p5.js, GLSL, concept-to-visual, and installation planning completed optimized live smoke.",
+      "hybrid_rag": "Retrieval-grounded creative-coding answer completed optimized live smoke with 5 retrieved contexts.",
+      "multi_agent": "No live multi-agent execution path is validated or claimed; geometry/morphogenesis is multi-domain, not multi-agent."
+    },
     "measured_scenarios": {
       "primary_three_creative_coding_demo": {
-        "generation_time": "94.1s",
-        "token_usage": "41,960 total / 4,000 output",
+        "generation_time": "68.8s",
+        "token_usage": "41,518 total / 2,817 output",
         "workflow_type": "single-domain generation with retrieval",
-        "retrieval_usage": "3 contexts"
+        "retrieval_usage": "4 contexts",
+        "preview_artifact_status": "4 artifact/preview events in optimized smoke"
       },
       "p5_generative_sketch_demo": {
-        "generation_time": "100.5s",
-        "token_usage": "40,760 total / 4,000 output",
+        "generation_time": "33.9s",
+        "token_usage": "39,645 total / 2,839 output",
         "workflow_type": "single-domain generation with retrieval",
-        "retrieval_usage": "5 contexts"
+        "retrieval_usage": "5 contexts",
+        "preview_artifact_status": "2 artifact/preview events in optimized smoke"
       },
       "glsl_shader_post_processing_demo": {
-        "generation_time": "97.5s",
-        "token_usage": "40,348 total / 3,368 output",
+        "generation_time": "32.8s",
+        "token_usage": "39,400 total / 2,343 output",
         "workflow_type": "single-domain generation with retrieval",
-        "retrieval_usage": "5 contexts"
+        "retrieval_usage": "5 contexts",
+        "preview_artifact_status": "2 artifact/preview events in optimized smoke"
       },
       "retrieval_rag_grounded_answer_demo": {
-        "generation_time": "76.5s",
-        "token_usage": "40,394 total / 2,813 output",
+        "generation_time": "19.2s",
+        "token_usage": "38,778 total / 1,286 output",
         "workflow_type": "hybrid retrieval-grounded generation",
-        "retrieval_usage": "5 contexts"
+        "retrieval_usage": "5 contexts",
+        "preview_artifact_status": "Answer/evidence workflow; no preview required"
       },
       "concept_to_visual_translation_demo": {
-        "generation_time": "103.4s",
-        "token_usage": "40,381 total / 3,624 output",
+        "generation_time": "26.3s",
+        "token_usage": "38,919 total / 2,109 output",
         "workflow_type": "single-domain creative translation with retrieval",
-        "retrieval_usage": "5 contexts"
+        "retrieval_usage": "5 contexts",
+        "preview_artifact_status": "2 artifact/preview events in optimized smoke"
       },
       "geometry_morphogenesis_visual_system_demo": {
-        "generation_time": "97.4s",
-        "token_usage": "40,345 total / 3,128 output",
+        "generation_time": "21.5s",
+        "token_usage": "38,556 total / 1,639 output",
         "workflow_type": "multi-domain generation with retrieval",
-        "retrieval_usage": "5 contexts"
+        "retrieval_usage": "5 contexts",
+        "preview_artifact_status": "Planning/artifact direction answer; golden p5/GLSL QA remains fallback"
+      },
+      "hydra_feedback_pattern_demo": {
+        "generation_time": "0.4s",
+        "token_usage": "N/A; no provider token usage captured",
+        "workflow_type": "bounded multi-domain route; artifact QA support only",
+        "retrieval_usage": "5 contexts",
+        "preview_artifact_status": "Validated through golden hydra-synth artifact QA only"
+      },
+      "installation_immersive_scene_planning_demo": {
+        "generation_time": "52.2s",
+        "token_usage": "37,699 total / 1,370 output",
+        "workflow_type": "planning workflow with retrieval",
+        "retrieval_usage": "5 contexts",
+        "preview_artifact_status": "Planning answer; preview depends on generated artifact choice"
       }
     },
-    "unmeasured_scenarios": {
-      "hydra_feedback_pattern_demo": "Not live-smoke measured; support is bounded to validated hydra-synth artifact QA.",
-      "installation_immersive_scene_planning_demo": "Not live-smoke measured; planning evidence and fallback docs only."
+    "recommended_live_sequence": {
+      "fastest_reliable_demo": "Retrieval-grounded answer: 19.2s optimized live smoke.",
+      "most_visually_impressive_demo": "Three.js audio-reactive visual: 68.8s optimized live smoke with artifact events.",
+      "safest_fallback_demo": "GLSL shader visual: 32.8s optimized live smoke plus WebGL golden QA.",
+      "best_rag_demo": "Retrieval-grounded answer with 5 retrieved contexts and RAGAs evidence.",
+      "best_q_and_a_demo": "Installation planning: 52.2s optimized live smoke."
     }
   },
   "demos": [

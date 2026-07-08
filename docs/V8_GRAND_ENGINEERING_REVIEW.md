@@ -44,8 +44,11 @@ Validation:
   boundaries, and output guidance in the workstation.
 - Polished Demo Mode with smoke-derived generation timing, token usage,
   workflow type, provider/retrieval requirements, preview/fallback status,
-  expected output, complexity, presenter timing, and talking points. Flows
-  without measured full-app smoke rows are explicitly labeled as unmeasured.
+  expected output, complexity, presenter timing, and talking points. Bounded
+  flows distinguish provider-backed smoke from artifact-QA support.
+- Optimized Demo Mode prompts for live demo speed while preserving source
+  boundaries, artifact guidance, and chat/code separation. Optimized live smoke
+  run `v8-speed-live-smoke-1783543600` completed all 8 scenarios.
 - Added User/Developer display-mode controls so Demo Mode starts quietly for
   reviewers while runtime traces, renderer details, and LangSmith/developer
   evidence remain available behind Developer Mode.
@@ -97,6 +100,22 @@ Product smoke:
   `OPENAI_API_KEY` and `gpt-5-mini`: the API returned a response id, model
   `gpt-5-mini-2025-08-07`, expected content `CCA_V8_PROVIDER_OK`, and usage
   metadata for a 107-token bounded request.
+- Optimized Demo Mode live smoke passed for all 8 integrated scenarios using
+  the normal assistant stream service and live-session recorder. Provider-backed
+  scenarios completed in 19.2-68.8s; Hydra completed as a bounded no-provider
+  route and remains validated through golden `hydra-synth` artifact QA.
+- Exact optimized live-smoke rows:
+  Three.js `68.8s`, `41,518` total tokens, 4 retrieved contexts, artifact
+  events; p5.js `33.9s`, `39,645` total tokens, 5 contexts, artifact events;
+  GLSL `32.8s`, `39,400` total tokens, 5 contexts, artifact events;
+  retrieval-grounded answer `19.2s`, `38,778` total tokens, 5 contexts;
+  concept-to-visual `26.3s`, `38,919` total tokens, 5 contexts, artifact
+  events; geometry/morphogenesis `21.5s`, `38,556` total tokens, 5 contexts;
+  Hydra `0.4s`, no provider token usage, 5 contexts, artifact-QA boundary;
+  installation planning `52.2s`, `37,699` total tokens, 5 contexts.
+- Workflow coverage: single-domain live demos passed, hybrid/RAG live demo
+  passed, and multi-domain geometry/morphogenesis live demo passed. No live
+  multi-agent execution path is validated or claimed.
 - Quality dashboard generation passed and reported complete roadmap coverage for
   23 quality gates.
 - Internal advisory review surfaces ran as engineering reviewers, not
@@ -164,9 +183,9 @@ Evaluation:
   public deployment, or broad product-preview-runtime benchmark is claimed.
 - Integrated Demo Mode is now the primary local demo path inside Creative
   Coding Assistant. The static launcher remains fallback/reviewer evidence.
-- The integrated Demo Mode now exposes measured full-app smoke metadata for the
-  six measured core flows and labels Hydra and installation planning as
-  artifact-QA/planning evidence rather than invented timing estimates.
+- The integrated Demo Mode now exposes optimized live-smoke metadata for all 8
+  flows. Hydra is explicitly bounded as a no-provider route with validated
+  artifact-QA support rather than live provider generation.
 - One-click local launcher validation passed for
   `demo/final_demo_launcher.html`: the page loaded from the local static QA
   server, rendered all 8 demo flows from `demo/final_demo_suite.json`, loaded
