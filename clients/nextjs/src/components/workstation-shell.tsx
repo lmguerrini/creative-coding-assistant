@@ -309,8 +309,7 @@ const defaultWorkspacePersistenceClient = createWorkspacePersistenceClient();
 const userModeInspectorTabs = new Set<InspectorTabName>([
   "Preview",
   "Code",
-  "Artifacts",
-  "Retrieval"
+  "Artifacts"
 ]);
 const userModeDefaultInspectorTab: InspectorTabName = "Preview";
 const persistenceStateLabels = {
@@ -377,6 +376,7 @@ export function WorkstationShell({
     buildConversationEntries(initialSnapshot.messages, createConversationEntryId)
   );
   const [composerValue, setComposerValue] = useState("");
+  const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
   const [isDemoModeOpen, setIsDemoModeOpen] = useState(false);
   const [activeDemoScenarioId, setActiveDemoScenarioId] = useState(
     () => getDefaultDemoModeScenario().id
@@ -452,6 +452,7 @@ export function WorkstationShell({
   const previousPreviewRuntimeSessionKeyRef = useRef<string | null>(null);
   const chatLogRef = useRef<HTMLDivElement>(null);
   const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const attachmentMenuRef = useRef<HTMLDivElement | null>(null);
   const approvalCardRef = useRef<HTMLElement | null>(null);
   const shouldAutoScrollRef = useRef(true);
   const isShellMountedRef = useRef(true);
@@ -615,6 +616,35 @@ export function WorkstationShell({
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [openUtilityPanel]);
+
+  useEffect(() => {
+    if (!isAttachmentMenuOpen) {
+      return undefined;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (
+        attachmentMenuRef.current &&
+        event.target instanceof Node &&
+        !attachmentMenuRef.current.contains(event.target)
+      ) {
+        setIsAttachmentMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsAttachmentMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isAttachmentMenuOpen]);
 
   useEffect(() => {
     if (!isPreviewFullscreen) {
@@ -1135,6 +1165,9 @@ export function WorkstationShell({
   const persistenceStatusLabel =
     persistenceStateLabels[persistenceState] ?? "Local session ready";
   const hasWorkspaceArtifacts = snapshot.artifacts.length > 0;
+  const activeArtifactDisplayLabel = workspacePreferences.showDebugPanels
+    ? activeArtifact.title
+    : formatUserArtifactLabel(activeArtifact);
   const isInspectorCollapsed = layoutState.inspectorCollapsed;
   const sessionStatusLabel = blockingApprovalRequest
     ? getHitlApprovalStateLabel(blockingApprovalRequest.state)
@@ -1279,6 +1312,7 @@ export function WorkstationShell({
   }
 
   function toggleUtilityPanel(panelName: UtilityPanelName) {
+    setIsAttachmentMenuOpen(false);
     setOpenUtilityPanel((currentPanel) =>
       currentPanel === panelName ? null : panelName
     );
@@ -1613,6 +1647,9 @@ export function WorkstationShell({
     setWorkflowTraceEvents([]);
     setPreviewRuntimeLive(null);
     setOpenUtilityPanel(null);
+    setIsAttachmentMenuOpen(false);
+    setIsDemoModeOpen(false);
+    setActiveDemoScenarioId(getDefaultDemoModeScenario().id);
   }
 
   function handleInspectorCollapsedChange(
@@ -1884,6 +1921,7 @@ export function WorkstationShell({
     const input = event.currentTarget;
     const files = Array.from(input.files ?? []);
     input.value = "";
+    setIsAttachmentMenuOpen(false);
 
     if (files.length === 0) {
       return;
@@ -2004,6 +2042,7 @@ export function WorkstationShell({
       updateWorkspacePreferences({ showDebugPanels: false });
     }
     setOpenUtilityPanel(null);
+    setIsAttachmentMenuOpen(false);
   }
 
   function handleDemoScenarioLoad(scenario: DemoModeScenario) {
@@ -2014,6 +2053,7 @@ export function WorkstationShell({
     setComposerValue(scenario.prompt);
     updateWorkspacePreferences({ showDebugPanels: false });
     setOpenUtilityPanel(null);
+    setIsAttachmentMenuOpen(false);
 
     window.requestAnimationFrame(() => {
       composerTextareaRef.current?.focus();
@@ -2030,6 +2070,7 @@ export function WorkstationShell({
     }
 
     setComposerValue("");
+    setIsAttachmentMenuOpen(false);
     await submitAssistantRequest({ prompt });
   }
 
@@ -2789,7 +2830,9 @@ export function WorkstationShell({
                 >
                   <span>{hasWorkspaceArtifacts ? "Active artifact" : "Workspace"}</span>
                   <strong>
-                    {hasWorkspaceArtifacts ? activeArtifact.title : "Ready for first prompt"}
+                    {hasWorkspaceArtifacts
+                      ? activeArtifactDisplayLabel
+                      : "Ready for first prompt"}
                   </strong>
                   <small aria-live="polite">{persistenceStatusLabel}</small>
                 </div>
@@ -2963,18 +3006,42 @@ export function WorkstationShell({
               onSubmit={handleComposerSubmit}
             >
               <div className="composerInputFrame">
-                <label className="composerUploadButton" title="Add attachment">
-                  <input
-                    accept={supportedImageUploadAccept}
+                <div className="composerAttach" ref={attachmentMenuRef}>
+                  <button
+                    aria-controls="composer-attachment-menu"
+                    aria-expanded={isAttachmentMenuOpen}
                     aria-label="Add attachment"
+                    className="composerAttachButton"
                     disabled={isStreaming}
-                    multiple
-                    onChange={(event) => void handleImageUploadChange(event)}
-                    type="file"
-                  />
-                  <Plus size={17} aria-hidden="true" />
-                  <span>Add attachment</span>
-                </label>
+                    onClick={() =>
+                      setIsAttachmentMenuOpen((currentValue) => !currentValue)
+                    }
+                    title="Add attachment"
+                    type="button"
+                  >
+                    <Plus size={18} aria-hidden="true" />
+                  </button>
+                  {isAttachmentMenuOpen ? (
+                    <div
+                      aria-label="Attachment options"
+                      className="attachmentMenu"
+                      id="composer-attachment-menu"
+                      role="menu"
+                    >
+                      <label className="attachmentMenuItem">
+                        <input
+                          accept={supportedImageUploadAccept}
+                          aria-label="Upload image attachment"
+                          disabled={isStreaming}
+                          multiple
+                          onChange={(event) => void handleImageUploadChange(event)}
+                          type="file"
+                        />
+                        <span>Upload image</span>
+                      </label>
+                    </div>
+                  ) : null}
+                </div>
                 <textarea
                   aria-label="Assistant prompt"
                   onChange={(event) => setComposerValue(event.currentTarget.value)}
@@ -3058,14 +3125,24 @@ export function WorkstationShell({
                     <PanelRight size={18} />
                   </button>
                   <strong>Inspector</strong>
-                  <span>{activeTab}</span>
+                  <span>
+                    {formatInspectorTabDisplayLabel(
+                      activeTab,
+                      workspacePreferences.showDebugPanels
+                    )}
+                  </span>
                 </div>
               ) : (
                 <>
                   <header className="inspectorHeader">
                     <div>
                       <span className="eyebrow">Inspector</span>
-                      <h2>{activeTab}</h2>
+                      <h2>
+                        {formatInspectorTabDisplayLabel(
+                          activeTab,
+                          workspacePreferences.showDebugPanels
+                        )}
+                      </h2>
                       <p>{activeTabSummary}</p>
                     </div>
                     <button
@@ -3081,11 +3158,15 @@ export function WorkstationShell({
                   <div className="inspectorTabs" role="tablist" aria-label="Inspector tabs">
                     {visibleInspectorTabs.map((tab) => {
                       const Icon = inspectorTabIcons[tab.label];
+                      const displayLabel = formatInspectorTabDisplayLabel(
+                        tab.label,
+                        workspacePreferences.showDebugPanels
+                      );
 
                       return (
                         <button
                           aria-controls={`${tab.label.toLowerCase()}-inspector-panel`}
-                          aria-label={tab.label}
+                          aria-label={displayLabel}
                           aria-selected={tab.active}
                           data-active={tab.active}
                           id={`${tab.label.toLowerCase()}-inspector-tab`}
@@ -3097,8 +3178,10 @@ export function WorkstationShell({
                           type="button"
                         >
                           <Icon size={15} aria-hidden="true" />
-                          <span>{tab.label}</span>
-                          {tab.badge ? <small>{tab.badge}</small> : null}
+                          <span>{displayLabel}</span>
+                          {workspacePreferences.showDebugPanels && tab.badge ? (
+                            <small>{tab.badge}</small>
+                          ) : null}
                         </button>
                       );
                     })}
@@ -3346,7 +3429,7 @@ function DemoModePanel({
     : ([
         ["Capability", activeScenario.recommendedForDemo],
         ["Runtime", activeScenario.runtime],
-        ["Output", activeScenario.expectedOutput],
+        ["Smoke", summarizeDemoValidation(activeScenario.validationPath)],
         ["Fallback", activeScenario.fallbackAvailability]
       ] as const);
 
@@ -3361,8 +3444,8 @@ function DemoModePanel({
           <span className="eyebrow">Demo Mode</span>
           <strong>Capstone scenarios</strong>
           <p>
-            Curated creative-coding flows with ready prompts, expected output,
-            and fallback paths.
+            Curated creative-coding flows with ready prompts and safe fallback
+            paths.
           </p>
         </div>
         <span className="demoModeCount">{scenarios.length} flows</span>
@@ -3407,9 +3490,13 @@ function DemoModePanel({
                 onClick={() => onLoadScenario(scenario)}
                 type="button"
               >
-                <span>{scenario.runtime}</span>
+                <span>{getDemoScenarioPublicCategory(scenario)}</span>
                 <strong>{scenario.title}</strong>
-                <small>{`${scenario.category} / ${scenario.recommendedForDemo}`}</small>
+                <small>
+                  {showDebugPanels
+                    ? `${scenario.category} / ${scenario.recommendedForDemo}`
+                    : scenario.recommendedForDemo}
+                </small>
                 {isActive ? <ChevronDown size={14} aria-hidden="true" /> : null}
               </button>
             );
@@ -3422,7 +3509,7 @@ function DemoModePanel({
         >
           <header>
             <div>
-              <span>{activeScenario.runtime}</span>
+              <span>{getDemoScenarioPublicCategory(activeScenario)}</span>
               <strong>{activeScenario.title}</strong>
             </div>
             <button
@@ -3446,22 +3533,35 @@ function DemoModePanel({
             ))}
           </dl>
 
-          <p className="demoPromptPreview">{activeScenario.prompt}</p>
+          {showDebugPanels ? (
+            <p className="demoPromptPreview">{activeScenario.prompt}</p>
+          ) : null}
 
-          <dl className="demoScenarioMeta">
-            <div>
-              <dt>Expected behavior</dt>
-              <dd>{activeScenario.expectedBehavior}</dd>
+          {showDebugPanels ? (
+            <dl className="demoScenarioMeta">
+              <div>
+                <dt>Expected behavior</dt>
+                <dd>{activeScenario.expectedBehavior}</dd>
+              </div>
+              <div>
+                <dt>Fallback</dt>
+                <dd>{activeScenario.fallback}</dd>
+              </div>
+              <div>
+                <dt>Output guidance</dt>
+                <dd>{activeScenario.outputGuidance}</dd>
+              </div>
+            </dl>
+          ) : (
+            <div className="demoUserEssentials">
+              <p>
+                <strong>Validates:</strong> {activeScenario.recommendedForDemo}
+              </p>
+              <p>
+                <strong>Fallback:</strong> {activeScenario.fallbackAvailability}
+              </p>
             </div>
-            <div>
-              <dt>Fallback</dt>
-              <dd>{activeScenario.fallback}</dd>
-            </div>
-            <div>
-              <dt>Output guidance</dt>
-              <dd>{activeScenario.outputGuidance}</dd>
-            </div>
-          </dl>
+          )}
 
           {showDebugPanels ? (
             <>
@@ -3492,6 +3592,98 @@ function DemoModePanel({
   );
 }
 
+function getDemoScenarioPublicCategory(scenario: DemoModeScenario) {
+  const searchable = [
+    scenario.id,
+    scenario.runtime,
+    scenario.category,
+    scenario.workflowType,
+    scenario.title
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  if (searchable.includes("concept") || searchable.includes("translation")) {
+    return "Concept Translation";
+  }
+
+  if (searchable.includes("installation")) {
+    return "Installation Planning";
+  }
+
+  if (searchable.includes("geometry")) {
+    return "Visual Planning";
+  }
+
+  if (searchable.includes("three")) {
+    return "Three.js";
+  }
+
+  if (searchable.includes("p5")) {
+    return "p5.js";
+  }
+
+  if (searchable.includes("glsl") || searchable.includes("shader")) {
+    return "GLSL";
+  }
+
+  if (searchable.includes("hydra")) {
+    return "Hydra";
+  }
+
+  if (searchable.includes("retrieval") || searchable.includes("rag")) {
+    return "Retrieval";
+  }
+
+  return "Visual Planning";
+}
+
+function summarizeDemoValidation(validationPath: string) {
+  const normalizedPath = validationPath.toLowerCase();
+
+  if (normalizedPath.includes("nonblank") || normalizedPath.includes("rendered")) {
+    return "Browser QA";
+  }
+
+  if (normalizedPath.includes("ragas")) {
+    return "RAGAs run";
+  }
+
+  if (normalizedPath.includes("documented")) {
+    return "Documented";
+  }
+
+  return "Smoke checked";
+}
+
+function formatUserPreviewArtifactLabel(snapshot: AssistantWorkspaceSnapshot) {
+  const previewArtifact = snapshot.artifacts.find(
+    (artifact) =>
+      artifact.id === snapshot.preview.sourceArtifactId ||
+      artifact.title === snapshot.preview.artifactName ||
+      artifact.title === snapshot.preview.sourceArtifactName ||
+      artifact.title === snapshot.preview.outputArtifactName
+  );
+
+  if (previewArtifact) {
+    return formatUserArtifactLabel(previewArtifact);
+  }
+
+  return formatUserArtifactLabel({
+    ...emptyWorkspaceArtifact,
+    language: snapshot.code.language,
+    runtime: snapshot.preview.renderer,
+    title: [
+      snapshot.preview.artifactName,
+      snapshot.preview.sourceArtifactName,
+      snapshot.preview.outputArtifactName,
+      snapshot.preview.title,
+      snapshot.preview.renderer,
+      snapshot.preview.target
+    ].join(" ")
+  });
+}
+
 function PreviewShelf({
   controller,
   height,
@@ -3513,19 +3705,30 @@ function PreviewShelf({
   showDebugPanels,
   snapshot
 }: PreviewShelfProps) {
+  const canOpenUserPreview = showDebugPanels || snapshot.preview.state === "ready";
+  const isPreviewPanelOpen = snapshot.preview.active && canOpenUserPreview;
+
   function handleSummaryClick(event: MouseEvent<HTMLElement>) {
     event.preventDefault();
-    onToggle(!snapshot.preview.active);
+    if (!canOpenUserPreview) {
+      onToggle(false);
+      return;
+    }
+    onToggle(!isPreviewPanelOpen);
   }
 
   function handleToggle(event: SyntheticEvent<HTMLDetailsElement>) {
+    if (!canOpenUserPreview && event.currentTarget.open) {
+      onToggle(false);
+      return;
+    }
     onToggle(event.currentTarget.open);
   }
 
   const layoutSize = resolvePreviewShelfLayoutSize(snapshot.preview);
   const panelHeight = resolvePreviewShelfPanelHeight(height, snapshot.preview);
   const canResizePreview =
-    snapshot.preview.active && layoutSize === "visual" && !controller.isFullscreen;
+    isPreviewPanelOpen && layoutSize === "visual" && !controller.isFullscreen;
   const panelStyle = controller.isFullscreen ? undefined : { height: panelHeight };
 
   return (
@@ -3534,13 +3737,14 @@ function PreviewShelf({
         data-fullscreen={controller.isFullscreen ? "true" : "false"}
         data-layout-size={layoutSize}
         className="previewShelf"
-        data-state={snapshot.preview.active ? "open" : "closed"}
+        data-state={isPreviewPanelOpen ? "open" : "closed"}
         data-runtime-state={snapshot.preview.state}
+        data-user-mode={showDebugPanels ? "false" : "true"}
         onToggle={handleToggle}
-        open={snapshot.preview.active}
+        open={isPreviewPanelOpen}
       >
         <summary
-          aria-expanded={snapshot.preview.active}
+          aria-expanded={isPreviewPanelOpen}
           onClick={handleSummaryClick}
         >
           <span className="previewSummaryIcon" aria-hidden="true">
@@ -3548,7 +3752,11 @@ function PreviewShelf({
           </span>
           <div>
             <strong>{snapshot.preview.title}</strong>
-            <span>{snapshot.preview.artifactName}</span>
+            <span>
+              {showDebugPanels
+                ? snapshot.preview.artifactName
+                : formatUserPreviewArtifactLabel(snapshot)}
+            </span>
           </div>
           <div className="previewSummaryMeta">
             <small data-state={snapshot.preview.state}>{snapshot.preview.status}</small>
@@ -3791,6 +3999,7 @@ function InspectorPanel({
         highlightedLines={activeArtifactHighlights}
         onArtifactCopy={onArtifactCopy}
         onArtifactTransfer={onArtifactTransfer}
+        showDebugPanels={showDebugPanels}
         transferFeedback={transferFeedback}
       />
     );
@@ -3804,6 +4013,7 @@ function InspectorPanel({
         preview={snapshot.preview}
         route={previewRoute}
         runtimeSource={previewRuntimeSource}
+        showDebugPanels={showDebugPanels}
       />
     );
   }
@@ -3851,6 +4061,7 @@ function InspectorPanel({
         onArtifactRefine={onArtifactRefine}
         onArtifactSelect={onArtifactSelect}
         preview={snapshot.preview}
+        showDebugPanels={showDebugPanels}
         transferFeedback={transferFeedback}
       />
     );
@@ -4203,14 +4414,57 @@ function PreviewInspector({
   dashboard,
   preview,
   route,
-  runtimeSource
+  runtimeSource,
+  showDebugPanels
 }: {
   controller: PreviewControllerModel;
   dashboard: TelemetryDashboardModel;
   preview: AssistantWorkspaceSnapshot["preview"];
   route: PreviewRendererRoute;
   runtimeSource: PreviewRuntimeSource;
+  showDebugPanels: boolean;
 }) {
+  if (!showDebugPanels) {
+    return (
+      <section
+        aria-label="Preview inspector"
+        className="inspectorPanel previewInspectorPanel previewInspectorPanel--user"
+        data-state={preview.state}
+        id="preview-inspector-panel"
+        role="tabpanel"
+      >
+        <article
+          aria-label="Preview canvas status"
+          className="previewInspectorHero previewInspectorHero--user"
+          data-state={preview.state}
+          role="group"
+        >
+          <div>
+            <span>Preview</span>
+            <strong>{formatPreviewStateLabel(preview.state, preview.active)}</strong>
+            <p>
+              {preview.state === "ready"
+                ? "Visual output is ready in the preview shelf."
+                : "Preview will open when a runnable visual artifact is ready."}
+            </p>
+          </div>
+          <span>{preview.state === "ready" ? "Ready" : "Fallback"}</span>
+        </article>
+        <article className="previewInspectorCard previewInspectorCard--user" role="group">
+          <header>
+            <span>Visual target</span>
+            <strong>{route.surfaceTitle}</strong>
+          </header>
+          <p>
+            {preview.state === "ready"
+              ? "Use the preview shelf for the visual canvas. Developer diagnostics stay hidden in User Mode."
+              : "Continue with Code or Saved outputs if preview is not available yet."}
+          </p>
+        </article>
+      </section>
+    );
+  }
+
   return (
     <section
       aria-label="Preview inspector"
@@ -4362,6 +4616,7 @@ type CodeInspectorProps = {
   highlightedLines: HighlightedLine[];
   onArtifactCopy: (artifact: ArtifactSummary) => Promise<void>;
   onArtifactTransfer: (artifact: ArtifactSummary) => void;
+  showDebugPanels: boolean;
   transferFeedback: ArtifactActionFeedback | null;
 };
 
@@ -4372,6 +4627,7 @@ function CodeInspector({
   highlightedLines,
   onArtifactCopy,
   onArtifactTransfer,
+  showDebugPanels,
   transferFeedback
 }: CodeInspectorProps) {
   const transferAction = getArtifactTransferAction(artifact.actions);
@@ -4380,41 +4636,71 @@ function CodeInspector({
     copyFeedback,
     transferFeedback
   );
+  const displayDocumentName = showDebugPanels
+    ? document.fileName
+    : formatUserArtifactLabel(artifact);
+  const actionMessageText =
+    actionMessage && !showDebugPanels
+      ? toUserArtifactActionMessage(actionMessage)
+      : actionMessage;
 
   return (
     <section
       aria-label="Code inspector"
       className="inspectorPanel codePanel"
-      data-opened-artifact={document.fileName}
+      data-opened-artifact={displayDocumentName}
       id="code-inspector-panel"
       role="tabpanel"
     >
       <header className="codePanelHeader">
         <div>
-          <span>Active document</span>
-          <strong>{document.fileName}</strong>
+          <span>{showDebugPanels ? "Active document" : "Generated code"}</span>
+          <strong>{displayDocumentName}</strong>
           <p>{document.summary}</p>
         </div>
         <div className="codePanelActions">
           <button
-            aria-label={`Copy ${document.fileName}`}
+            aria-label={`Copy ${displayDocumentName}`}
             onClick={() => void onArtifactCopy(artifact)}
             type="button"
           >
-            {getArtifactActionButtonLabel("Copy", artifact, copyFeedback, transferFeedback)}
+            {showDebugPanels
+              ? getArtifactActionButtonLabel(
+                  "Copy",
+                  artifact,
+                  copyFeedback,
+                  transferFeedback
+                )
+              : getUserArtifactActionButtonLabel(
+                  "Copy",
+                  artifact,
+                  copyFeedback,
+                  transferFeedback
+                )}
           </button>
           {transferAction ? (
             <button
-              aria-label={`${formatArtifactActionLabel(transferAction, artifact)} ${document.fileName}`}
+              aria-label={`${
+                showDebugPanels
+                  ? formatArtifactActionLabel(transferAction, artifact)
+                  : formatUserArtifactActionLabel(transferAction)
+              } ${displayDocumentName}`}
               onClick={() => onArtifactTransfer(artifact)}
               type="button"
             >
-              {getArtifactActionButtonLabel(
-                transferAction,
-                artifact,
-                copyFeedback,
-                transferFeedback
-              )}
+              {showDebugPanels
+                ? getArtifactActionButtonLabel(
+                    transferAction,
+                    artifact,
+                    copyFeedback,
+                    transferFeedback
+                  )
+                : getUserArtifactActionButtonLabel(
+                    transferAction,
+                    artifact,
+                    copyFeedback,
+                    transferFeedback
+                  )}
             </button>
           ) : null}
         </div>
@@ -4425,13 +4711,13 @@ function CodeInspector({
         <span role="listitem">{document.status}</span>
         <span role="listitem">{document.lineCount} lines</span>
       </div>
-      {actionMessage ? (
+      {actionMessageText ? (
         <p className="artifactActionFeedback" aria-live="polite">
-          {actionMessage}
+          {actionMessageText}
         </p>
       ) : null}
       <div
-        aria-label={`${document.fileName} content`}
+        aria-label={`${displayDocumentName} content`}
         className="codeViewer"
         role="region"
       >
@@ -5077,6 +5363,7 @@ type ArtifactsInspectorProps = {
   onArtifactRefine: (artifact: ArtifactSummary, instruction: string) => Promise<void>;
   onArtifactSelect: (artifact: ArtifactSummary) => void;
   preview: AssistantWorkspaceSnapshot["preview"];
+  showDebugPanels: boolean;
   transferFeedback: ArtifactActionFeedback | null;
 };
 
@@ -5093,6 +5380,7 @@ function ArtifactsInspector({
   onArtifactRefine,
   onArtifactSelect,
   preview,
+  showDebugPanels,
   transferFeedback
 }: ArtifactsInspectorProps) {
   const actionMessage = getArtifactActionMessage(
@@ -5106,6 +5394,20 @@ function ArtifactsInspector({
     code,
     preview
   });
+
+  if (!showDebugPanels) {
+    return (
+      <UserArtifactsInspector
+        activeArtifact={activeArtifact}
+        activeArtifactId={activeArtifactId}
+        artifacts={artifacts}
+        copyFeedback={copyFeedback}
+        onArtifactAction={onArtifactAction}
+        onArtifactSelect={onArtifactSelect}
+        transferFeedback={transferFeedback}
+      />
+    );
+  }
 
   return (
     <section
@@ -5241,6 +5543,109 @@ function ArtifactsInspector({
   );
 }
 
+function UserArtifactsInspector({
+  activeArtifact,
+  activeArtifactId,
+  artifacts,
+  copyFeedback,
+  onArtifactAction,
+  onArtifactSelect,
+  transferFeedback
+}: {
+  activeArtifact: ArtifactSummary;
+  activeArtifactId: string;
+  artifacts: ArtifactSummary[];
+  copyFeedback: ArtifactActionFeedback | null;
+  onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
+  onArtifactSelect: (artifact: ArtifactSummary) => void;
+  transferFeedback: ArtifactActionFeedback | null;
+}) {
+  const actionMessage = getArtifactActionMessage(
+    activeArtifact,
+    copyFeedback,
+    transferFeedback
+  );
+
+  return (
+    <section
+      aria-label="Saved outputs inspector"
+      className="inspectorPanel artifactPanel artifactPanel--user"
+      id="artifacts-inspector-panel"
+      role="tabpanel"
+    >
+      <article className="savedOutputsHero" role="group" aria-label="Saved outputs">
+        <div>
+          <span>Saved outputs</span>
+          <strong>{formatUserArtifactLabel(activeArtifact)}</strong>
+          <p>{getUserArtifactSummary(activeArtifact)}</p>
+        </div>
+        <span>{`${artifacts.length} saved`}</span>
+      </article>
+      <div className="savedOutputList" role="list" aria-label="Saved output list">
+        {artifacts.map((artifact) => {
+          const isActive = artifact.id === activeArtifactId;
+          return (
+            <div key={artifact.id} role="listitem">
+              <button
+                aria-pressed={isActive}
+                className="savedOutputCard"
+                data-active={isActive ? "true" : "false"}
+                onClick={() => onArtifactSelect(artifact)}
+                type="button"
+              >
+                <span>{formatUserArtifactRuntimeLabel(artifact)}</span>
+                <strong>{formatUserArtifactLabel(artifact)}</strong>
+                <small>{getUserArtifactSummary(artifact)}</small>
+              </button>
+            </div>
+          );
+        })}
+      </div>
+      <UserArtifactActionRow
+        artifact={activeArtifact}
+        copyFeedback={copyFeedback}
+        onArtifactAction={onArtifactAction}
+        transferFeedback={transferFeedback}
+      />
+      {actionMessage ? (
+        <p className="artifactActionFeedback" aria-live="polite">
+          {toUserArtifactActionMessage(actionMessage)}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+function UserArtifactActionRow({
+  artifact,
+  copyFeedback,
+  onArtifactAction,
+  transferFeedback
+}: ArtifactActionRowProps) {
+  return (
+    <div className="artifactActions artifactActions--user">
+      {artifact.actions.map((action) => (
+        <button
+          aria-label={`${formatUserArtifactActionLabel(action)} ${formatUserArtifactLabel(
+            artifact
+          )}`}
+          data-action={action.toLowerCase()}
+          key={action}
+          onClick={() => onArtifactAction(action, artifact)}
+          type="button"
+        >
+          {getUserArtifactActionButtonLabel(
+            action,
+            artifact,
+            copyFeedback,
+            transferFeedback
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 type CommandMenuPanelProps = {
   activeTab: InspectorTabName;
   hasBlockingApproval: boolean;
@@ -5278,14 +5683,16 @@ function CommandMenuPanel({
         <p>Jump to the next workspace surface without changing the current flow.</p>
       </header>
       <div className="commandMenuGrid">
-        <button
-          data-active={activeTab === "Overview"}
-          onClick={() => onOpenTab("Overview")}
-          type="button"
-        >
-          <strong>Overview</strong>
-          <span>Return to the compact session summary.</span>
-        </button>
+        {showDebugPanels ? (
+          <button
+            data-active={activeTab === "Overview"}
+            onClick={() => onOpenTab("Overview")}
+            type="button"
+          >
+            <strong>Overview</strong>
+            <span>Return to the compact session summary.</span>
+          </button>
+        ) : null}
         <button
           data-active={activeTab === "Preview"}
           onClick={() => onOpenTab("Preview")}
@@ -5305,12 +5712,20 @@ function CommandMenuPanel({
           </button>
         ) : null}
         <button
+          data-active={activeTab === "Artifacts"}
+          onClick={() => onOpenTab("Artifacts")}
+          type="button"
+        >
+          <strong>{showDebugPanels ? "Artifacts" : "Saved"}</strong>
+          <span>Inspect generated and saved results.</span>
+        </button>
+        <button
           data-active={activeTab === "Code"}
           onClick={() => onOpenTab("Code")}
           type="button"
         >
           <strong>Code</strong>
-          <span>Open the active generated file.</span>
+          <span>Open generated code.</span>
         </button>
         {showDebugPanels ? (
           <>
@@ -5794,6 +6209,98 @@ function getArtifactTransferAction(
   }
 
   return null;
+}
+
+function formatUserArtifactLabel(artifact: ArtifactSummary) {
+  const searchable = [
+    artifact.title,
+    artifact.language,
+    artifact.runtime ?? "",
+    artifact.rendererId ?? "",
+    artifact.domain ?? ""
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  if (searchable.includes("three")) {
+    return "Three.js Scene";
+  }
+
+  if (searchable.includes("glsl") || searchable.includes("shader")) {
+    return "GLSL Shader";
+  }
+
+  if (searchable.includes("p5")) {
+    return "P5 Sketch";
+  }
+
+  return "Generated Code";
+}
+
+function formatUserArtifactRuntimeLabel(artifact: ArtifactSummary) {
+  const label = formatUserArtifactLabel(artifact);
+
+  if (label === "Generated Code") {
+    return artifact.type === "export" ? "Export" : "Code";
+  }
+
+  return label.replace(" Scene", "").replace(" Sketch", "");
+}
+
+function getUserArtifactSummary(artifact: ArtifactSummary) {
+  if (artifact.summary.trim()) {
+    return artifact.summary;
+  }
+
+  if (isArtifactPreviewable(artifact)) {
+    return "Visual output ready for preview.";
+  }
+
+  return "Generated output ready to inspect.";
+}
+
+function formatUserArtifactActionLabel(action: ArtifactAction) {
+  if (action === "Open") {
+    return "Open";
+  }
+
+  if (action === "Copy") {
+    return "Copy";
+  }
+
+  if (action === "Download" || action === "Export") {
+    return "Save";
+  }
+
+  return action;
+}
+
+function getUserArtifactActionButtonLabel(
+  action: ArtifactAction,
+  artifact: ArtifactSummary,
+  copyFeedback: ArtifactActionFeedback | null,
+  transferFeedback: ArtifactActionFeedback | null
+) {
+  if (action === "Copy" && copyFeedback?.artifactId === artifact.id) {
+    return copyFeedback.state === "success" ? "Copied" : "Copy unavailable";
+  }
+
+  if (
+    (action === "Download" || action === "Export") &&
+    transferFeedback?.artifactId === artifact.id
+  ) {
+    return transferFeedback.state === "success" ? "Saved" : "Save unavailable";
+  }
+
+  return formatUserArtifactActionLabel(action);
+}
+
+function toUserArtifactActionMessage(message: string) {
+  return message
+    .replace(/copied to clipboard\./i, "copied.")
+    .replace(/Clipboard is unavailable for .+\./i, "Copy is unavailable.")
+    .replace(/Download is unavailable for .+\./i, "Save is unavailable.")
+    .replace(/Export is unavailable for .+\./i, "Save is unavailable.");
 }
 
 function getArtifactTypeLabel(type: ArtifactSummary["type"]) {
@@ -6282,6 +6789,17 @@ function WorkflowProgress({
 
 function getInitialActiveTab(snapshot: AssistantWorkspaceSnapshot): InspectorTabName {
   return snapshot.inspectorTabs.find((tab) => tab.active)?.label ?? "Overview";
+}
+
+function formatInspectorTabDisplayLabel(
+  tab: InspectorTabName,
+  showDebugPanels: boolean
+) {
+  if (!showDebugPanels && tab === "Artifacts") {
+    return "Saved";
+  }
+
+  return tab;
 }
 
 function getInitialPreviewArtifactId(snapshot: AssistantWorkspaceSnapshot): string {

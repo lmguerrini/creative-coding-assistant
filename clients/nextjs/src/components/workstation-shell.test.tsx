@@ -1022,7 +1022,9 @@ describe("WorkstationShell", () => {
     expect(
       within(demoMode).queryByText("39,645 total / 2,839 output tokens")
     ).not.toBeInTheDocument();
-    expect(within(demoMode).getByText("Generative growth system")).toBeVisible();
+    expect(
+      within(demoMode).getAllByText("Generative growth system").length
+    ).toBeGreaterThan(0);
     expect(
       within(demoMode).queryByText("Source boundary")
     ).not.toBeInTheDocument();
@@ -1047,6 +1049,33 @@ describe("WorkstationShell", () => {
     expect(composer.value).toContain("p5.js generative morphogenesis sketch");
     expect(demoMode).not.toHaveTextContent(/HoloGenesis/i);
     expect(demoMode).not.toHaveTextContent(/\bsacred\b/i);
+  });
+
+  it("keeps the User Mode inspector collapsed and limited to essential tabs", async () => {
+    renderShell(getInitialWorkspaceSnapshot());
+
+    fireEvent.click(screen.getByRole("button", { name: "Demo Mode" }));
+
+    await waitFor(() =>
+      expect(screen.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
+        "data-state",
+        "collapsed"
+      )
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Expand inspector" }));
+
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+      "Preview",
+      "Code",
+      "Saved"
+    ]);
+    expect(screen.queryByRole("tab", { name: "Overview" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Runtime" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Workflow" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Telemetry" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Retrieval" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Artifacts" })).not.toBeInTheDocument();
   });
 
   it("renders a polished first-run workspace without demo or infrastructure noise", () => {
@@ -1301,6 +1330,38 @@ describe("WorkstationShell", () => {
       const events = screen.getByRole("group", { name: "Workflow event trace" });
       expect(within(events).getByText("Workspace Clear Completed")).toBeVisible();
     });
+  });
+
+  it("clears Demo Mode and composer state without breaking the workspace", async () => {
+    renderShell(getLocalWorkspaceSnapshot());
+
+    fireEvent.click(screen.getByRole("button", { name: "Demo Mode" }));
+    const demoMode = screen.getByRole("region", { name: "Demo Mode" });
+    fireEvent.click(
+      within(demoMode).getByRole("button", {
+        name: /Three\.js Audio-Reactive Visual System/
+      })
+    );
+
+    expect(
+      (screen.getByRole("textbox", {
+        name: "Assistant prompt"
+      }) as HTMLTextAreaElement).value
+    ).toContain("Three.js");
+
+    fireEvent.click(screen.getByRole("button", { name: "Command menu" }));
+    fireEvent.click(screen.getByRole("button", { name: "Clear workspace session" }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Clear workspace" }));
+      await Promise.resolve();
+    });
+
+    expect(screen.queryByRole("region", { name: "Demo Mode" })).not.toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue("");
+    expect(screen.getByRole("button", { name: "Demo Mode" })).toBeVisible();
+    expect(
+      screen.getByRole("region", { name: "Preview workspace" }).querySelector("details")
+    ).not.toHaveAttribute("open");
   });
 
   it("defaults to a single Overview inspector panel", () => {
@@ -1589,7 +1650,7 @@ describe("WorkstationShell", () => {
     renderShell();
 
     fireEvent.click(screen.getByRole("button", { name: "Command menu" }));
-    fireEvent.click(screen.getByRole("button", { name: /Code Open the active/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Code Open generated code/ }));
 
     expect(screen.getByRole("tab", { name: "Code" })).toHaveAttribute(
       "aria-selected",
@@ -2150,7 +2211,8 @@ describe("WorkstationShell", () => {
 
     renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
 
-    const uploadInput = screen.getByLabelText("Add attachment");
+    fireEvent.click(screen.getByRole("button", { name: "Add attachment" }));
+    const uploadInput = screen.getByLabelText("Upload image attachment");
     const imageFile = new File(["palette-bytes"], "palette.png", {
       type: "image/png"
     });
@@ -2207,8 +2269,9 @@ describe("WorkstationShell", () => {
   it("shows a graceful image upload error for unsupported files", async () => {
     renderShell();
 
+    fireEvent.click(screen.getByRole("button", { name: "Add attachment" }));
     await act(async () => {
-      fireEvent.change(screen.getByLabelText("Add attachment"), {
+      fireEvent.change(screen.getByLabelText("Upload image attachment"), {
         target: {
           files: [new File(["notes"], "notes.txt", { type: "text/plain" })]
         }
@@ -2629,8 +2692,9 @@ describe("WorkstationShell", () => {
       within(preview).queryByLabelText("Preview runtime source")
     ).not.toBeInTheDocument();
     expect(
-      within(preview).getByText("aurora-field.p5.js", { selector: "summary span" })
+      within(preview).getByText("P5 Sketch", { selector: "summary span" })
     ).toBeVisible();
+    expect(within(preview).queryByText("aurora-field.p5.js")).not.toBeInTheDocument();
     expect(preview.querySelector("details")).not.toHaveAttribute("open");
   });
 
@@ -3459,14 +3523,19 @@ describe("WorkstationShell", () => {
   });
 
   it("mounts supported Three.js artifacts into a controlled 3D runtime", async () => {
-    renderShell(snapshotWithThreePreview());
+    const snapshot = snapshotWithThreePreview();
+    renderShell({
+      ...snapshot,
+      preview: {
+        ...snapshot.preview,
+        active: true,
+        collapsed: false,
+        state: "ready",
+        status: "Ready"
+      }
+    });
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
-    const summary = within(preview).getByText("Preview available").closest("summary");
-
-    expect(summary).not.toBeNull();
-    fireEvent.click(summary as HTMLElement);
-
     const surface = within(preview).getByRole("group", {
       name: "Preview renderer surface"
     });
@@ -3555,18 +3624,26 @@ describe("WorkstationShell", () => {
   });
 
   it("keeps preview runtime failures presenter-friendly in User Mode", async () => {
-    renderShell(snapshotWithThreePreview());
+    const snapshot = snapshotWithThreePreview();
+    renderShell({
+      ...snapshot,
+      preview: {
+        ...snapshot.preview,
+        active: true,
+        collapsed: false,
+        outputArtifactName: "projection-scene.preview.html",
+        state: "ready",
+        status: "Ready"
+      }
+    });
 
-    fireEvent.click(screen.getByRole("button", { name: "Demo Mode" }));
+    fireEvent.click(screen.getByRole("button", { name: "Display mode" }));
     expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
       "User"
     );
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
-    const summary = within(preview).getByText("Preview available").closest("summary");
-
-    expect(summary).not.toBeNull();
-    fireEvent.click(summary as HTMLElement);
+    expect(preview.querySelector("details")).toHaveAttribute("open");
 
     const surface = within(preview).getByRole("group", {
       name: "Preview renderer surface"
@@ -5795,11 +5872,17 @@ describe("WorkstationShell", () => {
 
     expect(screen.getByRole("tab", { name: "Preview" })).toBeVisible();
     expect(screen.getByRole("tab", { name: "Code" })).toBeVisible();
-    expect(screen.getByRole("tab", { name: "Artifacts" })).toHaveAttribute(
+    expect(screen.getByRole("tab", { name: "Saved" })).toHaveAttribute(
       "aria-selected",
       "true"
     );
-    expect(screen.getByRole("tab", { name: "Retrieval" })).toBeVisible();
+    expect(screen.queryByRole("tab", { name: "Artifacts" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Retrieval" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+      "Preview",
+      "Code",
+      "Saved"
+    ]);
     expect(screen.queryByRole("tab", { name: "Workflow" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Telemetry" })).not.toBeInTheDocument();
     await waitFor(() =>
@@ -5812,8 +5895,9 @@ describe("WorkstationShell", () => {
       )
     );
     expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
-      "projection-notes.md"
+      "Generated Code"
     );
+    expect(screen.queryByText("projection-notes.md")).not.toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Preview workspace" })).toHaveTextContent(
       "Preview open"
     );

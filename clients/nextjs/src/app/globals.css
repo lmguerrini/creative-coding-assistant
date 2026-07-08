@@ -211,57 +211,64 @@ html[data-cca-theme="aqua"] {
 }
 
 html[data-cca-theme="codex"] {
-  --background: #0b0d10;
-  --background-rgb: 11, 13, 16;
-  --foreground: #edf1f4;
-  --muted: #919aa4;
-  --muted-strong: #cad1d8;
-  --panel: rgba(18, 22, 28, 0.9);
-  --panel-strong: rgba(22, 27, 33, 0.96);
-  --panel-soft: rgba(255, 255, 255, 0.04);
-  --line: rgba(206, 214, 224, 0.14);
-  --line-strong: rgba(206, 214, 224, 0.26);
-  --teal: #b9c4cf;
-  --amber: #d0b483;
-  --coral: #dc8d81;
-  --blue: #94a5c2;
-  --green: #a4c0ab;
-  --accent-rgb: 185, 196, 207;
-  --focus-outline: rgba(185, 196, 207, 0.72);
-  --glow-teal: 0 0 0 1px rgba(185, 196, 207, 0.26), 0 0 28px rgba(185, 196, 207, 0.1);
-  --shadow: 0 24px 84px rgba(0, 0, 0, 0.5);
+  --background: #101114;
+  --background-rgb: 16, 17, 20;
+  --foreground: #f2f3f5;
+  --muted: #8c939d;
+  --muted-strong: #c6cad0;
+  --panel: rgba(24, 25, 29, 0.92);
+  --panel-strong: rgba(28, 29, 33, 0.97);
+  --panel-soft: rgba(255, 255, 255, 0.035);
+  --line: rgba(214, 218, 224, 0.11);
+  --line-strong: rgba(214, 218, 224, 0.2);
+  --teal: #c8cdd3;
+  --amber: #ccb98d;
+  --coral: #db9187;
+  --blue: #aab4c2;
+  --green: #a9bba8;
+  --accent-rgb: 200, 205, 211;
+  --focus-outline: rgba(200, 205, 211, 0.58);
+  --glow-teal: 0 0 0 1px rgba(200, 205, 211, 0.14);
+  --shadow: 0 20px 56px rgba(0, 0, 0, 0.36);
+  --surface-0: rgba(17, 18, 21, 0.9);
+  --surface-1: rgba(255, 255, 255, 0.03);
+  --surface-2: rgba(255, 255, 255, 0.045);
+  --surface-3: rgba(255, 255, 255, 0.06);
+  --surface-accent: rgba(200, 205, 211, 0.055);
+  --section-divider: rgba(255, 255, 255, 0.065);
+  --panel-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
 
 html[data-cca-theme="matrix"] {
-  --background: #040703;
-  --background-rgb: 4, 7, 3;
-  --foreground: #edf6e1;
-  --muted: #879783;
-  --muted-strong: #c3d4bb;
-  --panel: rgba(10, 16, 9, 0.9);
-  --panel-strong: rgba(12, 18, 10, 0.965);
-  --panel-soft: rgba(255, 255, 255, 0.03);
-  --line: rgba(145, 180, 118, 0.12);
-  --line-strong: rgba(145, 180, 118, 0.22);
-  --teal: #a7ea72;
-  --amber: #c9c185;
-  --coral: #f1987f;
-  --blue: #9cc88b;
-  --green: #8fd75d;
-  --accent-rgb: 159, 232, 112;
-  --focus-outline: rgba(159, 232, 112, 0.72);
-  --glow-teal: 0 0 0 1px rgba(159, 232, 112, 0.22), 0 0 34px rgba(104, 148, 69, 0.16);
-  --shadow: 0 28px 92px rgba(0, 0, 0, 0.62);
-  --surface-0: rgba(7, 11, 6, 0.9);
-  --surface-1: rgba(170, 214, 125, 0.028);
-  --surface-2: rgba(170, 214, 125, 0.042);
-  --surface-3: rgba(170, 214, 125, 0.06);
-  --surface-accent: rgba(159, 232, 112, 0.075);
-  --section-divider: rgba(145, 180, 118, 0.08);
-  --panel-highlight: inset 0 1px 0 rgba(232, 247, 219, 0.028);
-  --code-surface: rgba(3, 8, 3, 0.88);
+  --background: #020502;
+  --background-rgb: 2, 5, 2;
+  --foreground: #f1fbe9;
+  --muted: #8da384;
+  --muted-strong: #d3e8c9;
+  --panel: rgba(7, 13, 7, 0.92);
+  --panel-strong: rgba(9, 16, 9, 0.97);
+  --panel-soft: rgba(166, 232, 112, 0.034);
+  --line: rgba(147, 202, 112, 0.16);
+  --line-strong: rgba(168, 226, 128, 0.28);
+  --teal: #a9ec73;
+  --amber: #d5ca8d;
+  --coral: #f09a83;
+  --blue: #a8d88a;
+  --green: #9de868;
+  --accent-rgb: 169, 236, 115;
+  --focus-outline: rgba(169, 236, 115, 0.72);
+  --glow-teal: 0 0 0 1px rgba(169, 236, 115, 0.2), 0 0 18px rgba(102, 156, 70, 0.12);
+  --shadow: 0 26px 72px rgba(0, 0, 0, 0.66);
+  --surface-0: rgba(4, 9, 4, 0.92);
+  --surface-1: rgba(169, 236, 115, 0.032);
+  --surface-2: rgba(169, 236, 115, 0.05);
+  --surface-3: rgba(169, 236, 115, 0.075);
+  --surface-accent: rgba(169, 236, 115, 0.085);
+  --section-divider: rgba(147, 202, 112, 0.1);
+  --panel-highlight: inset 0 1px 0 rgba(232, 247, 219, 0.032);
+  --code-surface: rgba(1, 6, 1, 0.9);
   --scrollbar-track: rgba(116, 150, 88, 0.08);
-  --scrollbar-thumb: rgba(159, 232, 112, 0.18);
+  --scrollbar-thumb: rgba(169, 236, 115, 0.22);
 }
 
 html[data-cca-theme="terminal"] {
@@ -1552,6 +1559,24 @@ a {
   overflow-wrap: anywhere;
 }
 
+.demoUserEssentials {
+  display: grid;
+  gap: 7px;
+  padding-top: 2px;
+}
+
+.demoUserEssentials p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.demoUserEssentials strong {
+  color: var(--foreground);
+  font-weight: 800;
+}
+
 .demoScenarioMeta--developer {
   padding-top: 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -1961,33 +1986,43 @@ a {
 .composer {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
-  align-items: end;
+  grid-template-columns: minmax(0, 1fr) 38px;
+  gap: 10px;
+  align-items: flex-end;
   padding-top: 12px;
   border-top: 1px solid var(--section-divider);
 }
 
 .composerInputFrame {
-  display: grid;
-  grid-template-columns: 38px minmax(0, 1fr);
-  align-items: end;
-  gap: 8px;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 7px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface-1);
+  box-shadow: var(--panel-highlight);
+  padding: 6px;
 }
 
-.composerUploadButton {
+.composerInputFrame:focus-within {
+  border-color: rgba(var(--accent-rgb), 0.34);
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.08);
+}
+
+.composerAttach {
   position: relative;
+  flex: 0 0 auto;
+}
+
+.composerAttachButton,
+.sendButton {
   display: grid;
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   place-items: center;
-  border: 1px solid var(--line);
   border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
-    var(--surface-1);
-  box-shadow: var(--panel-highlight);
-  color: var(--muted-strong);
   cursor: pointer;
   transition:
     border-color 180ms ease,
@@ -1996,60 +2031,75 @@ a {
     transform 180ms ease;
 }
 
-.composerUploadButton:hover {
-  border-color: rgba(124, 167, 255, 0.32);
+.composerAttachButton {
+  border: 0;
+  color: var(--muted-strong);
+  background: transparent;
+}
+
+.composerAttachButton:hover,
+.composerAttachButton[aria-expanded="true"] {
   color: var(--foreground);
-  background: rgba(124, 167, 255, 0.09);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.composerUploadButton input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-.composerUploadButton span {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-.composer:has(input:disabled) .composerUploadButton {
+.composerAttachButton:disabled {
   cursor: default;
-  opacity: 0.58;
-  transform: none;
+  opacity: 0.55;
+}
+
+.attachmentMenu {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  z-index: 8;
+  min-width: 168px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel-strong);
+  box-shadow: var(--shadow);
+}
+
+.attachmentMenuItem {
+  position: relative;
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 9px;
+  color: var(--foreground);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.attachmentMenuItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.attachmentMenuItem input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .composer textarea {
-  min-height: 48px;
+  width: 100%;
+  min-height: 38px;
   max-height: 168px;
   resize: none;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 13px 15px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
-    var(--surface-1);
-  box-shadow: var(--panel-highlight);
+  border: 0;
+  border-radius: 14px;
+  padding: 9px 10px;
+  background: transparent;
   color: var(--foreground);
-  transition:
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    background 180ms ease;
-}
-
-.composer[data-ready="true"] textarea {
-  border-color: rgba(var(--accent-rgb), 0.34);
-  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.08);
+  line-height: 1.45;
+  outline: none;
 }
 
 .composer textarea::placeholder {
@@ -2057,20 +2107,11 @@ a {
 }
 
 .sendButton {
-  display: grid;
-  width: 42px;
-  min-height: 42px;
-  place-items: center;
-  align-self: end;
-  border: 1px solid rgba(var(--accent-rgb), 0.24);
-  border-radius: 999px;
+  align-self: flex-end;
+  margin-bottom: 2px;
+  border: 0;
   color: var(--accent-ink);
-  background: linear-gradient(
-    180deg,
-    rgba(var(--accent-rgb), 0.94),
-    rgba(var(--accent-rgb), 0.88)
-  );
-  cursor: pointer;
+  background: rgba(var(--accent-rgb), 0.92);
   transition:
     box-shadow 180ms ease,
     opacity 180ms ease,
@@ -2079,16 +2120,12 @@ a {
 }
 
 .sendButton[data-ready="true"] {
-  box-shadow: var(--glow-teal);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.18);
 }
 
 .sendButton[data-ready="true"]:hover {
   transform: translateY(-1px);
-  background: linear-gradient(
-    180deg,
-    rgba(var(--accent-rgb), 1),
-    rgba(var(--accent-rgb), 0.92)
-  );
+  background: rgba(var(--accent-rgb), 1);
 }
 
 .sendButton:disabled {
@@ -2122,7 +2159,7 @@ a {
 }
 
 .previewZone {
-  align-self: end;
+  align-self: flex-end;
   min-height: 0;
 }
 
@@ -2281,6 +2318,43 @@ a {
   padding: 0 14px 14px;
   animation: revealPreview 180ms ease-out;
   transition: height 180ms ease;
+}
+
+.previewShelf[data-user-mode="true"] .previewPanel {
+  position: relative;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+  padding: 0 10px 10px;
+}
+
+.previewShelf[data-user-mode="true"] .previewToolbar {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  z-index: 4;
+  display: flex;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.previewShelf[data-user-mode="true"] .previewToolbarFocus {
+  display: none;
+}
+
+.previewShelf[data-user-mode="true"] .previewToolbarActions {
+  pointer-events: auto;
+}
+
+.previewShelf[data-user-mode="true"] .previewBody {
+  min-height: 0;
+}
+
+.previewShelf[data-user-mode="true"] .previewControlButton {
+  width: 30px;
+  height: 30px;
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(6, 8, 10, 0.58);
+  backdrop-filter: blur(10px);
 }
 
 .previewShelf[data-fullscreen="true"] .previewPanel {
@@ -2633,7 +2707,7 @@ a {
 }
 
 .previewSurfaceImmersiveHint {
-  align-self: end;
+  align-self: flex-end;
   justify-self: start;
   padding: 6px 9px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -6728,6 +6802,114 @@ a {
   gap: 12px;
 }
 
+.artifactPanel--user {
+  gap: 10px;
+}
+
+.savedOutputsHero,
+.savedOutputCard {
+  min-width: 0;
+  border: 1px solid var(--line);
+  background: var(--panel-soft);
+  box-shadow: var(--panel-highlight);
+}
+
+.savedOutputsHero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-color: rgba(var(--accent-rgb), 0.2);
+  border-radius: 16px;
+}
+
+.savedOutputsHero > div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.savedOutputsHero span,
+.savedOutputCard span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.savedOutputsHero > span {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.1);
+}
+
+.savedOutputsHero strong,
+.savedOutputCard strong {
+  color: var(--foreground);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.savedOutputsHero strong {
+  font-size: 17px;
+}
+
+.savedOutputsHero p,
+.savedOutputCard small {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.savedOutputList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 8px;
+}
+
+.savedOutputList > [role="listitem"] {
+  display: flex;
+  min-width: 0;
+}
+
+.savedOutputCard {
+  display: grid;
+  gap: 5px;
+  min-height: 112px;
+  width: 100%;
+  min-width: 0;
+  padding: 11px;
+  border-radius: 14px;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.savedOutputCard strong {
+  font-size: 14px;
+}
+
+.savedOutputCard[data-active="true"] {
+  border-color: rgba(var(--accent-rgb), 0.38);
+  background: rgba(var(--accent-rgb), 0.08);
+}
+
+.artifactActions--user {
+  justify-content: flex-start;
+}
+
+.artifactActions--user button {
+  min-width: 66px;
+  overflow-wrap: anywhere;
+}
+
 .retrievalPanel {
   grid-auto-rows: max-content;
   gap: 12px;
@@ -9978,7 +10160,7 @@ html[data-cca-theme="matrix"] .commandMenuGrid button,
 html[data-cca-theme="matrix"] .themePresetButton,
 html[data-cca-theme="matrix"] .settingsChoiceRow button,
 html[data-cca-theme="matrix"] .settingsToggle button,
-html[data-cca-theme="matrix"] .composerUploadButton,
+html[data-cca-theme="matrix"] .composerAttachButton,
 html[data-cca-theme="matrix"] .composer textarea,
 html[data-cca-theme="matrix"] .artifactActions button,
 html[data-cca-theme="matrix"] .codePanelActions button,
@@ -10473,12 +10655,8 @@ html[data-cca-theme="blueprint"] .codeViewer {
   padding: 9px;
 }
 
-.workstation[data-density="compact"] .composer textarea {
-  min-height: 68px;
-}
-
-.workstation[data-density="compact"] .composerUploadButton {
-  min-height: 68px;
+.workstation[data-density="compact"] .composerInputFrame {
+  min-height: 50px;
 }
 
 .workstation[data-density="compact"] .inspectorHeader {
@@ -10710,21 +10888,15 @@ html[data-cca-theme="blueprint"] .codeViewer {
   }
 
   .composer {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) 38px;
   }
 
   .composerInputFrame {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .composerUploadButton {
-    width: 100%;
-    min-height: 44px;
-    grid-auto-flow: column;
+    min-height: 48px;
   }
 
   .sendButton {
-    width: 100%;
+    width: 34px;
   }
 
   .inspectorTabs {
