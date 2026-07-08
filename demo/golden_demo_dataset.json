@@ -48,7 +48,7 @@
     },
     {
       "flow_id": "hydra_glsl_runtime_flow",
-      "title": "Hydra-if-supported and GLSL runtime fallback flow",
+      "title": "Hydra and GLSL runtime fallback flow",
       "duration_seconds": 120,
       "primary_prompt_id": "hydra_feedback_texture_chain",
       "fallback_trigger": "preview_unavailable"
@@ -135,6 +135,8 @@
     "docs/CAPSTONE_DEMO_SHOWCASE.md",
     "docs/CAPSTONE_EVALUATION_ETHICS.md",
     "demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl",
+    "demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl",
+    "demo/final_demo_launcher.html",
     "demo/golden_artifacts/browser_full_runtime_qa_results.json",
     "demo/golden_artifacts/browser_render_qa_results.json",
     "demo/final_demo_suite.json",
@@ -145,7 +147,7 @@
   ],
   "known_limitations": [
     "Provider calls can fail or be slow; use the offline prompt and preview dataset if needed.",
-    "Sanitized RAGAs evaluation has been run for release-candidate evidence; private recorded-session RAGAs remains HITL/privacy-gated.",
+    "Sanitized and redacted latest-live RAGAs evaluations have been run for release-candidate evidence; raw private recorded-session rows remain local-only.",
     "Internal preview fallback uses prepared screenshots when live preview is unavailable.",
     "External DCC/MCP execution, HoloMind, HOLOiVERSE, merge, push, tag, and freeze are out of scope without HITL. Grand Review uses this dataset as release-candidate evidence."
   ]

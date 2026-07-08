@@ -2,7 +2,7 @@
   "schema_version": "v8.private_live_session_ragas_decision.v1",
   "date": "2026-07-08",
   "branch": "version-review/v8",
-  "classification": "BLOCKED BY HITL PRIVACY APPROVAL",
+  "classification": "RAW_PRIVATE_EXTERNAL_SCORING_AVOIDED; REDACTED_LATEST_LIVE_RAGAS_COMPLETE",
   "private_input_path": "data/eval/live_sessions.jsonl",
   "dry_run_command": ".venv/bin/python scripts/eval_live_sessions.py --input-path data/eval/live_sessions.jsonl --output-path /private/tmp/v8_private_live_session_ragas_dry_run.jsonl --latest 4 --metric context_precision --dry-run",
   "dry_run_summary": {
@@ -29,7 +29,7 @@
     "emails": 0,
     "localhost_urls": 1
   },
-  "decision": "The file contains recorded local live-session questions, answers, and retrieved contexts. Even without obvious secret patterns, it is private user/session content and must not be sent to an external evaluator without HITL privacy approval.",
+  "decision": "The file contains recorded local live-session questions, answers, and retrieved contexts. Even with HITL approval to run RAGAs safely, raw external scoring is avoided; the public reviewer evidence path is the redacted latest-live fixture plus the sanitized fixture.",
   "safe_public_alternative": {
     "input": "demo/evaluation/sanitized_ragas_live_sessions.jsonl",
     "result": "demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl",
@@ -38,6 +38,18 @@
     "skipped": 0,
     "metric_failures": 0,
     "average_context_precision": 0.999999999925
+  },
+  "redacted_latest_live_result": {
+    "input": "demo/evaluation/redacted_live_session_ragas_latest4.jsonl",
+    "result": "demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl",
+    "rows": 4,
+    "eligible": 4,
+    "skipped": 0,
+    "metric_failures": 0,
+    "average_context_precision": 0.7006944444251505,
+    "average_faithfulness": 0.625,
+    "average_answer_relevancy": 0.46063699875040387,
+    "limitation": "Derived from latest eligible live-session structure, but text is redacted/replaced with reviewer-safe p5.js content before external evaluator calls."
   },
   "hitl_approved_command": ".venv/bin/python scripts/eval_live_sessions.py --input-path data/eval/live_sessions.jsonl --output-path data/eval/ragas_latest4_private_context_precision.jsonl --latest 4 --metric context_precision --allow-provider-calls"
 }

@@ -73,6 +73,7 @@
       }
     </style>
     <script src="/node_modules/p5/lib/p5.min.js"></script>
+    <script src="/node_modules/hydra-synth/dist/hydra-synth.js"></script>
   </head>
   <body>
     <main>
@@ -97,6 +98,11 @@
           <canvas id="glsl-canvas" width="512" height="512"></canvas>
           <pre id="glsl-status">pending</pre>
         </section>
+        <section>
+          <h2>Hydra Synth Runtime</h2>
+          <canvas id="hydra-canvas" width="512" height="512"></canvas>
+          <pre id="hydra-status">pending</pre>
+        </section>
       </div>
     </main>
 
@@ -105,6 +111,7 @@
         p5: { status: "pending" },
         three: { status: "pending" },
         glsl: { status: "pending" },
+        hydra: { status: "pending" },
       };
 
       window.__goldenArtifactConsoleIssues = [];
@@ -121,6 +128,20 @@
 
       function setStatus(id, payload) {
         document.getElementById(id).textContent = JSON.stringify(payload, null, 2);
+        markCompleteIfReady();
+      }
+
+      function markCompleteIfReady() {
+        const results = window.__goldenArtifactFullRuntimeQA;
+        const runtimeKeys = ["p5", "three", "glsl", "hydra"];
+        if (
+          runtimeKeys.every(
+            (key) => results[key]?.status && results[key].status !== "pending",
+          )
+        ) {
+          results.console_issues = window.__goldenArtifactConsoleIssues;
+          results.complete = true;
+        }
       }
 
       function get2dNonblank(canvas) {
@@ -153,15 +174,17 @@
 
       function performanceSummary(frameCountValue, elapsedMs) {
         const averageFrameMs = elapsedMs / frameCountValue;
+        const approximateFps = averageFrameMs > 0 ? Number((1000 / averageFrameMs).toFixed(1)) : null;
         return {
           frames: frameCountValue,
           elapsed_ms: Number(elapsedMs.toFixed(3)),
           average_frame_ms: Number(averageFrameMs.toFixed(3)),
-          approximate_fps_uncapped: Number((1000 / averageFrameMs).toFixed(1)),
+          approximate_fps_uncapped: approximateFps,
         };
       }
     </script>
     <script src="./p5_sacred_geometry_sketch.js"></script>
+    <script src="./hydra_feedback_lattice.js"></script>
     <script type="module">
       async function runP5() {
         try {
@@ -295,7 +318,50 @@
         setStatus("glsl-status", window.__goldenArtifactFullRuntimeQA.glsl);
       }
 
-      await Promise.all([runP5(), runThree(), runGlsl()]);
+      async function runHydra() {
+        const canvas = document.getElementById("hydra-canvas");
+        try {
+          if (typeof window.Hydra !== "function") {
+            throw new Error("Hydra constructor not loaded");
+          }
+          if (typeof window.createHydraFeedbackLattice !== "function") {
+            throw new Error("Hydra artifact factory not loaded");
+          }
+          const hydra = new window.Hydra({
+            canvas,
+            width: 512,
+            height: 512,
+            detectAudio: false,
+            autoLoop: false,
+            makeGlobal: false,
+            enableStreamCapture: false,
+          });
+          window.createHydraFeedbackLattice(hydra.synth);
+          const start = performance.now();
+          for (let index = 0; index < 180; index += 1) {
+            hydra.tick(16.67);
+          }
+          const elapsed = performance.now() - start;
+          const nonblank = getWebglNonblank(canvas);
+          window.__goldenArtifactFullRuntimeQA.hydra = {
+            status: nonblank.nonblank ? "fully_validated" : "rendered_blank",
+            runtime: "hydra-synth",
+            hydra_synth_version: "1.4.0",
+            canvas: { width: 512, height: 512 },
+            pixel_check: nonblank,
+            performance: performanceSummary(180, elapsed),
+            boundary: "real hydra-synth package loaded from temporary QA node_modules with detectAudio false",
+          };
+        } catch (error) {
+          window.__goldenArtifactFullRuntimeQA.hydra = {
+            status: "failed",
+            error: String(error && error.message ? error.message : error),
+          };
+        }
+        setStatus("hydra-status", window.__goldenArtifactFullRuntimeQA.hydra);
+      }
+
+      await Promise.all([runP5(), runThree(), runGlsl(), runHydra()]);
       window.__goldenArtifactFullRuntimeQA.console_issues = window.__goldenArtifactConsoleIssues;
       window.__goldenArtifactFullRuntimeQA.complete = true;
     </script>

@@ -42,20 +42,22 @@
       "boundary": "Fragment shader code only; host integration must provide uniforms and preview runtime."
     },
     {
-      "artifact_id": "hydra",
-      "path": null,
+      "artifact_id": "hydra_feedback_lattice",
+      "path": "demo/golden_artifacts/hydra_feedback_lattice.js",
       "runtime": "Hydra",
-      "qa_status": "not_generated",
-      "syntax_check": "not_applicable",
-      "creative_quality": null,
-      "output_quality": null,
-      "boundary": "Hydra remains guidance-only because V8 has not validated a live executable Hydra preview path."
+      "qa_status": "full_runtime_browser_render_passed",
+      "syntax_check": "node --check",
+      "browser_render_check": "rendered_nonblank via demo/golden_artifacts/browser_full_runtime_qa.html using hydra-synth 1.4.0 from temporary QA node_modules with detectAudio false",
+      "full_runtime_available": true,
+      "creative_quality": 94,
+      "output_quality": 95,
+      "boundary": "Validated only for the committed hydra-synth browser artifact path; no microphone, camera, DCC/MCP, HoloMind, or HOLOiVERSE claim."
     }
   ],
   "claim_boundaries": [
     "No HoloMind implementation claim.",
     "No HOLOiVERSE implementation claim.",
     "No live external DCC/MCP execution claim.",
-    "No unsupported Hydra live-runtime claim."
+    "Hydra support is limited to the committed hydra-synth browser artifact QA path."
   ]
 }

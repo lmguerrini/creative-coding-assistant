@@ -37,23 +37,28 @@ the public docs/demo tree and are ignored.
 
 | File | Classification | Action | Rationale |
 |---|---|---|---|
-| `demo/README.md` | Public reviewer/user evidence | Keep tracked | Explains demo mode, golden flow, and unsupported-claim boundaries. |
+| `demo/README.md` | Public reviewer/user evidence | Keep tracked | Explains demo mode, golden flow, local QA evidence, and claim boundaries. |
 | `demo/demo_prompt_library.md` | Public reviewer/user evidence | Keep tracked | Reviewer-facing prompt set for golden flows and fallback. |
 | `demo/evaluation/README.md` | Public reviewer/user evidence | Keep tracked | Explains sanitized RAGAs fixture privacy posture. |
 | `demo/evaluation/private_live_session_ragas_decision.json` | Public reviewer/user evidence | Keep tracked | Records the private live-session RAGAs HITL decision without exposing private row content. |
 | `demo/evaluation/sanitized_ragas_live_sessions.jsonl` | Public reviewer/user evidence | Keep tracked | Synthetic, schema-valid, privacy-approved RAGAs input fixture. |
 | `demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl` | Public reviewer/user evidence | Keep tracked | Exact sanitized RAGAs metric result rows. |
 | `demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl.manifest.json` | Public reviewer/user evidence | Keep tracked | Exact sanitized RAGAs run manifest and metric summary. |
+| `demo/evaluation/redacted_live_session_ragas_latest4.jsonl` | Public reviewer/user evidence | Keep tracked | Redacted latest-live RAGAs fixture derived from live-session structure without exposing private row text. |
+| `demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl` | Public reviewer/user evidence | Keep tracked | Exact redacted latest-live RAGAs metric result rows. |
+| `demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl.manifest.json` | Public reviewer/user evidence | Keep tracked | Exact redacted latest-live RAGAs run manifest and evaluator configuration. |
+| `demo/final_demo_launcher.html` | Public reviewer/user evidence | Keep tracked | One-click local launcher for the eight-flow demo and evidence links. |
 | `demo/final_demo_suite.json` | Public reviewer/user evidence | Keep tracked | Eight-flow final demo suite with prompt, expected behavior, fallback, success criteria, validation path, and talking point. |
-| `demo/golden_artifacts/browser_full_runtime_qa.html` | Public reviewer/user evidence | Keep tracked | Full-runtime browser QA harness for temporary p5/Three packages and GLSL WebGL checks. |
+| `demo/golden_artifacts/browser_full_runtime_qa.html` | Public reviewer/user evidence | Keep tracked | Full-runtime browser QA harness for temporary p5/Three/Hydra packages and GLSL WebGL checks. |
 | `demo/golden_artifacts/browser_full_runtime_qa_results.json` | Public reviewer/user evidence | Keep tracked | Exact full-runtime browser QA result, classifications, frame timing, and accepted boundaries. |
 | `demo/golden_artifacts/browser_render_qa.html` | Public reviewer/user evidence | Keep tracked | Offline browser QA harness for p5 shim, GLSL WebGL, and Three.js dependency-boundary checks. |
 | `demo/golden_artifacts/browser_render_qa_results.json` | Public reviewer/user evidence | Keep tracked | Exact browser/render QA result and limitations. |
-| `demo/golden_artifacts/README.md` | Public reviewer/user evidence | Keep tracked | Explains generated artifact scope and Hydra boundary. |
+| `demo/golden_artifacts/README.md` | Public reviewer/user evidence | Keep tracked | Explains generated artifact scope and runtime boundaries. |
 | `demo/golden_artifacts/p5_sacred_geometry_sketch.js` | Public reviewer/user evidence | Keep tracked | Generated p5.js artifact for output/creative quality inspection. |
 | `demo/golden_artifacts/three_audio_reactive_scene.js` | Public reviewer/user evidence | Keep tracked | Generated Three.js artifact for output/creative quality inspection. |
 | `demo/golden_artifacts/glsl_kaleidoscope_field.frag` | Public reviewer/user evidence | Keep tracked | Generated GLSL artifact for output/creative quality inspection. |
-| `demo/golden_artifacts/qa_manifest.json` | Public reviewer/user evidence | Keep tracked | Static QA evidence and unsupported-runtime boundary. |
+| `demo/golden_artifacts/hydra_feedback_lattice.js` | Public reviewer/user evidence | Keep tracked | Generated Hydra artifact for bounded hydra-synth browser QA inspection. |
+| `demo/golden_artifacts/qa_manifest.json` | Public reviewer/user evidence | Keep tracked | Static and browser QA evidence plus runtime boundaries. |
 | `demo/golden_demo_dataset.json` | Public reviewer/user evidence | Keep tracked | Rehearsal and offline fallback dataset. |
 | `demo/manual_demo_checklist.md` | Public reviewer/user evidence | Keep tracked | Manual timed-demo reliability checklist. |
 | `demo/showcase_upload_preparation.md` | Public reviewer/user evidence | Keep tracked | Showcase packaging and final public-claims review checklist. |

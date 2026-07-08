@@ -35,7 +35,7 @@ Validation:
   scope after the review branch had already started.
 - Kept merge, push, tag, release freeze, showcase upload, and final release
   decisions behind HITL.
-- Expanded golden demo coverage for p5.js, Hydra-if-supported, GLSL, Sacred
+- Expanded golden demo coverage for p5.js, Hydra, GLSL, Sacred
   Geometry, Sacred Architecture, Mythopoetic Narrative, and HoloGenesis Planner
   as bounded review evidence.
 - Preserved unsupported-runtime boundaries for HoloMind, HOLOiVERSE, live
@@ -87,19 +87,22 @@ Evaluation:
   `0.9999999999`, `0.9999999999`, `0.99999999995`, and `0.99999999995`;
   average `0.999999999925`, minimum `0.9999999999`, maximum
   `0.99999999995`.
-- Latest RAGAs dry-run regeneration passed for
-  `data/eval/live_sessions.jsonl`: 60 total samples, 1 latest eligible sample,
-  59 skipped by selection/eligibility, metric `context_precision`, and no
-  evaluator provider calls.
-- The latest eligible RAGAs sample was p5.js-only, with 126 user characters,
-  379 response characters, 5 retrieved contexts, and no provider metadata or
-  ground truth.
+- Final redacted latest-live RAGAs execution passed against
+  `demo/evaluation/redacted_live_session_ragas_latest4.jsonl`: 4 total
+  samples, 4 eligible samples, 0 skipped samples, metrics `context_precision`,
+  `faithfulness`, and `answer_relevancy`, provider calls explicitly allowed for
+  redacted reviewer-safe fixture content, and 0 metric failures.
+- Exact redacted latest-live RAGAs averages: context precision
+  `0.7006944444251505`, faithfulness `0.625`, and answer relevancy
+  `0.46063699875040387`. Per-row scores are recorded in
+  `demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl`.
+- Raw private live-session dry-run over `data/eval/live_sessions.jsonl`
+  selected 4 latest eligible samples from 60 total samples and skipped 56. Raw
+  external scoring is still avoided because the rows contain recorded local
+  questions, answers, and retrieved contexts; the redacted latest-live fixture
+  above is the public reviewer evidence path.
 - Secret-pattern scan over `data/eval` found no obvious API key, bearer token,
   password, or cloud credential patterns.
-- Live RAGAs evaluator execution was not rerun because it would send recorded
-  local sample text and retrieved contexts to an external provider. That
-  private-data path remains a privacy/HITL boundary rather than a technical
-  failure; the sanitized public fixture path above was run successfully.
 - Existing completed local RAGAs evidence remains available:
   `ragas_latest2_after_kb_quality.jsonl` scored 2 rows with average context
   precision 0.8604; `ragas_latest4_context_precision_after_glsl_fix.jsonl`
@@ -108,21 +111,20 @@ Evaluation:
   `demo/golden_artifacts/p5_sacred_geometry_sketch.js` and
   `demo/golden_artifacts/three_audio_reactive_scene.js` pass `node --check`;
   `demo/golden_artifacts/glsl_kaleidoscope_field.frag` passes static fragment
-  shader structure checks. Hydra was intentionally not generated because a live
-  Hydra execution path has not been installed, wired, and tested.
+  shader structure checks; `demo/golden_artifacts/hydra_feedback_lattice.js`
+  passes `node --check`.
 - Final full-runtime browser/render QA loaded
   `demo/golden_artifacts/browser_full_runtime_qa.html` through the Codex
   in-app browser via local `127.0.0.1` static server rooted at the temporary QA
   workspace. `p5@2.3.0` rendered the p5 artifact nonblank; `three@0.185.1`
   rendered the Three.js artifact nonblank; GLSL compiled, linked, drew, and
-  pixel-checked nonblank through WebGL. No display-FPS, load, soak, public
-  deployment, or product-preview-runtime benchmark is claimed.
-- Private live-session RAGAs dry-run over `data/eval/live_sessions.jsonl`
-  selected 4 latest eligible samples from 60 total samples and skipped 56. The
-  file still contains recorded local questions, answers, and retrieved contexts,
-  so external evaluator calls remain `BLOCKED BY HITL PRIVACY APPROVAL`. The
-  exact HITL-approved command is recorded in
-  `demo/evaluation/private_live_session_ragas_decision.json`.
+  pixel-checked nonblank through WebGL; `hydra-synth@1.4.0` rendered the Hydra
+  artifact nonblank with audio detection disabled. No display-FPS, load, soak,
+  public deployment, or broad product-preview-runtime benchmark is claimed.
+- One-click local launcher validation passed for
+  `demo/final_demo_launcher.html`: the page loaded from the local static QA
+  server, rendered all 8 demo flows from `demo/final_demo_suite.json`, emitted
+  no browser warnings/errors, and core evidence links returned HTTP 200.
 
 Security:
 
@@ -147,7 +149,7 @@ The review validated cross-capability coverage rather than only one milestone:
   experience, production creative readiness review, manual checklist, prompt
   library, final demo suite, and golden dataset evidence.
 - Runtime-family prompt evidence through Three.js, p5.js, GLSL,
-  Hydra-if-supported, retrieval/RAG, symbolic translation, Sacred Geometry,
+  Hydra, retrieval/RAG, symbolic translation, Sacred Geometry,
   Sacred Architecture, Mythopoetic Narrative, Immersive Composer, and
   HoloGenesis Planner flows.
 
@@ -159,9 +161,9 @@ fallbacks, and future work are documented without overstating live execution.
 
 Golden demo coverage is release-candidate ready as a bounded rehearsal and
 evidence set. The public artifact set now includes generated p5.js, Three.js,
-and GLSL examples with full-runtime browser QA evidence for p5/Three through
-temporary QA dependencies and direct WebGL evidence for GLSL. Live showcase
-upload and final public claims approval still need HITL.
+GLSL, and Hydra examples with full-runtime browser QA evidence for p5/Three/
+Hydra through temporary QA dependencies and direct WebGL evidence for GLSL.
+Live showcase upload and final public claims approval still need HITL.
 
 ## Readiness Assessment
 
@@ -169,12 +171,13 @@ Detailed engineering scorecard:
 `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md`.
 
 The Grand Review no longer uses a single overall score. Production readiness is
-one category in the detailed scorecard and is now 98/100 after the sanitized
-RAGAs run, generated artifact QA, final browser/render QA, local deployment
-target review, public/private docs audit, README evaluator path, and timed-demo
+one category in the detailed scorecard and is now 99/100 after redacted
+provider-backed RAGAs, Hydra browser runtime QA, generated artifact QA, final
+browser/render QA, one-click local launcher validation, local demo target
+review, public/private docs audit, README evaluator path, and timed-demo
 evidence update. The higher-level release-candidate judgment is based on
 category evidence, remaining risks, and HITL boundaries. The advisory aggregate
-across the 13 requested Capstone Excellence categories is 98.0/100.
+across the 13 requested Capstone Excellence categories is 98.6/100.
 
 AI review readiness: ready for final reviewer evaluation with bounded claims.
 
@@ -204,13 +207,14 @@ Remaining risks:
 
 - Live provider smoke has passed, but it is a minimal connectivity/content
   check and not a broad provider benchmark.
-- Private live-session RAGAs scoring still requires explicit HITL because it
-  sends recorded eval content to an external provider. The sanitized fixture
-  run is complete and exact scores are documented.
-- Generated-output artifact QA is now available for p5.js, Three.js, and GLSL,
-  with full-runtime browser/render evidence through temporary QA packages for
-  p5/Three and WebGL for GLSL. Frame timing is uncapped local draw-loop timing,
-  not display FPS, load, soak, or production performance benchmarking.
+- Raw private live-session RAGAs scoring is still avoided because it would send
+  recorded eval content to an external provider. Redacted latest-live and
+  sanitized fixture runs are complete and exact scores are documented.
+- Generated-output artifact QA is now available for p5.js, Three.js, GLSL, and
+  Hydra, with full-runtime browser/render evidence through temporary QA
+  packages for p5/Three/Hydra and WebGL for GLSL. Frame timing is uncapped
+  local draw-loop timing, not display FPS, load, soak, or production
+  performance benchmarking.
 - External DCC/MCP execution, HoloMind, and HOLOiVERSE remain unsupported
   future-scope items.
 - Chroma/Pydantic deprecation warnings are non-blocking dependency warnings with

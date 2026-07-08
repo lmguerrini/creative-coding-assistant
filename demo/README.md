@@ -2,8 +2,9 @@
 
 This folder contains operator-facing material for the final Turing College AI
 Capstone demo and showcase. It prepares the demo; it does not execute the
-assistant, call providers, run retrieval, render previews, or publish showcase
-assets.
+assistant, run live retrieval, or publish showcase assets. The committed
+evidence includes local browser QA artifacts and provider-backed RAGAs result
+rows for public/redacted fixtures.
 
 ## Demo Mode
 
@@ -12,14 +13,16 @@ Use demo mode as a manual operating posture:
 1. Start from `docs/CAPSTONE_DEMO_SHOWCASE.md`.
 2. Keep `demo/demo_prompt_library.md` open.
 3. Use `demo/golden_demo_dataset.json` for rehearsal and offline fallback.
-4. Keep `demo/final_demo_suite.json` open for exact flow starts, success
+4. Open `demo/final_demo_launcher.html` from the local static QA server for the
+   one-click final demo launcher.
+5. Keep `demo/final_demo_suite.json` open for exact flow starts, success
    criteria, fallbacks, and reviewer talking points.
-5. Keep `demo/golden_artifacts/` ready as generated p5.js, Three.js, and GLSL
-   artifact evidence, including `browser_full_runtime_qa_results.json`.
-6. Keep `demo/evaluation/` ready as the sanitized RAGAs evidence path and
-   private live-session HITL decision.
-7. Keep `assets/preview_current.png` ready if live preview is unavailable.
-8. Use `docs/CAPSTONE_EVALUATION_ETHICS.md` for evaluation and ethics answers.
+6. Keep `demo/golden_artifacts/` ready as generated p5.js, Three.js, GLSL, and
+   Hydra artifact evidence, including `browser_full_runtime_qa_results.json`.
+7. Keep `demo/evaluation/` ready as the sanitized and redacted latest-live
+   RAGAs evidence paths.
+8. Keep `assets/preview_current.png` ready if live preview is unavailable.
+9. Use `docs/CAPSTONE_EVALUATION_ETHICS.md` for evaluation and ethics answers.
 
 ## Golden Flow
 
@@ -38,5 +41,5 @@ project output narrative.
 - Merge, push, tag, and freeze remain HITL-blocked.
 - V8 Grand Review is handled separately on `version-review/v8` as a
   release-candidate validation program.
-- Hydra is guidance-only unless a live execution path is installed, wired, and
-  QA tested.
+- Hydra support is limited to the validated local `hydra-synth` browser
+  artifact path; no broader Hydra editor, microphone, or DCC/MCP claim is made.

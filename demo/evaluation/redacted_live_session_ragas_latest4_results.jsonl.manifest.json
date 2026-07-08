@@ -1,0 +1,154 @@
+{
+  "run_id": "668f70ae5c2a4070b6cf4c87d0985cbd",
+  "dataset": {
+    "dataset_id": "668f70ae5c2a4070b6cf4c87d0985cbd",
+    "created_at": "2026-07-08T16:03:54.392939Z",
+    "source_path": "demo/evaluation/redacted_live_session_ragas_latest4.jsonl",
+    "total_samples": 4,
+    "rows": [
+      {
+        "sample_id": "redacted_live_p5_setup_draw_32ab1977",
+        "user_input": "How should a p5.js capstone sketch separate setup(), draw(), and interaction state for a reviewer-safe animated geometry demo?",
+        "response": "Use setup() once for canvas creation and variable initialization. Use draw() repeatedly for animation, frame updates, and rendering. Store mouse and keyboard state in explicit variables, and use background() when the frame should be cleared for readable animation.",
+        "retrieved_contexts": [
+          "A p5 sketch draws to a canvas using a coordinate system, shape commands, and color state. Keeping drawing code organized makes visual behavior easier to inspect.",
+          "The setup() function runs once at the beginning of a p5 sketch and is the right place for initial canvas and variable setup.",
+          "The draw() function runs repeatedly after setup(), making it the standard place for animation, frame updates, and repeated rendering.",
+          "Interactive sketches can store mouse and keyboard state in variables so user input changes drawing behavior without hiding the control flow.",
+          "The background() function can clear or reset the canvas each frame, which is useful when animation should remain readable rather than accumulating unintentionally."
+        ],
+        "ground_truth": null,
+        "source_ids": [
+          "p5_tutorials",
+          "p5_reference"
+        ],
+        "domains": [
+          "p5_js"
+        ],
+        "retrieval_scores": [
+          0.5737547901132122,
+          0.5420880082751165,
+          0.5409539626748866,
+          0.4835067731598384,
+          0.4745456772265415
+        ],
+        "provider_metadata": null,
+        "observability_metadata": null,
+        "recorded_at": "2026-06-29T21:19:27.682227Z"
+      },
+      {
+        "sample_id": "redacted_live_p5_motion_color_4c9aa5e5",
+        "user_input": "What p5.js guidance keeps motion, color, and frame timing clear enough for a capstone reviewer to understand the sketch?",
+        "response": "Change values over time inside draw(), then use those values to update the canvas. Use frameCount as a simple time input. Manage fill, stroke, and color state intentionally. Use translate and rotate with saved and restored transform state. Use noLoop() and loop() when a controlled static fallback or resumed animation is needed.",
+        "retrieved_contexts": [
+          "Animation in p5 usually comes from changing values over time inside draw(), then using those values to update what appears on the canvas.",
+          "frameCount stores the number of frames displayed since the sketch started and can be used as a simple time input for animation.",
+          "p5 color functions define fill, stroke, and color values used by later drawing commands, so color state should be managed intentionally.",
+          "Transforms such as translate and rotate change the drawing coordinate system. Saving and restoring transform state keeps layered drawings predictable.",
+          "p5 can pause and resume repeated drawing with noLoop() and loop(), which is useful for controlled previews or static fallback states."
+        ],
+        "ground_truth": null,
+        "source_ids": [
+          "p5_tutorials",
+          "p5_reference"
+        ],
+        "domains": [
+          "p5_js"
+        ],
+        "retrieval_scores": [
+          0.5705095790080391,
+          0.5446056059564901,
+          0.5365195551771215,
+          0.48159668536894923,
+          0.4664585919832434
+        ],
+        "provider_metadata": null,
+        "observability_metadata": null,
+        "recorded_at": "2026-06-30T01:04:26.546624Z"
+      },
+      {
+        "sample_id": "redacted_live_p5_geometry_claims_a96585be",
+        "user_input": "How should the assistant turn sacred-geometry inspiration into p5.js implementation guidance without making unsupported claims?",
+        "response": "Convert the inspiration into concrete drawing rules and parameters. Use p5 primitives such as circles, lines, arcs, polygons, curves, ellipse(), circle(), beginShape(), vertex(), and endShape(). Treat sacred, symbolic, and mythopoetic language as creative framing only, not as authority, diagnosis, doctrine, or proof.",
+        "retrieved_contexts": [
+          "p5 sketches can build visual motifs from basic primitives such as circles, lines, arcs, polygons, and curves.",
+          "ellipse() and circle() draw rounded forms on the canvas and are common building blocks for radial or concentric compositions.",
+          "beginShape(), vertex(), and endShape() can define custom polygons and repeated geometry in a p5 sketch.",
+          "Generative design prompts should be converted into concrete drawing rules and parameters so the implemented visual result is inspectable.",
+          "Sacred, symbolic, and mythopoetic language in the capstone demo is treated as creative framing only and must not be presented as authority, diagnosis, doctrine, or proof."
+        ],
+        "ground_truth": null,
+        "source_ids": [
+          "p5_tutorials",
+          "p5_reference"
+        ],
+        "domains": [
+          "p5_js"
+        ],
+        "retrieval_scores": [
+          0.584824066398931,
+          0.5496008396669524,
+          0.5489102818512229,
+          0.47946904671802243,
+          0.4720263091140841
+        ],
+        "provider_metadata": null,
+        "observability_metadata": null,
+        "recorded_at": "2026-06-30T09:06:08.942115Z"
+      },
+      {
+        "sample_id": "redacted_live_p5_demo_fallback_73f56121",
+        "user_input": "What should the local capstone demo do if live p5.js generation or preview rendering fails during the reviewer session?",
+        "response": "Use committed artifacts, QA results, prompt library entries, and evaluation evidence while clearly stating which live component is unavailable. Keep the setup and draw loop explanation visible, use the p5 artifact source or a simplified static state as fallback evidence, and do not overstate live execution.",
+        "retrieved_contexts": [
+          "A p5 sketch remains explainable when the setup, draw loop, and interaction state are separated into clear responsibilities.",
+          "createCanvas() creates the drawing surface used by a p5 sketch, and the chosen dimensions affect how the sketch appears in a browser preview.",
+          "setup() is used for initial setup and draw() is used for repeated drawing, so they provide a clear explanation structure for reviewers.",
+          "When a browser sketch fails, a fallback image, artifact source, or simplified static state can preserve the explanation without overstating live execution.",
+          "The V8 demo fallback path uses committed artifacts, QA results, prompt library entries, and evaluation evidence while clearly stating which live component is unavailable."
+        ],
+        "ground_truth": null,
+        "source_ids": [
+          "p5_tutorials",
+          "p5_reference"
+        ],
+        "domains": [
+          "p5_js"
+        ],
+        "retrieval_scores": [
+          0.5637862050645769,
+          0.5393924433120254,
+          0.5355820176106509,
+          0.48128705221389584,
+          0.4621017030419601
+        ],
+        "provider_metadata": null,
+        "observability_metadata": null,
+        "recorded_at": "2026-06-30T12:02:20.378783Z"
+      }
+    ],
+    "skipped": [],
+    "metrics": [
+      "context_precision",
+      "faithfulness",
+      "answer_relevancy"
+    ],
+    "eligible_samples": 4,
+    "skipped_samples": 0
+  },
+  "input_path": "demo/evaluation/redacted_live_session_ragas_latest4.jsonl",
+  "output_path": "demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl",
+  "manifest_path": "demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl.manifest.json",
+  "metrics": [
+    "context_precision",
+    "faithfulness",
+    "answer_relevancy"
+  ],
+  "dry_run": false,
+  "provider_calls_allowed": true,
+  "cost_warning": "Provider calls explicitly enabled: RAGAs may call evaluator LLM and embedding APIs and incur cost.",
+  "result_rows": 4,
+  "metric_failures": 0,
+  "langsmith": null,
+  "evaluated_at": "2026-07-08T16:03:54.392939Z"
+}

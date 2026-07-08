@@ -215,12 +215,14 @@ For a reviewer or evaluator, use this shortest evidence path:
    fallback path, SCR framing, and SMART framing.
 3. Review `docs/CAPSTONE_EVALUATION_ETHICS.md` for evaluation metrics, RAGAs
    boundaries, source grounding, privacy, and ethics.
-4. Inspect `demo/golden_artifacts/` for generated p5.js, Three.js, and GLSL
-   artifacts plus static QA evidence. Hydra is intentionally guidance-only
-   until a live execution path is installed, wired, and tested.
-5. Inspect `demo/evaluation/` for the sanitized, privacy-approved RAGAs fixture
-   and result rows. Private live-session data under `data/eval/` remains local
-   and requires separate HITL/privacy approval before external scoring.
+4. Inspect `demo/final_demo_launcher.html` for the one-click local launcher
+   covering all 8 final demo flows and their evidence paths.
+5. Inspect `demo/golden_artifacts/` for generated p5.js, Three.js, GLSL, and
+   Hydra artifacts plus browser QA evidence. Hydra support is limited to the
+   validated local `hydra-synth` artifact path.
+6. Inspect `demo/evaluation/` for sanitized RAGAs and redacted latest-live
+   RAGAs fixture/result evidence. Raw private live-session data under
+   `data/eval/` remains local.
 
 Minimum reviewer setup path:
 
@@ -257,12 +259,13 @@ Demo materials:
   limitations
 - `demo/demo_prompt_library.md` for golden prompts
 - `demo/golden_demo_dataset.json` for rehearsal and offline fallback
+- `demo/final_demo_launcher.html` for the one-click local reviewer launcher
 - `demo/final_demo_suite.json` for the final eight-flow demo start paths,
   success criteria, fallbacks, and reviewer talking points
 - `demo/golden_artifacts/` for generated and QA-checked p5.js, Three.js, and
-  GLSL public artifacts
-- `demo/evaluation/` for sanitized RAGAs fixture/result evidence and the
-  private live-session HITL decision
+  GLSL public artifacts plus a bounded Hydra `hydra-synth` artifact
+- `demo/evaluation/` for sanitized RAGAs, redacted latest-live RAGAs fixture
+  and result evidence, and the private raw-session decision
 - `demo/manual_demo_checklist.md` for reliability validation
 - `demo/showcase_upload_preparation.md` for showcase packaging
 
@@ -1552,8 +1555,8 @@ invoke agents, mutate storage, execute artifacts, or mutate generated output.
 - Three.js live runtime
 - React Three Fiber live runtime
 - GLSL live runtime
-- Hydra guidance/fallback only until a live execution path is installed, wired,
-  and QA tested
+- Hydra runtime support bounded to the validated local `hydra-synth` browser
+  artifact path
 - Tone.js live runtime
 - GSAP live runtime
 - SVG live runtime
@@ -2143,10 +2146,21 @@ Privacy-approved release-candidate RAGAs fixture:
   --allow-provider-calls
 ```
 
-Only the sanitized fixture above is approved for external evaluator provider
-calls in this release-candidate evidence set. Recorded live-session data in
-`data/eval/` remains local/private unless a separate HITL privacy decision
-approves external scoring.
+Redacted latest-live release-candidate RAGAs fixture:
+
+```bash
+.venv/bin/python scripts/eval_live_sessions.py \
+  --input-path demo/evaluation/redacted_live_session_ragas_latest4.jsonl \
+  --output-path demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl \
+  --metric context_precision \
+  --metric faithfulness \
+  --metric answer_relevancy \
+  --allow-provider-calls
+```
+
+External evaluator provider calls are approved only for sanitized or redacted
+reviewer-safe fixtures in this evidence set. Raw recorded live-session data in
+`data/eval/` remains local/private.
 
 ## Validation
 

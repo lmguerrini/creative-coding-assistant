@@ -1,18 +1,19 @@
 {
-  "schema_version": "v8.browser_full_runtime_qa_result.v1",
-  "checked_at": "2026-07-08T15:21:19Z",
+  "schema_version": "v8.browser_full_runtime_qa_result.v2",
+  "checked_at": "2026-07-08T16:05:59Z",
   "branch": "version-review/v8",
   "harness": "demo/golden_artifacts/browser_full_runtime_qa.html",
   "local_url": "http://127.0.0.1:8126/demo/golden_artifacts/browser_full_runtime_qa.html",
   "server_root": "/private/tmp/v8_runtime_qa",
   "server_command": "/Users/k/Desktop/CC/the_turing_college/extra_projects/creative_coding_assistant/.venv/bin/python -m http.server 8126 --bind 127.0.0.1",
-  "dependency_install_command": "npm install p5 three",
+  "dependency_install_command": "npm install p5 three hydra-synth",
   "dependency_workspace": "/private/tmp/v8_runtime_qa",
   "temporary_dependencies": {
+    "hydra-synth": "1.4.0",
     "p5": "2.3.0",
     "three": "0.185.1"
   },
-  "npm_audit_summary": "20 packages installed, 0 vulnerabilities reported by npm install audit summary.",
+  "npm_audit_summary": "61 packages installed in the temporary QA workspace; npm install reported 0 vulnerabilities.",
   "browser": "Codex in-app browser",
   "console_warnings_or_errors": [],
   "performance_boundary": "Frame timing is an uncapped local draw-loop measurement captured in the browser. It is not a vsync display FPS, load, soak, or production performance benchmark.",
@@ -33,9 +34,9 @@
       },
       "performance": {
         "frames": 120,
-        "elapsed_ms": 57.4,
-        "average_frame_ms": 0.478,
-        "approximate_uncapped_draws_per_second": 2090.6
+        "elapsed_ms": 56.8,
+        "average_frame_ms": 0.473,
+        "approximate_uncapped_draws_per_second": 2112.7
       },
       "accepted_boundary": "The real p5 runtime was installed in a temporary QA workspace, not added to the app dependency graph."
     },
@@ -55,9 +56,9 @@
       },
       "performance": {
         "frames": 180,
-        "elapsed_ms": 202.4,
-        "average_frame_ms": 1.124,
-        "approximate_uncapped_draws_per_second": 889.3
+        "elapsed_ms": 25.3,
+        "average_frame_ms": 0.141,
+        "approximate_uncapped_draws_per_second": 7114.6
       },
       "accepted_boundary": "The real Three.js runtime was installed in a temporary QA workspace, not added to the app dependency graph."
     },
@@ -82,13 +83,53 @@
         "approximate_uncapped_draws_per_second": 1799999.8
       },
       "accepted_boundary": "Validated in a generic local WebGL harness, not as a production-hosted preview surface."
+    },
+    {
+      "artifact_id": "hydra_feedback_lattice",
+      "runtime": "Hydra/hydra-synth",
+      "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
+      "status": "fully_validated",
+      "evidence": "Real hydra-synth package loaded from temporary QA node_modules. The artifact constructed a Hydra synth chain with detectAudio false, rendered nonblank, and passed a WebGL pixel check after 180 tick calls.",
+      "canvas": {
+        "width": 512,
+        "height": 512
+      },
+      "pixel_check": {
+        "litSamples": 16384,
+        "nonblank": true
+      },
+      "performance": {
+        "frames": 180,
+        "elapsed_ms": 1.4,
+        "average_frame_ms": 0.008,
+        "approximate_uncapped_draws_per_second": 128571.4
+      },
+      "accepted_boundary": "The real hydra-synth runtime was installed in a temporary QA workspace, not added to the app dependency graph. The harness disables audio detection and does not request microphone permissions."
     }
   ],
-  "unsupported_runtime_status": {
-    "hydra": {
-      "classification": "UNSUPPORTED / DO NOT CLAIM",
-      "reason": "No live Hydra runtime is installed, wired, or QA-tested for V8."
-    }
+  "launcher_validation": {
+    "url": "http://127.0.0.1:8126/demo/final_demo_launcher.html",
+    "status": "loaded",
+    "flow_count": 8,
+    "console_warnings_or_errors": [],
+    "core_links": [
+      {
+        "path": "demo/final_demo_suite.json",
+        "http_status": 200
+      },
+      {
+        "path": "demo/manual_demo_checklist.md",
+        "http_status": 200
+      },
+      {
+        "path": "demo/golden_artifacts/browser_full_runtime_qa.html",
+        "http_status": 200
+      },
+      {
+        "path": "demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl",
+        "http_status": 200
+      }
+    ]
   },
-  "claim_boundary": "This is local browser QA evidence only. It is not a public deployment, not a product preview runtime claim, not a display-FPS guarantee, and not evidence of Hydra, DCC/MCP, HoloMind, or HOLOiVERSE execution."
+  "claim_boundary": "This is local browser QA evidence only. It is not a public deployment, not a display-FPS guarantee, and not evidence of DCC/MCP, HoloMind, or HOLOiVERSE execution. Hydra support is limited to the validated local hydra-synth browser artifact path."
 }

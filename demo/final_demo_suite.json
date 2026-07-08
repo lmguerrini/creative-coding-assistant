@@ -2,13 +2,14 @@
   "schema_version": "v8.final_demo_suite.v1",
   "date": "2026-07-08",
   "branch": "version-review/v8",
-  "ui_start_to_finish_status": "manual_presenter_started; no one-click in-app demo launcher is implemented",
+  "ui_start_to_finish_status": "one_click_local_launcher_available; open demo/final_demo_launcher.html from the local static QA server",
   "demo_start_path": {
     "backend": ".venv/bin/python -m creative_coding_assistant.api.dev_server --host 127.0.0.1 --port 8000",
     "frontend": "cd clients/nextjs && npm run dev",
-    "artifact_qa": "serve /private/tmp/v8_runtime_qa after npm install p5 three and open /demo/golden_artifacts/browser_full_runtime_qa.html"
+    "launcher": "serve /private/tmp/v8_runtime_qa after npm install p5 three hydra-synth and open /demo/final_demo_launcher.html",
+    "artifact_qa": "serve /private/tmp/v8_runtime_qa after npm install p5 three hydra-synth and open /demo/golden_artifacts/browser_full_runtime_qa.html"
   },
-  "global_fallback": "Use demo/golden_demo_dataset.json, demo/demo_prompt_library.md, assets/preview_current.png, sanitized RAGAs evidence, and golden artifact QA without implying live success.",
+  "global_fallback": "Use demo/final_demo_launcher.html, demo/golden_demo_dataset.json, demo/demo_prompt_library.md, assets/preview_current.png, redacted/sanitized RAGAs evidence, and golden artifact QA without implying unavailable live components succeeded.",
   "demos": [
     {
       "demo_id": "primary_three_creative_coding_demo",
@@ -36,19 +37,19 @@
       "prompt": "How do I build a glow-heavy kaleidoscopic browser visual with shaders or post-processing passes? Give source-grounded runtime tradeoffs, failure risks, and fallback implementation options.",
       "expected_behavior": "Presenter shows shader/post-processing guidance and the generated GLSL artifact.",
       "fallback_path": "Use glsl_kaleidoscope_field.frag and WebGL QA evidence if live preview is unavailable.",
-      "success_criteria": "GLSL compiles, links, draws, and pixel-checks nonblank in local WebGL.",
-      "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json -> glsl_kaleidoscope_field",
-      "reviewer_talking_point": "GLSL has the strongest browser-runtime evidence because it compiles and draws directly in WebGL."
+      "success_criteria": "GLSL compiles, links, draws, and pixel-checks nonblank in local WebGL; Hydra synth artifact also renders nonblank through real hydra-synth QA.",
+      "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json -> glsl_kaleidoscope_field and hydra_feedback_lattice",
+      "reviewer_talking_point": "GLSL compiles directly in WebGL, and Hydra is now bounded to a real local hydra-synth browser artifact path."
     },
     {
       "demo_id": "retrieval_rag_grounded_answer_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
       "prompt": "Answer a creative-coding runtime question with registered source grounding and explain which retrieved sources shaped the response.",
       "expected_behavior": "Presenter shows retrieval-grounded guidance and explains source boundaries.",
-      "fallback_path": "Use sanitized RAGAs result rows and retrieval smoke evidence if live retrieval is unavailable.",
-      "success_criteria": "Local Chroma retrieval returns results for 7/7 capstone scenarios; sanitized RAGAs has 4 rows, 0 skipped, 0 metric failures, average context precision 0.999999999925.",
-      "validation_path": "demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl and docs/V8_GRAND_ENGINEERING_REVIEW.md",
-      "reviewer_talking_point": "Private live-session RAGAs remains HITL-blocked, but the sanitized same-schema path has concrete metrics."
+      "fallback_path": "Use redacted latest-live RAGAs, sanitized RAGAs result rows, and retrieval smoke evidence if live retrieval is unavailable.",
+      "success_criteria": "Local Chroma retrieval returns results for 7/7 capstone scenarios; redacted latest-live RAGAs has 4 rows, 0 skipped, 0 metric failures across context_precision, faithfulness, and answer_relevancy.",
+      "validation_path": "demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl, demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl, and docs/V8_GRAND_ENGINEERING_REVIEW.md",
+      "reviewer_talking_point": "Raw private live-session text stays local, while the redacted latest-live fixture now has provider-backed RAGAs metrics."
     },
     {
       "demo_id": "symbolic_geometry_visual_guidance_demo",

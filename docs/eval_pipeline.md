@@ -17,10 +17,12 @@ samples from before a KB sync, source change, or retrieval fix. `--latest`
 keeps the evaluation focused on the most recent live app behavior.
 
 For release-candidate evidence that can be sent to an external evaluator
-without exposing private sessions, use the sanitized fixture in
-`demo/evaluation/`. That path is separate from private live-session evaluation
-and should not be treated as proof that every private recorded session has the
-same score.
+without exposing private sessions, use sanitized or redacted fixtures in
+`demo/evaluation/`. The redacted latest-live fixture preserves selected
+live-session structure and retrieval metadata while replacing private text with
+reviewer-safe content. These paths are separate from raw private live-session
+evaluation and should not be treated as proof that every private recorded
+session has the same score.
 
 ## Standard Workflow
 
@@ -97,6 +99,23 @@ Privacy-approved sanitized fixture example:
 The 2026-07-08 sanitized release-candidate run produced 4 result rows, 0
 skipped rows, 0 metric failures, and average context precision
 `0.999999999925`.
+
+Redacted latest-live fixture example:
+
+```bash
+.venv/bin/python scripts/eval_live_sessions.py \
+  --input-path demo/evaluation/redacted_live_session_ragas_latest4.jsonl \
+  --output-path demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl \
+  --metric context_precision \
+  --metric faithfulness \
+  --metric answer_relevancy \
+  --allow-provider-calls
+```
+
+The 2026-07-08 redacted latest-live run produced 4 result rows, 0 skipped
+rows, 0 metric failures, average context precision `0.7006944444251505`,
+average faithfulness `0.625`, and average answer relevancy
+`0.46063699875040387`.
 
 ### Step 5: Inspect Scores and Sources
 

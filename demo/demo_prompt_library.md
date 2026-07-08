@@ -77,14 +77,13 @@ Geometry.
 **Hydra and GLSL feedback texture chain**
 
 ```text
-Design a Hydra-style feedback texture chain and a GLSL fragment-shader fallback
-for a luminous kaleidoscopic scene. Explain what is actually supported
-in-browser, what should be treated as pseudocode or adaptation guidance, and
-how to recover if a runtime is unavailable.
+Design a Hydra feedback texture chain for the validated local hydra-synth
+browser path and a GLSL fragment-shader fallback for a luminous kaleidoscopic
+scene. Explain that Hydra support is bounded to the committed hydra-synth
+artifact QA path and how to recover if a runtime is unavailable.
 ```
 
-Use when asked about Hydra support, shader tradeoffs, or unsupported runtime
-fallbacks.
+Use when asked about Hydra support, shader tradeoffs, or runtime fallbacks.
 
 **Sacred architecture installation brief**
 
