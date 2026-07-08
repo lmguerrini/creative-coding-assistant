@@ -66,8 +66,31 @@ Product smoke:
 - In-process API smoke passed for `/api/health`, `/api/health/live`,
   `/api/health/ready`, missing-route 404 behavior, invalid assistant request
   validation, and workspace session retrieval.
+- Minimal live OpenAI provider smoke passed with the configured local
+  `OPENAI_API_KEY` and `gpt-5-mini`: the API returned a response id, model
+  `gpt-5-mini-2025-08-07`, expected content `CCA_V8_PROVIDER_OK`, and usage
+  metadata for a 107-token bounded request.
 - Quality dashboard generation passed and reported complete roadmap coverage for
   23 quality gates.
+
+Evaluation:
+
+- Latest RAGAs dry-run regeneration passed for
+  `data/eval/live_sessions.jsonl`: 60 total samples, 1 latest eligible sample,
+  59 skipped by selection/eligibility, metric `context_precision`, and no
+  evaluator provider calls.
+- The latest eligible RAGAs sample was p5.js-only, with 126 user characters,
+  379 response characters, 5 retrieved contexts, and no provider metadata or
+  ground truth.
+- Secret-pattern scan over `data/eval` found no obvious API key, bearer token,
+  password, or cloud credential patterns.
+- Live RAGAs evaluator execution was not rerun because it would send recorded
+  local sample text and retrieved contexts to an external provider. That remains
+  a privacy/HITL boundary rather than a technical failure.
+- Existing completed local RAGAs evidence remains available:
+  `ragas_latest2_after_kb_quality.jsonl` scored 2 rows with average context
+  precision 0.8604; `ragas_latest4_context_precision_after_glsl_fix.jsonl`
+  scored 4 rows with average context precision 0.5986.
 
 Security:
 
@@ -108,21 +131,43 @@ HITL.
 
 ## Readiness Assessment
 
-Production readiness score: 89/100.
+Production readiness score: 94/100.
 
 AI review readiness: ready for final reviewer evaluation with bounded claims.
 
 Senior reviewer readiness: ready for final release-candidate review, subject to
 HITL approval for freeze and public release actions.
 
+Deprecation status:
+
+- Current runtime versions: Python 3.14.0, `chromadb` 0.6.3, `pydantic` 2.13.3,
+  and `pydantic-settings` 2.14.0.
+- Focused Chroma/retrieval tests pass, but Chroma emits third-party warnings
+  from `.venv/lib/python3.14/site-packages/chromadb/telemetry/opentelemetry`
+  for `asyncio.iscoroutinefunction` and from
+  `.venv/lib/python3.14/site-packages/chromadb/types.py` for instance-level
+  Pydantic `model_fields` access.
+- No low-risk local production-code fix is available because both warning sites
+  are inside Chroma. Do not monkeypatch or silence them as a release-quality
+  substitute.
+- Upgrade path: evaluate a newer Chroma release that removes those warning
+  sites while keeping `chromadb>=0.6.3,<1.0.0`; run `pip-audit`,
+  `pip check`, `tests/test_chroma_foundation.py`,
+  `tests/test_retrieval_foundation.py`, and
+  `tests/test_v7_5_production_api_runtime_stabilization.py`; then refresh the
+  clean server dependency audit before changing the pin.
+
 Remaining risks:
 
-- Live external provider calls and manual RAGAs scoring were not rerun in this
-  pass.
+- Live provider smoke has passed, but it is a minimal connectivity/content
+  check and not a broad provider benchmark.
+- Live RAGAs scoring still requires explicit HITL because it sends recorded eval
+  content to an external provider. The safe dry-run and existing historical
+  scores are documented.
 - External DCC/MCP execution, HoloMind, and HOLOiVERSE remain unsupported
   future-scope items.
-- Chroma and Pydantic deprecation warnings should be tracked before future
-  Python/runtime upgrades.
+- Chroma/Pydantic deprecation warnings are non-blocking dependency warnings with
+  a documented upgrade-validation path.
 - Final freeze, merge, push, tag, and showcase upload require explicit HITL.
 
 Conclusion: V8 is ready for final freeze HITL review, not autonomously frozen.
