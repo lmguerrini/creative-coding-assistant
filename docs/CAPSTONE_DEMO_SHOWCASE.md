@@ -60,8 +60,10 @@ Likely questions:
   evaluation samples. Do not claim generic web or document coverage.
 - How is it evaluated?
   Manual RAGAs workflows over recorded sessions, retrieval scenario coverage,
-  demo asset readiness, and creative readiness summaries. V8.8 does not rerun
-  live metrics.
+  demo asset readiness, creative readiness summaries, Grand Review provider
+  smoke, and local Chroma retrieval smoke. Fresh live RAGAs scoring still needs
+  HITL/privacy approval before local session content is sent to an external
+  evaluator.
 - What are the biggest limitations?
   Provider availability, retrieval freshness, preview reliability, and careful
   public claim boundaries.
@@ -108,4 +110,5 @@ live provider, retrieval, or preview result.
 - Complete V8 Grand Engineering Review validation.
 - Apply scoped fixes for claim, reliability, or demo-readiness issues.
 - Run final demo rehearsal and focused validation.
+- Use `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md` as the reviewer evidence map.
 - Stop for HITL before showcase upload, merge, push, tag, or final freeze.

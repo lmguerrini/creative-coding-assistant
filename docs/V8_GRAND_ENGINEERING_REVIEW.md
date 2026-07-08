@@ -75,6 +75,9 @@ Product smoke:
 
 Evaluation:
 
+- Capstone retrieval smoke passed against local Chroma with OpenAI query
+  embeddings over committed demo scenario queries: 7 of 7 scenarios returned
+  results, with 9 expected-source overlaps.
 - Latest RAGAs dry-run regeneration passed for
   `data/eval/live_sessions.jsonl`: 60 total samples, 1 latest eligible sample,
   59 skipped by selection/eligibility, metric `context_precision`, and no
@@ -131,7 +134,13 @@ HITL.
 
 ## Readiness Assessment
 
-Production readiness score: 94/100.
+Detailed engineering scorecard:
+`docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md`.
+
+The Grand Review no longer uses a single overall score. Production readiness is
+one category in the detailed scorecard and remains 94/100; the higher-level
+release-candidate judgment is based on category evidence, remaining risks, and
+HITL boundaries.
 
 AI review readiness: ready for final reviewer evaluation with bounded claims.
 
@@ -164,6 +173,10 @@ Remaining risks:
 - Live RAGAs scoring still requires explicit HITL because it sends recorded eval
   content to an external provider. The safe dry-run and existing historical
   scores are documented.
+- Fresh generated-output artifact scoring was not performed because no persisted
+  generated artifacts are available under `data/artifacts`; the golden demo
+  benchmark remains prepared-flow evidence until approved artifacts are
+  generated and QA reviewed.
 - External DCC/MCP execution, HoloMind, and HOLOiVERSE remain unsupported
   future-scope items.
 - Chroma/Pydantic deprecation warnings are non-blocking dependency warnings with

@@ -9,6 +9,7 @@ showcase session.
 - Confirm no merge, push, tag, or freeze action is planned without HITL.
 - Keep `README.md`, `docs/CAPSTONE_DEMO_SHOWCASE.md`, and
   `docs/CAPSTONE_EVALUATION_ETHICS.md` open.
+- Keep `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md` open for reviewer questions.
 - Keep `demo/golden_demo_dataset.json` and `demo/demo_prompt_library.md` open.
 - Confirm `assets/preview_current.png`, `assets/preview_v1.png`, and
   `assets/preview_v2.png` exist.
@@ -19,6 +20,7 @@ showcase session.
 - Rehearse the case-alignment summary in 90 seconds.
 - Rehearse the evaluation and ethics summary in 60 seconds.
 - Rehearse the offline fallback in 30 seconds.
+- Rehearse the top reviewer questions from the scorecard in 90 seconds.
 - Practice stating provider, retrieval, preview, network, and timing failures
   clearly without implying live success.
 

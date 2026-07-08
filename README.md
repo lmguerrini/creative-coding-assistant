@@ -220,6 +220,8 @@ Guarded support only:
 
 Demo materials:
 
+- `docs/V8_CAPSTONE_EXCELLENCE_SCORECARD.md` for the detailed engineering,
+  reviewer, golden demo, and production readiness scorecard
 - `docs/CAPSTONE_DEMO_SHOWCASE.md` for the 10-minute demo and 5-minute Q&A
 - `docs/CAPSTONE_EVALUATION_ETHICS.md` for metrics, evidence, ethics, and
   limitations
