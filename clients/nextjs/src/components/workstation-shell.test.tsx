@@ -1006,6 +1006,18 @@ describe("WorkstationShell", () => {
         name: /p5\.js Generative Morphogenesis Sketch/
       })
     ).toBeVisible();
+    for (const label of [
+      "Three.js",
+      "p5.js",
+      "GLSL",
+      "Hydra",
+      "Retrieval",
+      "Concept Translation",
+      "Visual Planning",
+      "Installation Planning"
+    ]) {
+      expect(within(demoMode).getAllByText(label).length).toBeGreaterThan(0);
+    }
 
     fireEvent.click(
       within(demoMode).getByRole("button", {
@@ -1076,6 +1088,51 @@ describe("WorkstationShell", () => {
     expect(screen.queryByRole("tab", { name: "Telemetry" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Retrieval" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Artifacts" })).not.toBeInTheDocument();
+  });
+
+  it("shows a compact User Mode fallback when preview is not ready", async () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    renderShell({
+      ...snapshot,
+      preview: {
+        ...snapshot.preview,
+        active: false,
+        state: "unavailable",
+        status: "Waiting for runnable artifact"
+      }
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Display mode" }));
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    expect(within(preview).getByText("Preview not ready")).toBeVisible();
+    expect(within(preview).queryByText(/runtime/i)).not.toBeInTheDocument();
+
+    fireEvent.click(within(preview).getByRole("button", { name: "Open Code" }));
+    expect(screen.getByRole("tab", { name: "Code" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+
+    fireEvent.click(within(preview).getByRole("button", { name: "Open Saved" }));
+    expect(screen.getByRole("tab", { name: "Saved" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+  });
+
+  it("uses human artifact names for Hydra outputs in User Mode", async () => {
+    renderShell(snapshotWithHydraPreview());
+
+    fireEvent.click(screen.getByRole("button", { name: "Display mode" }));
+    fireEvent.click(screen.getByRole("button", { name: "Expand inspector" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Saved" }));
+
+    const savedPanel = screen.getByRole("tabpanel", {
+      name: "Saved outputs inspector"
+    });
+    expect(within(savedPanel).getAllByText("Hydra Pattern").length).toBeGreaterThan(0);
+    expect(within(savedPanel).queryByText("feedback-lattice.hydra.js")).not.toBeInTheDocument();
   });
 
   it("renders a polished first-run workspace without demo or infrastructure noise", () => {
@@ -1323,7 +1380,8 @@ describe("WorkstationShell", () => {
       "aria-selected",
       "true"
     );
-    expect(preview.querySelector("details")).not.toHaveAttribute("open");
+    expect(screen.queryByRole("region", { name: "Preview workspace" })).not.toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Empty creative workspace" })).toBeVisible();
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
     await waitFor(() => {
@@ -1359,9 +1417,22 @@ describe("WorkstationShell", () => {
     expect(screen.queryByRole("region", { name: "Demo Mode" })).not.toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue("");
     expect(screen.getByRole("button", { name: "Demo Mode" })).toBeVisible();
-    expect(
-      screen.getByRole("region", { name: "Preview workspace" }).querySelector("details")
-    ).not.toHaveAttribute("open");
+    expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
+      "Developer"
+    );
+    expect(screen.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
+      "data-state",
+      "open"
+    );
+    expect(screen.getByRole("tab", { name: "Overview" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
+      "Ready for first prompt"
+    );
+    expect(screen.queryByRole("region", { name: "Preview workspace" })).not.toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Empty creative workspace" })).toBeVisible();
   });
 
   it("defaults to a single Overview inspector panel", () => {

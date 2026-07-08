@@ -65,4 +65,163 @@ test.describe("V7.4 workstation E2E smoke", () => {
     await expect(demoMode).not.toContainText(/\bsacred\b/i);
     consoleGate.assertClean();
   });
+
+  test("preloads all integrated Demo Mode scenarios through the normal composer", async ({
+    page
+  }) => {
+    const consoleGate = installConsoleGate(page);
+    await installApiMocks(page, "success");
+    await expectLoadedWorkstation(page);
+
+    await page.getByRole("button", { name: "Demo Mode" }).click();
+    const demoMode = page.getByRole("region", { name: "Demo Mode" });
+    await expect(demoMode).toBeVisible();
+    await expect(page.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
+      "data-state",
+      "collapsed"
+    );
+
+    for (const label of [
+      "Three.js",
+      "p5.js",
+      "GLSL",
+      "Hydra",
+      "Retrieval",
+      "Concept Translation",
+      "Visual Planning",
+      "Installation Planning"
+    ]) {
+      await expect(demoMode.getByText(label).first()).toBeVisible();
+    }
+
+    const scenarios = [
+      {
+        button: /Three\.js Audio-Reactive Visual System/,
+        prompt: /Three\.js visual/
+      },
+      {
+        button: /p5\.js Generative Morphogenesis Sketch/,
+        prompt: /reaction diffusion/
+      },
+      {
+        button: /GLSL Shader And Post-Processing Visual/,
+        prompt: /GLSL fragment shader/
+      },
+      {
+        button: /Hydra Feedback-Pattern Demo/,
+        prompt: /hydra-synth browser artifact path/
+      },
+      {
+        button: /Retrieval-Grounded Creative Coding Answer/,
+        prompt: /registered source grounding/
+      },
+      {
+        button: /Concept-To-Visual Translation/,
+        prompt: /threshold, recursion, and return/
+      },
+      {
+        button: /Geometry And Morphogenesis Visual System/,
+        prompt: /geometry\/morphogenesis browser visual system/
+      },
+      {
+        button: /Installation And Immersive Scene Planning/,
+        prompt: /browser-based installation or immersive scene/
+      }
+    ];
+
+    for (const scenario of scenarios) {
+      await demoMode.getByRole("button", { name: scenario.button }).click();
+      await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue(
+        scenario.prompt
+      );
+    }
+
+    await expect(demoMode).not.toContainText(/HoloGenesis/i);
+    await expect(demoMode).not.toContainText(/\bsacred\b/i);
+    consoleGate.assertClean();
+  });
+
+  test("keeps User and Developer Mode controls usable while clearing session state", async ({
+    page
+  }) => {
+    const consoleGate = installConsoleGate(page);
+    await installApiMocks(page, "success");
+    await expectLoadedWorkstation(page);
+
+    await page.getByRole("button", { name: "Demo Mode" }).click();
+    await page
+      .getByRole("region", { name: "Demo Mode" })
+      .getByRole("button", { name: /Three\.js Audio-Reactive Visual System/ })
+      .click();
+    await expect(page.getByRole("button", { name: "Display mode" })).toContainText(
+      "User"
+    );
+    await expect(page.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
+      "data-state",
+      "collapsed"
+    );
+
+    await page.getByRole("button", { name: "Expand inspector" }).click();
+    await expect(page.getByRole("tab", { name: "Preview" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Code" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Saved" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Runtime" })).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Display mode" }).click();
+    await expect(page.getByRole("button", { name: "Display mode" })).toContainText(
+      "Developer"
+    );
+    await expect(page.getByRole("tab", { name: "Workflow" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Telemetry" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Theme" }).click();
+    await page.getByRole("button", { name: "Use Codex theme" }).click();
+    await expect(page.locator(".workstation")).toHaveAttribute("data-theme", "codex");
+
+    await page.getByRole("button", { name: "Command menu" }).click();
+    await page.getByRole("button", { name: "Clear workspace session" }).click();
+    await page.getByRole("button", { name: "Clear workspace" }).click();
+
+    await expect(page.getByRole("region", { name: "Demo Mode" })).toHaveCount(0);
+    await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue("");
+    await expect(page.getByRole("region", { name: "Preview workspace" })).toHaveCount(0);
+    await expect(page.getByRole("group", { name: "Empty creative workspace" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Overview" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    consoleGate.assertClean();
+  });
+
+  test("shows provider fallback without claiming preview or trace success", async ({
+    page
+  }) => {
+    const consoleGate = installConsoleGate(page);
+    await installApiMocks(page, "provider-fallback");
+    await expectLoadedWorkstation(page);
+
+    await submitCreativePrompt(
+      page,
+      "Create a compact p5 fallback sketch if the provider is unavailable."
+    );
+
+    await expect(page.getByText("Provider fallback completed")).toBeVisible();
+    await expect(page.getByRole("region", { name: "Preview workspace" })).toHaveCount(0);
+    consoleGate.assertClean();
+  });
+
+  for (const prompt of [
+    "Create a space-colonization branching growth sketch with browser-safe p5 controls.",
+    "Create a DLA or differential-growth visual study with simple p5 preview routing."
+  ]) {
+    test(`runs non-demo creative smoke: ${prompt.slice(0, 34)}`, async ({ page }) => {
+      const consoleGate = installConsoleGate(page);
+      await installApiMocks(page, "success");
+      await expectLoadedWorkstation(page);
+
+      await submitCreativePrompt(page, prompt);
+      await expectGeneratedPreview(page);
+      consoleGate.assertClean();
+    });
+  }
 });

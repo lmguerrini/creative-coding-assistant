@@ -45,6 +45,7 @@ import type {
   InspectorTabName,
   WorkflowStepState
 } from "@/lib/assistant-client";
+import { getInitialWorkspaceSnapshot } from "@/lib/assistant-client";
 import {
   readClarificationSummary,
   readCreativeExecutionPlanSummary,
@@ -1612,40 +1613,54 @@ export function WorkstationShell({
   }
 
   function clearWorkspaceSession() {
+    const clearedSnapshot = getInitialWorkspaceSnapshot();
+
     clearFeedbackTimers();
     setCopyFeedback(null);
     setTransferFeedback(null);
     setArtifactTransferError(null);
     streamingAssistantIdRef.current = null;
+    hasPreviewRuntimeEventRef.current = false;
     pendingArtifactRefinementRef.current = null;
+    previousPreviewRuntimeSessionKeyRef.current = null;
     previewRuntimeTelemetryKeysRef.current.clear();
     previewRuntimeErrorScopesRef.current.clear();
-    setSnapshot(initialSnapshot);
+    setSnapshot(clearedSnapshot);
     setConversationEntries(
-      buildConversationEntries(initialSnapshot.messages, createConversationEntryId)
+      buildConversationEntries(clearedSnapshot.messages, createConversationEntryId)
     );
     setImageAttachments(
-      normalizeImageAttachments(initialSnapshot.multimodal.imageAttachments)
+      normalizeImageAttachments(clearedSnapshot.multimodal.imageAttachments)
     );
-    setImageUploadError(initialSnapshot.multimodal.error ?? null);
+    setImageUploadError(clearedSnapshot.multimodal.error ?? null);
     imageAttachmentCounterRef.current = normalizeImageAttachments(
-      initialSnapshot.multimodal.imageAttachments
+      clearedSnapshot.multimodal.imageAttachments
     ).length;
     setComposerValue("");
-    setActiveTab(getInitialActiveTab(initialSnapshot));
-    setActiveArtifactId(initialSnapshot.artifacts[0]?.id ?? "");
-    setPreviewArtifactId(getInitialPreviewArtifactId(initialSnapshot));
-    setIsPreviewOpen(initialSnapshot.preview.active);
+    setActiveTab(getInitialActiveTab(clearedSnapshot));
+    setActiveArtifactId(clearedSnapshot.artifacts[0]?.id ?? "");
+    setPreviewArtifactId(getInitialPreviewArtifactId(clearedSnapshot));
+    setIsPreviewOpen(clearedSnapshot.preview.active);
     setIsPreviewFullscreen(false);
     setPreviewSessionOverride(null);
-    setWorkflowProgressIndex(getInitialWorkflowIndex(initialSnapshot.workflow.steps));
+    setWorkflowProgressIndex(getInitialWorkflowIndex(clearedSnapshot.workflow.steps));
     setWorkflowRunId(0);
     setIsStreaming(false);
     setStreamError(null);
-    setStreamEvents(initialSnapshot.debug.events);
+    setStreamEvents(clearedSnapshot.debug.events);
+    setClarification(clearedSnapshot.clarification ?? null);
     setSessionIntelligenceMetadata(null);
     setWorkflowTraceEvents([]);
+    setCreativeCostRunHistory([]);
     setPreviewRuntimeLive(null);
+    updateLayout({
+      inspectorCollapsed: defaultWorkspaceLayoutState.inspectorCollapsed,
+      previewHeight: defaultWorkspaceLayoutState.previewHeight
+    });
+    updateWorkspacePreferences({
+      autoOpenPreview: defaultWorkspacePreferences.autoOpenPreview,
+      showDebugPanels: defaultWorkspacePreferences.showDebugPanels
+    });
     setOpenUtilityPanel(null);
     setIsAttachmentMenuOpen(false);
     setIsDemoModeOpen(false);
@@ -3072,6 +3087,8 @@ export function WorkstationShell({
               height={layoutState.previewHeight}
               onClear={handlePreviewStateClear}
               onFullscreenToggle={handlePreviewFullscreenChange}
+              onOpenArtifacts={() => revealInspectorTab("Artifacts")}
+              onOpenCode={() => revealInspectorTab("Code")}
               onReload={handlePreviewStateReload}
               onRuntimeDiagnostics={handlePreviewRuntimeDiagnostics}
               onResizeKeyDown={handlePreviewResizeKeyDown}
@@ -3236,6 +3253,8 @@ type PreviewShelfProps = WorkstationShellProps & {
   height: number;
   onClear: () => void;
   onFullscreenToggle: (isFullscreen: boolean) => void;
+  onOpenArtifacts: () => void;
+  onOpenCode: () => void;
   onReload: () => void;
   onRuntimeDiagnostics: (event: Omit<RuntimeConsoleLiveSnapshot, "updatedAt">) => void;
   onResizeKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
@@ -3689,6 +3708,8 @@ function PreviewShelf({
   height,
   onClear,
   onFullscreenToggle,
+  onOpenArtifacts,
+  onOpenCode,
   onReload,
   onRuntimeDiagnostics,
   onResizeKeyDown,
@@ -3730,6 +3751,38 @@ function PreviewShelf({
   const canResizePreview =
     isPreviewPanelOpen && layoutSize === "visual" && !controller.isFullscreen;
   const panelStyle = controller.isFullscreen ? undefined : { height: panelHeight };
+
+  if (!showDebugPanels && snapshot.preview.state !== "ready") {
+    return (
+      <section className="previewZone" aria-label="Preview workspace">
+        <section
+          aria-label="Preview fallback"
+          className="previewShelf previewShelf--userFallback"
+          data-runtime-state={snapshot.preview.state}
+          data-user-mode="true"
+        >
+          <div className="previewUserFallbackCard">
+            <div>
+              <span>Preview</span>
+              <strong>Preview not ready</strong>
+              <p>
+                Open the generated code or saved outputs while a runnable visual
+                artifact is prepared.
+              </p>
+            </div>
+            <div className="previewUserFallbackActions">
+              <button onClick={onOpenCode} type="button">
+                Open Code
+              </button>
+              <button onClick={onOpenArtifacts} type="button">
+                Open Saved
+              </button>
+            </div>
+          </div>
+        </section>
+      </section>
+    );
+  }
 
   return (
     <section className="previewZone" aria-label="Preview workspace">
@@ -6230,6 +6283,10 @@ function formatUserArtifactLabel(artifact: ArtifactSummary) {
     return "GLSL Shader";
   }
 
+  if (searchable.includes("hydra")) {
+    return "Hydra Pattern";
+  }
+
   if (searchable.includes("p5")) {
     return "P5 Sketch";
   }
@@ -6244,7 +6301,10 @@ function formatUserArtifactRuntimeLabel(artifact: ArtifactSummary) {
     return artifact.type === "export" ? "Export" : "Code";
   }
 
-  return label.replace(" Scene", "").replace(" Sketch", "");
+  return label
+    .replace(" Scene", "")
+    .replace(" Sketch", "")
+    .replace(" Pattern", "");
 }
 
 function getUserArtifactSummary(artifact: ArtifactSummary) {
