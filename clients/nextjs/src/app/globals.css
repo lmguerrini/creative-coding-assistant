@@ -798,6 +798,8 @@ a {
   box-shadow:
     0 22px 70px rgba(0, 0, 0, 0.46),
     var(--panel-highlight);
+  animation: none;
+  opacity: 1;
 }
 
 html[data-cca-theme] .utilityPanel.utilityPanel--kb {
@@ -11202,6 +11204,15 @@ html[data-cca-theme="blueprint"] .codeViewer {
     radial-gradient(circle at 18% 22%, rgba(127, 212, 255, 0.14), transparent 24%),
     radial-gradient(circle at 76% 62%, rgba(138, 169, 255, 0.08), transparent 28%),
     rgba(8, 15, 27, 0.94);
+}
+
+html[data-cca-theme] .utilityPanel.utilityPanel--kb {
+  background: rgb(var(--background-rgb));
+  box-shadow:
+    0 24px 72px rgba(0, 0, 0, 0.48),
+    var(--panel-highlight);
+  animation: none;
+  opacity: 1;
 }
 
 .workstation[data-density="compact"] .workspaceLayout {
