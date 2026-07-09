@@ -35,6 +35,7 @@ export type WorkspaceDensity = "cozy" | "compact";
 export type WorkspaceThemePreset =
   | "aqua"
   | "codex"
+  | "light"
   | "matrix"
   | "terminal"
   | "horizon"
@@ -955,6 +956,7 @@ function isWorkspaceThemePreset(value: unknown): value is WorkspaceThemePreset {
   return (
     value === "aqua" ||
     value === "codex" ||
+    value === "light" ||
     value === "matrix" ||
     value === "terminal" ||
     value === "horizon" ||

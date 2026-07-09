@@ -239,6 +239,40 @@ html[data-cca-theme="codex"] {
   --panel-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
 
+html[data-cca-theme="light"] {
+  color-scheme: light;
+  --background: #f5f6f8;
+  --background-rgb: 245, 246, 248;
+  --foreground: #17191d;
+  --muted: #6d7580;
+  --muted-strong: #3f4650;
+  --panel: rgba(255, 255, 255, 0.9);
+  --panel-strong: rgba(255, 255, 255, 0.97);
+  --panel-soft: rgba(17, 24, 39, 0.035);
+  --line: rgba(35, 42, 52, 0.12);
+  --line-strong: rgba(35, 42, 52, 0.2);
+  --teal: #4f667a;
+  --amber: #9a6a20;
+  --coral: #b75a4f;
+  --blue: #4d6f9d;
+  --green: #3b7a54;
+  --accent-rgb: 79, 102, 122;
+  --accent-ink: #ffffff;
+  --focus-outline: rgba(79, 102, 122, 0.55);
+  --glow-teal: 0 0 0 1px rgba(79, 102, 122, 0.13);
+  --shadow: 0 20px 58px rgba(44, 53, 65, 0.14);
+  --surface-0: rgba(255, 255, 255, 0.88);
+  --surface-1: rgba(20, 27, 36, 0.035);
+  --surface-2: rgba(20, 27, 36, 0.055);
+  --surface-3: rgba(20, 27, 36, 0.078);
+  --surface-accent: rgba(79, 102, 122, 0.085);
+  --section-divider: rgba(35, 42, 52, 0.09);
+  --panel-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --code-surface: rgba(247, 248, 250, 0.94);
+  --scrollbar-track: rgba(35, 42, 52, 0.055);
+  --scrollbar-thumb: rgba(35, 42, 52, 0.22);
+}
+
 html[data-cca-theme="matrix"] {
   --background: #020502;
   --background-rgb: 2, 5, 2;
@@ -10517,6 +10551,144 @@ html[data-cca-theme="codex"] .sendButton[data-ready="true"]:hover {
 
 html[data-cca-theme="codex"] .previewShelf[open] {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.026);
+}
+
+html[data-cca-theme="light"] {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(79, 102, 122, 0.08), transparent 28%),
+    radial-gradient(circle at 82% 14%, rgba(154, 106, 32, 0.06), transparent 30%),
+    linear-gradient(180deg, #fafafa, #eef1f5 62%, #e9edf2),
+    var(--background);
+}
+
+html[data-cca-theme="light"] .workstation {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.56), transparent 180px),
+    transparent;
+}
+
+html[data-cca-theme="light"] .topbar {
+  border-color: rgba(35, 42, 52, 0.1);
+  background: rgba(250, 251, 252, 0.88);
+  box-shadow: 0 12px 30px rgba(42, 50, 60, 0.08);
+}
+
+html[data-cca-theme="light"] .sessionPanel,
+html[data-cca-theme="light"] .demoModePanel,
+html[data-cca-theme="light"] .previewShelf,
+html[data-cca-theme="light"] .inspector,
+html[data-cca-theme="light"] .utilityPanel {
+  border-color: rgba(35, 42, 52, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), transparent 180px),
+    rgba(255, 255, 255, 0.86);
+  box-shadow:
+    0 20px 54px rgba(42, 50, 60, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.76);
+}
+
+html[data-cca-theme="light"] .brandMark,
+html[data-cca-theme="light"] .sessionStatus,
+html[data-cca-theme="light"] .sessionMetric,
+html[data-cca-theme="light"] .toolbarToggle,
+html[data-cca-theme="light"] .iconButton,
+html[data-cca-theme="light"] .commandMenuGrid button,
+html[data-cca-theme="light"] .themePresetButton,
+html[data-cca-theme="light"] .settingsChoiceRow button,
+html[data-cca-theme="light"] .settingsToggle button,
+html[data-cca-theme="light"] .composerInputFrame,
+html[data-cca-theme="light"] .artifactActions button,
+html[data-cca-theme="light"] .codePanelActions button,
+html[data-cca-theme="light"] .previewControlButton,
+html[data-cca-theme="light"] .operatorCheckpointActions button {
+  border-color: rgba(35, 42, 52, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76);
+}
+
+html[data-cca-theme="light"] .toolbarToggle:hover,
+html[data-cca-theme="light"] .iconButton:hover,
+html[data-cca-theme="light"] .commandMenuGrid button:hover,
+html[data-cca-theme="light"] .themePresetButton:hover,
+html[data-cca-theme="light"] .settingsChoiceRow button:hover,
+html[data-cca-theme="light"] .settingsToggle button:hover,
+html[data-cca-theme="light"] .artifactActions button:hover,
+html[data-cca-theme="light"] .codePanelActions button:hover,
+html[data-cca-theme="light"] .previewControlButton:hover,
+html[data-cca-theme="light"] .operatorCheckpointActions button:hover {
+  border-color: rgba(79, 102, 122, 0.22);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 22px rgba(42, 50, 60, 0.08);
+  color: #111318;
+}
+
+html[data-cca-theme="light"] .toolbarToggle[aria-pressed="true"],
+html[data-cca-theme="light"] .iconButton[aria-expanded="true"],
+html[data-cca-theme="light"] .commandMenuGrid button[data-active="true"],
+html[data-cca-theme="light"] .themePresetButton[data-active="true"],
+html[data-cca-theme="light"] .settingsChoiceRow button[data-active="true"],
+html[data-cca-theme="light"] .settingsToggle button[data-active="true"],
+html[data-cca-theme="light"] .inspectorTabs button[aria-selected="true"],
+html[data-cca-theme="light"] .previewControlButton[aria-pressed="true"] {
+  border-color: rgba(79, 102, 122, 0.28);
+  background: rgba(79, 102, 122, 0.1);
+  box-shadow: none;
+  color: #111318;
+}
+
+html[data-cca-theme="light"] .message,
+html[data-cca-theme="light"] .emptyStateCard,
+html[data-cca-theme="light"] .emptyPromptButton,
+html[data-cca-theme="light"] .emptyWorkspace,
+html[data-cca-theme="light"] .emptyWorkspaceValue article,
+html[data-cca-theme="light"] .emptyWorkspaceSuggestions button,
+html[data-cca-theme="light"] .emptyWorkspaceGrid section,
+html[data-cca-theme="light"] .emptyWorkspaceLearnMore,
+html[data-cca-theme="light"] .overviewTile,
+html[data-cca-theme="light"] .demoScenarioButton,
+html[data-cca-theme="light"] .demoScenarioDetail,
+html[data-cca-theme="light"] .demoScenarioQuickFacts div,
+html[data-cca-theme="light"] .workflowSummaryCard,
+html[data-cca-theme="light"] .workflowTraceCard,
+html[data-cca-theme="light"] .telemetryLifecycleCard,
+html[data-cca-theme="light"] .telemetrySignalCard,
+html[data-cca-theme="light"] .telemetryDashboardCard,
+html[data-cca-theme="light"] .artifactItem,
+html[data-cca-theme="light"] .artifactDetailCard,
+html[data-cca-theme="light"] .retrievalSummaryCard,
+html[data-cca-theme="light"] .retrievalEmptyCard,
+html[data-cca-theme="light"] .retrievalInsightCard,
+html[data-cca-theme="light"] .previewIndicator,
+html[data-cca-theme="light"] .previewCopy,
+html[data-cca-theme="light"] .previewSurfacePanelFrame,
+html[data-cca-theme="light"] .savedOutputsHero,
+html[data-cca-theme="light"] .savedOutputCard {
+  border-color: rgba(35, 42, 52, 0.1);
+  background: rgba(255, 255, 255, 0.68);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+html[data-cca-theme="light"] .chatLog {
+  border-color: rgba(35, 42, 52, 0.08);
+  background: linear-gradient(180deg, rgba(35, 42, 52, 0.024), transparent 96px);
+}
+
+html[data-cca-theme="light"] .codeViewer,
+html[data-cca-theme="light"] .previewRuntimeFrame,
+html[data-cca-theme="light"] .previewRuntimeCanvas,
+html[data-cca-theme="light"] .previewSurfaceBackdrop {
+  border-color: rgba(35, 42, 52, 0.1);
+  background: rgba(247, 248, 250, 0.96);
+}
+
+html[data-cca-theme="light"] .sendButton {
+  background: #17191d;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+html[data-cca-theme="light"] .sendButton[data-ready="true"]:hover {
+  background: #2b3036;
 }
 
 html[data-cca-theme="matrix"] {

@@ -1342,6 +1342,7 @@ describe("WorkstationShell", () => {
     for (const [label, theme] of [
       ["Aqua", "aqua"],
       ["Codex", "codex"],
+      ["Light", "light"],
       ["Matrix", "matrix"]
     ] as const) {
       fireEvent.click(screen.getByRole("button", { name: "Theme" }));

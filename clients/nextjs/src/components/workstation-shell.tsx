@@ -353,6 +353,13 @@ const themePresetOptions = [
     surface: "linear-gradient(135deg, rgba(185, 196, 207, 0.18), rgba(132, 146, 160, 0.14))"
   },
   {
+    value: "light",
+    label: "Light",
+    description: "Calm daylight workspace with neutral surfaces.",
+    accent: "#4f667a",
+    surface: "linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(223, 231, 239, 0.86))"
+  },
+  {
     value: "matrix",
     label: "Matrix",
     description: "Obsidian console with restrained lime signal highlights.",
