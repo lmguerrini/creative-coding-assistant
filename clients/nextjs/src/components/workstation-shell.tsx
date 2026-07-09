@@ -3448,13 +3448,14 @@ function EmptyWorkspaceState({
   const promptSuggestions = [
     "Create a p5.js flow-field particle system with soft trails and interaction controls.",
     "Design a Three.js kinetic sculpture with camera motion and audio-reactive lighting.",
-    "Generate a GLSL fragment shader with liquid glass refraction and restrained color."
+    "Generate a GLSL fragment shader with liquid glass refraction and restrained color.",
+    "Build a Hydra feedback pattern with slow color modulation and clear fallback notes."
   ];
   const domainExamples = [
     "p5.js sketches",
     "Three.js scenes",
     "GLSL shaders",
-    "Hydra patterns"
+    "Hydra feedback"
   ];
   const workflowExamples = [
     "Describe a visual system",

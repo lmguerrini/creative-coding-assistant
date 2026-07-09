@@ -1204,10 +1204,16 @@ describe("WorkstationShell", () => {
     expect(screen.getByText("Preview, refine, and save artifacts")).toBeVisible();
     expect(screen.getByText("Support creative-coding workflows")).toBeVisible();
     expect(screen.getByText("p5.js sketches")).toBeVisible();
+    expect(screen.getByText("Hydra feedback")).toBeVisible();
     expect(screen.getByText("Describe a visual system")).toBeVisible();
     expect(screen.getByText("Generate browser-safe code")).toBeVisible();
     expect(screen.getByText("Ways to work")).toBeVisible();
     expect(screen.getByText("How it works")).toBeVisible();
+    expect(
+      screen.getByRole("button", {
+        name: "Build a Hydra feedback pattern with slow color modulation and clear fallback notes."
+      })
+    ).toBeVisible();
     expect(screen.queryByText("Workflows")).not.toBeInTheDocument();
     expect(screen.queryByText(/aurora/i)).not.toBeInTheDocument();
     expect(screen.queryByText("Session persistence issue")).not.toBeInTheDocument();
