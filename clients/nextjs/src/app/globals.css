@@ -4731,6 +4731,13 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   gap: 12px;
 }
 
+.workflowExplorerHeader > div:first-child,
+.workflowExplorerStage header > div:first-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
 .workflowExplorerHeader span,
 .workflowExplorerStage span,
 .workflowExplorerMetadataGroup span {
