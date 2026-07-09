@@ -88,21 +88,28 @@ LangSmith:
 - Current local config audit: `.env` remains private/ignored and
   `.env.example` contains only LangSmith placeholders.
 - LangSmith trace visibility is active-tested for project
-  `creative-coding-assistant`. The missing LangSmith project was created during
-  HITL-approved validation, then a representative retrieval-backed workflow
-  was rerun with tracing enabled.
-- Verified workflow run `CCA_LANGSMITH_SMOKE_20260709_015` completed in
-  `31.42s` with 269 stream events, 5 retrieved contexts, final output present,
-  and 0 workflow errors. Streaming telemetry did not expose provider token
-  usage for this run, so no token total is claimed.
-- Verified LangSmith trace id: `f5420da971d0475d8b87951ce34d2bd0`.
-  Querying project `creative-coding-assistant` returned 34 matching successful
-  spans, including `retrieval`, `prompt_input`, `planning`, `generation`,
-  `artifact_extraction`, `preview_preparation`, `review`, and `finalization`.
-- Deterministic trace upload required LangChain compatibility environment
-  variables (`LANGCHAIN_TRACING_V2=true`, `LANGCHAIN_PROJECT`, and
-  `LANGCHAIN_ENDPOINT`) plus an explicit LangSmith client flush after the local
-  smoke. `LANGSMITH_*` remains the app-level configuration path.
+  `creative-coding-assistant` after the local `.env` reload. The validation
+  script maps `LANGSMITH_*` app config to LangChain compatibility aliases at
+  runtime without printing secret values.
+- Verified workflow run `CCA_LANGSMITH_SMOKE_20260709_172109` completed in
+  `34.64s` with 598 stream events, 1 retrieved `three_js` context from 1
+  source, final output present, and 0 workflow errors.
+- Verified OpenAI generation telemetry for that run: model
+  `gpt-5-mini-2025-08-07`, response id
+  `resp_02a5f8b81401f0f2006a4fd88f9c8081a0aa75a98458b50dc8`, generation
+  request duration `26.15s`, `36,637` input tokens, `1,773` output tokens,
+  `1,152` reasoning tokens, and `38,410` total tokens.
+- Verified LangSmith root trace/run id:
+  `019f47e5-ca49-7e00-9ebc-109e7c964402`; app-level trace metadata:
+  `be2d52283b974d64a594874446540037`.
+- Querying project `creative-coding-assistant` for the uploaded trace returned
+  34 successful chain spans, including `intake`, `routing`, `memory`,
+  `retrieval`, `context_assembly`, `prompt_input`, `planning`, `generation`,
+  `review`, `preview_preparation`, `artifact_extraction`, `finalization`,
+  `LangGraph`, and `assistant.workflow`.
+- Boundary: LangSmith records chain-type LangGraph/workflow spans. Provider
+  model metadata, timing, and token usage are captured in assistant stream
+  generation telemetry rather than as a separate LLM span type.
 - Focused LangSmith observability tests passed: `tests/test_langsmith_observability.py`
   collected 5 tests and passed all 5, with the existing Chroma deprecation
   warning.

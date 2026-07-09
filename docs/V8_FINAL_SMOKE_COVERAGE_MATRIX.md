@@ -24,8 +24,8 @@ artifact/browser QA, and documented accepted boundaries.
 
 | Workflow | Evidence | Result | Boundary |
 |---|---|---|---|
-| Retrieval-backed assistant workflow | `CCA_LANGSMITH_SMOKE_20260709_015` | **PASS**: 31.42s, 269 stream events, 5 retrieved contexts, final output present, 0 workflow errors. | Streaming telemetry did not expose provider token usage for this run. |
-| LangSmith trace visibility | Trace id `f5420da971d0475d8b87951ce34d2bd0` in project `creative-coding-assistant` | **ACTIVE TESTED**: 34 matching successful spans, including retrieval, planning, generation, preview preparation, review, and finalization. | Deterministic verification required LangChain compatibility env vars and explicit LangSmith client flush. |
+| Retrieval-backed assistant workflow | `CCA_LANGSMITH_SMOKE_20260709_172109` | **PASS**: 34.64s, 598 stream events, 1 retrieved `three_js` context from 1 source, final output present, 0 workflow errors. OpenAI telemetry recorded model `gpt-5-mini-2025-08-07`, 26.15s generation duration, and 38,410 total tokens. | Retrieval count depends on local KB contents and query ranking; this is representative trace validation, not a broad retrieval benchmark. |
+| LangSmith trace visibility | Trace/root run id `019f47e5-ca49-7e00-9ebc-109e7c964402` in project `creative-coding-assistant`; app trace metadata `be2d52283b974d64a594874446540037` | **ACTIVE TESTED**: 34 successful LangSmith spans, including intake, routing, memory, retrieval, context assembly, prompt input, planning, generation, review, preview preparation, artifact extraction, finalization, LangGraph, and `assistant.workflow`. | Spans are chain-type LangGraph/workflow spans; provider model metadata and token usage are captured in generation telemetry, not as a separate LLM span type. |
 | RAG/retrieval evidence | Redacted latest-live RAGAs plus sanitized public fixture | **PASS WITH BOUNDARY**: provider-backed evaluator fixtures completed with 0 skipped rows and 0 metric failures. | Raw private live-session rows remain local-only. |
 
 ## Demo Mode Scenarios
@@ -76,9 +76,10 @@ artifact/browser QA, and documented accepted boundaries.
 
 ## Remaining Accepted Boundaries
 
-- Live provider token usage is available for optimized Demo Mode smoke rows,
-  but not for the final LangSmith traced stream because streaming telemetry did
-  not expose provider usage metadata.
+- Live provider token usage is available for optimized Demo Mode smoke rows and
+  the final LangSmith traced workflow. The LangSmith trace tree itself records
+  chain-type workflow spans; provider model and token metadata are recorded in
+  the assistant stream generation telemetry.
 - Hydra is validated as a local `hydra-synth` artifact path, not as a full
   live-code editor or broad Hydra production runtime.
 - Chroma/Pydantic warnings remain third-party dependency warnings with a

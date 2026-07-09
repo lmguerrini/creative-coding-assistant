@@ -29,7 +29,9 @@ remaining risks below.
   live provider, mocked browser, artifact-QA, and accepted-boundary evidence
   for the full reviewer journey.
 - LangSmith validation: project `creative-coding-assistant` has active-tested
-  trace evidence for a representative retrieval-backed workflow.
+  trace evidence for representative retrieval-backed workflow
+  `CCA_LANGSMITH_SMOKE_20260709_172109`, root trace/run id
+  `019f47e5-ca49-7e00-9ebc-109e7c964402`.
 - Privacy boundary: raw private live-session rows remain local-only.
 - Deployment boundary: Capstone target is local demo, not public cloud
   deployment.
