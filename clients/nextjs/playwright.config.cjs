@@ -6,6 +6,7 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://${host}:${port}`;
 
 module.exports = defineConfig({
   testDir: "./e2e",
+  outputDir: "../../.local/test-results/playwright",
   timeout: 45_000,
   expect: {
     timeout: 8_000
@@ -17,10 +18,13 @@ module.exports = defineConfig({
   reporter: process.env.CI
     ? [
         ["github"],
-        ["html", { open: "never" }],
-        ["json", { outputFile: "test-results/e2e-results.json" }]
+        ["html", { open: "never", outputFolder: "../../.local/test-results/playwright-report" }],
+        ["json", { outputFile: "../../.local/test-results/e2e-results.json" }]
       ]
-    : [["list"], ["html", { open: "never" }]],
+    : [
+        ["list"],
+        ["html", { open: "never", outputFolder: "../../.local/test-results/playwright-report" }]
+      ],
   use: {
     baseURL,
     screenshot: "only-on-failure",
