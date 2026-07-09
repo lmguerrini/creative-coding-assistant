@@ -2069,10 +2069,7 @@ a {
 
 .composer {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 38px;
-  gap: 10px;
-  align-items: flex-end;
+  display: block;
   padding-top: 8px;
   border-top: 0;
 }
@@ -2084,10 +2081,10 @@ a {
   gap: 7px;
   min-width: 0;
   border: 1px solid rgba(255, 255, 255, 0.105);
-  border-radius: 22px;
+  border-radius: 26px;
   background: rgba(255, 255, 255, 0.04);
   box-shadow: var(--panel-highlight);
-  padding: 6px;
+  padding: 7px 52px 7px 7px;
 }
 
 .composerInputFrame:focus-within {
@@ -2096,15 +2093,15 @@ a {
 }
 
 .composerAttach {
-  position: relative;
+  position: static;
   flex: 0 0 auto;
 }
 
 .composerAttachButton,
 .sendButton {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   place-items: center;
   border-radius: 999px;
   cursor: pointer;
@@ -2179,7 +2176,8 @@ a {
   resize: none;
   border: 0;
   border-radius: 14px;
-  padding: 9px 10px;
+  overflow-y: hidden;
+  padding: 10px 8px;
   background: transparent;
   color: var(--foreground);
   line-height: 1.45;
@@ -2191,8 +2189,10 @@ a {
 }
 
 .sendButton {
-  align-self: flex-end;
-  margin-bottom: 2px;
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  margin: 0;
   border: 0;
   color: var(--accent-ink);
   background: rgba(var(--accent-rgb), 0.92);
@@ -2221,13 +2221,22 @@ a {
 .composerState {
   position: absolute;
   right: 58px;
-  bottom: 9px;
+  bottom: 13px;
   color: var(--muted);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   pointer-events: none;
+}
+
+.composer[data-mode="user"] .composerState {
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .composer[data-ready="true"] .composerState {
@@ -11223,16 +11232,12 @@ html[data-cca-theme="blueprint"] .codeViewer {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .composer {
-    grid-template-columns: minmax(0, 1fr) 38px;
-  }
-
   .composerInputFrame {
     min-height: 48px;
   }
 
   .sendButton {
-    width: 34px;
+    width: 36px;
   }
 
   .inspectorTabs {

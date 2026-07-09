@@ -1207,6 +1207,30 @@ describe("WorkstationShell", () => {
     );
   });
 
+  it("keeps the User Mode composer minimal while preserving prompt controls", () => {
+    renderUserShell(getInitialWorkspaceSnapshot());
+
+    const promptInput = screen.getByRole("textbox", {
+      name: "Assistant prompt"
+    });
+    const composer = promptInput.closest("form");
+    const attachButton = screen.getByRole("button", { name: "Add attachment" });
+    const sendButton = screen.getByRole("button", { name: "Send prompt" });
+
+    expect(composer).toHaveAttribute("data-mode", "user");
+    expect(attachButton).toBeVisible();
+    expect(sendButton).toBeVisible();
+    expect(sendButton).toBeDisabled();
+    expect(screen.queryByText("Type a prompt to begin")).not.toBeInTheDocument();
+
+    fireEvent.change(promptInput, {
+      target: { value: "Create a soft p5 particle sketch." }
+    });
+
+    expect(sendButton).toHaveAttribute("data-ready", "true");
+    expect(screen.queryByText("Ready to generate")).not.toBeInTheDocument();
+  });
+
   it("ignores a persisted seeded demo session on first run", async () => {
     const seededSnapshot = getLocalWorkspaceSnapshot();
     const persistedRecord = createWorkspaceSessionRecord({
@@ -2601,7 +2625,8 @@ describe("WorkstationShell", () => {
 
     expect(await screen.findByText("Opening the live response...")).toBeVisible();
     expect(screen.getByText("Request accepted.")).toBeVisible();
-    expect(screen.getByText("Opening live response")).toBeVisible();
+    expect(screen.getByLabelText("Current session")).toHaveTextContent("Working");
+    expect(screen.queryByText("Opening live response")).not.toBeInTheDocument();
     expect(screen.getByRole("log", { name: "Conversation" })).toHaveAttribute(
       "aria-busy",
       "true"

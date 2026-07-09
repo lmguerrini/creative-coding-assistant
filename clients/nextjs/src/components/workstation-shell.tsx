@@ -523,6 +523,19 @@ export function WorkstationShell({
   }, [workspacePreferences.showDebugPanels]);
 
   useEffect(() => {
+    const textarea = composerTextareaRef.current;
+    if (!textarea) {
+      return;
+    }
+
+    const maxHeight = 168;
+    textarea.style.height = "auto";
+    const nextHeight = Math.min(textarea.scrollHeight || 38, maxHeight);
+    textarea.style.height = `${nextHeight}px`;
+    textarea.style.overflowY = textarea.scrollHeight > maxHeight ? "auto" : "hidden";
+  }, [composerValue]);
+
+  useEffect(() => {
     const chatLog = chatLogRef.current;
     if (!chatLog) {
       return undefined;
@@ -3036,6 +3049,9 @@ export function WorkstationShell({
                   ? "true"
                   : "false"
               }
+              data-mode={
+                workspacePreferences.showDebugPanels ? "developer" : "user"
+              }
               data-ready={isComposerReady}
               onSubmit={handleComposerSubmit}
             >
@@ -3084,9 +3100,11 @@ export function WorkstationShell({
                   value={composerValue}
                 />
               </div>
-              <span className="composerState" aria-live="polite">
-                {composerStateLabel}
-              </span>
+              {workspacePreferences.showDebugPanels ? (
+                <span className="composerState" aria-live="polite">
+                  {composerStateLabel}
+                </span>
+              ) : null}
               <button
                 aria-label="Send prompt"
                 className="sendButton"

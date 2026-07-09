@@ -2,18 +2,19 @@
 
 Branch: `version-review/v8`  
 Registered: 2026-07-09  
-Execution rule: run exactly one FP task per HITL cycle. Do not merge, push,
-tag, freeze, or start V9 from this roadmap.
+Execution rule: run FP tasks sequentially, one scoped task at a time; commit
+each accepted task before moving on. Stop for blockers and required HITL
+checkpoints. Do not merge, push, tag, freeze, or start V9 from this roadmap.
 
 ## Current Task
 
 | Field | Value |
 |---|---|
-| Current task | FP-08 Artifacts & Saved UX |
+| Current task | FP-09 Input Composer UX |
 | Status | ACCEPTED |
-| Scope boundary | User-facing Saved/Artifacts labels, layout, responsive readability, Code/Saved/Preview handoff, and focused UI tests only |
+| Scope boundary | Composer controls, attachment menu, send alignment, textarea growth, status clutter, and focused composer tests only |
 | Screenshot evidence | Captured and inspected at 1440, 1024, and 720 widths |
-| Latest task commit | FP-07 accepted at `67aa6afd` |
+| Latest task commit | FP-08 accepted at `4c6d037f` |
 
 ## Status Legend
 
@@ -34,8 +35,8 @@ tag, freeze, or start V9 from this roadmap.
 | FP-05 | Developer Mode Excellence | Full technical information; no overlap; no truncated text; readable details | Looks like a professional IDE | ACCEPTED | `/tmp/cca-v8-fp05-developer-mode/manifest.json`; `/tmp/cca-v8-fp05-developer-mode/fp05-layout-contact-sheet.png`; `clients/nextjs/src/components/preview-runtime-stage.tsx` | Developer Mode remains intentionally dense; iframe HUD disabled to avoid duplicate diagnostic overlap | `89c67105` |
 | FP-06 | Demo Mode UX | Minimal demo cards; metadata in Developer Mode; coherent categories; explicit capability; no internal terminology | Reviewer understands each demo in 5 seconds | ACCEPTED | `/tmp/cca-v8-fp06-demo-mode/manifest.json`; `/tmp/cca-v8-fp06-demo-mode/fp06-contact-sheet.png`; `clients/nextjs/src/lib/demo-mode.test.ts`; `clients/nextjs/src/components/workstation-shell.test.tsx` | Scope limited to Demo Mode UI; demo pack coverage stays with FP-07 | `1f92e6bb` |
 | FP-07 | Demo Pack Coverage | Every demo maps to a capability; single-agent; hybrid; multi-domain; retrieval; preview; output; Capstone mapping | No capability without a demo | ACCEPTED | `clients/nextjs/src/lib/demo-mode.test.ts`; `demo/final_demo_suite.json`; `clients/nextjs/src/lib/demo-mode.ts` | No live multi-agent execution path is claimed; geometry/morphogenesis remains multi-domain, not multi-agent | `67aa6afd` |
-| FP-08 | Artifacts & Saved UX | Human labels; Saved browser; Code browser; Preview browser; no technical filenames; responsive layout | Artifact management is clear | ACCEPTED | `/tmp/cca-v8-fp08-artifacts-saved/manifest.json`; `/tmp/cca-v8-fp08-artifacts-saved/fp08-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.test.tsx`; `clients/nextjs/e2e/workstation-smoke.spec.js` | Developer Mode may show raw filenames; User Mode uses human labels and hides raw artifact filenames | Pending FP-08 commit |
-| FP-09 | Input Composer UX | Codex/ChatGPT-style composer; minimal plus; bottom send; auto-grow; no status clutter; no overlap | Composer matches Codex philosophy | NOT_STARTED | TBD | TBD | TBD |
+| FP-08 | Artifacts & Saved UX | Human labels; Saved browser; Code browser; Preview browser; no technical filenames; responsive layout | Artifact management is clear | ACCEPTED | `/tmp/cca-v8-fp08-artifacts-saved/manifest.json`; `/tmp/cca-v8-fp08-artifacts-saved/fp08-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.test.tsx`; `clients/nextjs/e2e/workstation-smoke.spec.js` | Developer Mode may show raw filenames; User Mode uses human labels and hides raw artifact filenames | `4c6d037f` |
+| FP-09 | Input Composer UX | Codex/ChatGPT-style composer; minimal plus; bottom send; auto-grow; no status clutter; no overlap | Composer matches Codex philosophy | ACCEPTED | `/tmp/cca-v8-fp09-composer/manifest.json`; `/tmp/cca-v8-fp09-composer/fp09-composer-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.test.tsx`; `clients/nextjs/src/app/globals.css` | Developer Mode may keep compact composer status text; User Mode omits it to avoid clutter | Pending FP-09 commit |
 | FP-10 | Codex Design System | Codex philosophy across typography, whitespace, flat surfaces, hierarchy, interactions; theme changes only colors | App feels part of Codex ecosystem | NOT_STARTED | TBD | TBD | TBD |
 | FP-11 | Typography & Layout QA | Fix glued words; overflow; line wrapping; subtitles; cards; padding; margins | No visible typography defects | NOT_STARTED | TBD | Human screenshots override automated checks | TBD |
 | FP-12 | Preview / Code / Saved Ecosystem | Coordinate three panels; preview is preview; Code is code; Saved is artifacts; no duplicated noise | Every panel has a clear role | NOT_STARTED | TBD | TBD | TBD |
@@ -418,3 +419,52 @@ Contact sheet: `/tmp/cca-v8-fp08-artifacts-saved/fp08-contact-sheet.png`.
 | Docs Mermaid check | Passed: `.venv/bin/python scripts/v7_quality_gates.py docs-mermaid` |
 | Hygiene | Passed: `git diff --check`; Runtime Pack private directories remain ignored |
 | Accepted boundary | Developer Mode intentionally keeps raw filenames and full artifact metadata; FP-12 owns broader panel ecosystem coordination |
+
+## FP-09 Acceptance Criteria
+
+- User Mode composer uses a calm single input frame with a minimal `+`
+  attachment button.
+- Send button is bottom-aligned and integrated into the composer edge.
+- Textarea grows with multi-line prompts without overlapping the attachment menu
+  or send control.
+- User Mode does not show composer status clutter such as `Type a prompt to
+  begin` or `Ready to generate`.
+- Attachment menu opens without covering prompt text at 1440, 1024, or 720
+  widths.
+- Developer Mode may keep compact composer status text for operator feedback.
+
+## FP-09 Input Composer Audit Notes
+
+- User Mode no longer renders the visible composer status label; the top session
+  status remains the user-facing working-state surface.
+- Developer Mode retains the compact composer status text for diagnostic
+  feedback.
+- The send button is positioned inside the composer frame, matching the
+  Codex/ChatGPT-style single composer control.
+- The textarea now auto-sizes from content up to the existing maximum height and
+  then scrolls internally.
+- Browser screenshots found and fixed a real 720-width issue where the
+  attachment menu overlapped a grown textarea. The menu now anchors to the full
+  composer frame instead of the plus button.
+
+## FP-09 Screenshot Evidence
+
+| Width | Empty User composer | Filled User composer | Attachment menu | Developer composer |
+|---|---|---|---|---|
+| 1440 | `/tmp/cca-v8-fp09-composer/fp09-user-composer-empty-1440.png` | `/tmp/cca-v8-fp09-composer/fp09-user-composer-filled-1440.png` | `/tmp/cca-v8-fp09-composer/fp09-user-composer-attachment-1440.png` | `/tmp/cca-v8-fp09-composer/fp09-developer-composer-filled-1440.png` |
+| 1024 | `/tmp/cca-v8-fp09-composer/fp09-user-composer-empty-1024.png` | `/tmp/cca-v8-fp09-composer/fp09-user-composer-filled-1024.png` | `/tmp/cca-v8-fp09-composer/fp09-user-composer-attachment-1024.png` | `/tmp/cca-v8-fp09-composer/fp09-developer-composer-filled-1024.png` |
+| 720 | `/tmp/cca-v8-fp09-composer/fp09-user-composer-empty-720.png` | `/tmp/cca-v8-fp09-composer/fp09-user-composer-filled-720.png` | `/tmp/cca-v8-fp09-composer/fp09-user-composer-attachment-720.png` | `/tmp/cca-v8-fp09-composer/fp09-developer-composer-filled-720.png` |
+
+Contact sheet: `/tmp/cca-v8-fp09-composer/fp09-composer-contact-sheet.png`.
+
+## FP-09 Validation Evidence
+
+| Check | Result |
+|---|---|
+| Screenshot capture | Passed: empty, filled, attachment-menu, and Developer composer captures at 1440, 1024, and 720 widths |
+| Screenshot human inspection | Passed: no User Mode status clutter, send aligned, textarea readable, attachment menu does not overlap prompt text |
+| Focused composer tests | Passed: `npx vitest run src/components/workstation-shell.test.tsx --testNamePattern "composer\|Add attachment\|Send prompt"` (`3` tests) |
+| Focused frontend tests | Passed: `npx vitest run src/components/workstation-shell.test.tsx src/lib/workspace-persistence.test.ts src/lib/preview-sandbox-runtime.test.ts` (`113` tests) |
+| Typecheck | Passed: `npm run typecheck` |
+| Playwright smoke | Passed after sandbox rerun with local server permission: `npm run test:e2e:smoke` (`8` tests) |
+| Accepted boundary | Developer Mode keeps compact composer status text; User Mode relies on top session state and conversation text |
