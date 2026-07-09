@@ -27,6 +27,10 @@ import {
   hasCanvasPreviewSignal,
   hasSvgPreviewSignal
 } from "./svg-canvas-runtime";
+import {
+  getP5RuntimeSourceSupportIssue,
+  prepareP5JavaScriptSource
+} from "./preview-source-classification";
 
 export type LiveArtifactHydrationResult = {
   activeArtifactId: string;
@@ -456,24 +460,36 @@ function inferGeneratedArtifact(
     totalSources: number;
   }
 ): ArtifactInference {
+  const rawContent = trimCodeBlock(source.content);
   const normalizedLanguage = normalizeLanguageToken(source.language ?? "");
   const type = source.type ?? (normalizedLanguage === "markdown" ? "export" : "code");
   const runtimeKind = normalizeRuntimeKind(source.runtime ?? source.rendererId ?? "");
-  const previewKind =
+  const inferredPreviewKind =
     type === "code"
       ? runtimeKind ??
-        inferRuntimeKind(source.content, normalizedLanguage, source.title)
+        inferRuntimeKind(rawContent, normalizedLanguage, source.title)
       : null;
+  const previewKind =
+    inferredPreviewKind === "p5" && getP5RuntimeSourceSupportIssue(rawContent)
+      ? null
+      : inferredPreviewKind;
+  const content =
+    previewKind === "p5" ? prepareP5JavaScriptSource(rawContent) : rawContent;
+  const effectiveLanguage = previewKind === "p5" ? "javascript" : normalizedLanguage;
   const title =
-    sanitizeFileName(source.title ?? "") ||
+    normalizePreviewArtifactTitle({
+      language: effectiveLanguage,
+      previewKind,
+      title: sanitizeFileName(source.title ?? "")
+    }) ||
     defaultArtifactTitle({
-      content: source.content,
-      language: normalizedLanguage,
+      content,
+      language: effectiveLanguage,
       previewKind,
       sourceOrder: totalSources > 1 ? sourceOrder : undefined,
       type
     });
-  const language = formatLanguageLabel(normalizedLanguage, previewKind, title);
+  const language = formatLanguageLabel(effectiveLanguage, previewKind, title);
   const rawPreviewTarget = normalizePreviewTarget(source.previewTarget);
   const previewTarget =
     type === "code"
@@ -493,7 +509,7 @@ function inferGeneratedArtifact(
         : liveResponseArtifactId;
 
   return {
-    content: trimCodeBlock(source.content),
+    content,
     creativeTranslation: source.creativeTranslation ?? null,
     creativePlan: source.creativePlan ?? null,
     critique: source.critique ?? null,
@@ -873,6 +889,30 @@ function defaultArtifactTitle({
   return `generated-artifact${orderSuffix}.txt`;
 }
 
+function normalizePreviewArtifactTitle({
+  language,
+  previewKind,
+  title
+}: {
+  language: string;
+  previewKind: CreativeRuntimeKind | null;
+  title: string;
+}) {
+  if (!title || previewKind !== "p5") {
+    return title;
+  }
+
+  if (title.toLowerCase().endsWith(".p5.ts")) {
+    return `${title.slice(0, -6)}.p5.js`;
+  }
+
+  if (language === "javascript" && title.toLowerCase().endsWith(".ts")) {
+    return `${title.slice(0, -3)}.p5.js`;
+  }
+
+  return title;
+}
+
 function formatLanguageLabel(
   language: string,
   previewKind: CreativeRuntimeKind | null,
@@ -883,7 +923,7 @@ function formatLanguageLabel(
   }
 
   if (previewKind === "p5") {
-    return language === "javascript" ? "JavaScript + p5.js" : "TypeScript + p5.js";
+    return "JavaScript + p5.js";
   }
 
   if (previewKind === "glsl") {

@@ -101,7 +101,9 @@ _DOMAIN_GENERATION_GUIDANCE: dict[CreativeCodingDomain, tuple[str, ...]] = {
     CreativeCodingDomain.P5_JS: (
         "For p5.js generation, return a self-contained sketch using setup() "
         "and draw().",
-        "Prefer a .p5.js artifact name and keep browser-preview-safe globals clear.",
+        "Return plain JavaScript p5 source only: prefer a .p5.js artifact name, "
+        "do not use TypeScript or HTML wrappers, and keep browser-preview-safe "
+        "globals clear.",
     ),
     CreativeCodingDomain.GLSL: (
         "For GLSL generation, return a fragment shader with uniforms such as "

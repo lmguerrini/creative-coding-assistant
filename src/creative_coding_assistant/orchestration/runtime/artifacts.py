@@ -390,6 +390,7 @@ def _build_workflow_artifact(
     if not language:
         return None
     runtime = _infer_runtime(block.content, language, block.title)
+    preview_safe = _runtime_source_preview_safe(runtime, block.content)
     artifact_domain = _infer_artifact_domain(
         runtime=runtime,
         content=block.content,
@@ -404,11 +405,21 @@ def _build_workflow_artifact(
         support is not None
         and runtime_is_supported(runtime)
         and runtime == support.runtime
+        and preview_safe
     )
     effective_runtime = runtime if preview_ready else None
-    title = block.title or _default_artifact_title(language, effective_runtime, index)
+    content = block.content
+    effective_language = language
+    if effective_runtime == "p5":
+        content = _prepare_p5_javascript_source(block.content)
+        effective_language = "javascript"
+    title = _normalize_preview_artifact_title(
+        block.title,
+        language=effective_language,
+        runtime=effective_runtime,
+    ) or _default_artifact_title(effective_language, effective_runtime, index)
     artifact_id = _sanitize_identifier(title) or f"generated-artifact-{index}"
-    content_hash = sha256(block.content.encode("utf-8")).hexdigest()
+    content_hash = sha256(content.encode("utf-8")).hexdigest()
     renderer_id = support.renderer_id if preview_ready else None
     preview_target = support.preview_target if preview_ready else None
     domain_label = _domain_label(artifact_domain)
@@ -426,9 +437,9 @@ def _build_workflow_artifact(
         id=artifact_id,
         title=title,
         name=title,
-        language=_format_language_label(language, effective_runtime, title),
-        source_language=language,
-        content=block.content,
+        language=_format_language_label(effective_language, effective_runtime, title),
+        source_language=effective_language,
+        content=content,
         summary="; ".join(summary_parts) + ".",
         source_order=index,
         domain=domain_value,
@@ -686,6 +697,112 @@ def _infer_language(content: str, title: str | None) -> str:
     return "javascript"
 
 
+def _runtime_source_preview_safe(runtime: str | None, content: str) -> bool:
+    if runtime != "p5":
+        return True
+    return not _looks_like_html_source(content)
+
+
+def _looks_like_html_source(content: str) -> bool:
+    text = _strip_leading_html_comments(content).lstrip()
+    return bool(
+        re.match(r"^<!doctype\s+html\b", text, flags=re.I)
+        or re.match(r"^<html(?:\s|>)", text, flags=re.I)
+        or re.match(r"^<head(?:\s|>)", text, flags=re.I)
+        or re.match(r"^<body(?:\s|>)", text, flags=re.I)
+        or re.match(
+            r"^<(?:script|style|canvas|main|section|div|meta|link)(?:\s|>)",
+            text,
+            flags=re.I,
+        )
+    )
+
+
+def _strip_leading_html_comments(content: str) -> str:
+    text = content
+    match = re.match(r"^<!--[\s\S]*?-->\s*", text)
+    while match:
+        text = text[match.end() :].lstrip()
+        match = re.match(r"^<!--[\s\S]*?-->\s*", text)
+    return text
+
+
+def _prepare_p5_javascript_source(content: str) -> str:
+    source = content.replace("\r\n", "\n")
+    source = re.sub(r"^\s*import\s+[^;\n]+;?\s*$", "", source, flags=re.M)
+    source = re.sub(r"^\s*export\s+default\s+", "", source, flags=re.M)
+    source = re.sub(
+        r"^\s*export\s+(?=(?:async\s+)?function|class|const|let|var)",
+        "",
+        source,
+        flags=re.M,
+    )
+    source = re.sub(
+        r"^\s*type\s+[A-Za-z_$][\w$]*(?:<[^>]+>)?\s*=\s*.*;?\s*$",
+        "",
+        source,
+        flags=re.M,
+    )
+    source = re.sub(
+        r"^\s*(?:type|interface)\s+[^{=]+(?:=\s*[^;]+;|{[\s\S]*?}\s*)",
+        "",
+        source,
+        flags=re.M,
+    )
+    source = re.sub(
+        r"\b(const|let|var)\s+([A-Za-z_$][\w$]*)\s*:\s*[^=;]+=",
+        r"\1 \2 =",
+        source,
+    )
+    source = re.sub(
+        r"\)\s*:\s*[A-Za-z_$][\w$<>,\s[\]|]*(?=\s*[{=])",
+        ")",
+        source,
+    )
+    source = re.sub(r"\s+as\s+const\b", "", source)
+    source = _strip_typescript_parameter_annotations(source)
+    return source.strip()
+
+
+def _strip_typescript_parameter_annotations(source: str) -> str:
+    def strip_function_params(match: re.Match[str]) -> str:
+        prefix = match.group(1)
+        params = _strip_parameter_list_types(match.group(2))
+        return f"function{prefix}({params})"
+
+    def strip_arrow_params(match: re.Match[str]) -> str:
+        return f"({_strip_parameter_list_types(match.group(1))}) =>"
+
+    source = re.sub(
+        r"function(\s+[A-Za-z_$][\w$]*\s*)\(([^)]*)\)",
+        strip_function_params,
+        source,
+    )
+    return re.sub(r"\(([^)]*:[^)]*)\)\s*=>", strip_arrow_params, source)
+
+
+def _strip_parameter_list_types(params: str) -> str:
+    return ",".join(
+        re.sub(r"\s*:\s*[^=]+(?=$|=)", "", param) for param in params.split(",")
+    )
+
+
+def _normalize_preview_artifact_title(
+    title: str | None,
+    *,
+    language: str,
+    runtime: str | None,
+) -> str | None:
+    if not title or runtime != "p5":
+        return title
+    normalized = title.lower()
+    if normalized.endswith(".p5.ts"):
+        return f"{title[:-6]}.p5.js"
+    if language == "javascript" and normalized.endswith(".ts"):
+        return f"{title[:-3]}.p5.js"
+    return title
+
+
 def _normalize_language(value: str) -> str:
     normalized = value.strip().lower()
     aliases = {
@@ -709,9 +826,7 @@ def _format_language_label(language: str, runtime: str | None, title: str) -> st
             else "TypeScript + Three.js"
         )
     if runtime == "p5":
-        return (
-            "JavaScript + p5.js" if language == "javascript" else "TypeScript + p5.js"
-        )
+        return "JavaScript + p5.js"
     if runtime == "glsl":
         return "GLSL"
     if language == "typescript":

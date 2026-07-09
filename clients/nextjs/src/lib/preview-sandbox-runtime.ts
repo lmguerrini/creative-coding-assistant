@@ -10,7 +10,10 @@ import {
   createWorkstationError,
   type WorkstationError
 } from "./workstation-errors";
-import { getP5RuntimeSourceSupportIssue } from "./preview-source-classification";
+import {
+  getP5RuntimeSourceSupportIssue,
+  prepareP5JavaScriptSource
+} from "./preview-source-classification";
 
 export type PreviewSandboxRuntimeMessage =
   | {
@@ -304,17 +307,7 @@ export function preparePreviewExecutableSource(
     return prepareToneRuntimeSource(source);
   }
 
-  return source
-    .replace(/\r\n/g, "\n")
-    .replace(/^\s*import\s+[^;\n]+;?\s*$/gm, "")
-    .replace(/^\s*export\s+default\s+/gm, "")
-    .replace(/^\s*export\s+(?=(?:async\s+)?function|class|const|let|var)/gm, "")
-    .replace(/^\s*(?:type|interface)\s+[^{=]+(?:=\s*[^;]+;|{[\s\S]*?}\s*)/gm, "")
-    .replace(/\b(const|let|var)\s+([A-Za-z_$][\w$]*)\s*:\s*[^=;]+=/g, "$1 $2 =")
-    .replace(/([,(]\s*[A-Za-z_$][\w$]*)\s*:\s*[^,)]+(?=[,)])/g, "$1")
-    .replace(/\)\s*:\s*[A-Za-z_$][\w$<>,\s[\]|]*(?=\s*[{=])/g, ")")
-    .replace(/\s+as\s+const\b/g, "")
-    .trim();
+  return prepareP5JavaScriptSource(source);
 }
 
 export function getPreviewRuntimeSourceMismatch({

@@ -1237,14 +1237,14 @@ describe("WorkstationShell", () => {
       screen.queryByRole("group", { name: "Session intelligence summary" })
     ).not.toBeInTheDocument();
 
+    const p5Suggestion =
+      "Create a single .p5.js JavaScript sketch for a flow-field particle system with setup(), draw(), soft trails, and interaction controls.";
     fireEvent.click(
       screen.getByRole("button", {
-        name: "Create a p5.js flow-field particle system with soft trails and interaction controls."
+        name: p5Suggestion
       })
     );
-    expect(screen.getByLabelText("Assistant prompt")).toHaveValue(
-      "Create a p5.js flow-field particle system with soft trails and interaction controls."
-    );
+    expect(screen.getByLabelText("Assistant prompt")).toHaveValue(p5Suggestion);
   });
 
   it("keeps the User Mode composer minimal while preserving prompt controls", () => {
@@ -1534,11 +1534,24 @@ describe("WorkstationShell", () => {
       "true"
     );
     expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
-    expect(screen.getByRole("tabpanel", { name: "Overview inspector" })).toBeVisible();
+    const overviewPanel = screen.getByRole("tabpanel", {
+      name: "Overview inspector"
+    });
+    expect(overviewPanel).toBeVisible();
     expect(screen.getByRole("group", { name: "Workflow summary" })).toHaveAttribute(
       "data-state",
       "running"
     );
+    const workflowSummary = within(overviewPanel).getByRole("group", {
+      name: "Workflow summary"
+    });
+    const sessionSummary = within(overviewPanel).getByRole("group", {
+      name: "Session intelligence summary"
+    });
+    expect(
+      workflowSummary.compareDocumentPosition(sessionSummary) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(screen.getByRole("group", { name: "Artifacts summary" })).toBeVisible();
     expect(screen.getByRole("group", { name: "Preview summary" })).toHaveAttribute(
       "data-state",
@@ -2125,6 +2138,109 @@ describe("WorkstationShell", () => {
     );
 
     expect(await screen.findByText("Generated after clarification.")).toBeVisible();
+    expect(backendStream).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        clarificationResponse: "Visual sketch",
+        query:
+          "Make something evocative about rain.\n\nClarification answer: Visual sketch"
+      })
+    );
+  });
+
+  it("maps numeric clarification replies to the matching option", async () => {
+    const clarification = {
+      reason: "ambiguous_modality",
+      confidence: 0.44,
+      summary: "The request has creative intent but no explicit output modality.",
+      original_query: "Make something evocative about rain.",
+      suggested_options: ["Visual sketch", "Audio piece", "Audiovisual piece"],
+      default_recommendation: "Visual sketch",
+      signal_summary: ["route=generate", "modality=unspecified"],
+      questions: [
+        {
+          id: "output_modality",
+          prompt: "What should the assistant generate first?",
+          kind: "single_choice",
+          suggested_options: ["Visual sketch", "Audio piece", "Audiovisual piece"],
+          default_recommendation: "Visual sketch"
+        }
+      ]
+    };
+    const backendStream = vi
+      .fn()
+      .mockImplementationOnce(() =>
+        streamEvents([
+          {
+            event_type: "prompt_input",
+            sequence: 0,
+            payload: {
+              code: "clarification_required",
+              message: "Clarification required before generation.",
+              clarification,
+              workflow: {
+                step: "prompt_input",
+                phase: "running",
+                status: "running",
+                current_step: "prompt_input",
+                completed_steps: ["intake", "routing"],
+                skipped_steps: [],
+                refinement_count: 0,
+                review_outcome: null,
+                review_reasons: [],
+                artifact_count: 0,
+                preview_artifact_count: 0,
+                image_reference_count: 0,
+                image_references: [],
+                clarification_required: true,
+                clarification_reason: "ambiguous_modality",
+                clarification_question_count: 1,
+                clarification
+              }
+            }
+          },
+          {
+            event_type: "final",
+            sequence: 1,
+            payload: {
+              answer: "I need one quick clarification before generating.",
+              clarification
+            }
+          }
+        ])
+      )
+      .mockImplementationOnce(() =>
+        streamEvents([
+          {
+            event_type: "token_delta",
+            sequence: 0,
+            payload: { text: "Generated after numeric clarification." }
+          },
+          {
+            event_type: "final",
+            sequence: 1,
+            payload: { answer: "Generated after numeric clarification." }
+          }
+        ])
+      );
+
+    renderShell(getLocalWorkspaceSnapshot(), {
+      streamAssistantEvents: backendStream
+    });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Make something evocative about rain." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    await screen.findByRole("group", { name: "Clarification summary" });
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "1" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    expect(
+      await screen.findByText("Generated after numeric clarification.")
+    ).toBeVisible();
     expect(backendStream).toHaveBeenLastCalledWith(
       expect.objectContaining({
         clarificationResponse: "Visual sketch",

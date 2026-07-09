@@ -133,6 +133,90 @@ class DomainGenerationTests(unittest.TestCase):
         )
         self.assertTrue(all(artifact.preview_eligible for artifact in artifacts))
 
+    def test_p5_typescript_fence_is_normalized_to_previewable_javascript(self) -> None:
+        request = AssistantRequest(
+            query=(
+                "Create a p5.js flow-field particle system with soft trails and "
+                "interaction controls."
+            ),
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```ts",
+                    "import p5 from 'p5';",
+                    "type Particle = { x: number; y: number };",
+                    "const particles: Particle[] = [];",
+                    "function setup(): void {",
+                    "  createCanvas(640, 360);",
+                    "}",
+                    "function draw(): void {",
+                    "  background(8, 12, 18);",
+                    "  particles.forEach((p: Particle) => circle(p.x, p.y, 4));",
+                    "}",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+        preview_results = prepare_workflow_preview_results(
+            artifacts,
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        self.assertEqual(artifacts[0].title, "generated-sketch-1.p5.js")
+        self.assertEqual(artifacts[0].source_language, "javascript")
+        self.assertEqual(artifacts[0].language, "JavaScript + p5.js")
+        self.assertEqual(artifacts[0].runtime, "p5")
+        self.assertEqual(artifacts[0].renderer_id, "surface.p5")
+        self.assertTrue(artifacts[0].preview_eligible)
+        self.assertNotIn("import p5", artifacts[0].content)
+        self.assertNotIn("type Particle", artifacts[0].content)
+        self.assertNotIn(": number", artifacts[0].content)
+        self.assertEqual(preview_results[0].preview_artifact_id, artifacts[0].id)
+
+    def test_p5_html_document_is_not_marked_preview_ready(self) -> None:
+        request = AssistantRequest(
+            query="Create a p5.js sketch.",
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```html generated-sketch-1.p5.ts",
+                    "<!doctype html>",
+                    "<html><body><script>",
+                    "function setup() { createCanvas(640, 360); }",
+                    "function draw() { circle(20, 20, 10); }",
+                    "</script></body></html>",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+        preview_results = prepare_workflow_preview_results(
+            artifacts,
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        self.assertFalse(artifacts[0].preview_eligible)
+        self.assertIsNone(artifacts[0].runtime)
+        self.assertIsNone(artifacts[0].renderer_id)
+        self.assertEqual(preview_results, ())
+
     def test_artifacts_preserve_creative_translation_metadata(self) -> None:
         request = AssistantRequest(
             query=("Create a meditative glowing spiral with drifting cyan particles."),

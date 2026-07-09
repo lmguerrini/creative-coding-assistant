@@ -200,6 +200,91 @@ describe("live artifact hydration", () => {
     });
   });
 
+  it("normalizes the homepage p5 suggestion into a previewable JavaScript artifact", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const result = hydrateWorkspaceFromFinalEvent(
+      snapshot,
+      finalEvent({
+        answer: [
+          "```ts",
+          "import p5 from 'p5';",
+          "type Particle = { x: number; y: number };",
+          "const particles: Particle[] = [];",
+          "function setup(): void {",
+          "  createCanvas(640, 360);",
+          "  for (let i = 0; i < 24; i += 1) particles.push({ x: random(width), y: random(height) });",
+          "}",
+          "function draw(): void {",
+          "  background(8, 12, 18);",
+          "  particles.forEach((p: Particle) => circle(p.x, p.y, 4));",
+          "}",
+          "```"
+        ].join("\n")
+      })
+    );
+
+    expect(result.artifact).toMatchObject({
+      title: "generated-sketch.p5.js",
+      type: "code",
+      language: "JavaScript + p5.js",
+      runtime: "p5",
+      rendererId: "surface.p5"
+    });
+    expect(result.artifact?.content).not.toContain("import p5");
+    expect(result.artifact?.content).not.toContain("type Particle");
+    expect(result.artifact?.content).not.toContain(": number");
+    expect(result.snapshot.preview).toMatchObject({
+      available: true,
+      artifactName: "generated-sketch.p5.js",
+      renderer: "surface.p5",
+      state: "ready",
+      targetId: "browser_sandbox"
+    });
+
+    expect(
+      buildPreviewRendererRoute({
+        artifacts: result.snapshot.artifacts,
+        preview: result.snapshot.preview,
+        previewArtifactId: result.previewArtifactId
+      })
+    ).toMatchObject({
+      rendererId: "surface.p5",
+      supportState: "supported",
+      surfaceKind: "p5",
+      supportLabel: "Runtime ready"
+    });
+  });
+
+  it("does not route HTML p5-looking output to the live p5 renderer", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const result = hydrateWorkspaceFromFinalEvent(
+      snapshot,
+      finalEvent({
+        answer: [
+          "```html generated-sketch-1.p5.ts",
+          "<!doctype html>",
+          "<html><body><script>",
+          "function setup() { createCanvas(640, 360); }",
+          "function draw() { circle(20, 20, 10); }",
+          "</script></body></html>",
+          "```"
+        ].join("\n")
+      })
+    );
+
+    expect(result.artifact).toMatchObject({
+      title: "generated-sketch-1.p5.ts",
+      runtime: null,
+      rendererId: null
+    });
+    expect(result.previewAvailable).toBe(false);
+    expect(result.snapshot.preview).toMatchObject({
+      available: false,
+      state: "unavailable",
+      title: "Preview unavailable"
+    });
+  });
+
   it("uses structured artifact payloads before parsing chat prose", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const result = hydrateWorkspaceFromFinalEvent(

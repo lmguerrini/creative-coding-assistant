@@ -2137,6 +2137,15 @@ export function WorkstationShell({
 
     setComposerValue("");
     setIsAttachmentMenuOpen(false);
+    const clarificationOption = resolveClarificationNumericAnswer(
+      clarification,
+      prompt
+    );
+    if (clarificationOption) {
+      await submitClarificationAnswer(clarificationOption);
+      return;
+    }
+
     await submitAssistantRequest({ prompt });
   }
 
@@ -2169,6 +2178,10 @@ export function WorkstationShell({
   }
 
   async function handleClarificationOptionSelect(option: string) {
+    await submitClarificationAnswer(option);
+  }
+
+  async function submitClarificationAnswer(option: string) {
     if (!clarification || isStreaming) {
       return;
     }
@@ -3446,7 +3459,7 @@ function EmptyWorkspaceState({
     }
   ];
   const promptSuggestions = [
-    "Create a p5.js flow-field particle system with soft trails and interaction controls.",
+    "Create a single .p5.js JavaScript sketch for a flow-field particle system with setup(), draw(), soft trails, and interaction controls.",
     "Design a Three.js kinetic sculpture with camera motion and audio-reactive lighting.",
     "Generate a GLSL fragment shader with liquid glass refraction and restrained color.",
     "Build a Hydra feedback pattern with slow color modulation and clear fallback notes."
@@ -4295,7 +4308,6 @@ function OverviewInspector({
       role="tabpanel"
     >
       <div className="overviewGrid" aria-label="Compact session summaries">
-        <SessionIntelligenceOverviewTile intelligence={sessionIntelligence} />
         <div
           aria-label="Workflow summary"
           className="overviewTile overviewWorkflowTile"
@@ -4363,6 +4375,7 @@ function OverviewInspector({
             )}
           </div>
         </div>
+        <SessionIntelligenceOverviewTile intelligence={sessionIntelligence} />
         <div className="overviewTile" role="group" aria-label="Artifacts summary">
           <span>Artifacts</span>
           <strong>{snapshot.artifacts.length}</strong>
@@ -7206,6 +7219,23 @@ function buildClarificationContinuationPrompt(
   answer: string
 ) {
   return `${clarification.originalQuery}\n\nClarification answer: ${answer}`;
+}
+
+function resolveClarificationNumericAnswer(
+  clarification: ClarificationSummary | null,
+  answer: string
+) {
+  const normalized = answer.trim();
+  if (!clarification || !/^[1-9]$/.test(normalized)) {
+    return null;
+  }
+
+  const options = clarification.questions.flatMap(
+    (question) => question.suggestedOptions
+  );
+  const optionIndex = Number.parseInt(normalized, 10) - 1;
+
+  return options[optionIndex] ?? null;
 }
 
 function formatSessionTelemetryLabel(telemetry: ProviderTelemetryModel) {
