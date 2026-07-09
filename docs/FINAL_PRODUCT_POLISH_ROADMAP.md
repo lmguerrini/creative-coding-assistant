@@ -9,11 +9,11 @@ tag, freeze, or start V9 from this roadmap.
 
 | Field | Value |
 |---|---|
-| Current task | FP-01 Artifact & Workspace Integrity |
+| Current task | FP-02 Preview UX Excellence |
 | Status | HITL_REVIEW |
-| Scope boundary | Repository, artifact, manifest, demo-suite, and workspace integrity only |
-| Screenshot evidence | Not applicable; FP-01 is non-visual artifact/workspace audit |
-| Latest task commit | Pending HITL acceptance; task implementation commit recorded in final response |
+| Scope boundary | Preview unavailable, preview available, User Mode HUD hiding, overlay controls, and Developer Mode diagnostic boundary only |
+| Screenshot evidence | `/tmp/cca-v8-fp02-preview-ux/fp02-preview-region-contact-sheet-1440.png`; `/tmp/cca-v8-fp02-preview-ux/fp02-preview-region-contact-sheet-1024.png`; `/tmp/cca-v8-fp02-preview-ux/fp02-preview-region-contact-sheet-720.png` |
+| Latest task commit | Pending FP-02 HITL acceptance; task implementation commit recorded in final response |
 
 ## Status Legend
 
@@ -27,8 +27,8 @@ tag, freeze, or start V9 from this roadmap.
 
 | Step | Capability | Task principal | Definition of Done | Status | Evidence / paths | Blockers / boundaries | Latest accepted commit |
 |---|---|---|---|---|---|---|---|
-| FP-01 | Artifact & Workspace Integrity | Audit artifacts; audit untracked files; clean repository; no orphan artifacts; workspace integrity | Git clean; artifact ledger coherent | HITL_REVIEW | `demo/golden_artifacts/qa_manifest.json`; `demo/final_demo_suite.json`; `tests/test_golden_artifacts.py`; FP-01 validation log in this task final response | No visual screenshots needed; `.runtime_pack/` private ignored copy is not public release evidence | Pending HITL |
-| FP-02 | Preview UX Excellence | Preview unavailable redesign; preview available canvas-first; eliminate User Mode HUD; overlay controls; no huge black canvas; no User Mode debug boxes | Preview looks like a real artistic canvas | NOT_STARTED | TBD | Do not claim visual pass without screenshots | TBD |
+| FP-01 | Artifact & Workspace Integrity | Audit artifacts; audit untracked files; clean repository; no orphan artifacts; workspace integrity | Git clean; artifact ledger coherent | ACCEPTED | `demo/golden_artifacts/qa_manifest.json`; `demo/final_demo_suite.json`; `tests/test_golden_artifacts.py`; FP-01 validation log in task final response | No visual screenshots needed; `.runtime_pack/` private ignored copy is not public release evidence | `22414b2b8e5f42bcc729f09e06736512ad71a6aa` |
+| FP-02 | Preview UX Excellence | Preview unavailable redesign; preview available canvas-first; eliminate User Mode HUD; overlay controls; no huge black canvas; no User Mode debug boxes | Preview looks like a real artistic canvas | HITL_REVIEW | `/tmp/cca-v8-fp02-preview-ux/manifest.json`; preview-region contact sheets at 1440, 1024, and 720 widths; `clients/nextjs/src/components/workstation-shell.test.tsx`; `clients/nextjs/src/lib/preview-sandbox-runtime.test.ts` | Developer Mode may show diagnostics; FP-05 owns full Developer Mode polish | Pending HITL |
 | FP-03 | Chat UX Excellence | No HTML/JS/GLSL dumps; summary only; code to Code panel; artifact to Artifacts; preview to Preview | Chat readable like ChatGPT | NOT_STARTED | TBD | TBD | TBD |
 | FP-04 | User Mode Excellence | Minimal User Mode; inspector closed; max 3 tabs; no technical internals; responsive layout | Looks like a consumer app | NOT_STARTED | TBD | TBD | TBD |
 | FP-05 | Developer Mode Excellence | Full technical information; no overlap; no truncated text; readable details | Looks like a professional IDE | NOT_STARTED | TBD | Developer Mode may be denser than User Mode | TBD |
@@ -92,3 +92,47 @@ tag, freeze, or start V9 from this roadmap.
 | Old public filename scan | Passed: no matches for `p5_sacred_geometry_sketch.js` in public demo/artifact surfaces |
 | Runtime Pack private artifact status | Ignored `.runtime_pack/`; not public release evidence |
 
+## FP-02 Acceptance Criteria
+
+- Preview unavailable in User Mode is a compact fallback card with a short title,
+  one-sentence explanation, and clear actions for Code and Saved.
+- Preview available in User Mode is canvas-first, with the visual surface taking
+  priority and only minimal overlay controls.
+- User Mode hides runtime HUD text, renderer metrics, raw diagnostics, and debug
+  boxes.
+- Developer Mode still exposes preview runtime diagnostics.
+- The preview unavailable path does not show a large empty black canvas.
+- Screenshots are saved and manually inspected before status is set to
+  HITL_REVIEW.
+
+## FP-02 Preview Audit Notes
+
+- Current implementation already routes unavailable User Mode preview through
+  `.previewUserFallbackCard`.
+- Current implementation renders available preview through `.previewShelf` with
+  `data-user-mode="true"` in User Mode.
+- Current implementation passes `showStatusOverlay: false` to the sandbox
+  runtime in User Mode, hiding the iframe runtime status HUD.
+- Developer Mode keeps the preview runtime overlay visible by design; full
+  Developer Mode density and overlap review is reserved for FP-05.
+
+## FP-02 Screenshot Evidence
+
+| Width | Full-page evidence | Focused preview evidence |
+|---|---|---|
+| 1440 | `/tmp/cca-v8-fp02-preview-ux/fp02-preview-contact-sheet-1440.png` | `/tmp/cca-v8-fp02-preview-ux/fp02-preview-region-contact-sheet-1440.png` |
+| 1024 | `/tmp/cca-v8-fp02-preview-ux/fp02-preview-contact-sheet-1024.png` | `/tmp/cca-v8-fp02-preview-ux/fp02-preview-region-contact-sheet-1024.png` |
+| 720 | `/tmp/cca-v8-fp02-preview-ux/fp02-preview-contact-sheet-720.png` | `/tmp/cca-v8-fp02-preview-ux/fp02-preview-region-contact-sheet-720.png` |
+
+## FP-02 Validation Evidence
+
+| Check | Result |
+|---|---|
+| Playwright screenshot capture | Passed: User unavailable, User available, and Developer diagnostics captured at 1440, 1024, and 720 widths |
+| Screenshot human inspection | Passed: focused preview sheets show compact fallback, canvas-first User Mode, no User Mode HUD, and Developer diagnostics retained |
+| Automated preview metrics | Passed: `hasRuntimeHudTextInUserMode=false`, `overlayVisible=false` in User Mode, `overlayVisible=true` in Developer Mode across all captured widths |
+| Focused frontend tests | Passed: `npx vitest run src/components/workstation-shell.test.tsx src/lib/preview-sandbox-runtime.test.ts` (`100` tests) |
+| Typecheck | Passed: `npm run typecheck` |
+| Playwright smoke | Passed: `npm run test:e2e:smoke` (`8` tests) |
+| Hygiene | Passed: `git diff --check`; Runtime Pack hygiene OK |
+| Accepted boundary | Developer Mode diagnostics can overlay the canvas; FP-05 owns full Developer Mode visual polish |
