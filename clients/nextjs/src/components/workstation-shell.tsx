@@ -5619,7 +5619,7 @@ function ArtifactsInspector({
           <div>
             <span>Selected artifact</span>
             <strong>{activeArtifactDocument.fileName}</strong>
-            <p>{activeArtifact.summary}</p>
+            <p>{sanitizeArtifactDisplaySummary(activeArtifact.summary)}</p>
           </div>
           <div className="artifactBadges">
             <span className="artifactSelected">Selected</span>
@@ -6337,7 +6337,7 @@ function ArtifactCard({
           <span className="artifactType">{getArtifactTypeLabel(artifact.type)}</span>
         </div>
       </div>
-      <p>{artifact.summary}</p>
+      <p>{sanitizeArtifactDisplaySummary(artifact.summary)}</p>
       {artifact.critique ? (
         <p className="artifactQualityLine">
           {`Rank #${artifact.critique.rank} / Quality ${formatQualityScore(
@@ -6495,7 +6495,7 @@ function formatUserArtifactRuntimeLabel(artifact: ArtifactSummary) {
 
 function getUserArtifactSummary(artifact: ArtifactSummary) {
   if (artifact.summary.trim()) {
-    return artifact.summary;
+    return sanitizeArtifactDisplaySummary(artifact.summary);
   }
 
   if (isArtifactPreviewable(artifact)) {
@@ -6503,6 +6503,19 @@ function getUserArtifactSummary(artifact: ArtifactSummary) {
   }
 
   return "Generated output ready to inspect.";
+}
+
+function sanitizeArtifactDisplaySummary(summary: string) {
+  const normalized = summary.trim();
+  if (
+    /(?:\b(?:error|exception)\b|\n\s*at\s+\S|\b(?:stack|trace)\b)/i.test(
+      normalized
+    ) ||
+    normalized.length > 360
+  ) {
+    return "Preview did not start. Open Code to review the generated artifact or choose another saved output.";
+  }
+  return normalized;
 }
 
 function formatUserArtifactActionLabel(action: ArtifactAction) {
@@ -7192,6 +7205,8 @@ function formatWorkflowStatusCopy(status: string) {
     case "complete":
     case "completed":
       return "Completed";
+    case "completed_with_preview_error":
+      return "Completed with preview error";
     case "failed":
       return "Failed";
     default:

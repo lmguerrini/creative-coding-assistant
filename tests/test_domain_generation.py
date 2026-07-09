@@ -153,9 +153,13 @@ class DomainGenerationTests(unittest.TestCase):
                     "const particles: Particle[] = [];",
                     "function setup(): void {",
                     "  createCanvas(640, 360);",
+                    "  pixelDensity(1);",
+                    "  colorMode(HSL, 360, 100, 100, 1);",
+                    "  noiseDetail(3, 0.5);",
                     "}",
                     "function draw(): void {",
                     "  background(8, 12, 18);",
+                    "  push(); translate(12, 12); beginShape(); vertex(0, 0); vertex(8, 4); endShape(CLOSE); pop();",
                     "  particles.forEach((p: Particle) => circle(p.x, p.y, 4));",
                     "}",
                     "```",
@@ -180,7 +184,35 @@ class DomainGenerationTests(unittest.TestCase):
         self.assertNotIn("import p5", artifacts[0].content)
         self.assertNotIn("type Particle", artifacts[0].content)
         self.assertNotIn(": number", artifacts[0].content)
+        self.assertIn("colorMode(HSL, 360, 100, 100, 1)", artifacts[0].content)
+        self.assertIn("endShape(CLOSE)", artifacts[0].content)
         self.assertEqual(preview_results[0].preview_artifact_id, artifacts[0].id)
+
+    def test_p5_unsupported_runtime_api_is_not_marked_preview_ready(self) -> None:
+        request = AssistantRequest(
+            query="Create a p5.js flow-field particle system.",
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```js generated-sketch-1.p5.js",
+                    "function setup() { createCanvas(640, 360); createGraphics(640, 360); }",
+                    "function draw() { background(0); circle(20, 20, 10); }",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        self.assertFalse(artifacts[0].preview_eligible)
+        self.assertEqual(artifacts[0].status, "Preview unavailable")
+        self.assertIn("createGraphics()", artifacts[0].summary)
 
     def test_p5_html_document_is_not_marked_preview_ready(self) -> None:
         request = AssistantRequest(
@@ -404,6 +436,32 @@ class DomainGenerationTests(unittest.TestCase):
             system_section,
         )
         self.assertIn("Prefer a .r3f.tsx artifact name", system_section)
+
+    def test_prompt_renderer_keeps_p5_generation_inside_the_preview_contract(self) -> None:
+        request = AssistantRequest(
+            query="Create a p5.js flow-field particle system.",
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+        prompt_input = StructuredPromptInputBuilder().build(
+            build_prompt_input_request(
+                assistant_request=request,
+                route_decision=decision,
+                assembled_context=None,
+            )
+        )
+        rendered = JinjaPromptRenderer().render(
+            build_rendered_prompt_request(
+                route_decision=decision,
+                prompt_input=prompt_input,
+            )
+        )
+
+        system_section = rendered.sections[0].content
+        self.assertIn("Build translucent trails directly with background alpha", system_section)
+        self.assertIn("Do not use createGraphics", system_section)
+        self.assertIn("p5.Vector", system_section)
 
 
 @dataclass(frozen=True)

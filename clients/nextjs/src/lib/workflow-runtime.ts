@@ -119,9 +119,11 @@ export function buildWorkflowRuntimeModel(
   let lastObservedAt = traceEvents[0]?.receivedAt ?? new Date().toISOString();
   let lastObservedAtMs = traceEvents[0]?.receivedAtMs ?? Date.now();
   let retryCount = 0;
+  let previewRuntimeError: WorkstationError | null = null;
   const explicitTransitionKeys = new Set<string>();
 
   for (const traceEvent of traceEvents) {
+    previewRuntimeError ??= readPreviewRuntimeError(traceEvent.event);
     const workflowMetadata = readWorkflowMetadata(traceEvent.event);
     const nodeId =
       workflowMetadata?.step ??
@@ -327,6 +329,12 @@ export function buildWorkflowRuntimeModel(
   const total = steps.filter((step) => step.state !== "branch").length;
   const currentStep =
     steps.find((step) => step.nodeId === latestNode)?.displayLabel ?? workflow.currentStep;
+  const productOutcomeStatus = previewRuntimeError
+    ? "completed_with_preview_error"
+    : latestStatus;
+  const productOutcomeStep = previewRuntimeError
+    ? "Completed with preview error"
+    : currentStep;
   const totalRuntimeMs = Math.max(lastObservedAtMs - traceEvents[0].receivedAtMs, 0);
   const activeRuntimeMs =
     latestStatus === "running" && currentRecord?.openAttemptStartedAtMs != null
@@ -339,9 +347,9 @@ export function buildWorkflowRuntimeModel(
     events,
     timeline: buildWorkflowTimelineModel(traceEvents),
     summary: {
-      status: latestStatus,
+      status: productOutcomeStatus,
       currentNode: latestNode,
-      currentStep,
+      currentStep: productOutcomeStep,
       reached,
       total,
       retryCount:
@@ -353,13 +361,42 @@ export function buildWorkflowRuntimeModel(
       totalRuntimeMs,
       activeRuntimeMs
     },
-    error: buildWorkflowRuntimeError({
+    error: previewRuntimeError ?? buildWorkflowRuntimeError({
       currentNode: latestNode,
       currentStep,
       latestStatus,
       traceEvents
     })
   };
+}
+
+function readPreviewRuntimeError(event: AssistantStreamEvent): WorkstationError | null {
+  if (event.event_type !== "status" || event.payload.code !== "preview_runtime_error") {
+    return null;
+  }
+
+  const runtime = event.payload.preview_runtime;
+  const runtimeError =
+    runtime && typeof runtime === "object" && "error" in runtime
+      ? (runtime as { error?: unknown }).error
+      : null;
+  const message =
+    typeof runtimeError === "string"
+      ? runtimeError
+      : typeof event.payload.message === "string"
+        ? event.payload.message
+        : "The generated preview could not start.";
+
+  return createWorkstationError({
+    type: "preview_runtime_failed",
+    category: "workflow_runtime",
+    subsystem: "preview_runtime",
+    userMessage: `Completed with preview error: ${message}`,
+    recoverable: true,
+    suggestedAction: "Open Code to review the generated artifact, then reload or regenerate the preview.",
+    retryLabel: "Reload preview",
+    resetLabel: "Clear workspace session"
+  });
 }
 
 function buildFallbackWorkflowRuntimeModel(

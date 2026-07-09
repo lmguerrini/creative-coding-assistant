@@ -61,6 +61,14 @@ test.describe("V7.4 workstation E2E smoke", () => {
     await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).not.toContainText(
       "No matching live renderer"
     );
+    const runtime = page.getByRole("group", { name: "p5.js live runtime" });
+    await expect(runtime).toHaveAttribute("data-runtime-state", "running");
+    await expect(runtime).not.toContainText("colorMode is not defined");
+    await expect(
+      page
+        .frameLocator('iframe[title="p5.js preview runtime"]')
+        .locator("canvas")
+    ).toBeVisible();
     consoleGate.assertClean();
   });
 

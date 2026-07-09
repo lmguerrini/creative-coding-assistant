@@ -99,11 +99,18 @@ _P5_INFERENCE_PATTERN = re.compile(
 
 _DOMAIN_GENERATION_GUIDANCE: dict[CreativeCodingDomain, tuple[str, ...]] = {
     CreativeCodingDomain.P5_JS: (
-        "For p5.js generation, return a self-contained sketch using setup() "
-        "and draw().",
-        "Return plain JavaScript p5 source only: prefer a .p5.js artifact name, "
-        "do not use TypeScript or HTML wrappers, and keep browser-preview-safe "
-        "globals clear.",
+        "For p5.js generation, return one self-contained global-mode sketch with "
+        "function setup() and function draw().",
+        "Return plain JavaScript p5 source only: prefer a .p5.js artifact name; "
+        "do not use TypeScript, imports, instance-mode new p5 wrappers, HTML, or Markdown fences.",
+        "Keep p5 calls inside setup(), draw(), or helpers called by them. The browser "
+        "preview supports createCanvas, colorMode, background, fill, stroke, basic "
+        "shapes, push/pop transforms, beginShape/vertex/endShape, noise/random, and "
+        "mouseX/mouseY/mouseIsPressed pointer interaction. Build translucent trails "
+        "directly with background alpha. Do not use createGraphics, image, createVector, "
+        "p5.Vector, millis, noiseSeed, constrain, DOM controls, assets, keyboard callbacks, "
+        "text/HUD APIs, or other unsupported p5 APIs. Keep the sketch compact enough for "
+        "the browser preview rather than returning a full p5 application.",
     ),
     CreativeCodingDomain.GLSL: (
         "For GLSL generation, return a fragment shader with uniforms such as "

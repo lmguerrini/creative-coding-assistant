@@ -139,7 +139,7 @@ const maxPersistedDebugEvents = 40;
 const maxPersistedUserMessageChars = 2_000;
 const maxPersistedAssistantMessageChars = 12_000;
 const maxPersistedArtifactContentChars = 12_000;
-const maxPersistedCodeLineChars = 2_000;
+const maxPersistedCodeChars = 96_000;
 const maxPersistedRetrievalTextChars = 1_200;
 const maxPersistedDebugDetailChars = 800;
 
@@ -495,9 +495,7 @@ function compactWorkspaceSnapshot({
     artifacts,
     code: {
       ...snapshot.code,
-      excerpt: snapshot.code.excerpt
-        .slice(0, 20)
-        .map((line) => truncatePersistedText(line, maxPersistedCodeLineChars))
+      excerpt: compactPersistedCodeExcerpt(snapshot.code.excerpt)
     },
     retrieval: compactWorkspaceRetrieval(snapshot.retrieval),
     debug: {
@@ -531,12 +529,27 @@ function compactWorkspaceArtifacts(
     ...artifact,
     content:
       typeof artifact.content === "string"
-        ? truncatePersistedText(
-            artifact.content,
-            maxPersistedArtifactContentChars
-          )
+        ? compactPersistedArtifactContent(artifact.content)
         : artifact.content
   }));
+}
+
+function compactPersistedCodeExcerpt(excerpt: string[]): string[] {
+  const source = excerpt.join("\n").replace(/\r\n/g, "\n");
+  if (source.length <= maxPersistedCodeChars) {
+    return source.split("\n");
+  }
+
+  // Never persist a partial executable source: it can look previewable but fail at runtime.
+  return [
+    "// The generated source exceeds the local session restore limit.",
+    "// Open the saved artifact or rerun the workflow instead of previewing a partial file."
+  ];
+}
+
+function compactPersistedArtifactContent(value: string): string | undefined {
+  const source = value.replace(/\r\n/g, "\n");
+  return source.length <= maxPersistedArtifactContentChars ? source : undefined;
 }
 
 function compactWorkspaceRetrieval(

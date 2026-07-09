@@ -118,6 +118,64 @@ describe("preview sandbox runtime", () => {
     ).toBeNull();
   });
 
+  it("accepts the global-mode p5 contract used by the flow-field suggestion", () => {
+    const source = [
+      "const particles = [];",
+      "function setup() {",
+      "  createCanvas(windowWidth, windowHeight);",
+      "  pixelDensity(1);",
+      "  colorMode(HSL, 360, 100, 100, 1);",
+      "  noiseDetail(3, 0.5);",
+      "  noStroke();",
+      "}",
+      "function draw() {",
+      "  background(220, 38, 8, 0.14);",
+      "  for (let i = 0; i < 24; i += 1) {",
+      "    const x = map(i, 0, 23, 24, width - 24);",
+      "    const angle = noise(i * 0.1, frameCount * 0.01) * 6.28;",
+      "    push();",
+      "    translate(x, height * 0.5);",
+      "    rotate(angle);",
+      "    beginShape();",
+      "    vertex(-8, -4);",
+      "    vertex(10, 0);",
+      "    vertex(-8, 4);",
+      "    endShape(CLOSE);",
+      "    pop();",
+      "  }",
+      "}"
+    ].join("\n");
+
+    expect(
+      getPreviewRuntimeSourceMismatch({
+        kind: "p5",
+        source: {
+          fingerprint: "flow-field-global-mode",
+          lineCount: source.split("\n").length,
+          source,
+          title: "generated-sketch-1.p5.js"
+        }
+      })
+    ).toBeNull();
+  });
+
+  it("rejects unsupported p5 APIs before mounting a preview", () => {
+    expect(
+      getPreviewRuntimeSourceMismatch({
+        kind: "p5",
+        source: {
+          fingerprint: "unsupported-p5-api",
+          lineCount: 7,
+          source: [
+            "function setup() { createCanvas(200, 200); createGraphics(200, 200); }",
+            "function draw() { background(0); circle(100, 100, 40); }"
+          ].join("\n"),
+          title: "unsafe-controls.p5.js"
+        }
+      })
+    ).toContain("createGraphics() is not part of the supported browser p5 preview contract");
+  });
+
   it("prepares Hydra source as a bounded execution plan", () => {
     const source =
       "osc(10, 0.1, 1.2).modulate(shape(4, 0.3, 0.02), 0.12).out(o1); render(o1);";

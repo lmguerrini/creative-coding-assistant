@@ -11,6 +11,7 @@ import {
   snapshotFromWorkspaceSessionRecord,
   type WorkspaceSessionRecord
 } from "./workspace-persistence";
+import { getP5RuntimeSourceSupportIssue } from "./preview-source-classification";
 
 describe("workspace persistence client", () => {
   it("builds a typed session record from the workspace snapshot", () => {
@@ -91,8 +92,63 @@ describe("workspace persistence client", () => {
     expect(record.messages).toHaveLength(2);
     expect(record.messages[1]?.content).toContain("[truncated]");
     expect(record.snapshot.debug.events).toHaveLength(40);
-    expect(record.snapshot.code.excerpt[0]).toContain("[truncated]");
-    expect(record.artifacts[0]?.content).toContain("[truncated]");
+    expect(record.snapshot.code.excerpt.join("\n")).toContain(
+      "exceeds the local session restore limit"
+    );
+    expect(record.artifacts[0]?.content).toBeUndefined();
+  });
+
+  it("restores a complete p5 source without collapsing its executable structure", () => {
+    const source = [
+      "function setup() {",
+      "  createCanvas(windowWidth, windowHeight);",
+      "  colorMode(HSL, 360, 100, 100, 1);",
+      "}",
+      "",
+      "function draw() {",
+      "  background(220, 24, 7, 0.08);",
+      "  const phase = noise(mouseX * 0.01, mouseY * 0.01, frameCount * 0.01);",
+      "  line(0, 0, phase * width, height);",
+      "}"
+    ];
+    const baseSnapshot = getLocalWorkspaceSnapshot();
+    const snapshot = {
+      ...baseSnapshot,
+      artifacts: [
+        {
+          ...baseSnapshot.artifacts[0],
+          id: "p5-flow-field",
+          title: "generated-sketch-1.p5.js",
+          language: "JavaScript",
+          content: source.join("\n"),
+          domain: "p5",
+          runtime: "p5",
+          rendererId: "preview.p5",
+          previewEligible: true
+        }
+      ],
+      code: {
+        ...baseSnapshot.code,
+        title: "generated-sketch-1.p5.js",
+        language: "JavaScript",
+        excerpt: source
+      }
+    };
+
+    const record = createWorkspaceSessionRecord({
+      activeArtifactId: "p5-flow-field",
+      activeInspectorTab: "Preview",
+      previewArtifactId: "p5-flow-field",
+      previewOpen: true,
+      snapshot
+    });
+    const restored = snapshotFromWorkspaceSessionRecord(snapshot, record);
+
+    expect(record.artifacts[0]?.content).toBe(source.join("\n"));
+    expect(record.snapshot.code.excerpt).toEqual(source);
+    expect(restored.artifacts[0]?.content).toBe(source.join("\n"));
+    expect(restored.code.excerpt).toEqual(source);
+    expect(getP5RuntimeSourceSupportIssue(restored.code.excerpt.join("\n"))).toBeNull();
   });
 
   it("normalizes layout preferences into safe persisted values", () => {

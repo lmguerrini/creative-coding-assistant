@@ -28,6 +28,7 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
         self.assertFalse(record.preferences.auto_open_preview)
         self.assertEqual(record.messages[0].content, "Keep this chat.")
         self.assertEqual(record.artifacts[0].id, "source-sketch")
+        self.assertEqual(record.artifacts[0].content, "function setup() {}")
 
     def test_record_accepts_current_frontend_v4_session_shape(self) -> None:
         record = WorkspaceSessionRecord.model_validate(
@@ -282,6 +283,7 @@ def _session_payload(
                 "language": "TypeScript",
                 "status": "Draft",
                 "summary": "Primary sketch artifact.",
+                "content": "function setup() {}",
                 "actions": ["Open", "Preview"],
             }
         ],

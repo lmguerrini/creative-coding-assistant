@@ -19,6 +19,36 @@ describe("workflow runtime model", () => {
     });
   });
 
+  it("does not report full workflow success when the preview runtime fails", () => {
+    const workflow = getLocalWorkspaceSnapshot().workflow;
+    const runtime = buildWorkflowRuntimeModel(workflow, [
+      {
+        event: {
+          event_type: "status",
+          sequence: 1,
+          payload: {
+            code: "preview_runtime_error",
+            message: "colorMode is not defined",
+            preview_runtime: { error: "colorMode is not defined" },
+            workflow: {
+              current_step: "finalization",
+              phase: "completed",
+              status: "completed"
+            }
+          }
+        },
+        receivedAt: "2026-07-10T10:00:00Z",
+        receivedAtMs: Date.parse("2026-07-10T10:00:00Z")
+      }
+    ]);
+
+    expect(runtime.summary).toMatchObject({
+      currentStep: "Completed with preview error",
+      status: "completed_with_preview_error"
+    });
+    expect(runtime.error?.userMessage).toContain("colorMode is not defined");
+  });
+
   it("preserves explicit planning and director transition metadata", () => {
     const workflow = getLocalWorkspaceSnapshot().workflow;
     const traceEvents: WorkflowRuntimeTraceEvent[] = [

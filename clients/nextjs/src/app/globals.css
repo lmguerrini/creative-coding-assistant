@@ -593,8 +593,6 @@ a {
 .brandText strong,
 .sessionHeader h1,
 .inspectorHeader h2,
-.artifactDetailHeader strong,
-.artifactItem strong,
 .codePanelHeader strong,
 .retrievalItem strong,
 .overviewTile strong,
@@ -7168,7 +7166,9 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 .savedOutputCard strong {
   color: var(--foreground);
   line-height: 1.25;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .savedOutputsHero strong {
@@ -7256,10 +7256,27 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .artifactDetailHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 9px;
+}
+
+.artifactDetailHeader > div:first-child {
+  min-width: 0;
+}
+
+.artifactDetailHeader strong {
+  display: block;
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.28;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artifactDetailHeader .artifactBadges {
+  width: 100%;
 }
 
 .artifactDetailMeta {
@@ -7271,7 +7288,14 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 
 .artifactDetailMeta div {
   display: grid;
+  min-width: 0;
   gap: 5px;
+}
+
+.artifactDetailMeta dd {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .artifactDetailMeta dt {
@@ -9141,25 +9165,31 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .artifactItemHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.artifactItemHeader > div:first-child {
+  min-width: 0;
 }
 
 .artifactBadges {
   display: flex;
-  flex: 0 0 auto;
+  min-width: 0;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 6px;
 }
 
 .artifactItem strong {
   display: block;
+  overflow: hidden;
   color: var(--foreground);
   font-size: 13px;
   line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .artifactItemHeader span {
@@ -9167,6 +9197,9 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   margin-top: 4px;
   color: var(--muted);
   font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .artifactType {
@@ -9177,6 +9210,9 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   background: rgba(243, 184, 82, 0.1);
   font-size: 10px;
   font-weight: 850;
+  max-width: 100%;
+  overflow-wrap: normal;
+  white-space: nowrap;
   text-transform: uppercase;
 }
 
@@ -9188,6 +9224,9 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.18);
   font-size: 10px;
   font-weight: 850;
+  max-width: 100%;
+  overflow-wrap: normal;
+  white-space: nowrap;
   text-transform: uppercase;
 }
 

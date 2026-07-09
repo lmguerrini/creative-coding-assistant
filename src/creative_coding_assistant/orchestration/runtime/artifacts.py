@@ -259,6 +259,24 @@ _RUNTIME_LABELS = {
     "p5": "p5.js",
     "three": "Three.js",
 }
+_P5_GLOBAL_MODE_FUNCTIONS = frozenset(
+    {
+        "abs", "atan2", "background", "beginShape", "ceil", "circle", "clear",
+        "color", "colorMode", "cos", "createCanvas", "dist", "ellipse", "endShape",
+        "fill", "floor", "frameRate", "lerp", "line", "map", "max", "min", "noise",
+        "noiseDetail", "noFill", "noStroke", "pixelDensity", "point", "pop", "pow", "push", "random",
+        "rect", "resizeCanvas", "rotate", "scale", "sin", "sqrt", "stroke", "strokeWeight",
+        "translate", "vertex",
+    }
+)
+_P5_SAFE_JAVASCRIPT_GLOBAL_FUNCTIONS = frozenset(
+    {"Array", "Boolean", "Number", "Object", "String", "isFinite", "isNaN", "parseFloat", "parseInt"}
+)
+_P5_CONTROL_FLOW_KEYWORDS = frozenset({"catch", "for", "if", "switch", "while"})
+_P5_GLOBAL_MODE_CONTRACT = (
+    "Use a plain JavaScript global-mode sketch with function setup() and function draw(); "
+    "keep p5 calls inside those lifecycle functions or helpers they call."
+)
 
 
 def extract_workflow_artifacts(
@@ -390,10 +408,12 @@ def _build_workflow_artifact(
     if not language:
         return None
     runtime = _infer_runtime(block.content, language, block.title)
-    preview_safe = _runtime_source_preview_safe(runtime, block.content)
+    content = _prepare_p5_javascript_source(block.content) if runtime == "p5" else block.content
+    preview_issue = _runtime_source_preview_issue(runtime, content)
+    preview_safe = preview_issue is None
     artifact_domain = _infer_artifact_domain(
         runtime=runtime,
-        content=block.content,
+        content=content,
         language=language,
         title=block.title,
         request=request,
@@ -408,26 +428,24 @@ def _build_workflow_artifact(
         and preview_safe
     )
     effective_runtime = runtime if preview_ready else None
-    content = block.content
-    effective_language = language
-    if effective_runtime == "p5":
-        content = _prepare_p5_javascript_source(block.content)
-        effective_language = "javascript"
+    effective_language = "javascript" if runtime == "p5" else language
     title = _normalize_preview_artifact_title(
         block.title,
         language=effective_language,
-        runtime=effective_runtime,
-    ) or _default_artifact_title(effective_language, effective_runtime, index)
+        runtime=runtime,
+    ) or _default_artifact_title(effective_language, runtime, index)
     artifact_id = _sanitize_identifier(title) or f"generated-artifact-{index}"
     content_hash = sha256(content.encode("utf-8")).hexdigest()
     renderer_id = support.renderer_id if preview_ready else None
     preview_target = support.preview_target if preview_ready else None
     domain_label = _domain_label(artifact_domain)
     domain_value = _domain_value(artifact_domain)
-    runtime_label = _RUNTIME_LABELS.get(effective_runtime or "")
+    runtime_label = _RUNTIME_LABELS.get(runtime or "")
     summary_parts = ["Extracted from the generation result"]
     if runtime_label and preview_ready:
         summary_parts.append(f"matched {runtime_label} creative runtime")
+    elif preview_issue:
+        summary_parts.append(f"preview unavailable: {preview_issue}")
     elif domain_label and not is_previewable_generation_domain(artifact_domain):
         summary_parts.append("kept as code-only for the selected domain")
     if domain_label:
@@ -441,6 +459,7 @@ def _build_workflow_artifact(
         source_language=effective_language,
         content=content,
         summary="; ".join(summary_parts) + ".",
+        status="Preview unavailable" if preview_issue else "Generated",
         source_order=index,
         domain=domain_value,
         is_creative=preview_ready,
@@ -697,10 +716,87 @@ def _infer_language(content: str, title: str | None) -> str:
     return "javascript"
 
 
-def _runtime_source_preview_safe(runtime: str | None, content: str) -> bool:
+def _runtime_source_preview_issue(runtime: str | None, content: str) -> str | None:
     if runtime != "p5":
-        return True
-    return not _looks_like_html_source(content)
+        return None
+    if not content.strip():
+        return "The p5 preview source is empty. Add a self-contained JavaScript sketch."
+    if _looks_like_html_source(content):
+        return (
+            "HTML documents cannot run in the p5 JavaScript preview runtime. "
+            "Use JavaScript p5 source with setup() and draw()."
+        )
+    if "```" in content:
+        return "Markdown fences cannot run in the p5 preview. Return executable JavaScript source only."
+    if re.search(r"\bnew\s+p5\s*\(", content) or re.search(r"\b(?:p|sketch)\s*=>", content):
+        return f"{_P5_GLOBAL_MODE_CONTRACT} Instance-mode p5 wrappers are not supported here."
+    if not re.search(r"\bfunction\s+setup\s*\(", content) or not re.search(
+        r"\bfunction\s+draw\s*\(", content
+    ):
+        return f"{_P5_GLOBAL_MODE_CONTRACT} Both setup() and draw() are required."
+
+    normalized = _strip_p5_comments_and_strings(content)
+    for name, index in _p5_bare_calls(normalized):
+        if name in _P5_GLOBAL_MODE_FUNCTIONS and _brace_depth_at(normalized, index) == 0:
+            return f"{name}() must run inside setup(), draw(), or a helper invoked by them."
+
+    declared = _p5_declared_names(normalized)
+    for name, _index in _p5_bare_calls(normalized):
+        if (
+            name in _P5_GLOBAL_MODE_FUNCTIONS
+            or name in _P5_SAFE_JAVASCRIPT_GLOBAL_FUNCTIONS
+            or name in _P5_CONTROL_FLOW_KEYWORDS
+            or name in declared
+        ):
+            continue
+        return (
+            f"{name}() is not part of the supported browser p5 preview contract. "
+            f"{_P5_GLOBAL_MODE_CONTRACT}"
+        )
+    return None
+
+
+def _p5_bare_calls(source: str) -> tuple[tuple[str, int], ...]:
+    calls: list[tuple[str, int]] = []
+    for match in re.finditer(r"(?<![.$\w])([A-Za-z_$][\w$]*)\s*\(", source):
+        name = match.group(1)
+        index = match.start(1)
+        if re.search(r"\bfunction\s*$", source[max(0, index - 16) : index]):
+            continue
+        calls.append((name, index))
+    return tuple(calls)
+
+
+def _p5_declared_names(source: str) -> frozenset[str]:
+    names = set()
+    pattern = re.compile(
+        r"\b(?:function|class)\s+([A-Za-z_$][\w$]*)\b|"
+        r"\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*"
+        r"(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>"
+    )
+    for match in pattern.finditer(source):
+        name = match.group(1) or match.group(2)
+        if name:
+            names.add(name)
+    return frozenset(names)
+
+
+def _brace_depth_at(source: str, index: int) -> int:
+    depth = 0
+    for character in source[:index]:
+        if character == "{":
+            depth += 1
+        elif character == "}":
+            depth = max(depth - 1, 0)
+    return depth
+
+
+def _strip_p5_comments_and_strings(source: str) -> str:
+    without_comments = re.sub(r"/\*[\s\S]*?\*/", " ", source)
+    without_comments = re.sub(r"//.*$", " ", without_comments, flags=re.M)
+    without_strings = re.sub(r"'(?:\\.|[^'\\])*'", "''", without_comments)
+    without_strings = re.sub(r'"(?:\\.|[^"\\])*"', '""', without_strings)
+    return re.sub(r"`(?:\\.|[^`\\])*`", "``", without_strings)
 
 
 def _looks_like_html_source(content: str) -> bool:
@@ -761,7 +857,16 @@ def _prepare_p5_javascript_source(content: str) -> str:
     )
     source = re.sub(r"\s+as\s+const\b", "", source)
     source = _strip_typescript_parameter_annotations(source)
-    return source.strip()
+    normalized = source.strip()
+    if re.search(r"\bfunction\s+draw\s*\(", normalized) and not re.search(
+        r"\bfunction\s+setup\s*\(", normalized
+    ):
+        return f"{normalized}\n\nfunction setup() {{}}"
+    if re.search(r"\bfunction\s+setup\s*\(", normalized) and not re.search(
+        r"\bfunction\s+draw\s*\(", normalized
+    ):
+        return f"{normalized}\n\nfunction draw() {{}}"
+    return normalized
 
 
 def _strip_typescript_parameter_annotations(source: str) -> str:

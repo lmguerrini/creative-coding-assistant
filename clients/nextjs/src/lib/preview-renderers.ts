@@ -339,8 +339,12 @@ export function buildPreviewRendererRoute({
     const rendererArtifact =
       selectedArtifact?.type === "code" ? selectedArtifact : sourceArtifact ?? selectedArtifact;
     const matchedRenderer = matchCreativePreviewRenderer(rendererArtifact);
+    // Live artifacts carry their extracted source and are rejected here before
+    // they are advertised as previewable. Local/legacy snapshot artifacts may
+    // intentionally omit duplicated content; their active Code summary is
+    // validated again immediately before the sandbox mounts it.
     const p5SupportIssue =
-      rendererArtifact && hasP5PreviewSignal(rendererArtifact)
+      rendererArtifact?.content?.trim() && hasP5PreviewContract(rendererArtifact)
         ? getP5RuntimeSourceSupportIssue(rendererArtifact.content)
         : null;
     const gsapSupportIssue =
@@ -561,7 +565,9 @@ function validateCreativePreviewRenderer(
 
   if (renderer.kind !== "gsap") {
     if (renderer.kind === "p5") {
-      return getP5RuntimeSourceSupportIssue(artifact.content) ? null : renderer;
+      return artifact.content?.trim() && getP5RuntimeSourceSupportIssue(artifact.content)
+        ? null
+        : renderer;
     }
 
     if (renderer.kind === "svg") {
@@ -578,33 +584,16 @@ function validateCreativePreviewRenderer(
   return getGsapRuntimeSupportIssue(artifact.content) ? null : renderer;
 }
 
-function hasP5PreviewSignal({
-  content,
-  domain,
-  language,
-  rendererId,
-  runtime,
-  summary,
-  title
-}: ArtifactSummary) {
+function hasP5PreviewContract({ rendererId, runtime, title }: ArtifactSummary) {
   const normalizedRenderer = rendererId?.trim().toLowerCase();
   const normalizedRuntime = runtime?.trim().toLowerCase();
-  const normalizedDomain = domain?.trim().toLowerCase();
-  const normalizedLanguage = language?.trim().toLowerCase();
   const normalizedTitle = title.trim().toLowerCase();
-  const haystack = [title, language, summary, content].join(" ").toLowerCase();
 
   return (
     normalizedRenderer === "surface.p5" ||
     normalizedRuntime === "p5" ||
-    normalizedDomain === "p5_js" ||
-    normalizedLanguage === "p5.js" ||
-    normalizedLanguage === "p5" ||
     normalizedTitle.endsWith(".p5.js") ||
-    normalizedTitle.endsWith(".p5.ts") ||
-    haystack.includes("createcanvas") ||
-    haystack.includes("setup()") ||
-    haystack.includes("draw()")
+    normalizedTitle.endsWith(".p5.ts")
   );
 }
 

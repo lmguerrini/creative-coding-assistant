@@ -299,6 +299,7 @@
       let canvasFrameHandles = new Set();
       let canvasIntervalHandles = new Set();
       let canvasTimeoutHandles = new Set();
+      let p5InputCleanup = null;
 
       function isMountMessage(data) {
         return data &&
@@ -394,6 +395,10 @@
         stopGsapRuntime();
         stopSvgRuntime();
         stopCanvasRuntime();
+        if (p5InputCleanup) {
+          p5InputCleanup();
+          p5InputCleanup = null;
+        }
         setToneControlsVisible(false);
         runtime = null;
         document.body.dataset.runtimeState = "idle";
@@ -2009,6 +2014,13 @@
           useStroke: false,
           weight: 1
         };
+        const colorState = {
+          alphaMax: 255,
+          mode: "RGB",
+          primaryMax: 255,
+          secondaryMax: 255,
+          tertiaryMax: 255
+        };
         const globals = {
           window,
           document,
@@ -2017,6 +2029,12 @@
           PI: Math.PI,
           TWO_PI: Math.PI * 2,
           HALF_PI: Math.PI / 2,
+          HSB: "HSB",
+          HSL: "HSL",
+          RGB: "RGB",
+          CLOSE: "CLOSE",
+          CENTER: "CENTER",
+          CORNER: "CORNER",
           abs: Math.abs,
           atan2: Math.atan2,
           ceil: Math.ceil,
@@ -2034,9 +2052,17 @@
           min: Math.min,
           mouseX: 0,
           mouseY: 0,
-          noise: function (value) {
-            return Math.abs((Math.sin(value * 12.9898) * 43758.5453) % 1);
+          mouseIsPressed: false,
+          noise: function () {
+            const weights = [12.9898, 78.233, 37.719, 19.173];
+            let coordinate = 0;
+            for (let index = 0; index < arguments.length; index += 1) {
+              coordinate += (Number(arguments[index]) || 0) * (weights[index] || 11.137);
+            }
+            return Math.abs((Math.sin(coordinate) * 43758.5453) % 1);
           },
+          noiseDetail: function () {},
+          pixelDensity: function () { return 1; },
           pow: Math.pow,
           random: function (min, max) {
             const value = Math.random();
@@ -2071,27 +2097,59 @@
         globals.clear = function () {
           context.clearRect(0, 0, canvas.width, canvas.height);
         };
+        globals.colorMode = function (mode, primaryMax, secondaryMax, tertiaryMax, alphaMax) {
+          colorState.mode = String(mode || "RGB").toUpperCase();
+          colorState.primaryMax = Number(primaryMax) || 255;
+          colorState.secondaryMax = Number(secondaryMax) || colorState.primaryMax;
+          colorState.tertiaryMax = Number(tertiaryMax) || colorState.primaryMax;
+          colorState.alphaMax = Number(alphaMax) || 255;
+        };
+        function normalizeP5Color(values, fallback) {
+          const entries = Array.isArray(values) ? values : [values];
+          if (typeof entries[0] === "string") return entries[0];
+          const first = Number(entries[0]);
+          if (!Number.isFinite(first)) return fallback;
+          const alpha = entries.length > 3
+            ? Math.max(0, Math.min(1, Number(entries[3]) / colorState.alphaMax))
+            : 1;
+          if (colorState.mode === "HSL" || colorState.mode === "HSB") {
+            const hue = ((first / colorState.primaryMax) * 360 + 360) % 360;
+            const saturation = Math.max(0, Math.min(100, (Number(entries[1]) / colorState.secondaryMax) * 100));
+            const lightness = Math.max(0, Math.min(100, (Number(entries[2]) / colorState.tertiaryMax) * 100));
+            return "hsl(" + hue + " " + saturation + "% " + lightness + "% / " + alpha + ")";
+          }
+          const channels = entries.slice(0, 3).map(function (entry) {
+            return Math.max(0, Math.min(255, Math.round((Number(entry) / colorState.primaryMax) * 255)));
+          });
+          if (channels.length === 1) channels.push(channels[0], channels[0]);
+          return "rgba(" + channels.join(",") + "," + alpha + ")";
+        }
         globals.color = function () {
-          return normalizeColor(arguments.length === 1 ? arguments[0] : Array.from(arguments), "#fff");
+          return normalizeP5Color(Array.from(arguments), "#fff");
         };
         globals.background = function () {
           syncDimensions();
           context.save();
-          context.fillStyle = normalizeColor(arguments.length === 1 ? arguments[0] : Array.from(arguments), "#05080b");
+          context.fillStyle = normalizeP5Color(Array.from(arguments), "#05080b");
           context.fillRect(0, 0, globals.width, globals.height);
           context.restore();
         };
         globals.fill = function () {
-          paint.fill = normalizeColor(arguments.length === 1 ? arguments[0] : Array.from(arguments), paint.fill);
+          paint.fill = normalizeP5Color(Array.from(arguments), paint.fill);
           paint.useFill = true;
         };
         globals.stroke = function () {
-          paint.stroke = normalizeColor(arguments.length === 1 ? arguments[0] : Array.from(arguments), paint.stroke);
+          paint.stroke = normalizeP5Color(Array.from(arguments), paint.stroke);
           paint.useStroke = true;
         };
         globals.noFill = function () { paint.useFill = false; };
         globals.noStroke = function () { paint.useStroke = false; };
         globals.strokeWeight = function (weight) { paint.weight = Number(weight) || 1; };
+        globals.push = function () { context.save(); };
+        globals.pop = function () { context.restore(); };
+        globals.translate = function (x, y) { context.translate(Number(x) || 0, Number(y) || 0); };
+        globals.rotate = function (angle) { context.rotate(Number(angle) || 0); };
+        globals.scale = function (x, y) { context.scale(Number(x) || 1, Number(y == null ? x : y) || 1); };
 
         function drawShape(drawPath) {
           context.save();
@@ -2141,14 +2199,70 @@
           context.stroke();
           context.restore();
         };
+        globals.point = function (x, y) {
+          context.save();
+          context.fillStyle = paint.stroke;
+          context.beginPath();
+          context.arc(Number(x) || 0, Number(y) || 0, Math.max(1, paint.weight / 2), 0, Math.PI * 2);
+          context.fill();
+          context.restore();
+        };
+        let shapeVertexCount = 0;
+        globals.beginShape = function () {
+          shapeVertexCount = 0;
+          context.beginPath();
+        };
+        globals.vertex = function (x, y) {
+          if (shapeVertexCount === 0) context.moveTo(Number(x) || 0, Number(y) || 0);
+          else context.lineTo(Number(x) || 0, Number(y) || 0);
+          shapeVertexCount += 1;
+        };
+        globals.endShape = function (mode) {
+          if (shapeVertexCount === 0) return;
+          if (mode === globals.CLOSE || mode === "CLOSE") context.closePath();
+          if (paint.useFill) {
+            context.fillStyle = paint.fill;
+            context.fill();
+          }
+          if (paint.useStroke) {
+            context.lineWidth = paint.weight;
+            context.strokeStyle = paint.stroke;
+            context.stroke();
+          }
+          shapeVertexCount = 0;
+        };
 
         const result = new Function(
           "globals",
-          "with (globals) {" + runtime.source.source + "\nreturn { setup: typeof setup === 'function' ? setup : null, draw: typeof draw === 'function' ? draw : null }; }"
+          "with (globals) {" + runtime.source.source + "\nreturn { setup: typeof setup === 'function' ? setup : null, draw: typeof draw === 'function' ? draw : null, mousePressed: typeof mousePressed === 'function' ? mousePressed : null, mouseReleased: typeof mouseReleased === 'function' ? mouseReleased : null }; }"
         )(globals);
         const setup = result.setup || window.setup;
         const draw = result.draw || window.draw;
         if (!setup && !draw) throw new Error("p5 source did not define setup() or draw().");
+        function updatePointer(event) {
+          const rect = canvas.getBoundingClientRect();
+          globals.mouseX = Math.max(0, Math.min(globals.width, event.clientX - rect.left));
+          globals.mouseY = Math.max(0, Math.min(globals.height, event.clientY - rect.top));
+        }
+        const onPointerMove = function (event) { updatePointer(event); };
+        const onPointerDown = function (event) {
+          updatePointer(event);
+          globals.mouseIsPressed = true;
+          if (result.mousePressed) result.mousePressed.call(globals);
+        };
+        const onPointerUp = function (event) {
+          updatePointer(event);
+          globals.mouseIsPressed = false;
+          if (result.mouseReleased) result.mouseReleased.call(globals);
+        };
+        canvas.addEventListener("pointermove", onPointerMove);
+        canvas.addEventListener("pointerdown", onPointerDown);
+        window.addEventListener("pointerup", onPointerUp);
+        p5InputCleanup = function () {
+          canvas.removeEventListener("pointermove", onPointerMove);
+          canvas.removeEventListener("pointerdown", onPointerDown);
+          window.removeEventListener("pointerup", onPointerUp);
+        };
         syncDimensions();
         if (setup) setup.call(globals);
         status("running", "p5 runtime running", "Executing " + runtime.source.title + " inside a sandboxed p5-compatible iframe.");

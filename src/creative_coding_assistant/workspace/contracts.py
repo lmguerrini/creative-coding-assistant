@@ -96,6 +96,7 @@ class WorkspaceSessionArtifact(BaseModel):
     language: str = Field(min_length=1)
     status: str = Field(min_length=1)
     summary: str
+    content: str | None = None
     actions: tuple[str, ...] = Field(default_factory=tuple)
 
 
