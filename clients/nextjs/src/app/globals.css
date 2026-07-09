@@ -1283,6 +1283,13 @@ a {
   box-shadow: var(--panel-highlight);
 }
 
+.demoModePanel[data-debug="false"] {
+  gap: 12px;
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.026);
+  box-shadow: none;
+}
+
 .demoModeHeader,
 .demoScenarioDetail header {
   display: flex;
@@ -1338,6 +1345,11 @@ a {
   display: grid;
   grid-template-columns: minmax(220px, 0.52fr) minmax(0, 1fr);
   gap: 14px;
+}
+
+.demoModePanel[data-debug="false"] .demoModeBody {
+  grid-template-columns: minmax(190px, 0.38fr) minmax(0, 1fr);
+  gap: 12px;
 }
 
 .demoLiveSequence {
@@ -1417,6 +1429,14 @@ a {
     transform 180ms ease;
 }
 
+.demoModePanel[data-debug="false"] .demoScenarioButton {
+  min-height: 58px;
+  padding: 10px 28px 10px 10px;
+  border-color: rgba(255, 255, 255, 0.075);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.022);
+}
+
 .demoScenarioButton:hover {
   border-color: rgba(var(--accent-rgb), 0.34);
   color: var(--foreground);
@@ -1429,6 +1449,11 @@ a {
     linear-gradient(135deg, rgba(var(--accent-rgb), 0.12), transparent 72%),
     rgba(255, 255, 255, 0.055);
   color: var(--foreground);
+}
+
+.demoModePanel[data-debug="false"] .demoScenarioButton[data-active="true"] {
+  border-color: rgba(var(--accent-rgb), 0.28);
+  background: rgba(var(--accent-rgb), 0.08);
 }
 
 .demoScenarioButton span,
@@ -1471,6 +1496,13 @@ a {
   background: rgba(255, 255, 255, 0.035);
 }
 
+.demoModePanel[data-debug="false"] .demoScenarioDetail {
+  gap: 10px;
+  border-color: rgba(255, 255, 255, 0.075);
+  background: rgba(255, 255, 255, 0.018);
+  box-shadow: none;
+}
+
 .demoModeLoadButton {
   display: inline-flex;
   min-height: 34px;
@@ -1498,6 +1530,11 @@ a {
   margin: 0;
 }
 
+.demoModePanel[data-debug="false"] .demoScenarioQuickFacts {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+
 .demoScenarioQuickFacts div {
   display: grid;
   min-width: 0;
@@ -1506,6 +1543,14 @@ a {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   background: rgba(0, 0, 0, 0.14);
+}
+
+.demoModePanel[data-debug="false"] .demoScenarioQuickFacts div {
+  grid-template-columns: minmax(96px, 0.32fr) minmax(0, 1fr);
+  align-items: baseline;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .demoScenarioQuickFacts dt {
@@ -1520,11 +1565,20 @@ a {
   white-space: nowrap;
 }
 
+.demoModePanel[data-debug="false"] .demoScenarioQuickFacts dt {
+  white-space: normal;
+}
+
 .demoScenarioQuickFacts dd {
   margin: 0;
   color: var(--foreground);
   font-size: 11px;
   line-height: 1.35;
+}
+
+.demoModePanel[data-debug="false"] .demoScenarioQuickFacts dd {
+  color: var(--muted-strong);
+  font-size: 12px;
 }
 
 .demoPromptPreview {
@@ -1536,6 +1590,17 @@ a {
   color: var(--foreground);
   font-size: 13px;
   line-height: 1.5;
+}
+
+.demoPromptPreview--user {
+  display: -webkit-box;
+  padding: 10px 11px;
+  border-color: rgba(255, 255, 255, 0.075);
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--muted-strong);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 .demoScenarioMeta {
@@ -1614,6 +1679,13 @@ a {
   padding: 16px 6px 4px 0;
   border-top: 1px solid var(--section-divider);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.022), transparent 96px);
+}
+
+.chatLog:empty {
+  min-height: 0;
+  padding: 0;
+  border-top: 0;
+  background: transparent;
 }
 
 .emptyWorkspace {
@@ -1989,8 +2061,8 @@ a {
   grid-template-columns: minmax(0, 1fr) 38px;
   gap: 10px;
   align-items: flex-end;
-  padding-top: 12px;
-  border-top: 1px solid var(--section-divider);
+  padding-top: 8px;
+  border-top: 0;
 }
 
 .composerInputFrame {
@@ -1999,9 +2071,9 @@ a {
   align-items: flex-end;
   gap: 7px;
   min-width: 0;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  background: var(--surface-1);
+  border: 1px solid rgba(255, 255, 255, 0.105);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.04);
   box-shadow: var(--panel-highlight);
   padding: 6px;
 }
@@ -2366,7 +2438,7 @@ a {
 
 .previewShelf--userFallback {
   display: block;
-  padding: 14px;
+  padding: 10px;
 }
 
 .previewUserFallbackCard {
@@ -2375,10 +2447,10 @@ a {
   justify-content: space-between;
   gap: 14px;
   min-width: 0;
-  padding: 14px;
-  border: 1px solid var(--line);
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.034);
+  background: rgba(255, 255, 255, 0.026);
 }
 
 .previewUserFallbackCard > div:first-child {
@@ -10963,6 +11035,7 @@ html[data-cca-theme="blueprint"] .codeViewer {
 
   .workspaceLayout {
     grid-template-columns: minmax(0, 1fr);
+    grid-auto-flow: row;
   }
 
   .inspectorResizeHandle {
@@ -10971,7 +11044,22 @@ html[data-cca-theme="blueprint"] .codeViewer {
 
   .mainColumn,
   .inspector {
+    grid-column: 1;
     max-height: none;
+  }
+
+  .mainColumn {
+    grid-row: 1;
+  }
+
+  .inspector {
+    grid-row: 2;
+  }
+
+  .inspector[data-state="collapsed"] {
+    min-height: 54px;
+    max-height: 54px;
+    border-radius: 16px;
   }
 
   .inspector[data-state="collapsed"] .inspectorRail {

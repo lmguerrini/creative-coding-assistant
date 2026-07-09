@@ -1166,6 +1166,11 @@ export function WorkstationShell({
   const persistenceStatusLabel =
     persistenceStateLabels[persistenceState] ?? "Local session ready";
   const hasWorkspaceArtifacts = snapshot.artifacts.length > 0;
+  const shouldRenderPreviewShelf =
+    !isFocusMode &&
+    (interactiveSnapshot.preview.available ||
+      (!workspacePreferences.showDebugPanels &&
+        (hasWorkspaceArtifacts || isDemoModeOpen)));
   const activeArtifactDisplayLabel = workspacePreferences.showDebugPanels
     ? activeArtifact.title
     : formatUserArtifactLabel(activeArtifact);
@@ -2071,7 +2076,7 @@ export function WorkstationShell({
     setIsAttachmentMenuOpen(false);
 
     window.requestAnimationFrame(() => {
-      composerTextareaRef.current?.focus();
+      composerTextareaRef.current?.focus({ preventScroll: true });
     });
   }
 
@@ -2949,7 +2954,7 @@ export function WorkstationShell({
               ref={chatLogRef}
               role="log"
             >
-              {conversationEntries.length === 0 && !isStreaming ? (
+              {conversationEntries.length === 0 && !isStreaming && !isDemoModeOpen ? (
                 <EmptyWorkspaceState onSelectPrompt={handleEmptyStatePromptSelect} />
               ) : null}
               {conversationEntries.map((message, index) => {
@@ -3081,7 +3086,7 @@ export function WorkstationShell({
             </form>
           </section>
 
-          {interactiveSnapshot.preview.available && !isFocusMode ? (
+          {shouldRenderPreviewShelf ? (
             <PreviewShelf
               controller={previewController}
               height={layoutState.previewHeight}
@@ -3197,7 +3202,7 @@ export function WorkstationShell({
                           <Icon size={15} aria-hidden="true" />
                           <span>{displayLabel}</span>
                           {workspacePreferences.showDebugPanels && tab.badge ? (
-                            <small>{tab.badge}</small>
+                            <small>{` ${tab.badge}`}</small>
                           ) : null}
                         </button>
                       );
@@ -3448,14 +3453,15 @@ function DemoModePanel({
     : ([
         ["Capability", activeScenario.recommendedForDemo],
         ["Runtime", activeScenario.runtime],
-        ["Smoke", summarizeDemoValidation(activeScenario.validationPath)],
-        ["Fallback", activeScenario.fallbackAvailability]
+        ["Estimated time", activeScenario.estimatedGenerationTime],
+        ["Expected output", activeScenario.expectedOutput]
       ] as const);
 
   return (
     <section
       aria-label="Demo Mode"
       className="demoModePanel"
+      data-debug={showDebugPanels ? "true" : "false"}
       id="demo-mode-panel"
     >
       <header className="demoModeHeader">
@@ -3470,26 +3476,28 @@ function DemoModePanel({
         <span className="demoModeCount">{scenarios.length} flows</span>
       </header>
 
-      <div className="demoLiveSequence" aria-label="Featured demo paths">
-        {demoModeRecommendedLiveSequence.map((item) => (
-          <button
-            key={`${item.role}-${item.scenarioId}`}
-            onClick={() => {
-              const scenario = scenarios.find(
-                (candidate) => candidate.id === item.scenarioId
-              );
-              if (scenario) {
-                onLoadScenario(scenario);
-              }
-            }}
-            type="button"
-          >
-            <span>{item.role}</span>
-            <strong>{item.title}</strong>
-            {showDebugPanels ? <small>{item.rationale}</small> : null}
-          </button>
-        ))}
-      </div>
+      {showDebugPanels ? (
+        <div className="demoLiveSequence" aria-label="Featured demo paths">
+          {demoModeRecommendedLiveSequence.map((item) => (
+            <button
+              key={`${item.role}-${item.scenarioId}`}
+              onClick={() => {
+                const scenario = scenarios.find(
+                  (candidate) => candidate.id === item.scenarioId
+                );
+                if (scenario) {
+                  onLoadScenario(scenario);
+                }
+              }}
+              type="button"
+            >
+              <span>{item.role}</span>
+              <strong>{item.title}</strong>
+              <small>{item.rationale}</small>
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       <div className="demoModeBody">
         <div
@@ -3552,9 +3560,17 @@ function DemoModePanel({
             ))}
           </dl>
 
-          {showDebugPanels ? (
-            <p className="demoPromptPreview">{activeScenario.prompt}</p>
-          ) : null}
+          <p
+            className={
+              showDebugPanels
+                ? "demoPromptPreview"
+                : "demoPromptPreview demoPromptPreview--user"
+            }
+          >
+            {showDebugPanels
+              ? activeScenario.prompt
+              : formatDemoPromptPreview(activeScenario.prompt)}
+          </p>
 
           {showDebugPanels ? (
             <dl className="demoScenarioMeta">
@@ -3575,9 +3591,6 @@ function DemoModePanel({
             <div className="demoUserEssentials">
               <p>
                 <strong>Validates:</strong> {activeScenario.recommendedForDemo}
-              </p>
-              <p>
-                <strong>Fallback:</strong> {activeScenario.fallbackAvailability}
               </p>
             </div>
           )}
@@ -3657,22 +3670,14 @@ function getDemoScenarioPublicCategory(scenario: DemoModeScenario) {
   return "Visual Planning";
 }
 
-function summarizeDemoValidation(validationPath: string) {
-  const normalizedPath = validationPath.toLowerCase();
+function formatDemoPromptPreview(prompt: string) {
+  const normalizedPrompt = prompt.replace(/\s+/g, " ").trim();
 
-  if (normalizedPath.includes("nonblank") || normalizedPath.includes("rendered")) {
-    return "Browser QA";
+  if (normalizedPrompt.length <= 170) {
+    return normalizedPrompt;
   }
 
-  if (normalizedPath.includes("ragas")) {
-    return "RAGAs run";
-  }
-
-  if (normalizedPath.includes("documented")) {
-    return "Documented";
-  }
-
-  return "Smoke checked";
+  return `${normalizedPrompt.slice(0, 167).trimEnd()}...`;
 }
 
 function formatUserPreviewArtifactLabel(snapshot: AssistantWorkspaceSnapshot) {
@@ -3764,10 +3769,10 @@ function PreviewShelf({
           <div className="previewUserFallbackCard">
             <div>
               <span>Preview</span>
-              <strong>Preview not ready</strong>
+              <strong>Preview unavailable</strong>
               <p>
-                Open the generated code or saved outputs while a runnable visual
-                artifact is prepared.
+                Choose a previewable artifact, or inspect Code and Saved while
+                a runnable visual is prepared.
               </p>
             </div>
             <div className="previewUserFallbackActions">

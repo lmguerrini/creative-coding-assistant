@@ -62,7 +62,7 @@ export const defaultWorkspaceLayoutState: WorkspaceLayoutState = {
 };
 
 export const defaultWorkspacePreferences: WorkspacePreferences = {
-  theme: "aqua",
+  theme: "codex",
   autoOpenPreview: true,
   showDebugPanels: true
 };

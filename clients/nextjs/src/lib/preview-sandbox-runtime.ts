@@ -44,6 +44,7 @@ export type MountPreviewSandboxRuntimeInput = {
   onFrame?: ((sample: PreviewRuntimeFrameSample) => void) | undefined;
   onStatus: (status: PreviewRuntimeStatus) => void;
   runtimeId: string;
+  showStatusOverlay?: boolean;
   source: PreviewRuntimeSource;
 };
 
@@ -70,6 +71,7 @@ export function mountPreviewSandboxRuntime({
   onFrame,
   onStatus,
   runtimeId,
+  showStatusOverlay = true,
   source
 }: MountPreviewSandboxRuntimeInput): PreviewSandboxRuntimeMount {
   const sourceMismatch = getPreviewRuntimeSourceMismatch({ kind, source });
@@ -97,6 +99,7 @@ export function mountPreviewSandboxRuntime({
     runtime: {
       kind,
       runtimeId,
+      showStatusOverlay,
       source: {
         ...source,
         source: preparePreviewExecutableSource(source.source, kind)

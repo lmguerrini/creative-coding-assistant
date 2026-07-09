@@ -208,6 +208,9 @@
       color: #edf3f2;
       font: 11px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace;
     }
+    body[data-show-status-overlay="false"] #runtime-status {
+      display: none;
+    }
     #audio-controls {
       position: fixed;
       left: 50%;
@@ -395,6 +398,7 @@
         runtime = null;
         document.body.dataset.runtimeState = "idle";
         document.body.dataset.runtimeLabel = "Runtime sandbox disposed";
+        document.body.dataset.showStatusOverlay = "true";
         statusNode.textContent = "Runtime sandbox disposed";
         canvas.hidden = false;
         gsapStage.hidden = true;
@@ -2932,6 +2936,8 @@
       function mountRuntime(nextRuntime) {
         disposeActiveRuntime();
         runtime = nextRuntime;
+        document.body.dataset.showStatusOverlay =
+          nextRuntime.showStatusOverlay === false ? "false" : "true";
         activeToken += 1;
         const token = activeToken;
         try {

@@ -1028,9 +1028,7 @@ describe("WorkstationShell", () => {
     expect(
       within(demoMode).getByRole("button", { name: /Prompt loaded/ })
     ).toBeVisible();
-    expect(
-      within(demoMode).queryByText("33.9s optimized live smoke")
-    ).not.toBeInTheDocument();
+    expect(within(demoMode).getByText("33.9s optimized live smoke")).toBeVisible();
     expect(
       within(demoMode).queryByText("39,645 total / 2,839 output tokens")
     ).not.toBeInTheDocument();
@@ -1105,7 +1103,7 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("button", { name: "Display mode" }));
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
-    expect(within(preview).getByText("Preview not ready")).toBeVisible();
+    expect(within(preview).getByText("Preview unavailable")).toBeVisible();
     expect(within(preview).queryByText(/runtime/i)).not.toBeInTheDocument();
 
     fireEvent.click(within(preview).getByRole("button", { name: "Open Code" }));
