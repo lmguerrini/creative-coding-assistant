@@ -86,6 +86,13 @@ export function PreviewRuntimeStage({
     snapshot: metrics,
     status
   });
+  const visibleRuntimeSource =
+    showDiagnostics || !route.surfaceTitle.trim()
+      ? source
+      : {
+          ...source,
+          title: route.surfaceTitle
+        };
   const presenterStatusLabel =
     !showDiagnostics && status.error ? "Preview fallback available" : status.label;
   const presenterStatusDetail =
@@ -105,16 +112,29 @@ export function PreviewRuntimeStage({
   useEffect(() => {
     const currentPreview = previewRef.current;
     const currentRoute = routeRef.current;
-    const currentSource = sourceRef.current;
+    const rawSource = sourceRef.current;
+    const currentSource =
+      showDiagnostics || !currentRoute.surfaceTitle.trim()
+        ? rawSource
+        : {
+            ...rawSource,
+            title: currentRoute.surfaceTitle
+          };
     const initialStatus = getInitialPreviewRuntimeStatus({
       kind,
       preview: currentPreview
     });
+    const visibleInitialStatus = sanitizePreviewRuntimeStatusForPresenter({
+      displayTitle: currentSource.title,
+      rawTitle: rawSource.title,
+      showDiagnostics,
+      status: initialStatus
+    });
     const tracker = createPreviewRuntimeMetricsTracker(initialStatus);
     const runtimeId = createPreviewSandboxRuntimeId();
-    let latestStatus = initialStatus;
+    let latestStatus = visibleInitialStatus;
 
-    setStatus(initialStatus);
+    setStatus(visibleInitialStatus);
     setMetrics(tracker.snapshot());
 
     function publishRuntimeDiagnostics(
@@ -131,20 +151,26 @@ export function PreviewRuntimeStage({
       });
     }
 
-    publishRuntimeDiagnostics(initialStatus, tracker.snapshot());
+    publishRuntimeDiagnostics(visibleInitialStatus, tracker.snapshot());
 
     function handleStatus(nextStatus: PreviewRuntimeStatus) {
-      latestStatus = nextStatus;
-      const nextMetrics = tracker.publishStatus(nextStatus);
-      setStatus(nextStatus);
+      const visibleStatus = sanitizePreviewRuntimeStatusForPresenter({
+        displayTitle: currentSource.title,
+        rawTitle: rawSource.title,
+        showDiagnostics,
+        status: nextStatus
+      });
+      latestStatus = visibleStatus;
+      const nextMetrics = tracker.publishStatus(visibleStatus);
+      setStatus(visibleStatus);
       setMetrics(nextMetrics);
-      publishRuntimeDiagnostics(nextStatus, nextMetrics);
+      publishRuntimeDiagnostics(visibleStatus, nextMetrics);
       onRuntimeStatusRef.current?.({
         kind,
         route: currentRoute,
         runtimeId,
         source: currentSource,
-        status: nextStatus
+        status: visibleStatus
       });
     }
 
@@ -200,8 +226,10 @@ export function PreviewRuntimeStage({
     route.rendererId,
     route.rendererLabel,
     route.supportState,
+    route.surfaceTitle,
     route.surfaceKind,
     runtimeSessionKey,
+    showDiagnostics,
     source.fingerprint,
     source.lineCount,
     source.source,
@@ -295,12 +323,52 @@ export function PreviewRuntimeStage({
       ) : null}
       {showDiagnostics ? (
         <div className="previewRuntimeMeta" aria-label="Preview runtime source">
-          <span>{source.title}</span>
+          <span>{visibleRuntimeSource.title}</span>
           <small>
-            {source.lineCount} lines / {source.fingerprint}
+            {visibleRuntimeSource.lineCount} lines / {visibleRuntimeSource.fingerprint}
           </small>
         </div>
       ) : null}
     </div>
   );
+}
+
+function sanitizePreviewRuntimeStatusForPresenter({
+  displayTitle,
+  rawTitle,
+  showDiagnostics,
+  status
+}: {
+  displayTitle: string;
+  rawTitle: string;
+  showDiagnostics: boolean;
+  status: PreviewRuntimeStatus;
+}): PreviewRuntimeStatus {
+  if (showDiagnostics || !rawTitle.trim() || rawTitle === displayTitle) {
+    return status;
+  }
+
+  const replaceRawTitle = (value: string | undefined) =>
+    value ? value.split(rawTitle).join(displayTitle) : value;
+
+  return {
+    ...status,
+    detail: replaceRawTitle(status.detail) ?? status.detail,
+    diagnostics: status.diagnostics?.map(
+      (diagnostic) => replaceRawTitle(diagnostic) ?? diagnostic
+    ),
+    error: status.error
+      ? {
+          ...status.error,
+          debugMessage:
+            replaceRawTitle(status.error.debugMessage ?? undefined) ??
+            status.error.debugMessage,
+          suggestedAction:
+            replaceRawTitle(status.error.suggestedAction) ??
+            status.error.suggestedAction,
+          userMessage:
+            replaceRawTitle(status.error.userMessage) ?? status.error.userMessage
+        }
+      : status.error
+  };
 }

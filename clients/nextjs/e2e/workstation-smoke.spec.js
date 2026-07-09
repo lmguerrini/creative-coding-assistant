@@ -186,9 +186,12 @@ test.describe("V7.4 workstation E2E smoke", () => {
     await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue("");
     await expect(page.getByRole("region", { name: "Preview workspace" })).toHaveCount(0);
     await expect(page.getByRole("group", { name: "Empty creative workspace" })).toBeVisible();
-    await expect(page.getByRole("tab", { name: "Overview" })).toHaveAttribute(
-      "aria-selected",
-      "true"
+    await expect(page.getByRole("button", { name: "Display mode" })).toContainText(
+      "User"
+    );
+    await expect(page.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
+      "data-state",
+      "collapsed"
     );
     consoleGate.assertClean();
   });
@@ -206,7 +209,12 @@ test.describe("V7.4 workstation E2E smoke", () => {
     );
 
     await expect(page.getByText("Provider fallback completed")).toBeVisible();
-    await expect(page.getByRole("region", { name: "Preview workspace" })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Preview workspace" })).toContainText(
+      "Preview unavailable"
+    );
+    await expect(page.getByRole("region", { name: "Preview workspace" })).not.toContainText(
+      "Preview ready"
+    );
     consoleGate.assertClean();
   });
 

@@ -56,7 +56,7 @@ export type WorkspacePreferences = {
 
 export const defaultWorkspaceLayoutState: WorkspaceLayoutState = {
   density: "cozy",
-  inspectorCollapsed: false,
+  inspectorCollapsed: true,
   inspectorWidth: workspaceLayoutBounds.defaultInspectorWidth,
   previewHeight: workspaceLayoutBounds.defaultPreviewHeight
 };
@@ -64,7 +64,7 @@ export const defaultWorkspaceLayoutState: WorkspaceLayoutState = {
 export const defaultWorkspacePreferences: WorkspacePreferences = {
   theme: "codex",
   autoOpenPreview: true,
-  showDebugPanels: true
+  showDebugPanels: false
 };
 
 export type WorkspaceSessionRecord = {
@@ -318,7 +318,8 @@ export function normalizeWorkspaceLayoutState(
 ): WorkspaceLayoutState {
   return {
     density: layout?.density === "compact" ? "compact" : "cozy",
-    inspectorCollapsed: Boolean(layout?.inspectorCollapsed),
+    inspectorCollapsed:
+      layout?.inspectorCollapsed ?? defaultWorkspaceLayoutState.inspectorCollapsed,
     inspectorWidth: clampLayoutValue(
       layout?.inspectorWidth,
       workspaceLayoutBounds.minInspectorWidth,

@@ -9,11 +9,11 @@ tag, freeze, or start V9 from this roadmap.
 
 | Field | Value |
 |---|---|
-| Current task | FP-07 Demo Pack Coverage |
+| Current task | FP-08 Artifacts & Saved UX |
 | Status | ACCEPTED |
-| Scope boundary | Demo scenario capability mapping, workflow coverage, Capstone mapping, unsupported multi-agent claim audit, and focused metadata tests only |
-| Screenshot evidence | Not required unless UI coverage issues are found; FP-06 contains Demo Mode screenshots |
-| Latest task commit | FP-07 accepted; pending commit creation |
+| Scope boundary | User-facing Saved/Artifacts labels, layout, responsive readability, Code/Saved/Preview handoff, and focused UI tests only |
+| Screenshot evidence | Captured and inspected at 1440, 1024, and 720 widths |
+| Latest task commit | FP-07 accepted at `67aa6afd` |
 
 ## Status Legend
 
@@ -33,8 +33,8 @@ tag, freeze, or start V9 from this roadmap.
 | FP-04 | User Mode Excellence | Minimal User Mode; inspector closed; max 3 tabs; no technical internals; responsive layout | Looks like a consumer app | ACCEPTED | `/tmp/cca-v8-fp04-user-mode/manifest.json`; `/tmp/cca-v8-fp04-user-mode/fp04-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.tsx`; `clients/nextjs/src/app/globals.css` | Scope limited to User Mode; Developer Mode polish stays with FP-05 | `112ff182` |
 | FP-05 | Developer Mode Excellence | Full technical information; no overlap; no truncated text; readable details | Looks like a professional IDE | ACCEPTED | `/tmp/cca-v8-fp05-developer-mode/manifest.json`; `/tmp/cca-v8-fp05-developer-mode/fp05-layout-contact-sheet.png`; `clients/nextjs/src/components/preview-runtime-stage.tsx` | Developer Mode remains intentionally dense; iframe HUD disabled to avoid duplicate diagnostic overlap | `89c67105` |
 | FP-06 | Demo Mode UX | Minimal demo cards; metadata in Developer Mode; coherent categories; explicit capability; no internal terminology | Reviewer understands each demo in 5 seconds | ACCEPTED | `/tmp/cca-v8-fp06-demo-mode/manifest.json`; `/tmp/cca-v8-fp06-demo-mode/fp06-contact-sheet.png`; `clients/nextjs/src/lib/demo-mode.test.ts`; `clients/nextjs/src/components/workstation-shell.test.tsx` | Scope limited to Demo Mode UI; demo pack coverage stays with FP-07 | `1f92e6bb` |
-| FP-07 | Demo Pack Coverage | Every demo maps to a capability; single-agent; hybrid; multi-domain; retrieval; preview; output; Capstone mapping | No capability without a demo | ACCEPTED | `clients/nextjs/src/lib/demo-mode.test.ts`; `demo/final_demo_suite.json`; `clients/nextjs/src/lib/demo-mode.ts` | No live multi-agent execution path is claimed; geometry/morphogenesis remains multi-domain, not multi-agent | Pending commit creation |
-| FP-08 | Artifacts & Saved UX | Human labels; Saved browser; Code browser; Preview browser; no technical filenames; responsive layout | Artifact management is clear | NOT_STARTED | TBD | TBD | TBD |
+| FP-07 | Demo Pack Coverage | Every demo maps to a capability; single-agent; hybrid; multi-domain; retrieval; preview; output; Capstone mapping | No capability without a demo | ACCEPTED | `clients/nextjs/src/lib/demo-mode.test.ts`; `demo/final_demo_suite.json`; `clients/nextjs/src/lib/demo-mode.ts` | No live multi-agent execution path is claimed; geometry/morphogenesis remains multi-domain, not multi-agent | `67aa6afd` |
+| FP-08 | Artifacts & Saved UX | Human labels; Saved browser; Code browser; Preview browser; no technical filenames; responsive layout | Artifact management is clear | ACCEPTED | `/tmp/cca-v8-fp08-artifacts-saved/manifest.json`; `/tmp/cca-v8-fp08-artifacts-saved/fp08-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.test.tsx`; `clients/nextjs/e2e/workstation-smoke.spec.js` | Developer Mode may show raw filenames; User Mode uses human labels and hides raw artifact filenames | Pending FP-08 commit |
 | FP-09 | Input Composer UX | Codex/ChatGPT-style composer; minimal plus; bottom send; auto-grow; no status clutter; no overlap | Composer matches Codex philosophy | NOT_STARTED | TBD | TBD | TBD |
 | FP-10 | Codex Design System | Codex philosophy across typography, whitespace, flat surfaces, hierarchy, interactions; theme changes only colors | App feels part of Codex ecosystem | NOT_STARTED | TBD | TBD | TBD |
 | FP-11 | Typography & Layout QA | Fix glued words; overflow; line wrapping; subtitles; cards; padding; margins | No visible typography defects | NOT_STARTED | TBD | Human screenshots override automated checks | TBD |
@@ -367,3 +367,54 @@ Contact sheet: `/tmp/cca-v8-fp06-demo-mode/fp06-contact-sheet.png`.
 | Public docs/demo claim scan | Passed: no matches for forbidden public product terms in `README.md`, `docs/`, or `demo` excluding internal review roadmaps |
 | Hygiene | Passed: `git diff --check`; Runtime Pack private directories remain ignored |
 | Accepted boundary | FP-07 verifies multi-domain and planning coverage, but does not claim live multi-agent execution |
+
+## FP-08 Acceptance Criteria
+
+- User Mode Saved, Code, and Preview surfaces use human-facing labels instead of
+  raw artifact filenames.
+- Saved outputs remain readable at 1440, 1024, and 720 widths without cropped or
+  overlapping artifact labels.
+- Code remains available through the Code panel while long generated source is
+  kept out of the User Mode chat.
+- Preview routes to the Preview panel and hides raw runtime source titles in
+  User Mode.
+- Developer Mode keeps raw filenames and full artifact metadata for debugging.
+- First-run User Mode keeps the right inspector collapsed by default.
+
+## FP-08 Artifacts & Saved Audit Notes
+
+- User Mode now treats `Saved` as the artifact browser while Developer Mode
+  keeps the technical `Artifacts` tab.
+- Preview runtime status, diagnostics, and user-facing runtime errors replace
+  raw source titles with the sanitized preview surface title when diagnostics are
+  hidden.
+- First-run workspace defaults now prefer User Mode minimalism: inspector
+  collapsed and debug panels hidden unless Developer Mode is requested.
+- E2E smoke expectations were updated to validate the accepted User Mode
+  contract: collapsed inspector by default, human artifact labels in Saved,
+  no raw filenames in User Preview/Saved, and retrieval internals available only
+  after switching to Developer Mode.
+
+## FP-08 Screenshot Evidence
+
+| Width | Saved | Code | Preview | Developer artifacts |
+|---|---|---|---|---|
+| 1440 | `/tmp/cca-v8-fp08-artifacts-saved/fp08-user-saved-1440.png` | `/tmp/cca-v8-fp08-artifacts-saved/fp08-user-code-1440.png` | `/tmp/cca-v8-fp08-artifacts-saved/fp08-user-preview-1440.png` | `/tmp/cca-v8-fp08-artifacts-saved/fp08-developer-artifacts-1440.png` |
+| 1024 | `/tmp/cca-v8-fp08-artifacts-saved/fp08-user-saved-1024.png` | `/tmp/cca-v8-fp08-artifacts-saved/fp08-user-code-1024.png` | `/tmp/cca-v8-fp08-artifacts-saved/fp08-user-preview-1024.png` | `/tmp/cca-v8-fp08-artifacts-saved/fp08-developer-artifacts-1024.png` |
+| 720 | `/tmp/cca-v8-fp08-artifacts-saved/fp08-user-saved-720.png` | `/tmp/cca-v8-fp08-artifacts-saved/fp08-user-code-720.png` | `/tmp/cca-v8-fp08-artifacts-saved/fp08-user-preview-720.png` | `/tmp/cca-v8-fp08-artifacts-saved/fp08-developer-artifacts-720.png` |
+
+Contact sheet: `/tmp/cca-v8-fp08-artifacts-saved/fp08-contact-sheet.png`.
+
+## FP-08 Validation Evidence
+
+| Check | Result |
+|---|---|
+| Screenshot capture | Passed: User Saved, User Code, User Preview, and Developer Artifacts captured at 1440, 1024, and 720 widths |
+| Screenshot human inspection | Passed: User Mode uses human labels and avoids raw filenames/cropped artifact cards; Developer Mode remains dense but readable |
+| Focused frontend tests | Passed: `npx vitest run src/components/workstation-shell.test.tsx src/lib/workspace-persistence.test.ts src/lib/preview-sandbox-runtime.test.ts` (`112` tests) |
+| Typecheck | Passed: `npm run typecheck` |
+| Playwright smoke | Passed after sandbox rerun with local server permission: `npm run test:e2e:smoke` (`8` tests) |
+| Public docs/demo claim scan | Passed: no matches for forbidden public product terms in `README.md`, `docs/`, or `demo` excluding internal review roadmaps |
+| Docs Mermaid check | Passed: `.venv/bin/python scripts/v7_quality_gates.py docs-mermaid` |
+| Hygiene | Passed: `git diff --check`; Runtime Pack private directories remain ignored |
+| Accepted boundary | Developer Mode intentionally keeps raw filenames and full artifact metadata; FP-12 owns broader panel ecosystem coordination |

@@ -135,16 +135,23 @@ async function submitCreativePrompt(page, prompt) {
 
 async function expectGeneratedPreview(page) {
   await expect(page.getByRole("region", { name: "Preview workspace" })).toBeVisible();
+  await expandInspectorIfCollapsed(page);
   await expect(page.getByRole("tab", { name: "Preview" })).toHaveAttribute(
     "aria-selected",
     "true"
   );
   await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
+    "P5 sketch surface"
+  );
+  await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).not.toContainText(
     "e2e-orbit-sketch.p5.js"
   );
-  await expect(page.getByRole("tab", { name: "Artifacts" })).toBeVisible();
-  await page.getByRole("tab", { name: "Artifacts" }).click();
-  await expect(page.getByRole("tabpanel", { name: "Artifacts inspector" })).toContainText(
+  await expect(page.getByRole("tab", { name: "Saved" })).toBeVisible();
+  await page.getByRole("tab", { name: "Saved" }).click();
+  await expect(page.getByRole("tabpanel", { name: "Saved outputs inspector" })).toContainText(
+    "P5 Sketch"
+  );
+  await expect(page.getByRole("tabpanel", { name: "Saved outputs inspector" })).not.toContainText(
     "e2e-orbit-sketch.p5.js"
   );
   await page.getByRole("tab", { name: "Code" }).click();
@@ -164,6 +171,7 @@ async function expectWorkspacePersistence(page) {
 }
 
 async function expectRetrievalRegressionSurface(page) {
+  await switchToDeveloperMode(page);
   await page.getByRole("tab", { name: "Retrieval" }).click();
   await expect(page.getByRole("tabpanel", { name: "Retrieval inspector" })).toContainText(
     "p5.js createCanvas reference"
@@ -178,15 +186,34 @@ async function expectStableVisualLayout(page) {
   await expect(session).toBeVisible();
   await expect(inspector).toBeVisible();
 
-  const boxes = await Promise.all([
+  const [workspaceBox, sessionBox, inspectorBox] = await Promise.all([
     workspace.boundingBox(),
     session.boundingBox(),
     inspector.boundingBox()
   ]);
-  for (const box of boxes) {
+  for (const box of [workspaceBox, sessionBox]) {
     expect(box?.width).toBeGreaterThan(240);
     expect(box?.height).toBeGreaterThan(240);
   }
+  expect(inspectorBox?.height).toBeGreaterThan(240);
+  const inspectorState = await inspector.getAttribute("data-state");
+  expect(inspectorBox?.width).toBeGreaterThan(inspectorState === "collapsed" ? 40 : 240);
+}
+
+async function expandInspectorIfCollapsed(page) {
+  const expandInspector = page.getByRole("button", { name: "Expand inspector" });
+  if (await expandInspector.isVisible().catch(() => false)) {
+    await expandInspector.click();
+  }
+}
+
+async function switchToDeveloperMode(page) {
+  const displayMode = page.getByRole("button", { name: "Display mode" });
+  const label = await displayMode.textContent();
+  if (label?.includes("User")) {
+    await displayMode.click();
+  }
+  await expect(displayMode).toContainText("Developer");
 }
 
 async function handleWorkspaceSessionRoute(route, request) {
