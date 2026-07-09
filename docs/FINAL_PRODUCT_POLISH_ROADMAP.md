@@ -9,11 +9,11 @@ tag, freeze, or start V9 from this roadmap.
 
 | Field | Value |
 |---|---|
-| Current task | FP-03 Chat UX Excellence |
+| Current task | FP-04 User Mode Excellence |
 | Status | ACCEPTED |
-| Scope boundary | User Mode assistant message readability, generated-code suppression in chat, Code/Artifacts/Preview routing evidence, and focused regression coverage only |
-| Screenshot evidence | `/tmp/cca-v8-fp03-chat-ux/fp03-focused-contact-sheet.png`; focused chat/code/saved/preview captures at 1440, 1024, and 720 widths |
-| Latest task commit | Pending FP-03 commit creation |
+| Scope boundary | User Mode default layout, essential-tab inspector boundary, technical-internals hiding, and responsive User Mode screenshot audit only |
+| Screenshot evidence | `/tmp/cca-v8-fp04-user-mode/fp04-contact-sheet.png`; default/expanded/generated User Mode captures at 1440, 1024, and 720 widths |
+| Latest task commit | Pending FP-04 commit creation |
 
 ## Status Legend
 
@@ -29,8 +29,8 @@ tag, freeze, or start V9 from this roadmap.
 |---|---|---|---|---|---|---|---|
 | FP-01 | Artifact & Workspace Integrity | Audit artifacts; audit untracked files; clean repository; no orphan artifacts; workspace integrity | Git clean; artifact ledger coherent | ACCEPTED | `demo/golden_artifacts/qa_manifest.json`; `demo/final_demo_suite.json`; `tests/test_golden_artifacts.py`; FP-01 validation log in task final response | No visual screenshots needed; `.runtime_pack/` private ignored copy is not public release evidence | `22414b2b8e5f42bcc729f09e06736512ad71a6aa` |
 | FP-02 | Preview UX Excellence | Preview unavailable redesign; preview available canvas-first; eliminate User Mode HUD; overlay controls; no huge black canvas; no User Mode debug boxes | Preview looks like a real artistic canvas | ACCEPTED | `/tmp/cca-v8-fp02-preview-ux/manifest.json`; preview-region contact sheets at 1440, 1024, and 720 widths; `clients/nextjs/src/components/workstation-shell.test.tsx`; `clients/nextjs/src/lib/preview-sandbox-runtime.test.ts` | Developer Mode may show diagnostics; FP-05 owns full Developer Mode polish | `edd9adbe7fca48dfe8b9331eef13ce61eaab8173` |
-| FP-03 | Chat UX Excellence | No HTML/JS/GLSL dumps; summary only; code to Code panel; artifact to Artifacts; preview to Preview | Chat readable like ChatGPT | ACCEPTED | `/tmp/cca-v8-fp03-chat-ux/focused-manifest.json`; `/tmp/cca-v8-fp03-chat-ux/fp03-focused-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.test.tsx` | User Mode uses the product-facing `Saved` tab for artifact routing; broader panel visual polish stays with FP-04/FP-08/FP-12 | Pending commit creation |
-| FP-04 | User Mode Excellence | Minimal User Mode; inspector closed; max 3 tabs; no technical internals; responsive layout | Looks like a consumer app | NOT_STARTED | TBD | TBD | TBD |
+| FP-03 | Chat UX Excellence | No HTML/JS/GLSL dumps; summary only; code to Code panel; artifact to Artifacts; preview to Preview | Chat readable like ChatGPT | ACCEPTED | `/tmp/cca-v8-fp03-chat-ux/focused-manifest.json`; `/tmp/cca-v8-fp03-chat-ux/fp03-focused-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.test.tsx` | User Mode uses the product-facing `Saved` tab for artifact routing; broader panel visual polish stays with FP-04/FP-08/FP-12 | `17d976d9` |
+| FP-04 | User Mode Excellence | Minimal User Mode; inspector closed; max 3 tabs; no technical internals; responsive layout | Looks like a consumer app | ACCEPTED | `/tmp/cca-v8-fp04-user-mode/manifest.json`; `/tmp/cca-v8-fp04-user-mode/fp04-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.tsx`; `clients/nextjs/src/app/globals.css` | Scope limited to User Mode; Developer Mode polish stays with FP-05 | Pending commit creation |
 | FP-05 | Developer Mode Excellence | Full technical information; no overlap; no truncated text; readable details | Looks like a professional IDE | NOT_STARTED | TBD | Developer Mode may be denser than User Mode | TBD |
 | FP-06 | Demo Mode UX | Minimal demo cards; metadata in Developer Mode; coherent categories; explicit capability; no internal terminology | Reviewer understands each demo in 5 seconds | NOT_STARTED | TBD | TBD | TBD |
 | FP-07 | Demo Pack Coverage | Every demo maps to a capability; single-agent; hybrid; multi-domain; retrieval; preview; output; Capstone mapping | No capability without a demo | NOT_STARTED | TBD | Multi-agent must not be claimed unless live path is validated | TBD |
@@ -183,3 +183,52 @@ Contact sheet: `/tmp/cca-v8-fp03-chat-ux/fp03-focused-contact-sheet.png`.
 | Docs Mermaid check | Not applicable: no Mermaid blocks in touched docs |
 | Hygiene | Passed: `git diff --check`; Runtime Pack private directories remain ignored |
 | Accepted boundary | FP-03 proves chat/code routing; FP-04, FP-08, and FP-12 own broader User Mode, Saved, and panel ecosystem visual polish |
+
+## FP-04 Acceptance Criteria
+
+- User Mode opens with the right inspector collapsed.
+- User Mode topbar uses human status copy and hides provider/token telemetry.
+- Expanded User Mode inspector shows only Preview, Code, and Saved tabs.
+- User Mode hides Overview, Runtime, Workflow, Telemetry, Retrieval, Artifacts,
+  raw IDs, trace metadata, and runtime diagnostics.
+- User Mode responsive layouts remain readable at 1440, 1024, and 720 widths.
+- Human-visible screenshots are inspected before acceptance.
+
+## FP-04 User Mode Audit Notes
+
+- Browser screenshots found a real wide-screen blocker: the collapsed inspector
+  rail still reserved the full inspector column, making the main workspace feel
+  like a dense dashboard.
+- The collapsed desktop inspector now renders as a compact overlay rail while
+  the main workspace reclaims the layout width.
+- The existing laptop/mobile stacked collapsed-inspector behavior is preserved.
+- User Mode session status now shows `Ready / Start a prompt`,
+  `Working / Generating response`, `Complete / Output ready`, or a compact
+  attention state instead of workflow steps or provider/token telemetry.
+- Empty-state copy now uses `Ways to work` and saved-output language rather than
+  visible workflow-state terminology.
+- Developer Mode retains diagnostic tabs and provider/usage metadata by design;
+  FP-05 owns Developer Mode visual polish.
+
+## FP-04 Screenshot Evidence
+
+| Width | Default User Mode | Expanded User Inspector | Generated Output User Mode |
+|---|---|---|---|
+| 1440 | `/tmp/cca-v8-fp04-user-mode/fp04-user-default-1440.png` | `/tmp/cca-v8-fp04-user-mode/fp04-user-expanded-1440.png` | `/tmp/cca-v8-fp04-user-mode/fp04-user-generated-1440.png` |
+| 1024 | `/tmp/cca-v8-fp04-user-mode/fp04-user-default-1024.png` | `/tmp/cca-v8-fp04-user-mode/fp04-user-expanded-1024.png` | `/tmp/cca-v8-fp04-user-mode/fp04-user-generated-1024.png` |
+| 720 | `/tmp/cca-v8-fp04-user-mode/fp04-user-default-720.png` | `/tmp/cca-v8-fp04-user-mode/fp04-user-expanded-720.png` | `/tmp/cca-v8-fp04-user-mode/fp04-user-generated-720.png` |
+
+Contact sheet: `/tmp/cca-v8-fp04-user-mode/fp04-contact-sheet.png`.
+
+## FP-04 Validation Evidence
+
+| Check | Result |
+|---|---|
+| Focused User Mode tests | Passed: `npx vitest run src/components/workstation-shell.test.tsx --testNamePattern "User Mode inspector\|compact User Mode fallback\|restores a persisted workspace session"` (`3` tests) |
+| Full workstation tests | Passed: `npx vitest run src/components/workstation-shell.test.tsx` (`84` tests) |
+| Typecheck | Passed: `npm run typecheck` |
+| Playwright screenshot capture | Passed: default, expanded-inspector, and generated-output User Mode captures at 1440, 1024, and 720 widths |
+| Playwright smoke | Passed: `npm run test:e2e:smoke` (`8` tests) |
+| Public docs/demo claim scan | Passed: no matches for forbidden public product terms in `README.md`, `docs/`, or `demo/` excluding internal review roadmaps |
+| Hygiene | Passed: `git diff --check`; Runtime Pack private directories remain ignored |
+| Accepted boundary | User Mode is clean and responsive; Developer Mode density and diagnostics remain in scope for FP-05 |

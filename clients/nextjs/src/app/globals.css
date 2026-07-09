@@ -899,6 +899,7 @@ a {
 }
 
 .workspaceLayout {
+  position: relative;
   display: grid;
   min-height: 0;
   grid-template-columns:
@@ -911,7 +912,17 @@ a {
 }
 
 .workstation[data-inspector-state="collapsed"] .workspaceLayout {
-  grid-template-columns: minmax(0, 1fr) 0 minmax(0, var(--inspector-rail-width));
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.workstation[data-inspector-state="collapsed"] .mainColumn {
+  padding-right: calc(var(--inspector-rail-width) + 16px);
+}
+
+.workstation[data-inspector-state="collapsed"] .inspector {
+  position: absolute;
+  inset: 18px 18px 18px auto;
+  z-index: 3;
 }
 
 .workstation[data-focus-mode="true"] .workspaceLayout {
@@ -1691,7 +1702,8 @@ a {
 .emptyWorkspace {
   display: grid;
   gap: 18px;
-  max-width: 860px;
+  justify-self: center;
+  width: min(100%, 1120px);
   padding: clamp(20px, 4vw, 34px);
   border: 1px solid rgba(var(--accent-rgb), 0.2);
   border-radius: 28px;
@@ -3229,6 +3241,9 @@ a {
 
 .inspector[data-state="collapsed"] {
   grid-template-rows: minmax(0, 1fr);
+  min-width: 0;
+  width: var(--inspector-rail-width);
+  max-width: var(--inspector-rail-width);
   background:
     linear-gradient(180deg, rgba(var(--accent-rgb), 0.09), transparent 100px),
     var(--panel-strong);
@@ -11050,10 +11065,15 @@ html[data-cca-theme="blueprint"] .codeViewer {
 
   .mainColumn {
     grid-row: 1;
+    padding-right: 0;
   }
 
   .inspector {
+    position: static;
+    inset: auto;
     grid-row: 2;
+    width: auto;
+    max-width: none;
   }
 
   .inspector[data-state="collapsed"] {

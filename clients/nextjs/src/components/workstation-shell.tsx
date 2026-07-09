@@ -1181,6 +1181,18 @@ export function WorkstationShell({
   const sessionStatusDetail = blockingApprovalRequest
     ? blockingApprovalRequest.title
     : workstationState.status.detail;
+  const userSessionStatus = formatUserModeSessionStatus({
+    hasWorkspaceArtifacts,
+    isDemoModeOpen,
+    streamError,
+    streamState
+  });
+  const visibleSessionStatusLabel = workspacePreferences.showDebugPanels
+    ? sessionStatusLabel
+    : userSessionStatus.label;
+  const visibleSessionStatusDetail = workspacePreferences.showDebugPanels
+    ? sessionStatusDetail
+    : userSessionStatus.detail;
   const workspaceLayoutStyle = useMemo(
     () =>
       ({
@@ -2687,9 +2699,11 @@ export function WorkstationShell({
           aria-label="Current session"
           data-state={streamState}
         >
-          <span>{sessionStatusLabel}</span>
-          <strong>{sessionStatusDetail}</strong>
-          <small>{formatSessionTelemetryLabel(providerTelemetry)}</small>
+          <span>{visibleSessionStatusLabel}</span>
+          <strong>{visibleSessionStatusDetail}</strong>
+          {workspacePreferences.showDebugPanels ? (
+            <small>{formatSessionTelemetryLabel(providerTelemetry)}</small>
+          ) : null}
         </div>
 
         <div
@@ -3368,9 +3382,9 @@ function EmptyWorkspaceState({
     "React Three Fiber scenes"
   ];
   const workflowExamples = [
-    "Brief -> generate -> preview -> refine",
-    "Attach image references -> match palette -> export bundle",
-    "Ground with references -> inspect workflow -> iterate"
+    "Brief -> create -> preview -> refine",
+    "Add image references -> match palette -> export bundle",
+    "Ground with references -> compare sources -> iterate"
   ];
 
   return (
@@ -3384,7 +3398,7 @@ function EmptyWorkspaceState({
         <strong>Describe the visual system you want to build.</strong>
         <p>
           Start with mood, medium, constraints, or references. Generated code,
-          preview, retrieval, and workflow state will appear as the session runs.
+          preview, references, and saved outputs will appear as the session runs.
         </p>
       </header>
 
@@ -3409,8 +3423,8 @@ function EmptyWorkspaceState({
             ))}
           </div>
         </section>
-        <section aria-label="Example workflows">
-          <span>Workflows</span>
+        <section aria-label="Ways to work">
+          <span>Ways to work</span>
           <div>
             {workflowExamples.map((workflow) => (
               <small key={workflow}>{workflow}</small>
@@ -7046,6 +7060,56 @@ function formatSessionTelemetryLabel(telemetry: ProviderTelemetryModel) {
   }
 
   return `${telemetry.summary.providerLabel} / ${telemetry.summary.tokenLabel}`;
+}
+
+function formatUserModeSessionStatus({
+  hasWorkspaceArtifacts,
+  isDemoModeOpen,
+  streamError,
+  streamState
+}: {
+  hasWorkspaceArtifacts: boolean;
+  isDemoModeOpen: boolean;
+  streamError: WorkstationError | null;
+  streamState: string;
+}) {
+  switch (streamState) {
+    case "approval":
+      return {
+        label: "Needs review",
+        detail: "Action required"
+      };
+    case "executing":
+    case "streaming":
+      return {
+        label: "Working",
+        detail: "Generating response"
+      };
+    case "fallback":
+      return {
+        label: "Needs attention",
+        detail: streamError ? "Live response unavailable" : "Fallback available"
+      };
+    default:
+      if (hasWorkspaceArtifacts) {
+        return {
+          label: "Complete",
+          detail: "Output ready"
+        };
+      }
+
+      if (isDemoModeOpen) {
+        return {
+          label: "Demo ready",
+          detail: "Choose a scenario"
+        };
+      }
+
+      return {
+        label: "Ready",
+        detail: "Start a prompt"
+      };
+  }
 }
 
 function formatTokenUsageTotal(telemetry: ProviderTelemetryModel) {

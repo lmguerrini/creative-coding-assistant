@@ -1072,6 +1072,12 @@ describe("WorkstationShell", () => {
         "collapsed"
       )
     );
+    expect(screen.getByLabelText("Current session")).toHaveTextContent(
+      "Demo ready"
+    );
+    expect(screen.getByLabelText("Current session")).not.toHaveTextContent(
+      /Provider|Usage|Telemetry|Finalization|Workflow/i
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Expand inspector" }));
 
@@ -1141,7 +1147,9 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
     expect(screen.getByText("New creative session")).toBeVisible();
     expect(screen.getByText("p5.js sketches")).toBeVisible();
-    expect(screen.getByText("Brief -> generate -> preview -> refine")).toBeVisible();
+    expect(screen.getByText("Brief -> create -> preview -> refine")).toBeVisible();
+    expect(screen.getByText("Ways to work")).toBeVisible();
+    expect(screen.queryByText("Workflows")).not.toBeInTheDocument();
     expect(screen.queryByText(/aurora/i)).not.toBeInTheDocument();
     expect(screen.queryByText("Session persistence issue")).not.toBeInTheDocument();
     expect(
