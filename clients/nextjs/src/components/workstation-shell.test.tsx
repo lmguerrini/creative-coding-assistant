@@ -1199,9 +1199,15 @@ describe("WorkstationShell", () => {
       screen.getByRole("group", { name: "Empty creative workspace" })
     ).toBeVisible();
     expect(screen.getByText("New creative session")).toBeVisible();
+    expect(screen.getByText("Build browser-native visuals")).toBeVisible();
+    expect(screen.getByText("Ground answers in official sources")).toBeVisible();
+    expect(screen.getByText("Preview, refine, and save artifacts")).toBeVisible();
+    expect(screen.getByText("Support creative-coding workflows")).toBeVisible();
     expect(screen.getByText("p5.js sketches")).toBeVisible();
-    expect(screen.getByText("Brief -> create -> preview -> refine")).toBeVisible();
+    expect(screen.getByText("Describe a visual system")).toBeVisible();
+    expect(screen.getByText("Generate browser-safe code")).toBeVisible();
     expect(screen.getByText("Ways to work")).toBeVisible();
+    expect(screen.getByText("How it works")).toBeVisible();
     expect(screen.queryByText("Workflows")).not.toBeInTheDocument();
     expect(screen.queryByText(/aurora/i)).not.toBeInTheDocument();
     expect(screen.queryByText("Session persistence issue")).not.toBeInTheDocument();
@@ -1227,11 +1233,11 @@ describe("WorkstationShell", () => {
 
     fireEvent.click(
       screen.getByRole("button", {
-        name: "Create a p5.js particle field that feels like slow bioluminescent drift."
+        name: "Create a p5.js flow-field particle system with soft trails and interaction controls."
       })
     );
     expect(screen.getByLabelText("Assistant prompt")).toHaveValue(
-      "Create a p5.js particle field that feels like slow bioluminescent drift."
+      "Create a p5.js flow-field particle system with soft trails and interaction controls."
     );
   });
 

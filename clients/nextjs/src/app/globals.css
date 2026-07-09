@@ -1052,8 +1052,9 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .sessionHeader p {
-  max-width: 52ch;
+  max-width: none;
   margin-top: 14px;
+  white-space: nowrap;
 }
 
 .sessionMetric {
@@ -1769,6 +1770,37 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   line-height: 1.6;
 }
 
+.emptyWorkspaceValue {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.emptyWorkspaceValue article {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.08), transparent 72%),
+    rgba(255, 255, 255, 0.035);
+  box-shadow: var(--panel-highlight);
+}
+
+.emptyWorkspaceValue strong {
+  color: var(--foreground);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.emptyWorkspaceValue span {
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .emptyWorkspaceSuggestions {
   display: grid;
   gap: 10px;
@@ -1838,6 +1870,37 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   background: rgba(255, 255, 255, 0.04);
   font-size: 11px;
   line-height: 1.2;
+}
+
+.emptyWorkspaceLearnMore {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.emptyWorkspaceLearnMore summary {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 14px;
+  color: var(--muted-strong);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.emptyWorkspaceLearnMore summary::marker {
+  color: var(--muted);
+}
+
+.emptyWorkspaceLearnMore p {
+  margin: 0;
+  padding: 0 14px 14px;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .message {
@@ -11150,6 +11213,14 @@ html[data-cca-theme="blueprint"] .codeViewer {
 }
 
 @media (max-width: 980px) {
+  .sessionHeader p {
+    white-space: normal;
+  }
+
+  .emptyWorkspaceValue {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .demoModeBody {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -11267,6 +11338,14 @@ html[data-cca-theme="blueprint"] .codeViewer {
   .sessionMetric {
     width: 100%;
     min-width: 0;
+  }
+
+  .emptyWorkspace {
+    padding: 18px;
+  }
+
+  .emptyWorkspaceValue {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .demoModeHeader,

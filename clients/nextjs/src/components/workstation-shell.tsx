@@ -564,12 +564,21 @@ export function WorkstationShell({
 
   useEffect(() => {
     const chatLog = chatLogRef.current;
-    if (!chatLog || !shouldAutoScrollRef.current) {
+    if (!chatLog) {
+      return;
+    }
+
+    if (conversationEntries.length === 0 && !isStreaming && !isDemoModeOpen) {
+      chatLog.scrollTop = 0;
+      return;
+    }
+
+    if (!shouldAutoScrollRef.current) {
       return;
     }
 
     chatLog.scrollTop = chatLog.scrollHeight;
-  }, [conversationEntries]);
+  }, [conversationEntries, isDemoModeOpen, isStreaming]);
 
   useEffect(() => {
     const activeApproval = summarizeHitlApprovalRequests(approvalRequests).activeRequest;
@@ -2889,8 +2898,8 @@ export function WorkstationShell({
                   <span className="eyebrow">Creative session</span>
                   <h1>{snapshot.workspace.focus}</h1>
                   <p>
-                    Generate, refine, and open artifacts without leaving the current
-                    workspace flow.
+                    Generate, refine, preview, and save browser-native creative
+                    coding artifacts in one workspace.
                   </p>
                 </div>
                 <div
@@ -3411,21 +3420,40 @@ function EmptyWorkspaceState({
 }: {
   onSelectPrompt: (prompt: string) => void;
 }) {
+  const valueHighlights = [
+    {
+      title: "Build browser-native visuals",
+      detail: "Create p5.js, Three.js, GLSL, and Hydra-ready artifacts."
+    },
+    {
+      title: "Ground answers in official sources",
+      detail: "Use retrieval context when source-backed guidance matters."
+    },
+    {
+      title: "Preview, refine, and save artifacts",
+      detail: "Move from prompt to Code, Preview, and Saved outputs."
+    },
+    {
+      title: "Support creative-coding workflows",
+      detail: "Plan sketches, shaders, visual systems, and installations."
+    }
+  ];
   const promptSuggestions = [
-    "Create a p5.js particle field that feels like slow bioluminescent drift.",
-    "Design a Three.js kinetic sculpture with camera motion and soft studio lighting.",
+    "Create a p5.js flow-field particle system with soft trails and interaction controls.",
+    "Design a Three.js kinetic sculpture with camera motion and audio-reactive lighting.",
     "Generate a GLSL fragment shader with liquid glass refraction and restrained color."
   ];
   const domainExamples = [
     "p5.js sketches",
     "Three.js scenes",
     "GLSL shaders",
-    "React Three Fiber scenes"
+    "Hydra patterns"
   ];
   const workflowExamples = [
-    "Brief -> create -> preview -> refine",
-    "Add image references -> match palette -> export bundle",
-    "Ground with references -> compare sources -> iterate"
+    "Describe a visual system",
+    "Generate browser-safe code",
+    "Preview and refine",
+    "Save or export artifacts"
   ];
 
   return (
@@ -3438,10 +3466,20 @@ function EmptyWorkspaceState({
         <span className="eyebrow">New creative session</span>
         <strong>Describe the visual system you want to build.</strong>
         <p>
-          Start with mood, medium, constraints, or references. Generated code,
-          preview, references, and saved outputs will appear as the session runs.
+          Start with an idea, medium, constraint, or reference. Creative Coding
+          Assistant turns it into grounded guidance, generated code, previewable
+          artifacts, and saved outputs.
         </p>
       </header>
+
+      <section className="emptyWorkspaceValue" aria-label="Product capabilities">
+        {valueHighlights.map((item) => (
+          <article key={item.title}>
+            <strong>{item.title}</strong>
+            <span>{item.detail}</span>
+          </article>
+        ))}
+      </section>
 
       <div className="emptyWorkspaceSuggestions" aria-label="Prompt suggestions">
         {promptSuggestions.map((prompt) => (
@@ -3473,6 +3511,16 @@ function EmptyWorkspaceState({
           </div>
         </section>
       </div>
+
+      <details className="emptyWorkspaceLearnMore">
+        <summary>How it works</summary>
+        <p>
+          Prompt the assistant, inspect concise chat guidance, open generated
+          code in Code, review visual output in Preview, and keep useful results
+          in Saved. Developer Mode exposes retrieval, workflow, and telemetry
+          details when you need the engineering trace.
+        </p>
+      </details>
     </article>
   );
 }
