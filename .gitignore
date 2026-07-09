@@ -20,6 +20,7 @@ codex_starter_pack/
 _project_context/
 version_reviews/
 engineering_reviews/
+docs/JUNIE_INDEPENDENT_AUDIT_REPORT.md
 *.runtime-pack.zip
 *_context_pack.zip
 
