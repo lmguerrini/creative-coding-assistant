@@ -101,4 +101,81 @@ describe("demo mode scenarios", () => {
       "three-audio-reactive-visual-system"
     );
   });
+
+  it("keeps the final demo pack mapped to Capstone capabilities and evidence", () => {
+    const capabilities = new Set(
+      demoModeScenarios.map((scenario) => scenario.recommendedForDemo)
+    );
+    expect(capabilities).toEqual(
+      new Set([
+        "3D visual system",
+        "Generative growth system",
+        "Shader validation",
+        "Feedback-pattern runtime",
+        "Source-grounded answer",
+        "Concept translation",
+        "Multi-runtime morphogenesis",
+        "Installation planning"
+      ])
+    );
+
+    expect(
+      demoModeScenarios.some((scenario) =>
+        scenario.workflowType.toLowerCase().includes("single-domain")
+      )
+    ).toBe(true);
+    expect(
+      demoModeScenarios.some((scenario) =>
+        scenario.workflowType.toLowerCase().includes("hybrid")
+      )
+    ).toBe(true);
+    expect(
+      demoModeScenarios.some((scenario) =>
+        scenario.workflowType.toLowerCase().includes("multi-domain")
+      )
+    ).toBe(true);
+    expect(
+      demoModeScenarios.some((scenario) =>
+        scenario.workflowType.toLowerCase().includes("planning")
+      )
+    ).toBe(true);
+
+    for (const scenario of demoModeScenarios) {
+      expect(scenario.retrievalRequirement).toMatch(
+        /retrieved contexts|ragas/i
+      );
+      expect(scenario.previewAvailability).toBeTruthy();
+      expect(scenario.fallbackAvailability).toBeTruthy();
+      expect(scenario.expectedOutput).toBeTruthy();
+      expect(scenario.presentationTime).toMatch(/\d/);
+      expect(scenario.talkingPoint).toBeTruthy();
+      expect(scenario.evidence.length).toBeGreaterThanOrEqual(2);
+      expect(scenario.sourceBoundary).toBeTruthy();
+      expect(scenario.validationPath).toBeTruthy();
+    }
+  });
+
+  it("does not present multi-domain planning as live multi-agent execution", () => {
+    const appFacingText = demoModeScenarios
+      .flatMap((scenario) => [
+        scenario.title,
+        scenario.description,
+        scenario.category,
+        scenario.runtime,
+        scenario.prompt,
+        scenario.workflowType,
+        scenario.expectedOutput,
+        scenario.expectedBehavior,
+        scenario.outputGuidance,
+        scenario.sourceBoundary,
+        scenario.validationPath,
+        ...scenario.evidence
+      ])
+      .join("\n");
+
+    expect(appFacingText).not.toMatch(/live multi-agent/i);
+    expect(appFacingText).not.toMatch(/critic[- ]refinement/i);
+    expect(appFacingText).not.toMatch(/studio mode/i);
+    expect(appFacingText).not.toMatch(/multi-agent execution/i);
+  });
 });

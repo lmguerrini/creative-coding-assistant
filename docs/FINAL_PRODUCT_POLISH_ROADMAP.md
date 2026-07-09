@@ -9,11 +9,11 @@ tag, freeze, or start V9 from this roadmap.
 
 | Field | Value |
 |---|---|
-| Current task | FP-06 Demo Mode UX |
+| Current task | FP-07 Demo Pack Coverage |
 | Status | ACCEPTED |
-| Scope boundary | Integrated Demo Mode card density, category labels, capability clarity, User/Developer metadata boundary, and screenshot audit only |
-| Screenshot evidence | `/tmp/cca-v8-fp06-demo-mode/fp06-contact-sheet.png`; User and Developer Demo Mode captures at 1440, 1024, and 720 widths |
-| Latest task commit | Pending FP-06 commit creation |
+| Scope boundary | Demo scenario capability mapping, workflow coverage, Capstone mapping, unsupported multi-agent claim audit, and focused metadata tests only |
+| Screenshot evidence | Not required unless UI coverage issues are found; FP-06 contains Demo Mode screenshots |
+| Latest task commit | FP-07 accepted; pending commit creation |
 
 ## Status Legend
 
@@ -32,8 +32,8 @@ tag, freeze, or start V9 from this roadmap.
 | FP-03 | Chat UX Excellence | No HTML/JS/GLSL dumps; summary only; code to Code panel; artifact to Artifacts; preview to Preview | Chat readable like ChatGPT | ACCEPTED | `/tmp/cca-v8-fp03-chat-ux/focused-manifest.json`; `/tmp/cca-v8-fp03-chat-ux/fp03-focused-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.test.tsx` | User Mode uses the product-facing `Saved` tab for artifact routing; broader panel visual polish stays with FP-04/FP-08/FP-12 | `17d976d9` |
 | FP-04 | User Mode Excellence | Minimal User Mode; inspector closed; max 3 tabs; no technical internals; responsive layout | Looks like a consumer app | ACCEPTED | `/tmp/cca-v8-fp04-user-mode/manifest.json`; `/tmp/cca-v8-fp04-user-mode/fp04-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.tsx`; `clients/nextjs/src/app/globals.css` | Scope limited to User Mode; Developer Mode polish stays with FP-05 | `112ff182` |
 | FP-05 | Developer Mode Excellence | Full technical information; no overlap; no truncated text; readable details | Looks like a professional IDE | ACCEPTED | `/tmp/cca-v8-fp05-developer-mode/manifest.json`; `/tmp/cca-v8-fp05-developer-mode/fp05-layout-contact-sheet.png`; `clients/nextjs/src/components/preview-runtime-stage.tsx` | Developer Mode remains intentionally dense; iframe HUD disabled to avoid duplicate diagnostic overlap | `89c67105` |
-| FP-06 | Demo Mode UX | Minimal demo cards; metadata in Developer Mode; coherent categories; explicit capability; no internal terminology | Reviewer understands each demo in 5 seconds | ACCEPTED | `/tmp/cca-v8-fp06-demo-mode/manifest.json`; `/tmp/cca-v8-fp06-demo-mode/fp06-contact-sheet.png`; `clients/nextjs/src/lib/demo-mode.test.ts`; `clients/nextjs/src/components/workstation-shell.test.tsx` | Scope limited to Demo Mode UI; demo pack coverage stays with FP-07 | Pending commit creation |
-| FP-07 | Demo Pack Coverage | Every demo maps to a capability; single-agent; hybrid; multi-domain; retrieval; preview; output; Capstone mapping | No capability without a demo | NOT_STARTED | TBD | Multi-agent must not be claimed unless live path is validated | TBD |
+| FP-06 | Demo Mode UX | Minimal demo cards; metadata in Developer Mode; coherent categories; explicit capability; no internal terminology | Reviewer understands each demo in 5 seconds | ACCEPTED | `/tmp/cca-v8-fp06-demo-mode/manifest.json`; `/tmp/cca-v8-fp06-demo-mode/fp06-contact-sheet.png`; `clients/nextjs/src/lib/demo-mode.test.ts`; `clients/nextjs/src/components/workstation-shell.test.tsx` | Scope limited to Demo Mode UI; demo pack coverage stays with FP-07 | `1f92e6bb` |
+| FP-07 | Demo Pack Coverage | Every demo maps to a capability; single-agent; hybrid; multi-domain; retrieval; preview; output; Capstone mapping | No capability without a demo | ACCEPTED | `clients/nextjs/src/lib/demo-mode.test.ts`; `demo/final_demo_suite.json`; `clients/nextjs/src/lib/demo-mode.ts` | No live multi-agent execution path is claimed; geometry/morphogenesis remains multi-domain, not multi-agent | Pending commit creation |
 | FP-08 | Artifacts & Saved UX | Human labels; Saved browser; Code browser; Preview browser; no technical filenames; responsive layout | Artifact management is clear | NOT_STARTED | TBD | TBD | TBD |
 | FP-09 | Input Composer UX | Codex/ChatGPT-style composer; minimal plus; bottom send; auto-grow; no status clutter; no overlap | Composer matches Codex philosophy | NOT_STARTED | TBD | TBD | TBD |
 | FP-10 | Codex Design System | Codex philosophy across typography, whitespace, flat surfaces, hierarchy, interactions; theme changes only colors | App feels part of Codex ecosystem | NOT_STARTED | TBD | TBD | TBD |
@@ -324,3 +324,46 @@ Contact sheet: `/tmp/cca-v8-fp06-demo-mode/fp06-contact-sheet.png`.
 | Public docs/demo claim scan | Passed: no matches for forbidden public product terms in `README.md`, `docs/`, or `demo` excluding internal review roadmaps |
 | Hygiene | Passed: `git diff --check`; Runtime Pack private directories remain ignored |
 | Accepted boundary | FP-06 covers Demo Mode UX only; FP-07 owns broader demo pack coverage mapping |
+
+## FP-07 Acceptance Criteria
+
+- All 8 Demo Mode scenarios map to a distinct public capability.
+- Demo pack includes single-domain, hybrid retrieval, multi-domain, and planning
+  workflow coverage.
+- Retrieval, preview, fallback, expected output, Capstone presentation, evidence,
+  source-boundary, and validation-path metadata are present for every scenario.
+- Hydra remains bounded to the validated local `hydra-synth` artifact path.
+- Geometry/morphogenesis remains multi-domain and is not presented as live
+  multi-agent execution.
+- No live multi-agent, Studio Mode, or critic-refinement execution claim appears
+  in app-facing Demo Mode scenario metadata.
+
+## FP-07 Demo Pack Coverage Audit Notes
+
+- Capability coverage is complete across the final 8 scenarios:
+  Three.js visual system, p5.js generative growth, GLSL shader validation,
+  Hydra feedback-pattern runtime, retrieval-grounded answer, concept
+  translation, multi-runtime morphogenesis, and installation planning.
+- Workflow coverage is represented as single-domain generation, hybrid
+  retrieval-grounded generation, bounded multi-domain routing/artifact QA, and
+  planning with retrieval.
+- Retrieval coverage is present in every scenario metadata row through either
+  measured retrieved contexts or RAGAs/retrieval evidence.
+- Preview coverage is explicit for previewable runtimes and explicitly bounded
+  for answer/planning flows where preview is not required or depends on the
+  generated artifact choice.
+- Capstone mapping is present through `recommendedForDemo`, `presentationTime`,
+  `talkingPoint`, `evidence`, `sourceBoundary`, and `validationPath`.
+- Multi-agent coverage remains an accepted boundary: no live multi-agent path is
+  validated, and the demo pack does not claim one.
+
+## FP-07 Validation Evidence
+
+| Check | Result |
+|---|---|
+| Focused Demo Pack tests | Passed: `npx vitest run src/lib/demo-mode.test.ts` (`7` tests) |
+| Typecheck | Passed: `npm run typecheck` |
+| Playwright smoke | Passed after sandbox rerun with local server permission: `npm run test:e2e:smoke` (`8` tests) |
+| Public docs/demo claim scan | Passed: no matches for forbidden public product terms in `README.md`, `docs/`, or `demo` excluding internal review roadmaps |
+| Hygiene | Passed: `git diff --check`; Runtime Pack private directories remain ignored |
+| Accepted boundary | FP-07 verifies multi-domain and planning coverage, but does not claim live multi-agent execution |
