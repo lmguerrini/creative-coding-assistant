@@ -10,11 +10,11 @@ checkpoints. Do not merge, push, tag, freeze, or start V9 from this roadmap.
 
 | Field | Value |
 |---|---|
-| Current task | FP-13 KB & Retrieval UX |
-| Status | ACCEPTED |
-| Scope boundary | Global KB status, current-run retrieval wording, safe Check KB affordance, and User/Developer retrieval disclosure only |
-| Screenshot evidence | Captured at 1440, 1024, and 720 widths |
-| Latest task commit | FP-12 accepted at `ea2bef8d` |
+| Current task | FP-14 LangSmith Observability |
+| Status | BLOCKED |
+| Scope boundary | LangSmith status/evidence audit, trace visibility claims, and focused observability validation only |
+| Screenshot evidence | Not captured; no app UI change was made for FP-14 |
+| Latest task commit | FP-13 accepted at `9fd099b8` |
 
 ## Status Legend
 
@@ -40,8 +40,8 @@ checkpoints. Do not merge, push, tag, freeze, or start V9 from this roadmap.
 | FP-10 | Codex Design System | Codex philosophy across typography, whitespace, flat surfaces, hierarchy, interactions; theme changes only colors | App feels part of Codex ecosystem | ACCEPTED | `/tmp/cca-v8-fp10-design-system/manifest.json`; `/tmp/cca-v8-fp10-design-system/fp10-design-contact-sheet.png`; `clients/nextjs/src/app/globals.css` | Aqua and Matrix preserved; FP-10 changes are Codex-theme surface flattening only | `1f6799e5` |
 | FP-11 | Typography & Layout QA | Fix glued words; overflow; line wrapping; subtitles; cards; padding; margins | No visible typography defects | ACCEPTED | `/tmp/cca-v8-fp11-typography-layout/manifest.json`; `/tmp/cca-v8-fp11-typography-layout/fp11-typography-layout-contact-sheet.png`; `clients/nextjs/src/app/globals.css` | Collapsed inspector rail text creates false positive overflow; no page-level overflow remains | `ddb3d1e0` |
 | FP-12 | Preview / Code / Saved Ecosystem | Coordinate three panels; preview is preview; Code is code; Saved is artifacts; no duplicated noise | Every panel has a clear role | ACCEPTED | `/tmp/cca-v8-fp12-panel-ecosystem/manifest.json`; `/tmp/cca-v8-fp12-panel-ecosystem/fp12-panel-ecosystem-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.tsx`; `clients/nextjs/src/components/workstation-shell.test.tsx` | Preview remains visual/fallback, Code remains source, Saved remains artifact management; repeated same-runtime artifacts use numbered human labels | `ea2bef8d` |
-| FP-13 | KB & Retrieval UX | Global KB status; current retrieval state; Check KB; refresh if safe; correct wording; User vs Developer | Reviewer sees that RAG is real | ACCEPTED | `/tmp/cca-v8-fp13-kb-retrieval/manifest.json`; `/tmp/cca-v8-fp13-kb-retrieval/fp13-kb-retrieval-contact-sheet.png`; `clients/nextjs/src/components/retrieval-inspector.tsx`; `clients/nextjs/src/components/workstation-shell.tsx`; `clients/nextjs/src/components/workstation-shell.test.tsx` | Refresh official KB remains disabled in UI; use documented local sync command instead of faking UI refresh | Pending FP-13 commit |
-| FP-14 | LangSmith Observability | Real trace; visible workflow; planner; retrieval; timing; demo instructions | ACTIVE TESTED | NOT_STARTED | TBD | Do not claim active tracing without credentials and evidence | TBD |
+| FP-13 | KB & Retrieval UX | Global KB status; current retrieval state; Check KB; refresh if safe; correct wording; User vs Developer | Reviewer sees that RAG is real | ACCEPTED | `/tmp/cca-v8-fp13-kb-retrieval/manifest.json`; `/tmp/cca-v8-fp13-kb-retrieval/fp13-kb-retrieval-contact-sheet.png`; `clients/nextjs/src/components/retrieval-inspector.tsx`; `clients/nextjs/src/components/workstation-shell.tsx`; `clients/nextjs/src/components/workstation-shell.test.tsx` | Refresh official KB remains disabled in UI; use documented local sync command instead of faking UI refresh | `9fd099b8` |
+| FP-14 | LangSmith Observability | Real trace; visible workflow; planner; retrieval; timing; demo instructions | ACTIVE TESTED | BLOCKED | Existing active-tested trace evidence in `docs/V8_FINAL_SMOKE_COVERAGE_MATRIX.md` and `docs/V8_GRAND_ENGINEERING_REVIEW.md`; `tests/test_langsmith_observability.py`; `clients/nextjs/src/lib/langsmith-trace.test.ts`; `clients/nextjs/src/components/langsmith-trace-deep-dive.test.tsx` | Current execution environment has no LangSmith credential/tracing env, so no new live trace was rerun in this pass | Pending FP-14 blocker commit |
 | FP-15 | Complete Smoke Coverage Matrix | Every important function has at least one full app smoke; Live/Mock/Artifact distinguished | Coverage 100% | NOT_STARTED | TBD | TBD | TBD |
 | FP-16 | Extra Scenario Validation | Space colonization; DLA; differential growth; prompts outside Demo Pack | Robust beyond predefined demos | NOT_STARTED | TBD | Digital Morphogenesis references remain inspiration unless indexed | TBD |
 | FP-17 | Failure Injection | Provider offline; retrieval fail; preview fail; artifact fail; timeout; backend restart; UI fallback | Demo resilient | NOT_STARTED | TBD | TBD | TBD |
@@ -658,3 +658,37 @@ Contact sheet:
 | Playwright smoke | Passed after sandbox rerun with local browser permission: `npm run test:e2e:smoke` (`8` tests) |
 | Hygiene | Passed: docs Mermaid gate, public-claim scan, `git diff --check`, and Runtime Pack hygiene |
 | Accepted boundary | In-app KB refresh is intentionally disabled; reviewers get status visibility and documented local sync guidance, not a fake refresh path |
+
+## FP-14 Blocker Criteria
+
+- Current execution environment must expose LangSmith tracing credentials before
+  a new live trace can be rerun.
+- If credentials are unavailable, do not claim this pass produced a fresh
+  LangSmith trace.
+- Existing active-tested trace evidence may remain documented only as prior
+  evidence with its exact run id, trace id, project, and limitations.
+
+## FP-14 LangSmith Audit Notes
+
+- Current environment audit, without printing secret values:
+  `LANGSMITH_API_KEY=missing`, `LANGSMITH_TRACING=missing`,
+  `LANGCHAIN_TRACING_V2=missing`, and `LANGSMITH_PROJECT=missing`.
+- Because the roadmap rules require stopping when secrets/env credentials are
+  missing, FP-14 is blocked for a fresh live trace rerun in this session.
+- Public evidence remains conservative and exact:
+  `docs/V8_FINAL_SMOKE_COVERAGE_MATRIX.md` and
+  `docs/V8_GRAND_ENGINEERING_REVIEW.md` document prior active-tested
+  LangSmith trace visibility for project `creative-coding-assistant`, workflow
+  run `CCA_LANGSMITH_SMOKE_20260709_015`, trace id
+  `f5420da971d0475d8b87951ce34d2bd0`, 34 matching successful spans, 5
+  retrieved contexts, and the token-usage boundary.
+- No app UI or runtime code change was made for FP-14.
+
+## FP-14 Validation Evidence
+
+| Check | Result |
+|---|---|
+| Current env credential audit | Blocked: no LangSmith credential/tracing env present; no secret values printed |
+| Backend LangSmith observability contracts | Passed: `.venv/bin/python -m pytest tests/test_langsmith_observability.py` (`5` tests, 1 existing Chroma third-party warning) |
+| Frontend LangSmith trace model/UI contracts | Passed: `npx vitest run src/lib/langsmith-trace.test.ts src/components/langsmith-trace-deep-dive.test.tsx` (`8` tests) |
+| Accepted prior evidence | Prior active-tested trace evidence remains documented; this pass did not create a new trace |
