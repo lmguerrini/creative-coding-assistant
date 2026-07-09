@@ -4,7 +4,7 @@
   "branch": "version-review/v8",
   "classification": "RAW_PRIVATE_EXTERNAL_SCORING_AVOIDED; REDACTED_LATEST_LIVE_RAGAS_COMPLETE",
   "private_input_path": "data/eval/live_sessions.jsonl",
-  "dry_run_command": ".venv/bin/python scripts/eval_live_sessions.py --input-path data/eval/live_sessions.jsonl --output-path /private/tmp/v8_private_live_session_ragas_dry_run.jsonl --latest 4 --metric context_precision --dry-run",
+  "dry_run_command": ".venv/bin/python scripts/eval_live_sessions.py --input-path data/eval/live_sessions.jsonl --output-path <local-temp>/v8_private_live_session_ragas_dry_run.jsonl --latest 4 --metric context_precision --dry-run",
   "dry_run_summary": {
     "total_samples": 60,
     "eligible_samples": 4,
@@ -51,5 +51,5 @@
     "average_answer_relevancy": 0.4419141765019863,
     "limitation": "Derived from latest eligible live-session structure, but text is redacted/replaced with reviewer-safe p5.js content before external evaluator calls."
   },
-  "hitl_approved_command": ".venv/bin/python scripts/eval_live_sessions.py --input-path data/eval/live_sessions.jsonl --output-path data/eval/ragas_latest4_private_context_precision.jsonl --latest 4 --metric context_precision --allow-provider-calls"
+  "approved_private_command": ".venv/bin/python scripts/eval_live_sessions.py --input-path data/eval/live_sessions.jsonl --output-path data/eval/ragas_latest4_private_context_precision.jsonl --latest 4 --metric context_precision --allow-provider-calls"
 }

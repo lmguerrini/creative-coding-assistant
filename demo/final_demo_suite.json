@@ -7,8 +7,8 @@
     "backend": ".venv/bin/python -m creative_coding_assistant.api.dev_server --host 127.0.0.1 --port 8000",
     "frontend": "cd clients/nextjs && npm run dev",
     "in_app_demo_mode": "open http://127.0.0.1:3000 and use the Demo Mode button inside Creative Coding Assistant",
-    "launcher_fallback": "serve /private/tmp/v8_runtime_qa after npm install p5 three hydra-synth and open /demo/final_demo_launcher.html",
-    "artifact_qa": "serve /private/tmp/v8_runtime_qa after npm install p5 three hydra-synth and open /demo/golden_artifacts/browser_full_runtime_qa.html"
+    "launcher_fallback": "serve a local temporary QA workspace after npm install p5 three hydra-synth and open /demo/final_demo_launcher.html",
+    "artifact_qa": "serve a local temporary QA workspace after npm install p5 three hydra-synth and open /demo/golden_artifacts/browser_full_runtime_qa.html"
   },
   "global_fallback": "Use the integrated Demo Mode prompt list, demo/final_demo_launcher.html, demo/golden_demo_dataset.json, demo/demo_prompt_library.md, assets/preview_current.png, redacted/sanitized RAGAs evidence, and golden artifact QA without implying unavailable live components succeeded.",
   "full_app_smoke_metadata": {

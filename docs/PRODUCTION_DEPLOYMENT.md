@@ -57,8 +57,8 @@ boundaries, and output guidance inside the workstation.
 Golden artifact browser QA, when needed:
 
 ```bash
-mkdir -p /private/tmp/v8_runtime_qa
-cd /private/tmp/v8_runtime_qa
+QA_WORKDIR="$(mktemp -d)"
+cd "$QA_WORKDIR"
 npm install p5 three hydra-synth
 test -e demo || ln -s /path/to/creative_coding_assistant/demo demo
 /path/to/creative_coding_assistant/.venv/bin/python -m http.server 8126 --bind 127.0.0.1
