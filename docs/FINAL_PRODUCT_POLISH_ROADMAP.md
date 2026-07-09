@@ -10,11 +10,11 @@ checkpoints. Do not merge, push, tag, freeze, or start V9 from this roadmap.
 
 | Field | Value |
 |---|---|
-| Current task | FP-10 Codex Design System |
+| Current task | FP-11 Typography & Layout QA |
 | Status | ACCEPTED |
-| Scope boundary | Existing visual system tokens, theme surfaces, typography rhythm, borders, shadows, spacing, and focused screenshot evidence only |
+| Scope boundary | Visible text wrapping, glued words, cropped labels, card padding, button wrapping, and focused layout screenshots only |
 | Screenshot evidence | Captured and inspected at 1440, 1024, and 720 widths |
-| Latest task commit | FP-09 accepted at `e8651d4e` |
+| Latest task commit | FP-10 accepted at `1f6799e5` |
 
 ## Status Legend
 
@@ -37,8 +37,8 @@ checkpoints. Do not merge, push, tag, freeze, or start V9 from this roadmap.
 | FP-07 | Demo Pack Coverage | Every demo maps to a capability; single-agent; hybrid; multi-domain; retrieval; preview; output; Capstone mapping | No capability without a demo | ACCEPTED | `clients/nextjs/src/lib/demo-mode.test.ts`; `demo/final_demo_suite.json`; `clients/nextjs/src/lib/demo-mode.ts` | No live multi-agent execution path is claimed; geometry/morphogenesis remains multi-domain, not multi-agent | `67aa6afd` |
 | FP-08 | Artifacts & Saved UX | Human labels; Saved browser; Code browser; Preview browser; no technical filenames; responsive layout | Artifact management is clear | ACCEPTED | `/tmp/cca-v8-fp08-artifacts-saved/manifest.json`; `/tmp/cca-v8-fp08-artifacts-saved/fp08-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.test.tsx`; `clients/nextjs/e2e/workstation-smoke.spec.js` | Developer Mode may show raw filenames; User Mode uses human labels and hides raw artifact filenames | `4c6d037f` |
 | FP-09 | Input Composer UX | Codex/ChatGPT-style composer; minimal plus; bottom send; auto-grow; no status clutter; no overlap | Composer matches Codex philosophy | ACCEPTED | `/tmp/cca-v8-fp09-composer/manifest.json`; `/tmp/cca-v8-fp09-composer/fp09-composer-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.test.tsx`; `clients/nextjs/src/app/globals.css` | Developer Mode may keep compact composer status text; User Mode omits it to avoid clutter | `e8651d4e` |
-| FP-10 | Codex Design System | Codex philosophy across typography, whitespace, flat surfaces, hierarchy, interactions; theme changes only colors | App feels part of Codex ecosystem | ACCEPTED | `/tmp/cca-v8-fp10-design-system/manifest.json`; `/tmp/cca-v8-fp10-design-system/fp10-design-contact-sheet.png`; `clients/nextjs/src/app/globals.css` | Aqua and Matrix preserved; FP-10 changes are Codex-theme surface flattening only | Pending FP-10 commit |
-| FP-11 | Typography & Layout QA | Fix glued words; overflow; line wrapping; subtitles; cards; padding; margins | No visible typography defects | NOT_STARTED | TBD | Human screenshots override automated checks | TBD |
+| FP-10 | Codex Design System | Codex philosophy across typography, whitespace, flat surfaces, hierarchy, interactions; theme changes only colors | App feels part of Codex ecosystem | ACCEPTED | `/tmp/cca-v8-fp10-design-system/manifest.json`; `/tmp/cca-v8-fp10-design-system/fp10-design-contact-sheet.png`; `clients/nextjs/src/app/globals.css` | Aqua and Matrix preserved; FP-10 changes are Codex-theme surface flattening only | `1f6799e5` |
+| FP-11 | Typography & Layout QA | Fix glued words; overflow; line wrapping; subtitles; cards; padding; margins | No visible typography defects | ACCEPTED | `/tmp/cca-v8-fp11-typography-layout/manifest.json`; `/tmp/cca-v8-fp11-typography-layout/fp11-typography-layout-contact-sheet.png`; `clients/nextjs/src/app/globals.css` | Collapsed inspector rail text creates false positive overflow; no page-level overflow remains | Pending FP-11 commit |
 | FP-12 | Preview / Code / Saved Ecosystem | Coordinate three panels; preview is preview; Code is code; Saved is artifacts; no duplicated noise | Every panel has a clear role | NOT_STARTED | TBD | TBD | TBD |
 | FP-13 | KB & Retrieval UX | Global KB status; current retrieval state; Check KB; refresh if safe; correct wording; User vs Developer | Reviewer sees that RAG is real | NOT_STARTED | TBD | Do not fake refresh if API/command is unsafe | TBD |
 | FP-14 | LangSmith Observability | Real trace; visible workflow; planner; retrieval; timing; demo instructions | ACTIVE TESTED | NOT_STARTED | TBD | Do not claim active tracing without credentials and evidence | TBD |
@@ -513,3 +513,47 @@ Contact sheet: `/tmp/cca-v8-fp10-design-system/fp10-design-contact-sheet.png`.
 | Typecheck | Passed: `npm run typecheck` |
 | Playwright smoke | Passed after sandbox rerun with local server permission: `npm run test:e2e:smoke` (`8` tests) |
 | Accepted boundary | FP-10 is a Codex-theme surface polish only; FP-11 owns deeper typography/overflow QA |
+
+## FP-11 Acceptance Criteria
+
+- No visible glued words, cropped labels, or awkward horizontal overflows in the
+  audited User, Demo Mode, and Developer surfaces.
+- Demo Mode scenario cards wrap cleanly at 720 width.
+- Inspector tab labels guard against small-width overflow.
+- No page-level horizontal overflow appears at 1440, 1024, or 720 widths.
+- Screenshots are saved and manually inspected before acceptance.
+
+## FP-11 Typography & Layout Audit Notes
+
+- Browser-side overflow audit found no page-level horizontal overflow.
+- The only real layout issue found was a 720-width Demo Mode scenario list
+  overflow of about 20px. Scenario lists now use a safer responsive grid track
+  and min-width guards.
+- A tiny Developer `Overview` tab label overflow at 1024 width was fixed with a
+  wrapping guard on inspector tab labels.
+- Collapsed inspector rail text can appear as an overflow metric because it is a
+  narrow rail control; it does not create page-level overflow or visible
+  cropping in the screenshots.
+
+## FP-11 Screenshot Evidence
+
+| Width | User default | User Demo Mode | Developer Mode |
+|---|---|---|---|
+| 1440 | `/tmp/cca-v8-fp11-typography-layout/fp11-user-default-1440.png` | `/tmp/cca-v8-fp11-typography-layout/fp11-user-demo-1440.png` | `/tmp/cca-v8-fp11-typography-layout/fp11-developer-1440.png` |
+| 1024 | `/tmp/cca-v8-fp11-typography-layout/fp11-user-default-1024.png` | `/tmp/cca-v8-fp11-typography-layout/fp11-user-demo-1024.png` | `/tmp/cca-v8-fp11-typography-layout/fp11-developer-1024.png` |
+| 720 | `/tmp/cca-v8-fp11-typography-layout/fp11-user-default-720.png` | `/tmp/cca-v8-fp11-typography-layout/fp11-user-demo-720.png` | `/tmp/cca-v8-fp11-typography-layout/fp11-developer-720.png` |
+
+Contact sheet:
+`/tmp/cca-v8-fp11-typography-layout/fp11-typography-layout-contact-sheet.png`.
+
+## FP-11 Validation Evidence
+
+| Check | Result |
+|---|---|
+| Browser overflow audit | Passed: no page-level overflow and no relevant element overflow at 1440, 1024, or 720 widths after fixes |
+| Screenshot capture | Passed: User default, User Demo Mode, and Developer Mode captures at 1440, 1024, and 720 widths |
+| Screenshot human inspection | Passed: no visible glued words, cropped labels, or unreadable card/button wrapping in audited screenshots |
+| Focused frontend tests | Passed: `npx vitest run src/components/workstation-shell.test.tsx --testNamePattern "Demo Mode\|User Mode\|Developer Mode\|inspector\|theme"` (`25` tests) |
+| Typecheck | Passed: `npm run typecheck` |
+| Playwright smoke | Passed after sandbox rerun with local server permission: `npm run test:e2e:smoke` (`8` tests) |
+| Accepted boundary | FP-11 fixes visible typography/layout defects only; broader panel role coordination remains FP-12 |

@@ -1419,11 +1419,13 @@ a {
   display: grid;
   align-content: start;
   gap: 8px;
+  min-width: 0;
 }
 
 .demoScenarioButton {
   position: relative;
   display: grid;
+  min-width: 0;
   min-height: 78px;
   gap: 5px;
   padding: 12px 34px 12px 12px;
@@ -1475,6 +1477,7 @@ a {
   font-weight: 850;
   letter-spacing: 0.06em;
   line-height: 1.25;
+  overflow-wrap: anywhere;
   text-transform: uppercase;
 }
 
@@ -3372,8 +3375,10 @@ a {
 .inspectorTabs span {
   overflow: hidden;
   width: 100%;
+  min-width: 0;
   font-size: 10px;
   font-weight: 760;
+  overflow-wrap: anywhere;
   text-align: left;
   text-overflow: ellipsis;
   white-space: normal;
@@ -11120,7 +11125,7 @@ html[data-cca-theme="blueprint"] .codeViewer {
   }
 
   .demoScenarioList {
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
   }
 
   .previewUserFallbackCard {
