@@ -10,11 +10,11 @@ checkpoints. Do not merge, push, tag, freeze, or start V9 from this roadmap.
 
 | Field | Value |
 |---|---|
-| Current task | FP-09 Input Composer UX |
+| Current task | FP-10 Codex Design System |
 | Status | ACCEPTED |
-| Scope boundary | Composer controls, attachment menu, send alignment, textarea growth, status clutter, and focused composer tests only |
+| Scope boundary | Existing visual system tokens, theme surfaces, typography rhythm, borders, shadows, spacing, and focused screenshot evidence only |
 | Screenshot evidence | Captured and inspected at 1440, 1024, and 720 widths |
-| Latest task commit | FP-08 accepted at `4c6d037f` |
+| Latest task commit | FP-09 accepted at `e8651d4e` |
 
 ## Status Legend
 
@@ -36,8 +36,8 @@ checkpoints. Do not merge, push, tag, freeze, or start V9 from this roadmap.
 | FP-06 | Demo Mode UX | Minimal demo cards; metadata in Developer Mode; coherent categories; explicit capability; no internal terminology | Reviewer understands each demo in 5 seconds | ACCEPTED | `/tmp/cca-v8-fp06-demo-mode/manifest.json`; `/tmp/cca-v8-fp06-demo-mode/fp06-contact-sheet.png`; `clients/nextjs/src/lib/demo-mode.test.ts`; `clients/nextjs/src/components/workstation-shell.test.tsx` | Scope limited to Demo Mode UI; demo pack coverage stays with FP-07 | `1f92e6bb` |
 | FP-07 | Demo Pack Coverage | Every demo maps to a capability; single-agent; hybrid; multi-domain; retrieval; preview; output; Capstone mapping | No capability without a demo | ACCEPTED | `clients/nextjs/src/lib/demo-mode.test.ts`; `demo/final_demo_suite.json`; `clients/nextjs/src/lib/demo-mode.ts` | No live multi-agent execution path is claimed; geometry/morphogenesis remains multi-domain, not multi-agent | `67aa6afd` |
 | FP-08 | Artifacts & Saved UX | Human labels; Saved browser; Code browser; Preview browser; no technical filenames; responsive layout | Artifact management is clear | ACCEPTED | `/tmp/cca-v8-fp08-artifacts-saved/manifest.json`; `/tmp/cca-v8-fp08-artifacts-saved/fp08-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.test.tsx`; `clients/nextjs/e2e/workstation-smoke.spec.js` | Developer Mode may show raw filenames; User Mode uses human labels and hides raw artifact filenames | `4c6d037f` |
-| FP-09 | Input Composer UX | Codex/ChatGPT-style composer; minimal plus; bottom send; auto-grow; no status clutter; no overlap | Composer matches Codex philosophy | ACCEPTED | `/tmp/cca-v8-fp09-composer/manifest.json`; `/tmp/cca-v8-fp09-composer/fp09-composer-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.test.tsx`; `clients/nextjs/src/app/globals.css` | Developer Mode may keep compact composer status text; User Mode omits it to avoid clutter | Pending FP-09 commit |
-| FP-10 | Codex Design System | Codex philosophy across typography, whitespace, flat surfaces, hierarchy, interactions; theme changes only colors | App feels part of Codex ecosystem | NOT_STARTED | TBD | TBD | TBD |
+| FP-09 | Input Composer UX | Codex/ChatGPT-style composer; minimal plus; bottom send; auto-grow; no status clutter; no overlap | Composer matches Codex philosophy | ACCEPTED | `/tmp/cca-v8-fp09-composer/manifest.json`; `/tmp/cca-v8-fp09-composer/fp09-composer-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.test.tsx`; `clients/nextjs/src/app/globals.css` | Developer Mode may keep compact composer status text; User Mode omits it to avoid clutter | `e8651d4e` |
+| FP-10 | Codex Design System | Codex philosophy across typography, whitespace, flat surfaces, hierarchy, interactions; theme changes only colors | App feels part of Codex ecosystem | ACCEPTED | `/tmp/cca-v8-fp10-design-system/manifest.json`; `/tmp/cca-v8-fp10-design-system/fp10-design-contact-sheet.png`; `clients/nextjs/src/app/globals.css` | Aqua and Matrix preserved; FP-10 changes are Codex-theme surface flattening only | Pending FP-10 commit |
 | FP-11 | Typography & Layout QA | Fix glued words; overflow; line wrapping; subtitles; cards; padding; margins | No visible typography defects | NOT_STARTED | TBD | Human screenshots override automated checks | TBD |
 | FP-12 | Preview / Code / Saved Ecosystem | Coordinate three panels; preview is preview; Code is code; Saved is artifacts; no duplicated noise | Every panel has a clear role | NOT_STARTED | TBD | TBD | TBD |
 | FP-13 | KB & Retrieval UX | Global KB status; current retrieval state; Check KB; refresh if safe; correct wording; User vs Developer | Reviewer sees that RAG is real | NOT_STARTED | TBD | Do not fake refresh if API/command is unsafe | TBD |
@@ -468,3 +468,48 @@ Contact sheet: `/tmp/cca-v8-fp09-composer/fp09-composer-contact-sheet.png`.
 | Typecheck | Passed: `npm run typecheck` |
 | Playwright smoke | Passed after sandbox rerun with local server permission: `npm run test:e2e:smoke` (`8` tests) |
 | Accepted boundary | Developer Mode keeps compact composer status text; User Mode relies on top session state and conversation text |
+
+## FP-10 Acceptance Criteria
+
+- Codex theme reads as neutral graphite, restrained, flat, and professional.
+- Primary User Mode workspace remains the dominant visual surface.
+- Main panels, Demo Mode, Preview, and Developer Mode use consistent borders,
+  shadows, and surface treatment.
+- Existing layout, workflow behavior, Aqua theme, and Matrix theme are not
+  changed by this pass.
+- Screenshots are saved and inspected at 1440, 1024, and 720 widths before
+  acceptance.
+
+## FP-10 Codex Design System Audit Notes
+
+- Browser screenshots showed the Codex theme was already close, but main panels
+  still carried older shadow depth and stacked-card visual weight.
+- The Codex theme now flattens topbar, session, demo, preview, and inspector
+  surfaces with subtler borders and reduced shadows.
+- Utility popovers keep a small shadow because they need layering over the
+  workspace.
+- Empty-state, demo-scenario, saved-output, preview, retrieval, artifact, and
+  workflow cards share the same Codex-theme low-contrast surface treatment.
+- This pass intentionally did not modify layout, component hierarchy, Aqua,
+  Matrix, or demo scenario content.
+
+## FP-10 Screenshot Evidence
+
+| Width | User default | User Demo Mode | Developer Mode |
+|---|---|---|---|
+| 1440 | `/tmp/cca-v8-fp10-design-system/fp10-user-default-1440.png` | `/tmp/cca-v8-fp10-design-system/fp10-user-demo-1440.png` | `/tmp/cca-v8-fp10-design-system/fp10-developer-default-1440.png` |
+| 1024 | `/tmp/cca-v8-fp10-design-system/fp10-user-default-1024.png` | `/tmp/cca-v8-fp10-design-system/fp10-user-demo-1024.png` | `/tmp/cca-v8-fp10-design-system/fp10-developer-default-1024.png` |
+| 720 | `/tmp/cca-v8-fp10-design-system/fp10-user-default-720.png` | `/tmp/cca-v8-fp10-design-system/fp10-user-demo-720.png` | `/tmp/cca-v8-fp10-design-system/fp10-developer-default-720.png` |
+
+Contact sheet: `/tmp/cca-v8-fp10-design-system/fp10-design-contact-sheet.png`.
+
+## FP-10 Validation Evidence
+
+| Check | Result |
+|---|---|
+| Screenshot capture | Passed: User default, User Demo Mode, and Developer Mode captures at 1440, 1024, and 720 widths |
+| Screenshot human inspection | Passed: Codex surfaces are flatter and calmer; no layout regression or obvious overlap in audited screenshots |
+| Focused frontend tests | Passed: `npx vitest run src/components/workstation-shell.test.tsx --testNamePattern "theme\|settings preferences\|User Mode\|Demo Mode"` (`11` tests) |
+| Typecheck | Passed: `npm run typecheck` |
+| Playwright smoke | Passed after sandbox rerun with local server permission: `npm run test:e2e:smoke` (`8` tests) |
+| Accepted boundary | FP-10 is a Codex-theme surface polish only; FP-11 owns deeper typography/overflow QA |
