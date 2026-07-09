@@ -10,11 +10,11 @@ checkpoints. Do not merge, push, tag, freeze, or start V9 from this roadmap.
 
 | Field | Value |
 |---|---|
-| Current task | FP-12 Preview / Code / Saved Ecosystem |
+| Current task | FP-13 KB & Retrieval UX |
 | Status | ACCEPTED |
-| Scope boundary | Panel role clarity, Preview/Code/Saved handoff, duplicated noise, tab labels, and focused panel screenshots only |
+| Scope boundary | Global KB status, current-run retrieval wording, safe Check KB affordance, and User/Developer retrieval disclosure only |
 | Screenshot evidence | Captured at 1440, 1024, and 720 widths |
-| Latest task commit | FP-11 accepted at `ddb3d1e0` |
+| Latest task commit | FP-12 accepted at `ea2bef8d` |
 
 ## Status Legend
 
@@ -39,8 +39,8 @@ checkpoints. Do not merge, push, tag, freeze, or start V9 from this roadmap.
 | FP-09 | Input Composer UX | Codex/ChatGPT-style composer; minimal plus; bottom send; auto-grow; no status clutter; no overlap | Composer matches Codex philosophy | ACCEPTED | `/tmp/cca-v8-fp09-composer/manifest.json`; `/tmp/cca-v8-fp09-composer/fp09-composer-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.test.tsx`; `clients/nextjs/src/app/globals.css` | Developer Mode may keep compact composer status text; User Mode omits it to avoid clutter | `e8651d4e` |
 | FP-10 | Codex Design System | Codex philosophy across typography, whitespace, flat surfaces, hierarchy, interactions; theme changes only colors | App feels part of Codex ecosystem | ACCEPTED | `/tmp/cca-v8-fp10-design-system/manifest.json`; `/tmp/cca-v8-fp10-design-system/fp10-design-contact-sheet.png`; `clients/nextjs/src/app/globals.css` | Aqua and Matrix preserved; FP-10 changes are Codex-theme surface flattening only | `1f6799e5` |
 | FP-11 | Typography & Layout QA | Fix glued words; overflow; line wrapping; subtitles; cards; padding; margins | No visible typography defects | ACCEPTED | `/tmp/cca-v8-fp11-typography-layout/manifest.json`; `/tmp/cca-v8-fp11-typography-layout/fp11-typography-layout-contact-sheet.png`; `clients/nextjs/src/app/globals.css` | Collapsed inspector rail text creates false positive overflow; no page-level overflow remains | `ddb3d1e0` |
-| FP-12 | Preview / Code / Saved Ecosystem | Coordinate three panels; preview is preview; Code is code; Saved is artifacts; no duplicated noise | Every panel has a clear role | ACCEPTED | `/tmp/cca-v8-fp12-panel-ecosystem/manifest.json`; `/tmp/cca-v8-fp12-panel-ecosystem/fp12-panel-ecosystem-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.tsx`; `clients/nextjs/src/components/workstation-shell.test.tsx` | Preview remains visual/fallback, Code remains source, Saved remains artifact management; repeated same-runtime artifacts use numbered human labels | Pending FP-12 commit |
-| FP-13 | KB & Retrieval UX | Global KB status; current retrieval state; Check KB; refresh if safe; correct wording; User vs Developer | Reviewer sees that RAG is real | NOT_STARTED | TBD | Do not fake refresh if API/command is unsafe | TBD |
+| FP-12 | Preview / Code / Saved Ecosystem | Coordinate three panels; preview is preview; Code is code; Saved is artifacts; no duplicated noise | Every panel has a clear role | ACCEPTED | `/tmp/cca-v8-fp12-panel-ecosystem/manifest.json`; `/tmp/cca-v8-fp12-panel-ecosystem/fp12-panel-ecosystem-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.tsx`; `clients/nextjs/src/components/workstation-shell.test.tsx` | Preview remains visual/fallback, Code remains source, Saved remains artifact management; repeated same-runtime artifacts use numbered human labels | `ea2bef8d` |
+| FP-13 | KB & Retrieval UX | Global KB status; current retrieval state; Check KB; refresh if safe; correct wording; User vs Developer | Reviewer sees that RAG is real | ACCEPTED | `/tmp/cca-v8-fp13-kb-retrieval/manifest.json`; `/tmp/cca-v8-fp13-kb-retrieval/fp13-kb-retrieval-contact-sheet.png`; `clients/nextjs/src/components/retrieval-inspector.tsx`; `clients/nextjs/src/components/workstation-shell.tsx`; `clients/nextjs/src/components/workstation-shell.test.tsx` | Refresh official KB remains disabled in UI; use documented local sync command instead of faking UI refresh | Pending FP-13 commit |
 | FP-14 | LangSmith Observability | Real trace; visible workflow; planner; retrieval; timing; demo instructions | ACTIVE TESTED | NOT_STARTED | TBD | Do not claim active tracing without credentials and evidence | TBD |
 | FP-15 | Complete Smoke Coverage Matrix | Every important function has at least one full app smoke; Live/Mock/Artifact distinguished | Coverage 100% | NOT_STARTED | TBD | TBD | TBD |
 | FP-16 | Extra Scenario Validation | Space colonization; DLA; differential growth; prompts outside Demo Pack | Robust beyond predefined demos | NOT_STARTED | TBD | Digital Morphogenesis references remain inspiration unless indexed | TBD |
@@ -604,3 +604,57 @@ Contact sheet:
 | Typecheck | Passed: `npm run typecheck` |
 | Playwright smoke | Passed after sandbox rerun with local browser permission: `npm run test:e2e:smoke` (`8` tests) |
 | Accepted boundary | Developer Mode may keep raw artifact metadata; FP-12 only tightens User Mode panel handoff and labels |
+
+## FP-13 Acceptance Criteria
+
+- App-level Knowledge Base status is reachable in User Mode without adding a
+  fourth User Mode inspector tab.
+- Current-run retrieval state clearly distinguishes `No retrieved context for
+  this run` from a missing or empty persistent KB.
+- Reported KB metrics include observed source count, domain count, indexed
+  chunk count, last sync/fetch label, official docs coverage, and
+  local/personal docs coverage where the current session exposes them.
+- `Check KB status` is available as a safe in-app affordance.
+- `Refresh official KB` is disabled with explicit guidance to use the documented
+  local sync command; the UI does not fake a refresh action.
+- Developer Mode keeps the full Retrieval inspector and source-health drilldown.
+- Screenshots are saved and manually inspected at 1440, 1024, and 720 widths.
+
+## FP-13 KB & Retrieval Audit Notes
+
+- The existing Retrieval inspector already had the right user-facing copy and
+  source-health model, but it was unreachable from User Mode because the
+  accepted User Mode inspector contract exposes only Preview, Code, and Saved.
+- FP-13 adds a compact topbar `KB` status popover that reuses the same
+  retrieval-run and KB-status surfaces without changing the three User Mode
+  inspector tabs.
+- The KB popover reports only current-session evidence. If no retrieval result
+  exposes source-health metrics, the UI says metrics are not reported instead of
+  claiming the KB is empty.
+- Browser screenshots found and fixed a real visual issue: the popover needed a
+  fixed, opaque overlay and settled-animation capture to remain readable.
+- The refresh action remains disabled because no safe in-app sync API is exposed
+  in this scope; `docs/sync.md` remains the supported local sync path.
+
+## FP-13 Screenshot Evidence
+
+| Width | Observed KB status | Empty current run | Developer Retrieval |
+|---|---|---|---|
+| 1440 | `/tmp/cca-v8-fp13-kb-retrieval/fp13-observed-1440.png` | `/tmp/cca-v8-fp13-kb-retrieval/fp13-empty-1440.png` | `/tmp/cca-v8-fp13-kb-retrieval/fp13-developer-1440.png` |
+| 1024 | `/tmp/cca-v8-fp13-kb-retrieval/fp13-observed-1024.png` | `/tmp/cca-v8-fp13-kb-retrieval/fp13-empty-1024.png` | `/tmp/cca-v8-fp13-kb-retrieval/fp13-developer-1024.png` |
+| 720 | `/tmp/cca-v8-fp13-kb-retrieval/fp13-observed-720.png` | `/tmp/cca-v8-fp13-kb-retrieval/fp13-empty-720.png` | `/tmp/cca-v8-fp13-kb-retrieval/fp13-developer-720.png` |
+
+Contact sheet:
+`/tmp/cca-v8-fp13-kb-retrieval/fp13-kb-retrieval-contact-sheet.png`.
+
+## FP-13 Validation Evidence
+
+| Check | Result |
+|---|---|
+| Screenshot capture | Passed: observed KB, empty current-run retrieval, and Developer Retrieval captured at 1440, 1024, and 720 widths |
+| Screenshot human inspection | Passed: KB popover is readable, current-run empty wording is clear, observed metrics are visible, and Developer Retrieval remains detailed |
+| Focused frontend tests | Passed: `npx vitest run src/components/workstation-shell.test.tsx src/components/retrieval-source-explorer.test.tsx src/lib/kb-source-health.test.ts src/lib/retrieval-runtime.test.ts src/lib/retrieval-source-explorer.test.ts` (`111` tests) |
+| Typecheck | Passed: `npm run typecheck` |
+| Playwright smoke | Passed after sandbox rerun with local browser permission: `npm run test:e2e:smoke` (`8` tests) |
+| Hygiene | Passed: docs Mermaid gate, public-claim scan, `git diff --check`, and Runtime Pack hygiene |
+| Accepted boundary | In-app KB refresh is intentionally disabled; reviewers get status visibility and documented local sync guidance, not a fake refresh path |

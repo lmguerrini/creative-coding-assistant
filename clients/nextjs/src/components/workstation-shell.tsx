@@ -18,6 +18,7 @@ import {
   Braces,
   ChevronDown,
   Command,
+  Database,
   Gauge,
   LayoutGrid,
   Maximize2,
@@ -222,7 +223,11 @@ import { EvaluationSessionDashboard } from "./evaluation-session-dashboard";
 import { LangSmithTraceDeepDive } from "./langsmith-trace-deep-dive";
 import { MultiPreviewComparisonWorkspace } from "./multi-preview-comparison-workspace";
 import { ProviderObservabilityDeepDive } from "./provider-observability-deep-dive";
-import { RetrievalInspector } from "./retrieval-inspector";
+import {
+  KnowledgeBaseStatusSurface,
+  RetrievalInspector,
+  RetrievalRunStatusSurface
+} from "./retrieval-inspector";
 import { RuntimeConsoleInspector } from "./runtime-console-inspector";
 import { SacredConsistencySummary } from "./sacred-consistency-summary";
 import { SubsystemErrorCallout } from "./subsystem-error-callout";
@@ -284,7 +289,7 @@ type ArtifactActionFeedback = {
 };
 type ApprovalActionExecutor = () => Promise<void> | void;
 type ResizeTarget = "inspector" | "preview";
-type UtilityPanelName = "commands" | "theme" | "settings";
+type UtilityPanelName = "commands" | "theme" | "kb" | "settings";
 type FocusRestoreState = {
   inspectorCollapsed: boolean;
   previewOpen: boolean;
@@ -2752,6 +2757,24 @@ export function WorkstationShell({
             <Braces size={16} />
             <span>{workspacePreferences.showDebugPanels ? "Developer" : "User"}</span>
           </button>
+          <div className="utilityControl">
+            <button
+              aria-controls="kb-status-panel"
+              aria-expanded={openUtilityPanel === "kb"}
+              aria-haspopup="dialog"
+              aria-label="Knowledge Base status"
+              className="toolbarToggle"
+              onClick={() => toggleUtilityPanel("kb")}
+              title="Check Knowledge Base and retrieval status"
+              type="button"
+            >
+              <Database size={16} />
+              <span>KB</span>
+            </button>
+            {openUtilityPanel === "kb" ? (
+              <KnowledgeBaseStatusPanel runtime={retrievalRuntime} />
+            ) : null}
+          </div>
           <button
             aria-label="Focus mode"
             aria-pressed={isFocusMode}
@@ -5756,6 +5779,28 @@ type CommandMenuPanelProps = {
   onWorkspaceClear: () => void;
   showDebugPanels: boolean;
 };
+
+function KnowledgeBaseStatusPanel({
+  runtime
+}: {
+  runtime: RetrievalRuntimeModel;
+}) {
+  return (
+    <section
+      aria-label="Knowledge Base"
+      className="utilityPanel utilityPanel--kb"
+      id="kb-status-panel"
+      role="dialog"
+    >
+      <header className="utilityPanelHeader">
+        <strong>Knowledge Base</strong>
+        <p>Current retrieval state and reported local KB coverage.</p>
+      </header>
+      <RetrievalRunStatusSurface runtime={runtime} />
+      <KnowledgeBaseStatusSurface runtime={runtime} />
+    </section>
+  );
+}
 
 function CommandMenuPanel({
   activeTab,

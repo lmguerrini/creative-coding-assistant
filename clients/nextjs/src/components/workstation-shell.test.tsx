@@ -1753,6 +1753,50 @@ describe("WorkstationShell", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("surfaces app-level KB status in User Mode without exposing retrieval internals", () => {
+    renderUserShell(snapshotWithEmptyRetrieval());
+
+    fireEvent.click(screen.getByRole("button", { name: "Knowledge Base status" }));
+
+    const kbDialog = screen.getByRole("dialog", { name: "Knowledge Base" });
+    expect(kbDialog).toBeVisible();
+    expect(
+      within(kbDialog).getByRole("group", { name: "Retrieval status" })
+    ).toHaveTextContent("No retrieved context for this run.");
+    expect(kbDialog).toHaveTextContent(
+      "This only describes the current workflow. It does not mean the Knowledge Base is empty."
+    );
+    expect(
+      within(kbDialog).getByRole("group", { name: "Knowledge Base status" })
+    ).toHaveTextContent("No retrieved context for this run");
+    expect(kbDialog).toHaveTextContent("Not reported in this session");
+    expect(
+      within(kbDialog).getByRole("button", { name: "Refresh official KB" })
+    ).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Expand inspector" }));
+
+    expect(screen.getByRole("tab", { name: "Preview" })).toBeVisible();
+    expect(screen.getByRole("tab", { name: "Code" })).toBeVisible();
+    expect(screen.getByRole("tab", { name: "Saved" })).toBeVisible();
+    expect(screen.queryByRole("tab", { name: "Retrieval" })).not.toBeInTheDocument();
+  });
+
+  it("reports observed KB coverage from the current retrieval session", () => {
+    renderUserShell();
+
+    fireEvent.click(screen.getByRole("button", { name: "Knowledge Base status" }));
+
+    const kbDialog = screen.getByRole("dialog", { name: "Knowledge Base" });
+    expect(kbDialog).toHaveTextContent("Retrieved context available");
+    expect(kbDialog).toHaveTextContent("2 sources observed");
+    expect(kbDialog).toHaveTextContent("2 retrieved domains");
+    expect(kbDialog).toHaveTextContent("280 indexed chunks");
+    expect(kbDialog).toHaveTextContent("2/2 observed sources available");
+    expect(kbDialog).toHaveTextContent("Local/personal docs");
+    expect(kbDialog).toHaveTextContent("Not connected to this UI");
+  });
+
   it("labels ignored sources and unused chunks without losing global rank", () => {
     renderShell(snapshotWithIgnoredRetrievalSource());
 
