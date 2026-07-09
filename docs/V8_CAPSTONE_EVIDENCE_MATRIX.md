@@ -52,7 +52,7 @@ remaining risks below.
 | Output Quality | Golden artifacts render nonblank in the strongest local QA path available for p5.js, Three.js, GLSL, and Hydra. | Runtime QA used temporary dependencies; product preview integration is separate. |
 | Creative Quality | Demo prompts now emphasize audio-reactive systems, morphogenesis, feedback patterns, geometry, and installation planning. | Creative impact remains partly subjective and benefits from presenter curation. |
 | Security/Privacy | Sanitized/redacted evaluator fixtures, ignored runtime data, local `.env`, and documented private-data boundaries. | Secret scan should rerun immediately before any public release action. |
-| Production Readiness | Local demo target, fallback path, HITL boundaries, validation evidence, and dependency warning path are documented. | Final freeze, public release, tag, push, and Chroma upgrade require HITL or follow-up validation. |
+| Production Readiness | Local demo target, fallback path, release-approval boundaries, validation evidence, and dependency warning path are documented. | Final freeze, public release, tag, push, and Chroma upgrade require maintainer approval or follow-up validation. |
 
 ## Optimized Live-Smoke Results
 
@@ -181,7 +181,7 @@ These surfaces are treated as internal review evidence, not objective truth or
 automatic grading. The practical improvements from this pass were README
 clarity, public/private naming cleanup, prompt quality, smoke-derived Demo Mode
 metadata, User/Developer display-mode polish, RAGAs weak-row analysis, and
-removal of public self-scores.
+removal of public grading scores.
 
 Latest advisory-review run:
 
@@ -198,4 +198,4 @@ Latest advisory-review run:
 
 V8 is ready for external reviewer evaluation with bounded claims and local demo
 evidence. It is not autonomously frozen. Freeze, merge, push, tag, public
-release, and public cloud deployment require explicit HITL approval.
+release, and public cloud deployment require explicit maintainer approval.

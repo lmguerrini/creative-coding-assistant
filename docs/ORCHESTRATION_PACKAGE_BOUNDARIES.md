@@ -14,7 +14,7 @@ or generated output semantics.
 - `orchestration.metadata`: internal package name for Typed Domain
   Intelligence Layer registries, profiles, descriptors, creative reasoning
   records, cognitive records, and studio/workspace records.
-- `orchestration.governance`: passive policy, HITL, safety, budget, evolution,
+- `orchestration.governance`: passive policy, human approval, safety, budget, evolution,
   and governance posture models.
 - `orchestration.audit`: passive audit, architecture consistency, release
   review, and failure-path verification models.

@@ -279,7 +279,7 @@ Out of scope for this Capstone release:
 - Autonomous end-to-end delivery.
 - Broad load/soak or display-FPS benchmarking.
 - Raw private live-session evaluator calls.
-- Final freeze, merge, push, or tag without HITL.
+- Final freeze, merge, push, or tag without maintainer approval.
 
 ## Future Roadmap
 
@@ -309,4 +309,5 @@ These are roadmap directions, not current Capstone claims.
 ## License
 
 License information should be confirmed before public distribution. Keep this
-branch local until HITL approves release, freeze, tag, and publication actions.
+branch local until maintainer approval covers release, freeze, tag, and
+publication actions.

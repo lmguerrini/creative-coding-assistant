@@ -22,7 +22,7 @@ Running RAGAs may call evaluator LLM APIs and can incur provider cost. Keep
 selected RAGAs metrics require it.
 
 Recorded live-session rows under `data/eval/` are private local runtime
-artifacts. Do not send them to an external evaluator without HITL/privacy
+artifacts. Do not send them to an external evaluator without privacy
 approval.
 
 ## Examples

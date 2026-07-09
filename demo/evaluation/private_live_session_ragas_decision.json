@@ -29,7 +29,7 @@
     "emails": 0,
     "localhost_urls": 1
   },
-  "decision": "The file contains recorded local live-session questions, answers, and retrieved contexts. Even with HITL approval to run RAGAs safely, raw external scoring is avoided; the public reviewer evidence path is the redacted latest-live fixture plus the sanitized fixture.",
+  "decision": "The file contains recorded local live-session questions, answers, and retrieved contexts. Even with human approval to run RAGAs safely, raw external scoring is avoided; the public reviewer evidence path is the redacted latest-live fixture plus the sanitized fixture.",
   "safe_public_alternative": {
     "input": "demo/evaluation/sanitized_ragas_live_sessions.jsonl",
     "result": "demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl",

@@ -132,4 +132,5 @@ live provider, retrieval, or preview result.
 - Use `demo/evaluation/` for sanitized/redacted RAGAs evidence and
   `demo/golden_artifacts/` for generated p5.js, Three.js, GLSL, and Hydra
   artifact QA.
-- Stop for HITL before showcase upload, merge, push, tag, or final freeze.
+- Stop for maintainer approval before showcase upload, merge, push, tag, or
+  final freeze.

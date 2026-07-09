@@ -144,6 +144,6 @@
     "Provider calls can fail or be slow; use the offline prompt and preview dataset if needed.",
     "Sanitized and redacted latest-live RAGAs evaluations have been run for release-candidate evidence; raw private recorded-session rows remain local-only.",
     "Internal preview fallback uses prepared screenshots when live preview is unavailable.",
-    "External DCC/MCP execution, autonomous delivery, public deployment, merge, push, tag, and freeze are out of scope without HITL. Grand Review uses this dataset as release-candidate evidence."
+    "External DCC/MCP execution, autonomous delivery, public deployment, merge, push, tag, and freeze are out of scope without maintainer approval. Grand Review uses this dataset as release-candidate evidence."
   ]
 }

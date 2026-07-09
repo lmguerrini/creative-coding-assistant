@@ -21,7 +21,7 @@ when `CCA_ENVIRONMENT=production` unless an operator passes the explicit
 The realistic V8 Capstone target is a local workstation demo, not a public
 deployment. The presenter runs the backend API on `127.0.0.1:8000` and the
 Next.js workstation on the local Next dev server. Public deployment, public
-showcase upload, merge, push, tag, and final freeze remain HITL-gated.
+showcase upload, merge, push, tag, and final freeze remain maintainer-gated.
 
 Local demo startup path:
 

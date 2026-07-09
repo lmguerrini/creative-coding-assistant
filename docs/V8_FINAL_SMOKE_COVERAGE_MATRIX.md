@@ -87,4 +87,4 @@ artifact/browser QA, and documented accepted boundaries.
 - Multi-agent live execution is not claimed; current evidence covers
   single-domain, retrieval/hybrid, planning, and multi-domain workflows.
 - Public cloud deployment, external DCC/MCP execution, merge, push, tag, and
-  final freeze remain HITL-gated.
+  final freeze remain maintainer-gated.

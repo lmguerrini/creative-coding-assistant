@@ -10,9 +10,10 @@ It is not a merge, push, tag, release freeze, or V9 start.
 
 V8 Grand Engineering Review is a release-candidate validation program. The
 standard is broader than a read-only audit: local safe blockers may be fixed,
-validated, integrated, and committed before the final freeze HITL decision.
+validated, integrated, and committed before the final release-approval
+decision.
 
-Required HITL boundaries remain active for merge, push, tag, final freeze,
+Required approval boundaries remain active for merge, push, tag, final freeze,
 destructive actions, provider/source blockers, security/privacy risks, and
 product or architecture decisions.
 
@@ -34,7 +35,7 @@ Validation:
 - Replaced stale documentation claims that treated V8 Grand Review as out of
   scope after the review branch had already started.
 - Kept merge, push, tag, release freeze, showcase upload, and final release
-  decisions behind HITL.
+  decisions behind maintainer approval.
 - Expanded golden demo coverage for p5.js, Hydra, GLSL, retrieval-grounded
   answers, concept-to-visual translation, geometry/morphogenesis systems, and
   installation/immersive planning as bounded review evidence.
@@ -259,7 +260,8 @@ Golden demo coverage is release-candidate ready as a bounded rehearsal and
 evidence set. The public artifact set now includes generated p5.js, Three.js,
 GLSL, and Hydra examples with full-runtime browser QA evidence for p5/Three/
 Hydra through temporary QA dependencies and direct WebGL evidence for GLSL.
-Live showcase upload and final public claims approval still need HITL.
+Live showcase upload and final public claims approval still need maintainer
+approval.
 
 ## Readiness Assessment
 
@@ -271,7 +273,7 @@ Final workflow smoke coverage matrix:
 
 The Grand Review now publishes evidence and residual risks. The
 release-candidate judgment is based on category evidence, remaining risks, and
-HITL boundaries: redacted provider-backed RAGAs, Hydra browser runtime QA,
+approval boundaries: redacted provider-backed RAGAs, Hydra browser runtime QA,
 generated artifact QA, final browser/render QA, integrated Demo Mode, static
 launcher validation, local demo target review, public/private docs audit,
 README evaluator path, and timed-demo evidence.
@@ -279,7 +281,7 @@ README evaluator path, and timed-demo evidence.
 AI review readiness: ready for final reviewer evaluation with bounded claims.
 
 Senior reviewer readiness: ready for final release-candidate review, subject to
-HITL approval for freeze and public release actions.
+maintainer approval for freeze and public release actions.
 
 Deprecation status:
 
@@ -316,6 +318,8 @@ Remaining risks:
   execution remain unsupported future-scope items.
 - Chroma/Pydantic deprecation warnings are non-blocking dependency warnings with
   a documented upgrade-validation path.
-- Final freeze, merge, push, tag, and showcase upload require explicit HITL.
+- Final freeze, merge, push, tag, and showcase upload require explicit
+  maintainer approval.
 
-Conclusion: V8 is ready for final freeze HITL review, not autonomously frozen.
+Conclusion: V8 is ready for final freeze approval review, not autonomously
+frozen.

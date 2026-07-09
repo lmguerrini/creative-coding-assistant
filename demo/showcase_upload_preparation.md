@@ -6,16 +6,16 @@ evidence on `version-review/v8`.
 
 | Item | Status | Source |
 |---|---|---|
-| Project README | Draft ready for HITL | `README.md` |
-| Demo script | Draft ready for HITL | `docs/CAPSTONE_DEMO_SHOWCASE.md` |
-| Evaluation and ethics summary | Draft ready for HITL | `docs/CAPSTONE_EVALUATION_ETHICS.md` |
+| Project README | Draft ready for approval | `README.md` |
+| Demo script | Draft ready for approval | `docs/CAPSTONE_DEMO_SHOWCASE.md` |
+| Evaluation and ethics summary | Draft ready for approval | `docs/CAPSTONE_EVALUATION_ETHICS.md` |
 | Prompt library | Ready | `demo/demo_prompt_library.md` |
 | Golden demo dataset | Ready | `demo/golden_demo_dataset.json` |
 | Manual demo checklist | Ready | `demo/manual_demo_checklist.md` |
 | Preview screenshots | Ready | `assets/preview_current.png`, `assets/preview_v1.png`, `assets/preview_v2.png` |
 | Final public claims review | In Grand Review | `version-review/v8` |
 | Final demo rehearsal | Manual | Presenter action |
-| Public showcase upload | Blocked until HITL | Showcase gate |
+| Public showcase upload | Blocked until approval | Showcase gate |
 
 ## Upload Notes
 

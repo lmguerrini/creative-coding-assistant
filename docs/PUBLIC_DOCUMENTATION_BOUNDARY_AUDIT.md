@@ -8,11 +8,11 @@ release-candidate excellence pass. The goal is to keep reviewer/user evidence
 and product documentation public while keeping private runtime evidence out of
 Git.
 
-Internal product-polish task tracking was reclassified as private engineering
-state and moved out of public docs to ignored Runtime Pack context. The public
+Internal product-polish working notes were reclassified as private engineering
+state and moved out of public docs to ignored private context. The public
 replacement is `docs/PRODUCT_QUALITY_CHECKLIST.md`, which describes the
-reviewer-facing quality bar without exposing task states, private file paths,
-or HITL process notes.
+reviewer-facing quality bar without exposing internal milestones, private file
+paths, or internal approval process notes.
 
 Private live-session records, Runtime Pack state, local Chroma data,
 environment files, and generated test output remain outside the public
@@ -29,12 +29,12 @@ docs/demo tree and are ignored.
 | `docs/ORCHESTRATION_PACKAGE_BOUNDARIES.md` | Public product documentation | Keep tracked | Clarifies active/passive orchestration ownership and claim boundaries. |
 | `docs/PRODUCTION_DEPLOYMENT.md` | Public product documentation | Keep tracked | Provides production deployment posture and setup guidance. |
 | `docs/PROJECT_CONTEXT.md` | Public product documentation | Keep tracked | Summarizes project purpose and context. |
-| `docs/PRODUCT_QUALITY_CHECKLIST.md` | Public product documentation | Keep tracked | Public reviewer-facing quality checklist replacing private task tracking. |
+| `docs/PRODUCT_QUALITY_CHECKLIST.md` | Public product documentation | Keep tracked | Public reviewer-facing quality checklist replacing internal working notes. |
 | `docs/PUBLIC_DOCUMENTATION_BOUNDARY_AUDIT.md` | Public reviewer/user evidence | Keep tracked | Records this public/private boundary review. |
 | `docs/RUNTIME_VALIDATION.md` | Public product documentation | Keep tracked | Documents runtime validation posture and supported validation paths. |
 | `docs/V8_CAPSTONE_EVIDENCE_MATRIX.md` | Public reviewer/user evidence | Keep tracked | Primary release-candidate evidence matrix. |
 | `docs/V8_FINAL_SMOKE_COVERAGE_MATRIX.md` | Public reviewer/user evidence | Keep tracked | Classifies final live provider, browser smoke, artifact QA, and accepted-boundary coverage for reviewer workflows. |
-| `docs/V8_GRAND_ENGINEERING_REVIEW.md` | Public reviewer/user evidence | Keep tracked | Final Grand Review release-candidate evidence and HITL boundaries. |
+| `docs/V8_GRAND_ENGINEERING_REVIEW.md` | Public reviewer/user evidence | Keep tracked | Final Grand Review release-candidate evidence and release-approval boundaries. |
 | `docs/eval.md` | Public product documentation | Keep tracked | Explains evaluation approach and reviewer-relevant commands. |
 | `docs/eval_pipeline.md` | Public product documentation | Keep tracked | Details manual eval/RAGAs pipeline and privacy boundaries. |
 | `docs/sync.md` | Public product documentation | Keep tracked | Documents source sync posture for the knowledge base. |
@@ -46,7 +46,7 @@ docs/demo tree and are ignored.
 | `demo/README.md` | Public reviewer/user evidence | Keep tracked | Explains demo mode, golden flow, local QA evidence, and claim boundaries. |
 | `demo/demo_prompt_library.md` | Public reviewer/user evidence | Keep tracked | Reviewer-facing prompt set for golden flows and fallback. |
 | `demo/evaluation/README.md` | Public reviewer/user evidence | Keep tracked | Explains sanitized RAGAs fixture privacy posture. |
-| `demo/evaluation/private_live_session_ragas_decision.json` | Public reviewer/user evidence | Keep tracked | Records the private live-session RAGAs HITL decision without exposing private row content. |
+| `demo/evaluation/private_live_session_ragas_decision.json` | Public reviewer/user evidence | Keep tracked | Records the private live-session RAGAs privacy decision without exposing private row content. |
 | `demo/evaluation/sanitized_ragas_live_sessions.jsonl` | Public reviewer/user evidence | Keep tracked | Synthetic, schema-valid, privacy-approved RAGAs input fixture. |
 | `demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl` | Public reviewer/user evidence | Keep tracked | Exact sanitized RAGAs metric result rows. |
 | `demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl.manifest.json` | Public reviewer/user evidence | Keep tracked | Exact sanitized RAGAs run manifest and metric summary. |
@@ -72,10 +72,11 @@ docs/demo tree and are ignored.
 ## Private/Obsolete Result
 
 Private engineering evidence moved to ignored Runtime Pack or context storage:
-the previous public task tracker was moved to private ignored context.
+the previous public internal tracker was moved to private ignored context.
 
-Obsolete/internal files removed or ignored: the public task tracker was
-removed from tracked docs and replaced by the public quality checklist.
+Obsolete/internal files removed or ignored: the previous public internal
+tracker was removed from tracked docs and replaced by the public quality
+checklist.
 
 Untracked sandbox-only RAGAs failure files created during the first network
 attempt were removed before commit. The committed RAGAs result is the successful

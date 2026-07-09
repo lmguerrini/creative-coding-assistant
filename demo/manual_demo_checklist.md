@@ -6,7 +6,8 @@ showcase session.
 ## Preflight
 
 - Confirm branch: `version-review/v8` during Grand Review rehearsal.
-- Confirm no merge, push, tag, or freeze action is planned without HITL.
+- Confirm no merge, push, tag, or freeze action is planned without maintainer
+  approval.
 - Keep `README.md`, `docs/CAPSTONE_DEMO_SHOWCASE.md`, and
   `docs/CAPSTONE_EVALUATION_ETHICS.md` open.
 - Keep `docs/V8_CAPSTONE_EVIDENCE_MATRIX.md` open for reviewer evidence
@@ -83,7 +84,7 @@ If preview is unavailable:
 
 - What is the deployment target?
   A local Capstone workstation demo: backend on `127.0.0.1:8000`, Next.js dev
-  server locally, no public deployment without HITL.
+  server locally, no public deployment without maintainer approval.
 - What actually rendered in browser QA?
   p5.js rendered nonblank with `p5@2.3.0`, Three.js rendered nonblank with
   `three@0.185.1`, Hydra rendered nonblank with `hydra-synth@1.4.0`, and GLSL
@@ -98,6 +99,7 @@ If preview is unavailable:
   evidence, static launcher fallback, golden artifact QA, and architecture
   walkthrough without implying live success.
 
-## HITL Gate
+## Approval Gate
 
-Stop for HITL review before showcase upload, merge, push, tag, or freeze.
+Stop for maintainer review before showcase upload, merge, push, tag, or
+freeze.

@@ -50,7 +50,7 @@ project output narrative.
 - No autonomous immersive platform behavior is claimed.
 - No autonomous agent swarm or unattended workflow control is claimed.
 - Case 2 and Case 3 are guarded support claims only.
-- Merge, push, tag, and freeze remain HITL-blocked.
+- Merge, push, tag, and freeze remain blocked until maintainer approval.
 - V8 Grand Review is handled separately on `version-review/v8` as a
   release-candidate validation program.
 - Hydra support is limited to the validated local `hydra-synth` browser
