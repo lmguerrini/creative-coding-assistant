@@ -117,7 +117,7 @@ Workflow:
   curates scenario startup and evidence.
 
 API:
-- Local FastAPI development server.
+- Local WSGI development bridge.
 - Health, readiness, workspace-session, and assistant request surfaces.
 - Provider calls remain opt-in and environment-dependent.
 

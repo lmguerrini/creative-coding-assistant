@@ -3,16 +3,20 @@
 Date: 2026-07-08
 Branch: `version-review/v8`
 
-This audit classifies every tracked file under `docs/` and `demo/` after the
-V8 release-candidate excellence pass. The goal is to keep reviewer/user
-evidence and product documentation public while keeping private runtime evidence
-out of Git.
+This audit classifies tracked files under `docs/` and `demo/` after the V8
+release-candidate excellence pass. The goal is to keep reviewer/user evidence
+and product documentation public while keeping private runtime evidence out of
+Git.
 
-No tracked `docs/` or `demo/` file was moved or removed in this pass. The
-review found no file that should be reclassified as private engineering
-evidence or obsolete/internal. Private live-session records, Runtime Pack state,
-local Chroma data, environment files, and generated test output remain outside
-the public docs/demo tree and are ignored.
+Internal product-polish task tracking was reclassified as private engineering
+state and moved out of public docs to ignored Runtime Pack context. The public
+replacement is `docs/PRODUCT_QUALITY_CHECKLIST.md`, which describes the
+reviewer-facing quality bar without exposing task states, private file paths,
+or HITL process notes.
+
+Private live-session records, Runtime Pack state, local Chroma data,
+environment files, and generated test output remain outside the public
+docs/demo tree and are ignored.
 
 ## Docs Classification
 
@@ -25,6 +29,7 @@ the public docs/demo tree and are ignored.
 | `docs/ORCHESTRATION_PACKAGE_BOUNDARIES.md` | Public product documentation | Keep tracked | Clarifies active/passive orchestration ownership and claim boundaries. |
 | `docs/PRODUCTION_DEPLOYMENT.md` | Public product documentation | Keep tracked | Provides production deployment posture and setup guidance. |
 | `docs/PROJECT_CONTEXT.md` | Public product documentation | Keep tracked | Summarizes project purpose and context. |
+| `docs/PRODUCT_QUALITY_CHECKLIST.md` | Public product documentation | Keep tracked | Public reviewer-facing quality checklist replacing private task tracking. |
 | `docs/PUBLIC_DOCUMENTATION_BOUNDARY_AUDIT.md` | Public reviewer/user evidence | Keep tracked | Records this public/private boundary review. |
 | `docs/RUNTIME_VALIDATION.md` | Public product documentation | Keep tracked | Documents runtime validation posture and supported validation paths. |
 | `docs/V8_CAPSTONE_EVIDENCE_MATRIX.md` | Public reviewer/user evidence | Keep tracked | Primary release-candidate evidence matrix. |
@@ -66,11 +71,11 @@ the public docs/demo tree and are ignored.
 
 ## Private/Obsolete Result
 
-Private engineering evidence moved to `.runtime_pack/active/` or
-`.chatgpt_context/`: none from `docs/` or `demo/`.
+Private engineering evidence moved to ignored Runtime Pack or context storage:
+the previous public task tracker was moved to private ignored context.
 
-Obsolete/internal files removed or ignored: none from tracked `docs/` or
-`demo/`.
+Obsolete/internal files removed or ignored: the public task tracker was
+removed from tracked docs and replaced by the public quality checklist.
 
 Untracked sandbox-only RAGAs failure files created during the first network
 attempt were removed before commit. The committed RAGAs result is the successful
