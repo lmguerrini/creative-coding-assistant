@@ -5655,6 +5655,9 @@ function UserArtifactsInspector({
     copyFeedback,
     transferFeedback
   );
+  const userArtifactLabels = buildUserArtifactDisplayLabels(artifacts);
+  const activeArtifactLabel =
+    userArtifactLabels.get(activeArtifact.id) ?? formatUserArtifactLabel(activeArtifact);
 
   return (
     <section
@@ -5666,31 +5669,36 @@ function UserArtifactsInspector({
       <article className="savedOutputsHero" role="group" aria-label="Saved outputs">
         <div>
           <span>Saved outputs</span>
-          <strong>{formatUserArtifactLabel(activeArtifact)}</strong>
+          <strong>{activeArtifactLabel}</strong>
           <p>{getUserArtifactSummary(activeArtifact)}</p>
         </div>
         <span>{`${artifacts.length} saved`}</span>
       </article>
-      <div className="savedOutputList" role="list" aria-label="Saved output list">
-        {artifacts.map((artifact) => {
-          const isActive = artifact.id === activeArtifactId;
-          return (
-            <div key={artifact.id} role="listitem">
-              <button
-                aria-pressed={isActive}
-                className="savedOutputCard"
-                data-active={isActive ? "true" : "false"}
-                onClick={() => onArtifactSelect(artifact)}
-                type="button"
-              >
-                <span>{formatUserArtifactRuntimeLabel(artifact)}</span>
-                <strong>{formatUserArtifactLabel(artifact)}</strong>
-                <small>{getUserArtifactSummary(artifact)}</small>
-              </button>
-            </div>
-          );
-        })}
-      </div>
+      {artifacts.length > 1 ? (
+        <div className="savedOutputList" role="list" aria-label="Saved output list">
+          {artifacts.map((artifact) => {
+            const isActive = artifact.id === activeArtifactId;
+            return (
+              <div key={artifact.id} role="listitem">
+                <button
+                  aria-pressed={isActive}
+                  className="savedOutputCard"
+                  data-active={isActive ? "true" : "false"}
+                  onClick={() => onArtifactSelect(artifact)}
+                  type="button"
+                >
+                  <span>{formatUserArtifactRuntimeLabel(artifact)}</span>
+                  <strong>
+                    {userArtifactLabels.get(artifact.id) ??
+                      formatUserArtifactLabel(artifact)}
+                  </strong>
+                  <small>{getUserArtifactSummary(artifact)}</small>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
       <UserArtifactActionRow
         artifact={activeArtifact}
         copyFeedback={copyFeedback}
@@ -6329,6 +6337,33 @@ function formatUserArtifactLabel(artifact: ArtifactSummary) {
   }
 
   return "Generated Code";
+}
+
+function buildUserArtifactDisplayLabels(artifacts: ArtifactSummary[]) {
+  const baseLabels = artifacts.map((artifact) => ({
+    artifact,
+    label: formatUserArtifactLabel(artifact)
+  }));
+  const totals = baseLabels.reduce((counts, item) => {
+    counts.set(item.label, (counts.get(item.label) ?? 0) + 1);
+    return counts;
+  }, new Map<string, number>());
+  const seen = new Map<string, number>();
+  const labels = new Map<string, string>();
+
+  for (const item of baseLabels) {
+    const total = totals.get(item.label) ?? 0;
+    if (total <= 1) {
+      labels.set(item.artifact.id, item.label);
+      continue;
+    }
+
+    const nextIndex = (seen.get(item.label) ?? 0) + 1;
+    seen.set(item.label, nextIndex);
+    labels.set(item.artifact.id, `${item.label} ${nextIndex}`);
+  }
+
+  return labels;
 }
 
 function formatUserArtifactRuntimeLabel(artifact: ArtifactSummary) {

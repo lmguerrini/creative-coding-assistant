@@ -1164,6 +1164,34 @@ describe("WorkstationShell", () => {
     expect(within(savedPanel).queryByText("feedback-lattice.hydra.js")).not.toBeInTheDocument();
   });
 
+  it("disambiguates repeated User Mode saved output labels without filenames", () => {
+    const snapshot = snapshotWithP5Preview();
+    renderUserShell({
+      ...snapshot,
+      artifacts: [
+        snapshot.artifacts[0],
+        {
+          ...snapshot.artifacts[0],
+          id: "second-p5-sketch",
+          title: "second-orbit-field.p5.js",
+          summary: "Second browser-safe p5 sketch."
+        },
+        ...snapshot.artifacts.slice(1)
+      ]
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Expand inspector" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Saved" }));
+
+    const savedPanel = screen.getByRole("tabpanel", {
+      name: "Saved outputs inspector"
+    });
+    expect(within(savedPanel).getAllByText("P5 Sketch 1").length).toBeGreaterThan(0);
+    expect(within(savedPanel).getByText("P5 Sketch 2")).toBeVisible();
+    expect(within(savedPanel).queryByText("signal-orbit.p5.ts")).not.toBeInTheDocument();
+    expect(within(savedPanel).queryByText("second-orbit-field.p5.js")).not.toBeInTheDocument();
+  });
+
   it("renders a polished first-run workspace without demo or infrastructure noise", () => {
     renderUserShell(getInitialWorkspaceSnapshot());
 

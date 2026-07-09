@@ -10,11 +10,11 @@ checkpoints. Do not merge, push, tag, freeze, or start V9 from this roadmap.
 
 | Field | Value |
 |---|---|
-| Current task | FP-11 Typography & Layout QA |
+| Current task | FP-12 Preview / Code / Saved Ecosystem |
 | Status | ACCEPTED |
-| Scope boundary | Visible text wrapping, glued words, cropped labels, card padding, button wrapping, and focused layout screenshots only |
-| Screenshot evidence | Captured and inspected at 1440, 1024, and 720 widths |
-| Latest task commit | FP-10 accepted at `1f6799e5` |
+| Scope boundary | Panel role clarity, Preview/Code/Saved handoff, duplicated noise, tab labels, and focused panel screenshots only |
+| Screenshot evidence | Captured at 1440, 1024, and 720 widths |
+| Latest task commit | FP-11 accepted at `ddb3d1e0` |
 
 ## Status Legend
 
@@ -38,8 +38,8 @@ checkpoints. Do not merge, push, tag, freeze, or start V9 from this roadmap.
 | FP-08 | Artifacts & Saved UX | Human labels; Saved browser; Code browser; Preview browser; no technical filenames; responsive layout | Artifact management is clear | ACCEPTED | `/tmp/cca-v8-fp08-artifacts-saved/manifest.json`; `/tmp/cca-v8-fp08-artifacts-saved/fp08-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.test.tsx`; `clients/nextjs/e2e/workstation-smoke.spec.js` | Developer Mode may show raw filenames; User Mode uses human labels and hides raw artifact filenames | `4c6d037f` |
 | FP-09 | Input Composer UX | Codex/ChatGPT-style composer; minimal plus; bottom send; auto-grow; no status clutter; no overlap | Composer matches Codex philosophy | ACCEPTED | `/tmp/cca-v8-fp09-composer/manifest.json`; `/tmp/cca-v8-fp09-composer/fp09-composer-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.test.tsx`; `clients/nextjs/src/app/globals.css` | Developer Mode may keep compact composer status text; User Mode omits it to avoid clutter | `e8651d4e` |
 | FP-10 | Codex Design System | Codex philosophy across typography, whitespace, flat surfaces, hierarchy, interactions; theme changes only colors | App feels part of Codex ecosystem | ACCEPTED | `/tmp/cca-v8-fp10-design-system/manifest.json`; `/tmp/cca-v8-fp10-design-system/fp10-design-contact-sheet.png`; `clients/nextjs/src/app/globals.css` | Aqua and Matrix preserved; FP-10 changes are Codex-theme surface flattening only | `1f6799e5` |
-| FP-11 | Typography & Layout QA | Fix glued words; overflow; line wrapping; subtitles; cards; padding; margins | No visible typography defects | ACCEPTED | `/tmp/cca-v8-fp11-typography-layout/manifest.json`; `/tmp/cca-v8-fp11-typography-layout/fp11-typography-layout-contact-sheet.png`; `clients/nextjs/src/app/globals.css` | Collapsed inspector rail text creates false positive overflow; no page-level overflow remains | Pending FP-11 commit |
-| FP-12 | Preview / Code / Saved Ecosystem | Coordinate three panels; preview is preview; Code is code; Saved is artifacts; no duplicated noise | Every panel has a clear role | NOT_STARTED | TBD | TBD | TBD |
+| FP-11 | Typography & Layout QA | Fix glued words; overflow; line wrapping; subtitles; cards; padding; margins | No visible typography defects | ACCEPTED | `/tmp/cca-v8-fp11-typography-layout/manifest.json`; `/tmp/cca-v8-fp11-typography-layout/fp11-typography-layout-contact-sheet.png`; `clients/nextjs/src/app/globals.css` | Collapsed inspector rail text creates false positive overflow; no page-level overflow remains | `ddb3d1e0` |
+| FP-12 | Preview / Code / Saved Ecosystem | Coordinate three panels; preview is preview; Code is code; Saved is artifacts; no duplicated noise | Every panel has a clear role | ACCEPTED | `/tmp/cca-v8-fp12-panel-ecosystem/manifest.json`; `/tmp/cca-v8-fp12-panel-ecosystem/fp12-panel-ecosystem-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.tsx`; `clients/nextjs/src/components/workstation-shell.test.tsx` | Preview remains visual/fallback, Code remains source, Saved remains artifact management; repeated same-runtime artifacts use numbered human labels | Pending FP-12 commit |
 | FP-13 | KB & Retrieval UX | Global KB status; current retrieval state; Check KB; refresh if safe; correct wording; User vs Developer | Reviewer sees that RAG is real | NOT_STARTED | TBD | Do not fake refresh if API/command is unsafe | TBD |
 | FP-14 | LangSmith Observability | Real trace; visible workflow; planner; retrieval; timing; demo instructions | ACTIVE TESTED | NOT_STARTED | TBD | Do not claim active tracing without credentials and evidence | TBD |
 | FP-15 | Complete Smoke Coverage Matrix | Every important function has at least one full app smoke; Live/Mock/Artifact distinguished | Coverage 100% | NOT_STARTED | TBD | TBD | TBD |
@@ -557,3 +557,50 @@ Contact sheet:
 | Typecheck | Passed: `npm run typecheck` |
 | Playwright smoke | Passed after sandbox rerun with local server permission: `npm run test:e2e:smoke` (`8` tests) |
 | Accepted boundary | FP-11 fixes visible typography/layout defects only; broader panel role coordination remains FP-12 |
+
+## FP-12 Acceptance Criteria
+
+- Preview panel stays visual-first and does not expose generated source code in
+  User Mode.
+- Code panel remains the source-code inspection surface and shows the generated
+  code for the active artifact.
+- Saved panel remains the artifact-management surface with human artifact labels.
+- User Mode does not expose raw artifact filenames in Preview or Saved.
+- Repeated same-runtime saved outputs stay distinguishable without falling back
+  to technical filenames.
+- Screenshots are saved and manually inspected at 1440, 1024, and 720 widths.
+
+## FP-12 Panel Ecosystem Audit Notes
+
+- User Mode Preview, Code, and Saved now have clearer boundaries: Preview shows
+  the canvas/fallback, Code shows source, and Saved shows artifact management.
+- Repeated same-runtime outputs are numbered with human labels such as
+  `P5 Sketch 1` and `P5 Sketch 2`; raw filenames remain reserved for Developer
+  Mode.
+- A single saved output does not render an extra selectable Saved list, reducing
+  repeated noise while keeping the active artifact summary and actions visible.
+- Browser assertions verified that Preview text does not contain `createCanvas`,
+  Code does contain the source, and Saved contains `P5 Sketch` without the raw
+  `fp12-orbit-field.p5.js` filename.
+
+## FP-12 Screenshot Evidence
+
+| Width | Preview | Code | Saved |
+|---|---|---|---|
+| 1440 | `/tmp/cca-v8-fp12-panel-ecosystem/fp12-user-preview-1440.png` | `/tmp/cca-v8-fp12-panel-ecosystem/fp12-user-code-1440.png` | `/tmp/cca-v8-fp12-panel-ecosystem/fp12-user-saved-1440.png` |
+| 1024 | `/tmp/cca-v8-fp12-panel-ecosystem/fp12-user-preview-1024.png` | `/tmp/cca-v8-fp12-panel-ecosystem/fp12-user-code-1024.png` | `/tmp/cca-v8-fp12-panel-ecosystem/fp12-user-saved-1024.png` |
+| 720 | `/tmp/cca-v8-fp12-panel-ecosystem/fp12-user-preview-720.png` | `/tmp/cca-v8-fp12-panel-ecosystem/fp12-user-code-720.png` | `/tmp/cca-v8-fp12-panel-ecosystem/fp12-user-saved-720.png` |
+
+Contact sheet:
+`/tmp/cca-v8-fp12-panel-ecosystem/fp12-panel-ecosystem-contact-sheet.png`.
+
+## FP-12 Validation Evidence
+
+| Check | Result |
+|---|---|
+| Screenshot capture | Passed: Preview, Code, and Saved captured at 1440, 1024, and 720 widths |
+| Screenshot human inspection | Passed: Preview is visual, Code is source, Saved is artifact management with human labels and no raw filenames |
+| Focused frontend tests | Passed: `npx vitest run src/components/workstation-shell.test.tsx src/lib/workspace-persistence.test.ts src/lib/preview-sandbox-runtime.test.ts` (`114` tests) |
+| Typecheck | Passed: `npm run typecheck` |
+| Playwright smoke | Passed after sandbox rerun with local browser permission: `npm run test:e2e:smoke` (`8` tests) |
+| Accepted boundary | Developer Mode may keep raw artifact metadata; FP-12 only tightens User Mode panel handoff and labels |
