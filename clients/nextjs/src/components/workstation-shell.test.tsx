@@ -2634,6 +2634,91 @@ describe("WorkstationShell", () => {
     expect(within(conversation).queryByText(/function draw/)).not.toBeInTheDocument();
   });
 
+  it("summarizes mixed generated code in User Mode while routing code to panels", async () => {
+    const artifact = {
+      id: "mixed-visual-artifact",
+      title: "mixed-visual-artifact.frag",
+      language: "GLSL",
+      source_language: "glsl",
+      content: [
+        "void main() {",
+        "  vec2 uv = gl_FragCoord.xy / u_resolution.xy;",
+        "  gl_FragColor = vec4(uv, 0.8, 1.0);",
+        "}"
+      ].join("\n"),
+      preview_eligible: true,
+      preview_target: "browser_sandbox",
+      runtime: "glsl",
+      renderer_id: "surface.glsl",
+      source_order: 1,
+      is_default: true
+    };
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "artifact_extracted",
+          sequence: 0,
+          payload: {
+            artifacts: [artifact]
+          }
+        },
+        {
+          event_type: "final",
+          sequence: 1,
+          payload: {
+            answer: [
+              "Here is the generated visual shader and HTML wrapper.",
+              "",
+              "```html",
+              "<!doctype html>",
+              "<html>",
+              "<script>",
+              "function setup() { createCanvas(640, 360); }",
+              "</script>",
+              "</html>",
+              "```",
+              "```glsl",
+              artifact.content,
+              "```"
+            ].join("\n"),
+            artifacts: [artifact]
+          }
+        }
+      ])
+    );
+
+    renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Generate a GLSL post-processing visual." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    const conversation = screen.getByRole("log", { name: "Conversation" });
+
+    expect(
+      await within(conversation).findByText(/Code and long-form output are available/)
+    ).toBeVisible();
+    expect(within(conversation).queryByText(/<!doctype/i)).not.toBeInTheDocument();
+    expect(within(conversation).queryByText(/function setup/i)).not.toBeInTheDocument();
+    expect(within(conversation).queryByText(/gl_FragColor/)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Code" }));
+    expect(
+      within(screen.getByRole("tabpanel", { name: "Code inspector" })).getByText(
+        /gl_FragColor/
+      )
+    ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
+    expect(
+      within(screen.getByRole("tabpanel", { name: "Artifacts inspector" })).getByRole(
+        "article",
+        { name: "mixed-visual-artifact.frag artifact" }
+      )
+    ).toBeVisible();
+  });
+
   it("applies theme and settings preferences and persists them", async () => {
     const persistenceClient: WorkspacePersistenceClient = {
       load: vi.fn(async () => ({ error: null, record: null, source: "none" as const })),

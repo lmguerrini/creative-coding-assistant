@@ -9,11 +9,11 @@ tag, freeze, or start V9 from this roadmap.
 
 | Field | Value |
 |---|---|
-| Current task | FP-02 Preview UX Excellence |
-| Status | HITL_REVIEW |
-| Scope boundary | Preview unavailable, preview available, User Mode HUD hiding, overlay controls, and Developer Mode diagnostic boundary only |
-| Screenshot evidence | `/tmp/cca-v8-fp02-preview-ux/fp02-preview-region-contact-sheet-1440.png`; `/tmp/cca-v8-fp02-preview-ux/fp02-preview-region-contact-sheet-1024.png`; `/tmp/cca-v8-fp02-preview-ux/fp02-preview-region-contact-sheet-720.png` |
-| Latest task commit | Pending FP-02 HITL acceptance; task implementation commit recorded in final response |
+| Current task | FP-03 Chat UX Excellence |
+| Status | ACCEPTED |
+| Scope boundary | User Mode assistant message readability, generated-code suppression in chat, Code/Artifacts/Preview routing evidence, and focused regression coverage only |
+| Screenshot evidence | `/tmp/cca-v8-fp03-chat-ux/fp03-focused-contact-sheet.png`; focused chat/code/saved/preview captures at 1440, 1024, and 720 widths |
+| Latest task commit | Pending FP-03 commit creation |
 
 ## Status Legend
 
@@ -28,8 +28,8 @@ tag, freeze, or start V9 from this roadmap.
 | Step | Capability | Task principal | Definition of Done | Status | Evidence / paths | Blockers / boundaries | Latest accepted commit |
 |---|---|---|---|---|---|---|---|
 | FP-01 | Artifact & Workspace Integrity | Audit artifacts; audit untracked files; clean repository; no orphan artifacts; workspace integrity | Git clean; artifact ledger coherent | ACCEPTED | `demo/golden_artifacts/qa_manifest.json`; `demo/final_demo_suite.json`; `tests/test_golden_artifacts.py`; FP-01 validation log in task final response | No visual screenshots needed; `.runtime_pack/` private ignored copy is not public release evidence | `22414b2b8e5f42bcc729f09e06736512ad71a6aa` |
-| FP-02 | Preview UX Excellence | Preview unavailable redesign; preview available canvas-first; eliminate User Mode HUD; overlay controls; no huge black canvas; no User Mode debug boxes | Preview looks like a real artistic canvas | HITL_REVIEW | `/tmp/cca-v8-fp02-preview-ux/manifest.json`; preview-region contact sheets at 1440, 1024, and 720 widths; `clients/nextjs/src/components/workstation-shell.test.tsx`; `clients/nextjs/src/lib/preview-sandbox-runtime.test.ts` | Developer Mode may show diagnostics; FP-05 owns full Developer Mode polish | Pending HITL |
-| FP-03 | Chat UX Excellence | No HTML/JS/GLSL dumps; summary only; code to Code panel; artifact to Artifacts; preview to Preview | Chat readable like ChatGPT | NOT_STARTED | TBD | TBD | TBD |
+| FP-02 | Preview UX Excellence | Preview unavailable redesign; preview available canvas-first; eliminate User Mode HUD; overlay controls; no huge black canvas; no User Mode debug boxes | Preview looks like a real artistic canvas | ACCEPTED | `/tmp/cca-v8-fp02-preview-ux/manifest.json`; preview-region contact sheets at 1440, 1024, and 720 widths; `clients/nextjs/src/components/workstation-shell.test.tsx`; `clients/nextjs/src/lib/preview-sandbox-runtime.test.ts` | Developer Mode may show diagnostics; FP-05 owns full Developer Mode polish | `edd9adbe7fca48dfe8b9331eef13ce61eaab8173` |
+| FP-03 | Chat UX Excellence | No HTML/JS/GLSL dumps; summary only; code to Code panel; artifact to Artifacts; preview to Preview | Chat readable like ChatGPT | ACCEPTED | `/tmp/cca-v8-fp03-chat-ux/focused-manifest.json`; `/tmp/cca-v8-fp03-chat-ux/fp03-focused-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.test.tsx` | User Mode uses the product-facing `Saved` tab for artifact routing; broader panel visual polish stays with FP-04/FP-08/FP-12 | Pending commit creation |
 | FP-04 | User Mode Excellence | Minimal User Mode; inspector closed; max 3 tabs; no technical internals; responsive layout | Looks like a consumer app | NOT_STARTED | TBD | TBD | TBD |
 | FP-05 | Developer Mode Excellence | Full technical information; no overlap; no truncated text; readable details | Looks like a professional IDE | NOT_STARTED | TBD | Developer Mode may be denser than User Mode | TBD |
 | FP-06 | Demo Mode UX | Minimal demo cards; metadata in Developer Mode; coherent categories; explicit capability; no internal terminology | Reviewer understands each demo in 5 seconds | NOT_STARTED | TBD | TBD | TBD |
@@ -136,3 +136,50 @@ tag, freeze, or start V9 from this roadmap.
 | Playwright smoke | Passed: `npm run test:e2e:smoke` (`8` tests) |
 | Hygiene | Passed: `git diff --check`; Runtime Pack hygiene OK |
 | Accepted boundary | Developer Mode diagnostics can overlay the canvas; FP-05 owns full Developer Mode visual polish |
+
+## FP-03 Acceptance Criteria
+
+- User Mode chat does not display raw HTML, JavaScript, GLSL, TypeScript, or
+  generated source-code blocks.
+- Long or code-bearing assistant output is summarized in the conversation.
+- Generated source remains inspectable in the Code panel.
+- Generated artifacts remain inspectable through the User Mode Saved surface.
+- Previewable output routes to the Preview surface.
+- Regression coverage proves User Mode chat does not flood with generated code.
+
+## FP-03 Chat UX Audit Notes
+
+- `buildUserModeAssistantSummary` strips code fences, script/style tags, HTML
+  tags, p5 setup/draw signatures, Three.js imports, and GLSL fragment shader
+  signatures from User Mode assistant messages.
+- `buildAssistantConversationSummary` summarizes code-bearing or long final
+  answers before they are written into the conversation.
+- User Mode artifact routing is intentionally labeled `Saved`, not `Artifacts`,
+  while Developer Mode keeps the technical `Artifacts` inspector label.
+- Full-page screenshots can show duplicated sticky headers as a Playwright
+  artifact at narrow widths; focused region screenshots are the primary visual
+  evidence for FP-03.
+
+## FP-03 Screenshot Evidence
+
+| Width | Chat evidence | Code evidence | Saved evidence | Preview evidence |
+|---|---|---|---|---|
+| 1440 | `/tmp/cca-v8-fp03-chat-ux/fp03-focused-chat-1440.png` | `/tmp/cca-v8-fp03-chat-ux/fp03-focused-code-1440.png` | `/tmp/cca-v8-fp03-chat-ux/fp03-focused-saved-1440.png` | `/tmp/cca-v8-fp03-chat-ux/fp03-focused-preview-1440.png` |
+| 1024 | `/tmp/cca-v8-fp03-chat-ux/fp03-focused-chat-1024.png` | `/tmp/cca-v8-fp03-chat-ux/fp03-focused-code-1024.png` | `/tmp/cca-v8-fp03-chat-ux/fp03-focused-saved-1024.png` | `/tmp/cca-v8-fp03-chat-ux/fp03-focused-preview-1024.png` |
+| 720 | `/tmp/cca-v8-fp03-chat-ux/fp03-focused-chat-720.png` | `/tmp/cca-v8-fp03-chat-ux/fp03-focused-code-720.png` | `/tmp/cca-v8-fp03-chat-ux/fp03-focused-saved-720.png` | `/tmp/cca-v8-fp03-chat-ux/fp03-focused-preview-720.png` |
+
+Contact sheet: `/tmp/cca-v8-fp03-chat-ux/fp03-focused-contact-sheet.png`.
+
+## FP-03 Validation Evidence
+
+| Check | Result |
+|---|---|
+| Focused regression | Passed: `npx vitest run src/components/workstation-shell.test.tsx --testNamePattern "generated code\|mixed generated code"` (`2` tests) |
+| Full workstation tests | Passed: `npx vitest run src/components/workstation-shell.test.tsx` (`84` tests) |
+| Typecheck | Passed: `npm run typecheck` |
+| Playwright focused screenshot capture | Passed: chat, Code, Saved, and Preview captures at 1440, 1024, and 720 widths |
+| Playwright smoke | Passed: `npm run test:e2e:smoke` (`8` tests) |
+| Public docs/demo claim scan | Passed: no matches for forbidden public product terms in `README.md`, `docs/`, or `demo/` excluding internal review roadmaps |
+| Docs Mermaid check | Not applicable: no Mermaid blocks in touched docs |
+| Hygiene | Passed: `git diff --check`; Runtime Pack private directories remain ignored |
+| Accepted boundary | FP-03 proves chat/code routing; FP-04, FP-08, and FP-12 own broader User Mode, Saved, and panel ecosystem visual polish |
