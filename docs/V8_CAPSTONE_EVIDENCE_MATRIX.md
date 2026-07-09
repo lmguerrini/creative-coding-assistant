@@ -25,6 +25,11 @@ remaining risks below.
 - Demo validation: integrated in-app Demo Mode is primary, exposes measured
   optimized live-smoke metadata where available, and labels bounded flows
   conservatively; the static launcher remains fallback/reviewer evidence.
+- Final smoke coverage: `docs/V8_FINAL_SMOKE_COVERAGE_MATRIX.md` classifies
+  live provider, mocked browser, artifact-QA, and accepted-boundary evidence
+  for the full reviewer journey.
+- LangSmith validation: project `creative-coding-assistant` has active-tested
+  trace evidence for a representative retrieval-backed workflow.
 - Privacy boundary: raw private live-session rows remain local-only.
 - Deployment boundary: Capstone target is local demo, not public cloud
   deployment.

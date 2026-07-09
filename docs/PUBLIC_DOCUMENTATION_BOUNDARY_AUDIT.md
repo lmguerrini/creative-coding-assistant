@@ -28,6 +28,7 @@ the public docs/demo tree and are ignored.
 | `docs/PUBLIC_DOCUMENTATION_BOUNDARY_AUDIT.md` | Public reviewer/user evidence | Keep tracked | Records this public/private boundary review. |
 | `docs/RUNTIME_VALIDATION.md` | Public product documentation | Keep tracked | Documents runtime validation posture and supported validation paths. |
 | `docs/V8_CAPSTONE_EVIDENCE_MATRIX.md` | Public reviewer/user evidence | Keep tracked | Primary release-candidate evidence matrix. |
+| `docs/V8_FINAL_SMOKE_COVERAGE_MATRIX.md` | Public reviewer/user evidence | Keep tracked | Classifies final live provider, browser smoke, artifact QA, and accepted-boundary coverage for reviewer workflows. |
 | `docs/V8_GRAND_ENGINEERING_REVIEW.md` | Public reviewer/user evidence | Keep tracked | Final Grand Review release-candidate evidence and HITL boundaries. |
 | `docs/eval.md` | Public product documentation | Keep tracked | Explains evaluation approach and reviewer-relevant commands. |
 | `docs/eval_pipeline.md` | Public product documentation | Keep tracked | Details manual eval/RAGAs pipeline and privacy boundaries. |

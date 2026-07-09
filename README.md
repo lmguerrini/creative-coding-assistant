@@ -19,9 +19,11 @@ For the Turing College Capstone review, use this shortest path:
    grounding, and ethical boundaries.
 3. Read `docs/V8_GRAND_ENGINEERING_REVIEW.md` for release-candidate evidence,
    validation commands, known warnings, and remaining risks.
-4. Start the backend and frontend locally, open Creative Coding Assistant, and
+4. Use `docs/V8_FINAL_SMOKE_COVERAGE_MATRIX.md` to see which workflows were
+   live-tested, browser-smoked, artifact-QA validated, or bounded.
+5. Start the backend and frontend locally, open Creative Coding Assistant, and
    use `Demo Mode` from the workstation top bar.
-5. Keep `demo/final_demo_launcher.html` as a static fallback if the app, live
+6. Keep `demo/final_demo_launcher.html` as a static fallback if the app, live
    provider, retrieval, or preview path is unavailable.
 
 ## Project Overview

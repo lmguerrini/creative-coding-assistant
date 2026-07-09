@@ -85,15 +85,27 @@ Frontend:
 
 LangSmith:
 
-- Current local config audit: tracing disabled, reason `tracing_disabled`,
-  project `creative-coding-assistant`, and no LangSmith API key loaded.
+- Current local config audit: `.env` remains private/ignored and
+  `.env.example` contains only LangSmith placeholders.
+- LangSmith trace visibility is active-tested for project
+  `creative-coding-assistant`. The missing LangSmith project was created during
+  HITL-approved validation, then a representative retrieval-backed workflow
+  was rerun with tracing enabled.
+- Verified workflow run `CCA_LANGSMITH_SMOKE_20260709_015` completed in
+  `31.42s` with 269 stream events, 5 retrieved contexts, final output present,
+  and 0 workflow errors. Streaming telemetry did not expose provider token
+  usage for this run, so no token total is claimed.
+- Verified LangSmith trace id: `f5420da971d0475d8b87951ce34d2bd0`.
+  Querying project `creative-coding-assistant` returned 34 matching successful
+  spans, including `retrieval`, `prompt_input`, `planning`, `generation`,
+  `artifact_extraction`, `preview_preparation`, `review`, and `finalization`.
+- Deterministic trace upload required LangChain compatibility environment
+  variables (`LANGCHAIN_TRACING_V2=true`, `LANGCHAIN_PROJECT`, and
+  `LANGCHAIN_ENDPOINT`) plus an explicit LangSmith client flush after the local
+  smoke. `LANGSMITH_*` remains the app-level configuration path.
 - Focused LangSmith observability tests passed: `tests/test_langsmith_observability.py`
   collected 5 tests and passed all 5, with the existing Chroma deprecation
   warning.
-- External LangSmith trace visibility is not claimed for this environment. To
-  enable it, set `LANGSMITH_TRACING=true`, `LANGSMITH_API_KEY`, and optionally
-  `LANGSMITH_PROJECT` and `LANGSMITH_ENDPOINT`, then rerun a representative
-  Demo Mode workflow or RAGAs evaluation and verify the trace in LangSmith.
 
 Product smoke:
 
@@ -246,6 +258,9 @@ Live showcase upload and final public claims approval still need HITL.
 
 Detailed engineering evidence matrix:
 `docs/V8_CAPSTONE_EVIDENCE_MATRIX.md`.
+
+Final workflow smoke coverage matrix:
+`docs/V8_FINAL_SMOKE_COVERAGE_MATRIX.md`.
 
 The Grand Review now publishes evidence and residual risks. The
 release-candidate judgment is based on category evidence, remaining risks, and
