@@ -17,7 +17,10 @@ test.describe("V7.4 workstation resilience", () => {
     await submitCreativePrompt(page, "Force a recoverable stream failure.");
 
     await expect(page.getByRole("log", { name: "Conversation" })).toContainText(
-      "Live response error"
+      "The live response could not complete"
+    );
+    await expect(page.getByRole("log", { name: "Conversation" })).toContainText(
+      "Retry from the composer"
     );
     await page.getByRole("textbox", { name: "Assistant prompt" }).fill("Retry after failure.");
     await expect(page.getByRole("button", { name: "Send prompt" })).toBeEnabled();
