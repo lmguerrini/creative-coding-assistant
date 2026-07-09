@@ -9,11 +9,11 @@ tag, freeze, or start V9 from this roadmap.
 
 | Field | Value |
 |---|---|
-| Current task | FP-05 Developer Mode Excellence |
+| Current task | FP-06 Demo Mode UX |
 | Status | ACCEPTED |
-| Scope boundary | Developer Mode inspector readability, diagnostic density, tab/panel layout, and screenshot audit only |
-| Screenshot evidence | `/tmp/cca-v8-fp05-developer-mode/fp05-layout-contact-sheet.png`; Developer layout and Workflow/Runtime/Telemetry/Retrieval captures at 1440, 1024, and 720 widths |
-| Latest task commit | Pending FP-05 commit creation |
+| Scope boundary | Integrated Demo Mode card density, category labels, capability clarity, User/Developer metadata boundary, and screenshot audit only |
+| Screenshot evidence | `/tmp/cca-v8-fp06-demo-mode/fp06-contact-sheet.png`; User and Developer Demo Mode captures at 1440, 1024, and 720 widths |
+| Latest task commit | Pending FP-06 commit creation |
 
 ## Status Legend
 
@@ -31,8 +31,8 @@ tag, freeze, or start V9 from this roadmap.
 | FP-02 | Preview UX Excellence | Preview unavailable redesign; preview available canvas-first; eliminate User Mode HUD; overlay controls; no huge black canvas; no User Mode debug boxes | Preview looks like a real artistic canvas | ACCEPTED | `/tmp/cca-v8-fp02-preview-ux/manifest.json`; preview-region contact sheets at 1440, 1024, and 720 widths; `clients/nextjs/src/components/workstation-shell.test.tsx`; `clients/nextjs/src/lib/preview-sandbox-runtime.test.ts` | Developer Mode may show diagnostics; FP-05 owns full Developer Mode polish | `edd9adbe7fca48dfe8b9331eef13ce61eaab8173` |
 | FP-03 | Chat UX Excellence | No HTML/JS/GLSL dumps; summary only; code to Code panel; artifact to Artifacts; preview to Preview | Chat readable like ChatGPT | ACCEPTED | `/tmp/cca-v8-fp03-chat-ux/focused-manifest.json`; `/tmp/cca-v8-fp03-chat-ux/fp03-focused-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.test.tsx` | User Mode uses the product-facing `Saved` tab for artifact routing; broader panel visual polish stays with FP-04/FP-08/FP-12 | `17d976d9` |
 | FP-04 | User Mode Excellence | Minimal User Mode; inspector closed; max 3 tabs; no technical internals; responsive layout | Looks like a consumer app | ACCEPTED | `/tmp/cca-v8-fp04-user-mode/manifest.json`; `/tmp/cca-v8-fp04-user-mode/fp04-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.tsx`; `clients/nextjs/src/app/globals.css` | Scope limited to User Mode; Developer Mode polish stays with FP-05 | `112ff182` |
-| FP-05 | Developer Mode Excellence | Full technical information; no overlap; no truncated text; readable details | Looks like a professional IDE | ACCEPTED | `/tmp/cca-v8-fp05-developer-mode/manifest.json`; `/tmp/cca-v8-fp05-developer-mode/fp05-layout-contact-sheet.png`; `clients/nextjs/src/components/preview-runtime-stage.tsx` | Developer Mode remains intentionally dense; iframe HUD disabled to avoid duplicate diagnostic overlap | Pending commit creation |
-| FP-06 | Demo Mode UX | Minimal demo cards; metadata in Developer Mode; coherent categories; explicit capability; no internal terminology | Reviewer understands each demo in 5 seconds | NOT_STARTED | TBD | TBD | TBD |
+| FP-05 | Developer Mode Excellence | Full technical information; no overlap; no truncated text; readable details | Looks like a professional IDE | ACCEPTED | `/tmp/cca-v8-fp05-developer-mode/manifest.json`; `/tmp/cca-v8-fp05-developer-mode/fp05-layout-contact-sheet.png`; `clients/nextjs/src/components/preview-runtime-stage.tsx` | Developer Mode remains intentionally dense; iframe HUD disabled to avoid duplicate diagnostic overlap | `89c67105` |
+| FP-06 | Demo Mode UX | Minimal demo cards; metadata in Developer Mode; coherent categories; explicit capability; no internal terminology | Reviewer understands each demo in 5 seconds | ACCEPTED | `/tmp/cca-v8-fp06-demo-mode/manifest.json`; `/tmp/cca-v8-fp06-demo-mode/fp06-contact-sheet.png`; `clients/nextjs/src/lib/demo-mode.test.ts`; `clients/nextjs/src/components/workstation-shell.test.tsx` | Scope limited to Demo Mode UI; demo pack coverage stays with FP-07 | Pending commit creation |
 | FP-07 | Demo Pack Coverage | Every demo maps to a capability; single-agent; hybrid; multi-domain; retrieval; preview; output; Capstone mapping | No capability without a demo | NOT_STARTED | TBD | Multi-agent must not be claimed unless live path is validated | TBD |
 | FP-08 | Artifacts & Saved UX | Human labels; Saved browser; Code browser; Preview browser; no technical filenames; responsive layout | Artifact management is clear | NOT_STARTED | TBD | TBD | TBD |
 | FP-09 | Input Composer UX | Codex/ChatGPT-style composer; minimal plus; bottom send; auto-grow; no status clutter; no overlap | Composer matches Codex philosophy | NOT_STARTED | TBD | TBD | TBD |
@@ -278,3 +278,49 @@ Layout contact sheet:
 | Public docs/demo claim scan | Passed: no matches for forbidden public product terms in `README.md`, `docs/`, or `demo/` excluding internal review roadmaps |
 | Hygiene | Passed: `git diff --check`; Runtime Pack private directories remain ignored |
 | Accepted boundary | Developer Mode remains technical and denser than User Mode; the duplicate iframe HUD was removed to prevent canvas diagnostic overlap |
+
+## FP-06 Acceptance Criteria
+
+- Demo Mode opens inside Creative Coding Assistant.
+- All 8 curated scenarios are visible.
+- Scenario selection preloads the normal assistant composer.
+- User Mode Demo cards show concise scenario title, capability, runtime,
+  expected output, estimated time, short prompt preview, and load state.
+- Developer Mode Demo cards expose full timing, token, provider, retrieval,
+  preview, fallback, source-boundary, validation, and evidence metadata.
+- Public category labels are coherent: Three.js, p5.js, GLSL, Hydra, Retrieval,
+  Concept Translation, Visual Planning, and Installation Planning.
+- Demo Mode contains no forbidden public/internal terminology.
+
+## FP-06 Demo Mode Audit Notes
+
+- No product code change was required for FP-06.
+- Browser assertions verified all 8 scenario categories, normal composer preload,
+  User Mode metadata hiding, Developer Mode metadata visibility, and forbidden
+  public-term boundaries.
+- User Mode intentionally keeps `Validates:` visible because the task requires
+  every demo to state what capability it validates.
+- Developer Mode remains denser because it is the appropriate surface for token,
+  source-boundary, fallback, and evidence metadata.
+
+## FP-06 Screenshot Evidence
+
+| Width | User Mode Demo | Developer Mode Demo |
+|---|---|---|
+| 1440 | `/tmp/cca-v8-fp06-demo-mode/fp06-demo-user-1440.png` | `/tmp/cca-v8-fp06-demo-mode/fp06-demo-developer-1440.png` |
+| 1024 | `/tmp/cca-v8-fp06-demo-mode/fp06-demo-user-1024.png` | `/tmp/cca-v8-fp06-demo-mode/fp06-demo-developer-1024.png` |
+| 720 | `/tmp/cca-v8-fp06-demo-mode/fp06-demo-user-720.png` | `/tmp/cca-v8-fp06-demo-mode/fp06-demo-developer-720.png` |
+
+Contact sheet: `/tmp/cca-v8-fp06-demo-mode/fp06-contact-sheet.png`.
+
+## FP-06 Validation Evidence
+
+| Check | Result |
+|---|---|
+| Focused Demo Mode tests | Passed: `npx vitest run src/lib/demo-mode.test.ts src/components/workstation-shell.test.tsx --testNamePattern "Demo Mode\|demo mode\|final eight curated\|public Capstone"` (`7` tests) |
+| Typecheck | Passed: `npm run typecheck` |
+| Playwright screenshot capture | Passed: User and Developer Demo Mode captures at 1440, 1024, and 720 widths |
+| Playwright smoke | Passed: `npm run test:e2e:smoke` (`8` tests) |
+| Public docs/demo claim scan | Passed: no matches for forbidden public product terms in `README.md`, `docs/`, or `demo` excluding internal review roadmaps |
+| Hygiene | Passed: `git diff --check`; Runtime Pack private directories remain ignored |
+| Accepted boundary | FP-06 covers Demo Mode UX only; FP-07 owns broader demo pack coverage mapping |
