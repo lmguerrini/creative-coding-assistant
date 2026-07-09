@@ -9,11 +9,11 @@ tag, freeze, or start V9 from this roadmap.
 
 | Field | Value |
 |---|---|
-| Current task | FP-04 User Mode Excellence |
+| Current task | FP-05 Developer Mode Excellence |
 | Status | ACCEPTED |
-| Scope boundary | User Mode default layout, essential-tab inspector boundary, technical-internals hiding, and responsive User Mode screenshot audit only |
-| Screenshot evidence | `/tmp/cca-v8-fp04-user-mode/fp04-contact-sheet.png`; default/expanded/generated User Mode captures at 1440, 1024, and 720 widths |
-| Latest task commit | Pending FP-04 commit creation |
+| Scope boundary | Developer Mode inspector readability, diagnostic density, tab/panel layout, and screenshot audit only |
+| Screenshot evidence | `/tmp/cca-v8-fp05-developer-mode/fp05-layout-contact-sheet.png`; Developer layout and Workflow/Runtime/Telemetry/Retrieval captures at 1440, 1024, and 720 widths |
+| Latest task commit | Pending FP-05 commit creation |
 
 ## Status Legend
 
@@ -30,8 +30,8 @@ tag, freeze, or start V9 from this roadmap.
 | FP-01 | Artifact & Workspace Integrity | Audit artifacts; audit untracked files; clean repository; no orphan artifacts; workspace integrity | Git clean; artifact ledger coherent | ACCEPTED | `demo/golden_artifacts/qa_manifest.json`; `demo/final_demo_suite.json`; `tests/test_golden_artifacts.py`; FP-01 validation log in task final response | No visual screenshots needed; `.runtime_pack/` private ignored copy is not public release evidence | `22414b2b8e5f42bcc729f09e06736512ad71a6aa` |
 | FP-02 | Preview UX Excellence | Preview unavailable redesign; preview available canvas-first; eliminate User Mode HUD; overlay controls; no huge black canvas; no User Mode debug boxes | Preview looks like a real artistic canvas | ACCEPTED | `/tmp/cca-v8-fp02-preview-ux/manifest.json`; preview-region contact sheets at 1440, 1024, and 720 widths; `clients/nextjs/src/components/workstation-shell.test.tsx`; `clients/nextjs/src/lib/preview-sandbox-runtime.test.ts` | Developer Mode may show diagnostics; FP-05 owns full Developer Mode polish | `edd9adbe7fca48dfe8b9331eef13ce61eaab8173` |
 | FP-03 | Chat UX Excellence | No HTML/JS/GLSL dumps; summary only; code to Code panel; artifact to Artifacts; preview to Preview | Chat readable like ChatGPT | ACCEPTED | `/tmp/cca-v8-fp03-chat-ux/focused-manifest.json`; `/tmp/cca-v8-fp03-chat-ux/fp03-focused-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.test.tsx` | User Mode uses the product-facing `Saved` tab for artifact routing; broader panel visual polish stays with FP-04/FP-08/FP-12 | `17d976d9` |
-| FP-04 | User Mode Excellence | Minimal User Mode; inspector closed; max 3 tabs; no technical internals; responsive layout | Looks like a consumer app | ACCEPTED | `/tmp/cca-v8-fp04-user-mode/manifest.json`; `/tmp/cca-v8-fp04-user-mode/fp04-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.tsx`; `clients/nextjs/src/app/globals.css` | Scope limited to User Mode; Developer Mode polish stays with FP-05 | Pending commit creation |
-| FP-05 | Developer Mode Excellence | Full technical information; no overlap; no truncated text; readable details | Looks like a professional IDE | NOT_STARTED | TBD | Developer Mode may be denser than User Mode | TBD |
+| FP-04 | User Mode Excellence | Minimal User Mode; inspector closed; max 3 tabs; no technical internals; responsive layout | Looks like a consumer app | ACCEPTED | `/tmp/cca-v8-fp04-user-mode/manifest.json`; `/tmp/cca-v8-fp04-user-mode/fp04-contact-sheet.png`; `clients/nextjs/src/components/workstation-shell.tsx`; `clients/nextjs/src/app/globals.css` | Scope limited to User Mode; Developer Mode polish stays with FP-05 | `112ff182` |
+| FP-05 | Developer Mode Excellence | Full technical information; no overlap; no truncated text; readable details | Looks like a professional IDE | ACCEPTED | `/tmp/cca-v8-fp05-developer-mode/manifest.json`; `/tmp/cca-v8-fp05-developer-mode/fp05-layout-contact-sheet.png`; `clients/nextjs/src/components/preview-runtime-stage.tsx` | Developer Mode remains intentionally dense; iframe HUD disabled to avoid duplicate diagnostic overlap | Pending commit creation |
 | FP-06 | Demo Mode UX | Minimal demo cards; metadata in Developer Mode; coherent categories; explicit capability; no internal terminology | Reviewer understands each demo in 5 seconds | NOT_STARTED | TBD | TBD | TBD |
 | FP-07 | Demo Pack Coverage | Every demo maps to a capability; single-agent; hybrid; multi-domain; retrieval; preview; output; Capstone mapping | No capability without a demo | NOT_STARTED | TBD | Multi-agent must not be claimed unless live path is validated | TBD |
 | FP-08 | Artifacts & Saved UX | Human labels; Saved browser; Code browser; Preview browser; no technical filenames; responsive layout | Artifact management is clear | NOT_STARTED | TBD | TBD | TBD |
@@ -232,3 +232,49 @@ Contact sheet: `/tmp/cca-v8-fp04-user-mode/fp04-contact-sheet.png`.
 | Public docs/demo claim scan | Passed: no matches for forbidden public product terms in `README.md`, `docs/`, or `demo/` excluding internal review roadmaps |
 | Hygiene | Passed: `git diff --check`; Runtime Pack private directories remain ignored |
 | Accepted boundary | User Mode is clean and responsive; Developer Mode density and diagnostics remain in scope for FP-05 |
+
+## FP-05 Acceptance Criteria
+
+- Developer Mode exposes the full inspector tab set: Overview, Preview, Runtime,
+  Code, Workflow, Telemetry, Artifacts, and Retrieval.
+- Developer Mode keeps provider, runtime, workflow, retrieval, trace, and
+  telemetry details visible.
+- Developer Mode remains readable at 1440, 1024, and 720 widths.
+- No visible overlapping text, cropped labels, or glued words are accepted in the
+  audited Developer Mode surfaces.
+- Human-visible screenshots are inspected before acceptance.
+
+## FP-05 Developer Mode Audit Notes
+
+- Browser screenshots found a real narrow-width blocker: the iframe runtime HUD
+  and React runtime overlay duplicated diagnostic text over the preview canvas.
+- The iframe HUD is now disabled; Developer Mode keeps the React runtime overlay,
+  Preview inspector, and Runtime console as the diagnostic surfaces.
+- Workflow and Telemetry panels are intentionally long and dense, but individual
+  cards and labels remain readable at 720 width.
+- Developer Mode still exposes provider/usage pending states and workflow step
+  labels by design; these are hidden only in User Mode.
+
+## FP-05 Screenshot Evidence
+
+| Width | Developer layout | Workflow | Runtime | Telemetry | Retrieval |
+|---|---|---|---|---|---|
+| 1440 | `/tmp/cca-v8-fp05-developer-mode/fp05-developer-layout-1440.png` | `/tmp/cca-v8-fp05-developer-mode/fp05-developer-workflow-1440.png` | `/tmp/cca-v8-fp05-developer-mode/fp05-developer-runtime-1440.png` | `/tmp/cca-v8-fp05-developer-mode/fp05-developer-telemetry-1440.png` | `/tmp/cca-v8-fp05-developer-mode/fp05-developer-retrieval-1440.png` |
+| 1024 | `/tmp/cca-v8-fp05-developer-mode/fp05-developer-layout-1024.png` | `/tmp/cca-v8-fp05-developer-mode/fp05-developer-workflow-1024.png` | `/tmp/cca-v8-fp05-developer-mode/fp05-developer-runtime-1024.png` | `/tmp/cca-v8-fp05-developer-mode/fp05-developer-telemetry-1024.png` | `/tmp/cca-v8-fp05-developer-mode/fp05-developer-retrieval-1024.png` |
+| 720 | `/tmp/cca-v8-fp05-developer-mode/fp05-developer-layout-720.png` | `/tmp/cca-v8-fp05-developer-mode/fp05-developer-workflow-720.png` | `/tmp/cca-v8-fp05-developer-mode/fp05-developer-runtime-720.png` | `/tmp/cca-v8-fp05-developer-mode/fp05-developer-telemetry-720.png` | `/tmp/cca-v8-fp05-developer-mode/fp05-developer-retrieval-720.png` |
+
+Layout contact sheet:
+`/tmp/cca-v8-fp05-developer-mode/fp05-layout-contact-sheet.png`.
+
+## FP-05 Validation Evidence
+
+| Check | Result |
+|---|---|
+| Focused preview/runtime tests | Passed: `npx vitest run src/components/workstation-shell.test.tsx src/lib/preview-sandbox-runtime.test.ts --testNamePattern "runtime\|Renderer health overlay\|preview runtime"` (`37` tests) |
+| Full workstation and preview tests | Passed: `npx vitest run src/components/workstation-shell.test.tsx src/lib/preview-sandbox-runtime.test.ts` (`101` tests) |
+| Typecheck | Passed: `npm run typecheck` |
+| Playwright screenshot capture | Passed: Developer layout and Workflow, Runtime, Telemetry, Retrieval captures at 1440, 1024, and 720 widths |
+| Playwright smoke | Passed: `npm run test:e2e:smoke` (`8` tests) |
+| Public docs/demo claim scan | Passed: no matches for forbidden public product terms in `README.md`, `docs/`, or `demo/` excluding internal review roadmaps |
+| Hygiene | Passed: `git diff --check`; Runtime Pack private directories remain ignored |
+| Accepted boundary | Developer Mode remains technical and denser than User Mode; the duplicate iframe HUD was removed to prevent canvas diagnostic overlap |

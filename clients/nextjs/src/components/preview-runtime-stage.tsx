@@ -185,7 +185,7 @@ export function PreviewRuntimeStage({
       onFrame: handleFrame,
       onStatus: handleStatus,
       runtimeId,
-      showStatusOverlay: showDiagnostics,
+      showStatusOverlay: false,
       source: currentSource
     });
 
