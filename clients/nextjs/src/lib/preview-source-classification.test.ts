@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  getP5RuntimeSourceSupportIssue,
   getThreeRuntimeSourceSupportIssue,
   prepareThreeJavaScriptSource,
   threeHtmlSourceMismatchMessage
@@ -25,5 +26,22 @@ describe("Three.js preview source classification", () => {
     expect(prepareThreeJavaScriptSource(source)).toBe(
       "const scene = new THREE.Scene();\nconst renderer = new THREE.WebGLRenderer();"
     );
+  });
+});
+
+describe("p5 preview source classification", () => {
+  it("accepts common p5 helpers and ordinary arrow callbacks in a global-mode sketch", () => {
+    const source = [
+      "const particles = [{ life: 1 }];",
+      "function setup() { createCanvas(320, 180); }",
+      "function draw() {",
+      "  const value = constrain(int(noise(frameCount * 0.01) * 320), 0, 320);",
+      "  const active = particles.filter(p => p.life > 0);",
+      "  background(8);",
+      "  circle(value, 90, active.length * 18);",
+      "}"
+    ].join("\n");
+
+    expect(getP5RuntimeSourceSupportIssue(source)).toBeNull();
   });
 });

@@ -364,6 +364,39 @@ describe("live artifact hydration", () => {
     }
   });
 
+  it("keeps a constrained p5 sketch eligible when streamed as an artifact", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        artifacts: [
+          {
+            id: "constrained-p5",
+            title: "generated-sketch-1.p5.js",
+            language: "javascript",
+            runtime: "p5",
+            content: [
+              "function setup() { createCanvas(640, 360); }",
+              "function draw() {",
+              "  const x = constrain(noise(frameCount * 0.01) * width, 0, width);",
+              "  background(8); circle(x, height / 2, 18);",
+              "}"
+            ].join("\n")
+          }
+        ]
+      })
+    );
+
+    expect(result.artifact).toMatchObject({
+      id: "constrained-p5",
+      runtime: "p5",
+      rendererId: "surface.p5",
+      previewEligible: true,
+      status: "Generated"
+    });
+    expect(result.previewAvailable).toBe(true);
+    expect(result.previewArtifactId).toBe("constrained-p5");
+  });
+
   it("selects a lifecycle-ready p5 block over unrelated JavaScript", () => {
     const result = hydrateWorkspaceFromFinalEvent(
       getLocalWorkspaceSnapshot(),

@@ -28,6 +28,7 @@ const supportedP5GlobalFunctions = new Set([
   "clear",
   "color",
   "colorMode",
+  "constrain",
   "cos",
   "createCanvas",
   "dist",
@@ -36,6 +37,7 @@ const supportedP5GlobalFunctions = new Set([
   "fill",
   "floor",
   "frameRate",
+  "int",
   "lerp",
   "line",
   "map",
@@ -96,7 +98,7 @@ export function getP5RuntimeSourceSupportIssue(
   if (/```/.test(rawSource)) {
     return "Markdown fences cannot run in the p5 preview. Return the executable JavaScript source only.";
   }
-  if (/\bnew\s+p5\s*\(/.test(rawSource) || /\b(?:p|sketch)\s*=>/.test(rawSource)) {
+  if (/\bnew\s+p5\s*\(/.test(rawSource)) {
     return `${p5GlobalModeContractMessage} Instance-mode p5 wrappers are not supported here.`;
   }
 

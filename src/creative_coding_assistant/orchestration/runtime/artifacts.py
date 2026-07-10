@@ -262,8 +262,8 @@ _RUNTIME_LABELS = {
 _P5_GLOBAL_MODE_FUNCTIONS = frozenset(
     {
         "abs", "atan2", "background", "beginShape", "ceil", "circle", "clear",
-        "color", "colorMode", "cos", "createCanvas", "dist", "ellipse", "endShape",
-        "fill", "floor", "frameRate", "lerp", "line", "map", "max", "min", "noise",
+        "color", "colorMode", "constrain", "cos", "createCanvas", "dist", "ellipse", "endShape",
+        "fill", "floor", "frameRate", "int", "lerp", "line", "map", "max", "min", "noise",
         "noiseDetail", "noFill", "noStroke", "pixelDensity", "point", "pop", "pow", "push", "random",
         "rect", "resizeCanvas", "rotate", "scale", "sin", "sqrt", "stroke", "strokeWeight",
         "translate", "vertex",
@@ -788,7 +788,7 @@ def _runtime_source_preview_issue(runtime: str | None, content: str) -> str | No
         )
     if "```" in content:
         return "Markdown fences cannot run in the p5 preview. Return executable JavaScript source only."
-    if re.search(r"\bnew\s+p5\s*\(", content) or re.search(r"\b(?:p|sketch)\s*=>", content):
+    if re.search(r"\bnew\s+p5\s*\(", content):
         return f"{_P5_GLOBAL_MODE_CONTRACT} Instance-mode p5 wrappers are not supported here."
     if not re.search(r"\bfunction\s+setup\s*\(", content) or not re.search(
         r"\bfunction\s+draw\s*\(", content

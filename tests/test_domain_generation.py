@@ -214,6 +214,37 @@ class DomainGenerationTests(unittest.TestCase):
         self.assertEqual(artifacts[0].status, "Runnable artifact extraction failed")
         self.assertIn("Runnable artifact extraction failed", artifacts[0].summary)
 
+    def test_p5_constrain_is_marked_preview_ready(self) -> None:
+        request = AssistantRequest(
+            query="Create a p5.js morphogenesis sketch.",
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```js generated-sketch-1.p5.js",
+                    "function setup() { createCanvas(640, 360); }",
+                    "function draw() {",
+                    "  const x = constrain(int(noise(frameCount * 0.01) * width), 0, width);",
+                    "  const particles = [{ life: 1 }].filter(p => p.life > 0);",
+                    "  background(8); circle(x, height / 2, 18);",
+                    "}",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        self.assertTrue(artifacts[0].preview_eligible)
+        self.assertEqual(artifacts[0].runtime, "p5")
+        self.assertEqual(artifacts[0].renderer_id, "surface.p5")
+        self.assertEqual(artifacts[0].status, "Generated")
+
     def test_p5_fenced_javascript_labels_produce_previewable_javascript_artifacts(self) -> None:
         request = AssistantRequest(
             query="Create a p5.js flow-field particle system.",
