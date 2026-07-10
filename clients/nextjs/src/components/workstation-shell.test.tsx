@@ -957,7 +957,12 @@ function renderUserShell(
   snapshot: AssistantWorkspaceSnapshot = getLocalWorkspaceSnapshot(),
   props: Partial<ComponentProps<typeof WorkstationShell>> = {}
 ) {
-  return renderShell(snapshot, props, { mode: "user" });
+  const result = renderShell(snapshot, props);
+  const displayMode = screen.getByRole("button", { name: "Display mode" });
+  if (displayMode.textContent?.includes("Developer")) {
+    fireEvent.click(displayMode);
+  }
+  return result;
 }
 
 function openDeveloperInspector() {
@@ -1446,11 +1451,11 @@ describe("WorkstationShell", () => {
     });
 
     expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
-      "User"
+      "Developer"
     );
     expect(screen.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
       "data-state",
-      "collapsed"
+      "open"
     );
     expect(screen.queryByRole("region", { name: "Preview workspace" })).not.toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Empty creative workspace" })).toBeVisible();
@@ -1491,13 +1496,13 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue("");
     expect(screen.getByRole("button", { name: "Demo Mode" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
-      "User"
+      "Developer"
     );
     expect(screen.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
       "data-state",
-      "collapsed"
+      "open"
     );
-    expect(screen.queryByRole("tab", { name: "Overview" })).not.toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Overview" })).toBeVisible();
     expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
       "Ready for first prompt"
     );
@@ -2038,6 +2043,45 @@ describe("WorkstationShell", () => {
         "p5.js runtime ready for browser preview execution."
       )
     ).toBeVisible();
+  });
+
+  it("uses the owning browser-profile identity for generation requests", async () => {
+    const identity = {
+      userId: "browser-user-profile-a",
+      sessionId: "browser-session-profile-a",
+      projectId: "browser-workspace-profile-a"
+    };
+    const persistenceClient: WorkspacePersistenceClient = {
+      identity,
+      load: vi.fn(async () => ({ error: null, record: null, source: "none" as const })),
+      save: vi.fn(async () => ({ error: null, target: "local" as const }))
+    };
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "final",
+          sequence: 0,
+          payload: { answer: "Profile-owned response." }
+        }
+      ])
+    );
+
+    renderShell(getInitialWorkspaceSnapshot(), {
+      persistenceClient,
+      streamAssistantEvents: backendStream
+    });
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Generate a profile-owned sketch." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    expect(await screen.findByText("Profile-owned response.")).toBeVisible();
+    expect(backendStream).toHaveBeenCalledWith(
+      expect.objectContaining({
+        conversationId: identity.sessionId,
+        projectId: identity.projectId
+      })
+    );
   });
 
   it("surfaces clarification questions and sends selected answers", async () => {
@@ -3356,6 +3400,7 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
     expect(details).not.toHaveAttribute("open");
     expect(details).toHaveAttribute("data-state", "closed");
+    fireEvent.click(screen.getByRole("tab", { name: "Preview" }));
     expect(screen.getByRole("tabpanel", { name: "Preview inspector" })).toBeVisible();
 
     expect(summary).not.toBeNull();

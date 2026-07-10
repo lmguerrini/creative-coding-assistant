@@ -9,6 +9,7 @@ import {
   normalizeWorkspacePreferences,
   normalizeWorkspaceLayoutState,
   snapshotFromWorkspaceSessionRecord,
+  withWorkspaceIdentity,
   type WorkspaceSessionRecord
 } from "./workspace-persistence";
 import { getP5RuntimeSourceSupportIssue } from "./preview-source-classification";
@@ -574,6 +575,56 @@ describe("workspace persistence client", () => {
       record: null,
       source: "none"
     });
+  });
+
+  it("keeps browser-profile identities stable without sharing sessions across profiles", async () => {
+    const profileAStorage = new MemoryStorage();
+    const profileBStorage = new MemoryStorage();
+    const profileARequest = vi.fn(async () => new Response("session not found", { status: 404 }));
+    const profileBRequest = vi.fn(async () => new Response("session not found", { status: 404 }));
+    const profileA = createWorkspacePersistenceClient({
+      fetchImpl: profileARequest,
+      storage: profileAStorage,
+      useProfileIdentity: true
+    });
+    const profileAReload = createWorkspacePersistenceClient({
+      storage: profileAStorage,
+      useProfileIdentity: true
+    });
+    const profileB = createWorkspacePersistenceClient({
+      fetchImpl: profileBRequest,
+      storage: profileBStorage,
+      useProfileIdentity: true
+    });
+
+    expect(profileA.identity).toEqual(profileAReload.identity);
+    expect(profileA.identity).not.toEqual(profileB.identity);
+
+    await profileA.load();
+    await profileB.load();
+
+    expect(profileARequest).toHaveBeenCalledWith(
+      expect.stringContaining(`userId=${profileA.identity?.userId}`),
+      expect.objectContaining({ method: "GET" })
+    );
+    expect(profileBRequest).toHaveBeenCalledWith(
+      expect.stringContaining(`userId=${profileB.identity?.userId}`),
+      expect.objectContaining({ method: "GET" })
+    );
+
+    const profileASnapshot = withWorkspaceIdentity(
+      getLocalWorkspaceSnapshot(),
+      profileA.identity!
+    );
+    const profileARecord = createWorkspaceSessionRecord({
+      activeArtifactId: "source-sketch",
+      activeInspectorTab: "Overview",
+      previewArtifactId: "source-sketch",
+      previewOpen: false,
+      snapshot: profileASnapshot
+    });
+    expect(profileARecord).toMatchObject(profileA.identity!);
+    expect(profileARecord.userId).not.toBe(profileB.identity?.userId);
   });
 
   it("fingerprints records without timestamp churn", () => {

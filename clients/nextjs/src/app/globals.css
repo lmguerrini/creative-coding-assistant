@@ -1,39 +1,44 @@
 :root,
 html[data-cca-theme="aqua"] {
   color-scheme: dark;
-  --background: #07090c;
-  --background-rgb: 7, 9, 12;
-  --foreground: #edf3f2;
-  --muted: #8c9aa0;
-  --muted-strong: #bfcbcf;
-  --panel: rgba(17, 22, 26, 0.86);
-  --panel-strong: rgba(23, 30, 35, 0.95);
-  --panel-soft: rgba(255, 255, 255, 0.045);
-  --line: rgba(219, 232, 238, 0.14);
-  --line-strong: rgba(219, 232, 238, 0.26);
-  --teal: #4cd7c8;
-  --amber: #f3b852;
-  --coral: #ff7a66;
-  --blue: #7ca7ff;
-  --green: #79d38b;
-  --accent-rgb: 76, 215, 200;
-  --accent-ink: #04100e;
-  --focus-outline: rgba(76, 215, 200, 0.75);
+  --background: #181818;
+  --background-rgb: 24, 24, 24;
+  --foreground: #ffffff;
+  --muted: #a1a1aa;
+  --muted-strong: #d4d4d8;
+  --panel: #1d1d1f;
+  --panel-strong: #242426;
+  --panel-soft: #222224;
+  --line: rgba(255, 255, 255, 0.12);
+  --line-strong: rgba(255, 255, 255, 0.22);
+  --teal: #339cff;
+  --amber: #d4a72c;
+  --coral: #fa423e;
+  --blue: #339cff;
+  --green: #40c977;
+  --diff-add: #40c977;
+  --diff-remove: #fa423e;
+  --skill: #ad7bf9;
+  --accent-rgb: 51, 156, 255;
+  --accent-ink: #ffffff;
+  --focus-outline: rgba(51, 156, 255, 0.82);
   --inspector-width: 420px;
   --inspector-rail-width: 56px;
   --preview-height: 220px;
-  --glow-teal: 0 0 0 1px rgba(76, 215, 200, 0.3), 0 0 28px rgba(76, 215, 200, 0.14);
-  --shadow: 0 24px 80px rgba(0, 0, 0, 0.44);
-  --surface-0: rgba(9, 12, 16, 0.82);
-  --surface-1: rgba(255, 255, 255, 0.04);
-  --surface-2: rgba(255, 255, 255, 0.055);
-  --surface-3: rgba(255, 255, 255, 0.075);
-  --surface-accent: rgba(var(--accent-rgb), 0.09);
-  --section-divider: rgba(255, 255, 255, 0.08);
-  --panel-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.045);
-  --code-surface: rgba(4, 7, 10, 0.82);
-  --scrollbar-track: rgba(255, 255, 255, 0.028);
-  --scrollbar-thumb: rgba(255, 255, 255, 0.16);
+  --glow-teal: 0 0 0 1px rgba(51, 156, 255, 0.34), 0 0 24px rgba(51, 156, 255, 0.14);
+  --shadow: 0 20px 64px rgba(0, 0, 0, 0.42);
+  --surface-0: #181818;
+  --surface-1: #1d1d1f;
+  --surface-2: #222224;
+  --surface-3: #29292c;
+  --surface-accent: rgba(51, 156, 255, 0.1);
+  --section-divider: rgba(255, 255, 255, 0.1);
+  --panel-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --code-surface: #151515;
+  --scrollbar-track: #1a1a1a;
+  --scrollbar-thumb: #4a4a4f;
+  --ui-font-size: 14px;
+  --code-font-size: 12px;
 }
 
 .subsystemErrorCallout {
@@ -211,61 +216,71 @@ html[data-cca-theme="aqua"] {
 }
 
 html[data-cca-theme="codex"] {
-  --background: #101114;
-  --background-rgb: 16, 17, 20;
-  --foreground: #f2f3f5;
-  --muted: #8c939d;
-  --muted-strong: #c6cad0;
-  --panel: rgba(24, 25, 29, 0.92);
-  --panel-strong: rgba(28, 29, 33, 0.97);
-  --panel-soft: rgba(255, 255, 255, 0.035);
-  --line: rgba(214, 218, 224, 0.11);
-  --line-strong: rgba(214, 218, 224, 0.2);
-  --teal: #c8cdd3;
-  --amber: #ccb98d;
-  --coral: #db9187;
-  --blue: #aab4c2;
-  --green: #a9bba8;
-  --accent-rgb: 200, 205, 211;
-  --focus-outline: rgba(200, 205, 211, 0.58);
-  --glow-teal: 0 0 0 1px rgba(200, 205, 211, 0.14);
-  --shadow: 0 20px 56px rgba(0, 0, 0, 0.36);
-  --surface-0: rgba(17, 18, 21, 0.9);
-  --surface-1: rgba(255, 255, 255, 0.03);
-  --surface-2: rgba(255, 255, 255, 0.045);
-  --surface-3: rgba(255, 255, 255, 0.06);
-  --surface-accent: rgba(200, 205, 211, 0.055);
-  --section-divider: rgba(255, 255, 255, 0.065);
-  --panel-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  --background: #181818;
+  --background-rgb: 24, 24, 24;
+  --foreground: #ffffff;
+  --muted: #a1a1aa;
+  --muted-strong: #d4d4d8;
+  --panel: #1d1d1f;
+  --panel-strong: #242426;
+  --panel-soft: #222224;
+  --line: rgba(255, 255, 255, 0.12);
+  --line-strong: rgba(255, 255, 255, 0.22);
+  --teal: #339cff;
+  --amber: #d4a72c;
+  --coral: #fa423e;
+  --blue: #339cff;
+  --green: #40c977;
+  --diff-add: #40c977;
+  --diff-remove: #fa423e;
+  --skill: #ad7bf9;
+  --accent-rgb: 51, 156, 255;
+  --accent-ink: #ffffff;
+  --focus-outline: rgba(51, 156, 255, 0.82);
+  --glow-teal: 0 0 0 1px rgba(51, 156, 255, 0.34), 0 0 24px rgba(51, 156, 255, 0.14);
+  --shadow: 0 20px 64px rgba(0, 0, 0, 0.42);
+  --surface-0: #181818;
+  --surface-1: #1d1d1f;
+  --surface-2: #222224;
+  --surface-3: #29292c;
+  --surface-accent: rgba(51, 156, 255, 0.1);
+  --section-divider: rgba(255, 255, 255, 0.1);
+  --panel-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --code-surface: #151515;
+  --scrollbar-track: #1a1a1a;
+  --scrollbar-thumb: #4a4a4f;
 }
 
 html[data-cca-theme="light"] {
   color-scheme: light;
-  --background: #f5f6f8;
-  --background-rgb: 245, 246, 248;
-  --foreground: #17191d;
-  --muted: #6d7580;
-  --muted-strong: #3f4650;
-  --panel: rgba(255, 255, 255, 0.9);
-  --panel-strong: rgba(255, 255, 255, 0.97);
-  --panel-soft: rgba(17, 24, 39, 0.035);
-  --line: rgba(35, 42, 52, 0.12);
-  --line-strong: rgba(35, 42, 52, 0.2);
-  --teal: #4f667a;
-  --amber: #9a6a20;
-  --coral: #b75a4f;
-  --blue: #4d6f9d;
-  --green: #3b7a54;
-  --accent-rgb: 79, 102, 122;
+  --background: #ffffff;
+  --background-rgb: 255, 255, 255;
+  --foreground: #1a1c1f;
+  --muted: #62666d;
+  --muted-strong: #393d43;
+  --panel: #ffffff;
+  --panel-strong: #f8f9fa;
+  --panel-soft: #f4f6f8;
+  --line: rgba(26, 28, 31, 0.14);
+  --line-strong: rgba(26, 28, 31, 0.24);
+  --teal: #339cff;
+  --amber: #996f13;
+  --coral: #ba2623;
+  --blue: #339cff;
+  --green: #00a240;
+  --diff-add: #00a240;
+  --diff-remove: #ba2623;
+  --skill: #924ff7;
+  --accent-rgb: 51, 156, 255;
   --accent-ink: #ffffff;
-  --focus-outline: rgba(79, 102, 122, 0.55);
-  --glow-teal: 0 0 0 1px rgba(79, 102, 122, 0.13);
+  --focus-outline: rgba(51, 156, 255, 0.72);
+  --glow-teal: 0 0 0 1px rgba(51, 156, 255, 0.28);
   --shadow: 0 20px 58px rgba(44, 53, 65, 0.14);
   --surface-0: rgba(255, 255, 255, 0.88);
   --surface-1: rgba(20, 27, 36, 0.035);
   --surface-2: rgba(20, 27, 36, 0.055);
   --surface-3: rgba(20, 27, 36, 0.078);
-  --surface-accent: rgba(79, 102, 122, 0.085);
+  --surface-accent: rgba(51, 156, 255, 0.085);
   --section-divider: rgba(35, 42, 52, 0.09);
   --panel-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.72);
   --code-surface: rgba(247, 248, 250, 0.94);
@@ -500,10 +515,11 @@ body {
   background: transparent;
   color: var(--foreground);
   font-family:
-    "IBM Plex Sans",
-    "Aptos",
+    -apple-system,
+    BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+  font-size: var(--ui-font-size);
 }
 
 button,
@@ -4624,11 +4640,10 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 .codeViewer code {
   color: var(--muted-strong);
   font-family:
-    "IBM Plex Mono",
-    "JetBrains Mono",
     "SFMono-Regular",
+    ui-monospace,
     monospace;
-  font-size: 12px;
+  font-size: var(--code-font-size);
   line-height: 1.65;
 }
 
@@ -10504,16 +10519,16 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 html[data-cca-theme="codex"] {
-  background: #111317;
+  background: var(--background);
 }
 
 html[data-cca-theme="codex"] .workstation {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 180px);
+  background: var(--background);
 }
 
 html[data-cca-theme="codex"] .topbar {
-  border-color: rgba(229, 231, 235, 0.08);
-  background: rgba(17, 19, 23, 0.9);
+  border-color: var(--line);
+  background: #181818;
   box-shadow: none;
 }
 
@@ -10521,14 +10536,14 @@ html[data-cca-theme="codex"] .sessionPanel,
 html[data-cca-theme="codex"] .demoModePanel,
 html[data-cca-theme="codex"] .previewShelf,
 html[data-cca-theme="codex"] .inspector {
-  border-color: rgba(229, 231, 235, 0.08);
-  background: rgba(24, 26, 31, 0.9);
+  border-color: var(--line);
+  background: var(--panel);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.024);
 }
 
 html[data-cca-theme="codex"] .utilityPanel {
-  border-color: rgba(229, 231, 235, 0.08);
-  background: rgba(24, 26, 31, 0.96);
+  border-color: var(--line);
+  background: var(--panel-strong);
   box-shadow:
     0 12px 34px rgba(0, 0, 0, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.026);
@@ -10548,20 +10563,20 @@ html[data-cca-theme="codex"] .artifactActions button,
 html[data-cca-theme="codex"] .codePanelActions button,
 html[data-cca-theme="codex"] .previewControlButton,
 html[data-cca-theme="codex"] .operatorCheckpointActions button {
-  border-color: rgba(229, 231, 235, 0.09);
-  background: rgba(255, 255, 255, 0.035);
+  border-color: var(--line);
+  background: var(--surface-2);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.024);
 }
 
 html[data-cca-theme="codex"] .brandMark {
-  color: #c7cdd4;
+  color: var(--foreground);
 }
 
 html[data-cca-theme="codex"] .toolbarToggle,
 html[data-cca-theme="codex"] .iconButton,
 html[data-cca-theme="codex"] .previewControlButton,
 html[data-cca-theme="codex"] .composerAttachButton {
-  color: #c6cad0;
+  color: var(--muted-strong);
 }
 
 html[data-cca-theme="codex"] .toolbarToggle:hover,
@@ -10574,10 +10589,10 @@ html[data-cca-theme="codex"] .artifactActions button:hover,
 html[data-cca-theme="codex"] .codePanelActions button:hover,
 html[data-cca-theme="codex"] .previewControlButton:hover,
 html[data-cca-theme="codex"] .operatorCheckpointActions button:hover {
-  border-color: rgba(229, 231, 235, 0.14);
-  background: rgba(255, 255, 255, 0.052);
+  border-color: rgba(51, 156, 255, 0.5);
+  background: rgba(51, 156, 255, 0.12);
   box-shadow: none;
-  color: #f2f3f5;
+  color: var(--foreground);
 }
 
 html[data-cca-theme="codex"] .toolbarToggle[aria-pressed="true"],
@@ -10588,10 +10603,10 @@ html[data-cca-theme="codex"] .settingsChoiceRow button[data-active="true"],
 html[data-cca-theme="codex"] .settingsToggle button[data-active="true"],
 html[data-cca-theme="codex"] .inspectorTabs button[aria-selected="true"],
 html[data-cca-theme="codex"] .previewControlButton[aria-pressed="true"] {
-  border-color: rgba(229, 231, 235, 0.18);
-  background: rgba(255, 255, 255, 0.064);
+  border-color: rgba(51, 156, 255, 0.72);
+  background: rgba(51, 156, 255, 0.16);
   box-shadow: none;
-  color: #f2f3f5;
+  color: var(--foreground);
 }
 
 html[data-cca-theme="codex"] .message,
@@ -10616,19 +10631,19 @@ html[data-cca-theme="codex"] .previewCopy,
 html[data-cca-theme="codex"] .previewSurfacePanelFrame,
 html[data-cca-theme="codex"] .savedOutputsHero,
 html[data-cca-theme="codex"] .savedOutputCard {
-  border-color: rgba(229, 231, 235, 0.08);
-  background: rgba(255, 255, 255, 0.032);
+  border-color: var(--line);
+  background: var(--surface-1);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
 html[data-cca-theme="codex"] .sendButton {
-  background: #e5e7eb;
-  color: #121418;
+  background: #339cff;
+  color: #ffffff;
   box-shadow: none;
 }
 
 html[data-cca-theme="codex"] .sendButton[data-ready="true"]:hover {
-  background: #f3f4f6;
+  background: #66b8ff;
 }
 
 html[data-cca-theme="codex"] .previewShelf[open] {
@@ -10636,23 +10651,17 @@ html[data-cca-theme="codex"] .previewShelf[open] {
 }
 
 html[data-cca-theme="light"] {
-  background:
-    radial-gradient(circle at 12% 8%, rgba(79, 102, 122, 0.08), transparent 28%),
-    radial-gradient(circle at 82% 14%, rgba(154, 106, 32, 0.06), transparent 30%),
-    linear-gradient(180deg, #fafafa, #eef1f5 62%, #e9edf2),
-    var(--background);
+  background: var(--background);
 }
 
 html[data-cca-theme="light"] .workstation {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.56), transparent 180px),
-    transparent;
+  background: var(--background);
 }
 
 html[data-cca-theme="light"] .topbar {
-  border-color: rgba(35, 42, 52, 0.1);
-  background: rgba(250, 251, 252, 0.88);
-  box-shadow: 0 12px 30px rgba(42, 50, 60, 0.08);
+  border-color: var(--line);
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(26, 28, 31, 0.08);
 }
 
 html[data-cca-theme="light"] .sessionPanel,
@@ -10660,10 +10669,8 @@ html[data-cca-theme="light"] .demoModePanel,
 html[data-cca-theme="light"] .previewShelf,
 html[data-cca-theme="light"] .inspector,
 html[data-cca-theme="light"] .utilityPanel {
-  border-color: rgba(35, 42, 52, 0.1);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.72), transparent 180px),
-    rgba(255, 255, 255, 0.86);
+  border-color: var(--line);
+  background: var(--panel);
   box-shadow:
     0 20px 54px rgba(42, 50, 60, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.76);
@@ -10683,8 +10690,8 @@ html[data-cca-theme="light"] .artifactActions button,
 html[data-cca-theme="light"] .codePanelActions button,
 html[data-cca-theme="light"] .previewControlButton,
 html[data-cca-theme="light"] .operatorCheckpointActions button {
-  border-color: rgba(35, 42, 52, 0.12);
-  background: rgba(255, 255, 255, 0.72);
+  border-color: var(--line);
+  background: #ffffff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76);
 }
 
@@ -10698,7 +10705,7 @@ html[data-cca-theme="light"] .artifactActions button:hover,
 html[data-cca-theme="light"] .codePanelActions button:hover,
 html[data-cca-theme="light"] .previewControlButton:hover,
 html[data-cca-theme="light"] .operatorCheckpointActions button:hover {
-  border-color: rgba(79, 102, 122, 0.22);
+  border-color: rgba(51, 156, 255, 0.48);
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 8px 22px rgba(42, 50, 60, 0.08);
   color: #111318;
@@ -10712,8 +10719,8 @@ html[data-cca-theme="light"] .settingsChoiceRow button[data-active="true"],
 html[data-cca-theme="light"] .settingsToggle button[data-active="true"],
 html[data-cca-theme="light"] .inspectorTabs button[aria-selected="true"],
 html[data-cca-theme="light"] .previewControlButton[aria-pressed="true"] {
-  border-color: rgba(79, 102, 122, 0.28);
-  background: rgba(79, 102, 122, 0.1);
+  border-color: rgba(51, 156, 255, 0.62);
+  background: rgba(51, 156, 255, 0.12);
   box-shadow: none;
   color: #111318;
 }

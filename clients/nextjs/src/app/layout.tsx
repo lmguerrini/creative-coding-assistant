@@ -3,7 +3,10 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Creative Coding Assistant",
-  description: "Multi-panel creative workflow interface"
+  description: "Multi-panel creative workflow interface",
+  icons: {
+    icon: "/icon.svg"
+  }
 };
 
 export default function RootLayout({

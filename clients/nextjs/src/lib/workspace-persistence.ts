@@ -26,6 +26,19 @@ import { isArtifactPreviewable } from "./preview-runtime";
 export const defaultLocalUserId = "local-user";
 export const defaultLocalSessionId = "local-nextjs-session";
 export const defaultLocalProjectId = "local-nextjs-workspace";
+const workspaceProfileIdentityStorageKey = "cca.workspace.profile-identity.v1";
+
+export type WorkspaceIdentity = {
+  userId: string;
+  sessionId: string;
+  projectId: string;
+};
+
+export const defaultWorkspaceIdentity: WorkspaceIdentity = {
+  userId: defaultLocalUserId,
+  sessionId: defaultLocalSessionId,
+  projectId: defaultLocalProjectId
+};
 export const workspaceLayoutBounds = {
   defaultInspectorWidth: 420,
   minInspectorWidth: 320,
@@ -70,7 +83,7 @@ export const defaultWorkspaceLayoutState: WorkspaceLayoutState = {
 export const defaultWorkspacePreferences: WorkspacePreferences = {
   theme: "codex",
   autoOpenPreview: true,
-  showDebugPanels: false
+  showDebugPanels: true
 };
 
 export type WorkspaceSessionRecord = {
@@ -108,6 +121,7 @@ export type WorkspacePersistenceLoadResult = {
 };
 
 export type WorkspacePersistenceClient = {
+  identity?: WorkspaceIdentity;
   load: () => Promise<WorkspacePersistenceLoadResult>;
   save: (
     record: WorkspaceSessionRecord
@@ -121,6 +135,7 @@ export type WorkspacePersistenceClientOptions = {
   timeoutMs?: number;
   userId?: string;
   sessionId?: string;
+  useProfileIdentity?: boolean;
 };
 
 export type WorkspaceSessionRecordInput = {
@@ -153,10 +168,19 @@ export function createWorkspacePersistenceClient(
 ): WorkspacePersistenceClient {
   const endpoint = options.endpoint ?? defaultPersistenceEndpoint;
   const timeoutMs = options.timeoutMs ?? 1200;
-  const userId = options.userId ?? defaultLocalUserId;
-  const sessionId = options.sessionId ?? defaultLocalSessionId;
+  const profileIdentity =
+    options.useProfileIdentity ?? options.storage === undefined
+      ? resolveWorkspaceIdentity(options.storage)
+      : defaultWorkspaceIdentity;
+  const identity: WorkspaceIdentity = {
+    userId: options.userId ?? profileIdentity.userId,
+    sessionId: options.sessionId ?? profileIdentity.sessionId,
+    projectId: profileIdentity.projectId
+  };
+  const { projectId, sessionId, userId } = identity;
 
   return {
+    identity,
     async load() {
       const remoteResult = await loadRemoteSession({
         endpoint,
@@ -206,6 +230,47 @@ export function createWorkspacePersistenceClient(
         target: storedLocally ? "local" : "none",
         error: remoteResult.error
       };
+    }
+  };
+}
+
+export function resolveWorkspaceIdentity(
+  storage?: Storage | null
+): WorkspaceIdentity {
+  const resolvedStorage = resolveStorage(storage);
+  if (!resolvedStorage) {
+    return createEphemeralWorkspaceIdentity();
+  }
+
+  try {
+    const storedIdentity = resolvedStorage.getItem(workspaceProfileIdentityStorageKey);
+    if (storedIdentity) {
+      const parsedIdentity: unknown = JSON.parse(storedIdentity);
+      if (isWorkspaceIdentity(parsedIdentity)) {
+        return parsedIdentity;
+      }
+    }
+
+    const identity = createEphemeralWorkspaceIdentity();
+    resolvedStorage.setItem(
+      workspaceProfileIdentityStorageKey,
+      JSON.stringify(identity)
+    );
+    return identity;
+  } catch {
+    return createEphemeralWorkspaceIdentity();
+  }
+}
+
+export function withWorkspaceIdentity(
+  snapshot: AssistantWorkspaceSnapshot,
+  identity: WorkspaceIdentity
+): AssistantWorkspaceSnapshot {
+  return {
+    ...snapshot,
+    session: {
+      ...snapshot.session,
+      ...identity
     }
   };
 }
@@ -1070,6 +1135,38 @@ function resolveStorage(storage: Storage | null | undefined): Storage | null {
   } catch {
     return null;
   }
+}
+
+function createWorkspaceIdentitySuffix() {
+  const generated = globalThis.crypto?.randomUUID?.().replaceAll("-", "");
+  if (generated) {
+    return generated;
+  }
+  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}`;
+}
+
+function createEphemeralWorkspaceIdentity(): WorkspaceIdentity {
+  if (typeof window === "undefined") {
+    return defaultWorkspaceIdentity;
+  }
+  const suffix = createWorkspaceIdentitySuffix();
+  return {
+    userId: `browser-user-${suffix}`,
+    sessionId: `browser-session-${suffix}`,
+    projectId: `browser-workspace-${suffix}`
+  };
+}
+
+function isWorkspaceIdentity(value: unknown): value is WorkspaceIdentity {
+  return (
+    isRecord(value) &&
+    typeof value.userId === "string" &&
+    value.userId.length > 0 &&
+    typeof value.sessionId === "string" &&
+    value.sessionId.length > 0 &&
+    typeof value.projectId === "string" &&
+    value.projectId.length > 0
+  );
 }
 
 function isInspectorTabName(value: unknown): value is InspectorTabName {

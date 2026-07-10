@@ -67,6 +67,7 @@ import {
   normalizeWorkspacePreferences,
   normalizeWorkspaceLayoutState,
   snapshotFromWorkspaceSessionRecord,
+  withWorkspaceIdentity,
   workspaceLayoutBounds,
   type WorkspaceLayoutState,
   type WorkspacePreferences,
@@ -349,15 +350,15 @@ const themePresetOptions = [
     value: "codex",
     label: "Codex",
     description: "Neutral graphite with restrained, high-contrast accents.",
-    accent: "#b9c4cf",
-    surface: "linear-gradient(135deg, rgba(185, 196, 207, 0.18), rgba(132, 146, 160, 0.14))"
+    accent: "#339cff",
+    surface: "linear-gradient(135deg, rgba(51, 156, 255, 0.18), rgba(24, 24, 24, 0.94))"
   },
   {
     value: "light",
     label: "Light",
     description: "Calm daylight workspace with neutral surfaces.",
-    accent: "#4f667a",
-    surface: "linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(223, 231, 239, 0.86))"
+    accent: "#339cff",
+    surface: "linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(51, 156, 255, 0.1))"
   },
   {
     value: "matrix",
@@ -374,7 +375,11 @@ export function WorkstationShell({
   streamAssistantEvents = streamBackendAssistantEvents,
   persistenceClient = defaultWorkspacePersistenceClient
 }: WorkstationShellProps) {
-  const [snapshot, setSnapshot] = useState(initialSnapshot);
+  const workspaceIdentity =
+    persistenceClient.identity ?? initialSnapshot.session;
+  const [snapshot, setSnapshot] = useState(() =>
+    withWorkspaceIdentity(initialSnapshot, workspaceIdentity)
+  );
   const entryIdCounterRef = useRef(0);
   const approvalIdCounterRef = useRef(0);
   const localRuntimeSequenceRef = useRef(1000);
@@ -791,6 +796,7 @@ export function WorkstationShell({
           return;
         }
 
+        setSnapshot(withWorkspaceIdentity(initialSnapshot, workspaceIdentity));
         setPersistenceState(restoredSession.error ? "unavailable" : "ready");
       } catch {
         if (isMounted) {
@@ -807,7 +813,7 @@ export function WorkstationShell({
     return () => {
       isMounted = false;
     };
-  }, [initialSnapshot, persistenceClient]);
+  }, [initialSnapshot, persistenceClient, workspaceIdentity]);
 
   const activeArtifact =
     snapshot.artifacts.find((artifact) => artifact.id === activeArtifactId) ??
@@ -1679,7 +1685,10 @@ export function WorkstationShell({
   }
 
   function clearWorkspaceSession() {
-    const clearedSnapshot = getInitialWorkspaceSnapshot();
+    const clearedSnapshot = withWorkspaceIdentity(
+      getInitialWorkspaceSnapshot(),
+      workspaceIdentity
+    );
 
     clearFeedbackTimers();
     setCopyFeedback(null);
@@ -1720,7 +1729,9 @@ export function WorkstationShell({
     setCreativeCostRunHistory([]);
     setPreviewRuntimeLive(null);
     updateLayout({
-      inspectorCollapsed: defaultWorkspaceLayoutState.inspectorCollapsed,
+      inspectorCollapsed: defaultWorkspacePreferences.showDebugPanels
+        ? false
+        : defaultWorkspaceLayoutState.inspectorCollapsed,
       previewHeight: defaultWorkspaceLayoutState.previewHeight
     });
     updateWorkspacePreferences({
@@ -2276,9 +2287,9 @@ export function WorkstationShell({
 
     try {
       const streamRequest: AssistantStreamRequest = {
-        conversationId: "local-nextjs-session",
+        conversationId: workspaceIdentity.sessionId,
         mode: "generate",
-        projectId: "local-nextjs-workspace",
+        projectId: workspaceIdentity.projectId,
         query: prompt
       };
 
