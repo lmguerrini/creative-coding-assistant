@@ -12,6 +12,7 @@ import {
   type WorkspaceSessionRecord
 } from "./workspace-persistence";
 import { getP5RuntimeSourceSupportIssue } from "./preview-source-classification";
+import { buildPreviewRuntimeSummary } from "./preview-runtime";
 
 describe("workspace persistence client", () => {
   it("builds a typed session record from the workspace snapshot", () => {
@@ -198,6 +199,92 @@ describe("workspace persistence client", () => {
     expect(restored.artifacts[0]?.content).toBe(source.join("\n"));
     expect(restored.code.excerpt).toEqual(source);
     expect(getP5RuntimeSourceSupportIssue(restored.code.excerpt.join("\n"))).toBeNull();
+  });
+
+  it("recovers an interrupted GLSL reload into a runnable restored preview", () => {
+    const baseSnapshot = getLocalWorkspaceSnapshot();
+    const source = [
+      "precision mediump float;",
+      "uniform float u_time;",
+      "void main() { gl_FragColor = vec4(0.5 + 0.5 * sin(u_time)); }"
+    ].join("\n");
+    const snapshot: typeof baseSnapshot = {
+      ...baseSnapshot,
+      artifacts: [
+        {
+          ...baseSnapshot.artifacts[0],
+          actions: ["Open", "Preview", "Copy", "Download"],
+          content: source,
+          domain: "glsl",
+          id: "restored-shader.frag",
+          language: "GLSL",
+          previewEligible: true,
+          previewTarget: "browser_sandbox",
+          rendererId: "surface.glsl",
+          runtime: "glsl",
+          title: "restored-shader.frag"
+        }
+      ],
+      code: {
+        ...baseSnapshot.code,
+        excerpt: source.split("\n"),
+        language: "GLSL",
+        title: "restored-shader.frag"
+      },
+      preview: {
+        ...baseSnapshot.preview,
+        active: true,
+        artifactName: "restored-shader.frag",
+        available: true,
+        collapsed: false,
+        outputArtifactName: "",
+        renderer: "surface.glsl",
+        sourceArtifactId: "restored-shader.frag",
+        sourceArtifactName: "restored-shader.frag",
+        state: "generating",
+        status: "Reloading",
+        summary: "Reload requested before the page was closed.",
+        target: "Browser preview",
+        targetId: "browser_sandbox",
+        trigger: "Preview reload restored-shader.frag"
+      },
+      workflow: {
+        ...baseSnapshot.workflow,
+        currentNode: "finalization",
+        currentStep: "Finalization",
+        status: "Complete"
+      }
+    };
+    const record = createWorkspaceSessionRecord({
+      activeArtifactId: "restored-shader.frag",
+      activeInspectorTab: "Preview",
+      previewArtifactId: "restored-shader.frag",
+      previewOpen: true,
+      snapshot
+    });
+
+    const restored = snapshotFromWorkspaceSessionRecord(baseSnapshot, record);
+    const runtimePreview = buildPreviewRuntimeSummary({
+      artifacts: restored.artifacts,
+      basePreview: restored.preview,
+      isOpen: true,
+      previewArtifactId: "restored-shader.frag",
+      streamError: null,
+      traceEvents: [],
+      workflow: restored.workflow
+    });
+
+    expect(restored.preview).toMatchObject({
+      active: true,
+      state: "ready",
+      status: "Ready when opened",
+      trigger: "Preview restored restored-shader.frag"
+    });
+    expect(runtimePreview).toMatchObject({
+      active: true,
+      state: "ready",
+      status: "Preview open"
+    });
   });
 
   it("restores stale React Three Fiber metadata as code-only", () => {

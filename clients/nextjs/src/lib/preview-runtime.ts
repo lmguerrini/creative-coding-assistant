@@ -254,7 +254,8 @@ function resolvePreviewRuntimeState({
 
   if (
     activeSessionOverride?.mode === "restarting" ||
-    activeSessionOverride?.mode === "reloading"
+    activeSessionOverride?.mode === "reloading" ||
+    activeSessionOverride?.mode === "settled"
   ) {
     return "generating";
   }
@@ -279,6 +280,10 @@ function resolvePreviewRuntimeState({
 
   if (hasConcretePreviewOutput) {
     return basePreview.state === "error" ? "error" : "ready";
+  }
+
+  if (basePreview.restoredFromInterruptedSession && contextIsPreviewable) {
+    return "ready";
   }
 
   if (isPreviewRuntimeActive(workflow)) {

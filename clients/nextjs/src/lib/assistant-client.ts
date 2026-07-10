@@ -2712,6 +2712,7 @@ export type PreviewSummary = {
   outputArtifactName: string;
   summary: string;
   renderer: string;
+  restoredFromInterruptedSession?: boolean;
   trigger: string;
   version: string;
   error?: WorkstationError | null;

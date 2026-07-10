@@ -3499,6 +3499,41 @@ describe("WorkstationShell", () => {
     expect(within(events).getByText("Preview Runtime Reset Completed")).toBeVisible();
   });
 
+  it("restores a cleared preview through the non-destructive reload path", async () => {
+    renderShell();
+    openDeveloperInspector();
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const summary = within(preview).getByText("Preview available").closest("summary");
+
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+    fireEvent.click(
+      within(preview).getByRole("button", { name: "Clear preview state" })
+    );
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Clear runtime" }));
+      await Promise.resolve();
+    });
+
+    expect(
+      within(preview).getByText("Cleared", { selector: "summary small" })
+    ).toBeVisible();
+
+    fireEvent.click(
+      within(preview).getByRole("button", { name: "Reload preview state" })
+    );
+
+    expect(
+      within(preview).getByText("Generating", { selector: "summary small" })
+    ).toBeVisible();
+    expect(
+      within(preview).queryByText(
+        "Preview state cleared for aurora-field.p5.js. Reload or reset the session to restore the latest runtime context."
+      )
+    ).not.toBeInTheDocument();
+  });
+
   it("keeps preview context available when inspecting a non-previewable artifact", () => {
     renderShell();
 
@@ -4499,12 +4534,20 @@ describe("WorkstationShell", () => {
       });
       expect(within(surface).queryByText("Stale runtime failed")).not.toBeInTheDocument();
 
+      const recoveryRuntimeId = frame.dataset.runtimeId;
       dispatchSandboxRuntimeStatus(frame, {
         detail: runningDetail,
         label: runningLabel,
         state: "running"
       });
       expect(await within(surface).findByText(runningLabel)).toBeVisible();
+      expect(frame.dataset.runtimeId).toBe(recoveryRuntimeId);
+      expect(
+        within(preview).queryByText("Reloading", { selector: "summary small" })
+      ).not.toBeInTheDocument();
+      expect(
+        within(preview).getByRole("button", { name: "Reload preview state" })
+      ).toBeEnabled();
 
       fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
       const events = screen.getByRole("group", { name: "Workflow event trace" });
@@ -4514,6 +4557,56 @@ describe("WorkstationShell", () => {
       ).toBeVisible();
     }
   );
+
+  it("settles an approved preview restart after the replacement runtime runs", async () => {
+    renderShell();
+    openDeveloperInspector();
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const summary = within(preview).getByText("Preview available").closest("summary");
+
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+    const surface = within(preview).getByRole("group", {
+      name: "Preview renderer surface"
+    });
+    const frame = await waitForSandboxRuntimeFrame(
+      surface,
+      "p5.js preview runtime frame"
+    );
+    const initialRuntimeId = frame.dataset.runtimeId;
+
+    fireEvent.click(
+      within(preview).getByRole("button", { name: "Restart preview session" })
+    );
+    expect(screen.getByLabelText("Operator checkpoint")).toHaveTextContent(
+      "Restart preview runtime"
+    );
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Restart runtime" }));
+      await Promise.resolve();
+    });
+    await waitFor(() => {
+      expect(frame.dataset.runtimeId).toMatch(/^preview-runtime-/);
+      expect(frame.dataset.runtimeId).not.toBe(initialRuntimeId);
+    });
+    expect(
+      within(preview).getByText("Restarting", { selector: "summary small" })
+    ).toBeVisible();
+
+    const restartRuntimeId = frame.dataset.runtimeId;
+    dispatchSandboxRuntimeStatus(frame, {
+      detail: "Rendering aurora-field.p5.js inside an isolated p5-compatible preview frame.",
+      label: "p5 runtime running",
+      state: "running"
+    });
+
+    expect(await within(surface).findByText("p5 runtime running")).toBeVisible();
+    expect(frame.dataset.runtimeId).toBe(restartRuntimeId);
+    expect(
+      within(preview).queryByText("Restarting", { selector: "summary small" })
+    ).not.toBeInTheDocument();
+  });
 
   it("uses the full inspector panel for code when Code is active", () => {
     renderShell(snapshotWithActiveTab("Code"));

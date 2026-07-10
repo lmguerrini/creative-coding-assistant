@@ -302,6 +302,43 @@ describe("preview runtime", () => {
       trigger: "Preview restart preview-request.json"
     });
   });
+
+  it("keeps settled recovery sessions on their stable runtime session", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+
+    expect(
+      buildPreviewRuntimeSummary({
+        artifacts: snapshot.artifacts,
+        basePreview: {
+          ...snapshot.preview,
+          active: true,
+          outputArtifactName: "preview-request.json",
+          state: "ready",
+          status: "Ready when opened",
+          summary: "Preview output is ready."
+        },
+        isOpen: true,
+        previewArtifactId: "preview-manifest",
+        sessionOverride: {
+          artifactId: "source-sketch",
+          mode: "settled",
+          requestedAt: "2026-07-10T13:00:00Z"
+        },
+        streamError: null,
+        traceEvents: [],
+        workflow: {
+          ...snapshot.workflow,
+          currentNode: "finalization",
+          currentStep: "Finalization",
+          status: "Completed"
+        }
+      })
+    ).toMatchObject({
+      state: "generating",
+      status: "Generating",
+      outputArtifactName: ""
+    });
+  });
 });
 
 function previewTraceEvent({

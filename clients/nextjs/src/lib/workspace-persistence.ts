@@ -21,6 +21,7 @@ import {
   getArtifactPreviewSupportIssue,
   normalizeStoredArtifactRuntimeBoundary
 } from "./live-artifact-hydration";
+import { isArtifactPreviewable } from "./preview-runtime";
 
 export const defaultLocalUserId = "local-user";
 export const defaultLocalSessionId = "local-nextjs-session";
@@ -275,6 +276,10 @@ export function snapshotFromWorkspaceSessionRecord(
     record,
     restoredPreview
   );
+  const recoveredPreview = recoverInterruptedPreviewSession(
+    restoredPreview,
+    previewArtifact
+  );
   const previewSupportIssue = previewArtifact
     ? getArtifactPreviewSupportIssue(previewArtifact)
     : null;
@@ -286,9 +291,9 @@ export function snapshotFromWorkspaceSessionRecord(
   const previewIssue = previewRecoveryIssue ?? previewSupportIssue;
   const preview = previewIssue
     ? {
-        ...restoredPreview,
+        ...recoveredPreview,
         active: false,
-        artifactName: previewArtifact?.title ?? restoredPreview.artifactName,
+        artifactName: previewArtifact?.title ?? recoveredPreview.artifactName,
         available: false,
         collapsed: true,
         outputArtifactName: "",
@@ -302,7 +307,7 @@ export function snapshotFromWorkspaceSessionRecord(
         targetId: "" as const,
         title: "Preview unavailable"
       }
-    : restoredPreview;
+    : recoveredPreview;
 
   return {
     ...fallback,
@@ -332,6 +337,33 @@ export function snapshotFromWorkspaceSessionRecord(
     artifacts,
     multimodal,
     preview
+  };
+}
+
+function recoverInterruptedPreviewSession(
+  preview: PreviewSummary,
+  previewArtifact: ArtifactSummary | null
+): PreviewSummary {
+  const isInterruptedRecovery =
+    preview.state === "generating" &&
+    (preview.status === "Reloading" || preview.status === "Restarting");
+
+  if (
+    !isInterruptedRecovery ||
+    !preview.available ||
+    !previewArtifact ||
+    !isArtifactPreviewable(previewArtifact)
+  ) {
+    return preview;
+  }
+
+  return {
+    ...preview,
+    state: "ready",
+    status: "Ready when opened",
+    restoredFromInterruptedSession: true,
+    summary: `Restored ${previewArtifact.title} for a fresh live preview.`,
+    trigger: `Preview restored ${previewArtifact.title}`
   };
 }
 

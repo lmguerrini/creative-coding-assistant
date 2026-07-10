@@ -71,4 +71,37 @@ describe("preview controller", () => {
       sessionLabel: "Cleared"
     });
   });
+
+  it("returns settled recovery sessions to the base preview controls", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const preview = {
+      ...snapshot.preview,
+      active: true,
+      outputArtifactName: "preview-request.json",
+      state: "ready" as const,
+      status: "Preview open"
+    };
+    const route = buildPreviewRendererRoute({
+      artifacts: snapshot.artifacts,
+      preview,
+      previewArtifactId: "preview-manifest"
+    });
+
+    expect(
+      buildPreviewControllerModel({
+        isFullscreen: false,
+        preview,
+        route,
+        sessionOverride: {
+          artifactId: "source-sketch",
+          mode: "settled",
+          requestedAt: "2026-07-10T13:00:00Z"
+        }
+      })
+    ).toMatchObject({
+      canReload: true,
+      isSessionOverridden: false,
+      sessionLabel: "Live"
+    });
+  });
 });

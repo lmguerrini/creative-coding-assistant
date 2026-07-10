@@ -1565,6 +1565,14 @@ export function WorkstationShell({
       ...nextRuntimeLive,
       updatedAt: new Date().toISOString()
     });
+    if (nextRuntimeLive.status.state === "running") {
+      setPreviewSessionOverride((currentOverride) =>
+        currentOverride?.mode === "reloading" ||
+        currentOverride?.mode === "restarting"
+          ? { ...currentOverride, mode: "settled" }
+          : currentOverride
+      );
+    }
   }
 
   function setApprovalRequestState(

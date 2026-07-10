@@ -4,7 +4,8 @@ import type { PreviewRendererRoute } from "./preview-renderers";
 export type PreviewRuntimeSessionOverrideMode =
   | "restarting"
   | "reloading"
-  | "cleared";
+  | "cleared"
+  | "settled";
 
 export type PreviewRuntimeSessionOverride = {
   artifactId: string;
@@ -100,16 +101,22 @@ export function buildPreviewControllerModel({
     canReload: preview.available && sessionOverride?.mode !== "reloading",
     canReset:
       preview.available &&
-      (sessionOverride !== null ||
+      (hasActiveSessionOverride(sessionOverride) ||
         isFullscreen ||
         Boolean(preview.outputArtifactName) ||
         preview.state === "unavailable"),
     canRestart: preview.available,
     indicators,
     isFullscreen,
-    isSessionOverridden: sessionOverride !== null,
+    isSessionOverridden: hasActiveSessionOverride(sessionOverride),
     sessionLabel
   };
+}
+
+function hasActiveSessionOverride(
+  sessionOverride: PreviewRuntimeSessionOverride | null
+) {
+  return sessionOverride !== null && sessionOverride.mode !== "settled";
 }
 
 function formatPreviewSessionLabel(
