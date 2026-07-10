@@ -3743,6 +3743,32 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
   });
 
+  it("renames an artifact without losing its preview or code references", () => {
+    renderShell();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Rename aurora-field.p5.js" })
+    );
+    fireEvent.change(
+      screen.getByRole("textbox", {
+        name: "New file name for aurora-field.p5.js"
+      }),
+      { target: { value: "Luminous Flow Field.ts" } }
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Save name" }));
+
+    expect(screen.getAllByText("luminous-flow-field.p5.js").length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole("tab", { name: "Code" }));
+    expect(
+      screen.getByRole("region", { name: "luminous-flow-field.p5.js content" })
+    ).toBeVisible();
+    fireEvent.click(screen.getByRole("tab", { name: "Preview" }));
+    expect(
+      screen.getAllByText("luminous-flow-field.p5.js", { selector: "dd" }).length
+    ).toBeGreaterThan(0);
+  });
+
   it("opens artifacts, highlights the active artifact, and targets preview actions", () => {
     renderShell();
 

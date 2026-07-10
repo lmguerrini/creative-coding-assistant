@@ -84,6 +84,7 @@ import {
   type ArtifactDocument,
   type HighlightedLine
 } from "@/lib/artifact-inspector";
+import { renameWorkspaceArtifact } from "@/lib/artifact-naming";
 import { buildMultiPreviewComparisonModel } from "@/lib/multi-preview-comparison";
 import { buildProjectBundle } from "@/lib/project-bundle";
 import {
@@ -2795,6 +2796,24 @@ export function WorkstationShell({
     setActiveTab("Artifacts");
   }
 
+  function handleArtifactRename(artifact: ArtifactSummary, requestedTitle: string) {
+    const renamed = renameWorkspaceArtifact({
+      artifactId: artifact.id,
+      requestedTitle,
+      snapshot
+    });
+    if (!renamed) {
+      return null;
+    }
+
+    setSnapshot(renamed.snapshot);
+    setActiveArtifactId(artifact.id);
+    if (isArtifactPreviewable(artifact)) {
+      setPreviewArtifactId(artifact.id);
+    }
+    return renamed.title;
+  }
+
   function handleArtifactSelect(artifact: ArtifactSummary) {
     setActiveArtifactId(artifact.id);
     setPreviewContextArtifactId(artifact.id);
@@ -3393,6 +3412,7 @@ export function WorkstationShell({
                     onArtifactCopy={handleArtifactCopy}
                     onArtifactAction={handleArtifactAction}
                     onArtifactRefine={handleArtifactRefine}
+                    onArtifactRename={handleArtifactRename}
                     onArtifactSelect={handleArtifactSelect}
                     onArtifactTransfer={handleArtifactTransfer}
                     onClarificationOptionSelect={handleClarificationOptionSelect}
@@ -4209,6 +4229,7 @@ type InspectorPanelProps = {
   onArtifactCopy: (artifact: ArtifactSummary) => Promise<void>;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
   onArtifactRefine: (artifact: ArtifactSummary, instruction: string) => Promise<void>;
+  onArtifactRename: (artifact: ArtifactSummary, requestedTitle: string) => string | null;
   onArtifactSelect: (artifact: ArtifactSummary) => void;
   onArtifactTransfer: (artifact: ArtifactSummary) => void;
   onClarificationOptionSelect: (option: string) => Promise<void>;
@@ -4244,6 +4265,7 @@ function InspectorPanel({
   onArtifactCopy,
   onArtifactAction,
   onArtifactRefine,
+  onArtifactRename,
   onArtifactSelect,
   onArtifactTransfer,
   onClarificationOptionSelect,
@@ -4341,6 +4363,7 @@ function InspectorPanel({
         isStreaming={isStreaming}
         onArtifactAction={onArtifactAction}
         onArtifactRefine={onArtifactRefine}
+        onArtifactRename={onArtifactRename}
         onArtifactSelect={onArtifactSelect}
         preview={snapshot.preview}
         productOutcome={workflowRuntime.summary.productOutcome}
@@ -5727,6 +5750,7 @@ type ArtifactsInspectorProps = {
   isStreaming: boolean;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
   onArtifactRefine: (artifact: ArtifactSummary, instruction: string) => Promise<void>;
+  onArtifactRename: (artifact: ArtifactSummary, requestedTitle: string) => string | null;
   onArtifactSelect: (artifact: ArtifactSummary) => void;
   preview: AssistantWorkspaceSnapshot["preview"];
   productOutcome: WorkflowRuntimeModel["summary"]["productOutcome"];
@@ -5745,6 +5769,7 @@ function ArtifactsInspector({
   isStreaming,
   onArtifactAction,
   onArtifactRefine,
+  onArtifactRename,
   onArtifactSelect,
   preview,
   productOutcome,
@@ -5775,6 +5800,7 @@ function ArtifactsInspector({
         artifacts={artifacts}
         copyFeedback={copyFeedback}
         onArtifactAction={onArtifactAction}
+        onArtifactRename={onArtifactRename}
         onArtifactSelect={onArtifactSelect}
         transferFeedback={transferFeedback}
       />
@@ -5899,6 +5925,10 @@ function ArtifactsInspector({
           onArtifactAction={onArtifactAction}
           transferFeedback={transferFeedback}
         />
+        <ArtifactRenameControl
+          artifact={activeArtifact}
+          onArtifactRename={onArtifactRename}
+        />
         {actionMessage ? (
           <p className="artifactActionFeedback" aria-live="polite">
             {actionMessage}
@@ -5927,6 +5957,7 @@ function UserArtifactsInspector({
   artifacts,
   copyFeedback,
   onArtifactAction,
+  onArtifactRename,
   onArtifactSelect,
   transferFeedback
 }: {
@@ -5935,6 +5966,7 @@ function UserArtifactsInspector({
   artifacts: ArtifactSummary[];
   copyFeedback: ArtifactActionFeedback | null;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
+  onArtifactRename: (artifact: ArtifactSummary, requestedTitle: string) => string | null;
   onArtifactSelect: (artifact: ArtifactSummary) => void;
   transferFeedback: ArtifactActionFeedback | null;
 }) {
@@ -5992,6 +6024,10 @@ function UserArtifactsInspector({
         copyFeedback={copyFeedback}
         onArtifactAction={onArtifactAction}
         transferFeedback={transferFeedback}
+      />
+      <ArtifactRenameControl
+        artifact={activeArtifact}
+        onArtifactRename={onArtifactRename}
       />
       {actionMessage ? (
         <p className="artifactActionFeedback" aria-live="polite">
@@ -6578,6 +6614,68 @@ function ArtifactActionRow({
         </button>
       ))}
     </div>
+  );
+}
+
+function ArtifactRenameControl({
+  artifact,
+  onArtifactRename
+}: {
+  artifact: ArtifactSummary;
+  onArtifactRename: (artifact: ArtifactSummary, requestedTitle: string) => string | null;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(artifact.title);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setValue(artifact.title);
+    setError(null);
+    setEditing(false);
+  }, [artifact.id, artifact.title]);
+
+  if (!editing) {
+    return (
+      <div className="artifactRenameControl">
+        <button
+          aria-label={`Rename ${artifact.title}`}
+          onClick={() => setEditing(true)}
+          type="button"
+        >
+          Rename file
+        </button>
+      </div>
+    );
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const title = onArtifactRename(artifact, value);
+    if (!title) {
+      setError("Enter a file name using letters, numbers, spaces, or dashes.");
+      return;
+    }
+    setValue(title);
+    setEditing(false);
+  }
+
+  return (
+    <form className="artifactRenameControl" onSubmit={handleSubmit}>
+      <label>
+        File name
+        <input
+          aria-label={`New file name for ${artifact.title}`}
+          autoFocus
+          onChange={(event) => setValue(event.currentTarget.value)}
+          value={value}
+        />
+      </label>
+      <button type="submit">Save name</button>
+      <button onClick={() => setEditing(false)} type="button">
+        Cancel
+      </button>
+      {error ? <small role="alert">{error}</small> : null}
+    </form>
   );
 }
 

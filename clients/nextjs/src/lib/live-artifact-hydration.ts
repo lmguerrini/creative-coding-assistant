@@ -25,6 +25,7 @@ import {
   readWorkflowMetadata
 } from "./assistant-stream";
 import { normalizeCreativeTranslation } from "./creative-translation";
+import { assignSemanticArtifactTitles } from "./artifact-naming";
 import { hasGsapPreviewSignal } from "./gsap-runtime";
 import {
   hasCanvasPreviewSignal,
@@ -107,6 +108,7 @@ type ArtifactInference = {
   isRecommended: boolean;
   refinementReason: string | null;
   refinementPasses: RefinementPassRecord[];
+  semanticNamingEligible: boolean;
   sourceOrder: number;
   status: string;
   summary: string | null;
@@ -244,9 +246,16 @@ function hydrateWorkspaceFromSources(
   }
 
   const inferredArtifacts = inferGeneratedArtifacts(sources);
-  const artifactSummaries = inferredArtifacts.map((inferred) =>
-    buildArtifactSummary(inferred, options.artifactHydrationSource)
-  );
+  const artifactSummaries = assignSemanticArtifactTitles({
+    artifacts: inferredArtifacts.map((inferred) =>
+      buildArtifactSummary(inferred, options.artifactHydrationSource)
+    ),
+    eligibleArtifactIds: inferredArtifacts
+      .filter((inferred) => inferred.semanticNamingEligible)
+      .map((inferred) => inferred.id),
+    existingTitles: snapshot.artifacts.map((artifact) => artifact.title),
+    prompt: latestWorkspacePrompt(snapshot)
+  });
   const activeInference =
     inferredArtifacts.find((inferred) => inferred.isDefault) ??
     inferredArtifacts.find((inferred) => inferred.previewKind) ??
@@ -299,6 +308,16 @@ function hydrateWorkspaceFromSources(
       preview
     }
   };
+}
+
+function latestWorkspacePrompt(snapshot: AssistantWorkspaceSnapshot) {
+  for (let index = snapshot.messages.length - 1; index >= 0; index -= 1) {
+    const message = snapshot.messages[index];
+    if (message?.role === "user" && message.content.trim()) {
+      return message.content;
+    }
+  }
+  return "";
 }
 
 function readStructuredArtifactSources(
@@ -412,6 +431,7 @@ function readStructuredArtifactSources(
           qualityScore: source.qualityScore,
           refinementPasses: source.refinementPasses,
           refinementReason: source.refinementReason,
+          origin: source.origin,
           status: source.status
         })),
         {
@@ -625,6 +645,7 @@ function inferGeneratedArtifact(
     refinementReason:
       source.refinementReason ?? source.critique?.refinementGuidance ?? null,
     refinementPasses: source.refinementPasses ?? [],
+    semanticNamingEligible: source.origin === "structured",
     rendererId: previewKind
       ? source.rendererId ?? previewRendererIds[previewKind]
       : null,

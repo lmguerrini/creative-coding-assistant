@@ -9422,6 +9422,58 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   transform: translateY(-1px);
 }
 
+.artifactRenameControl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 7px;
+}
+
+.artifactRenameControl label {
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.artifactRenameControl input,
+.artifactRenameControl button {
+  min-height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--foreground);
+  background: var(--surface-1);
+  font: inherit;
+}
+
+.artifactRenameControl input {
+  min-width: min(260px, 100%);
+  padding: 0 9px;
+  font-size: 12px;
+}
+
+.artifactRenameControl button {
+  padding: 0 9px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.artifactRenameControl button:hover,
+.artifactRenameControl input:focus-visible {
+  border-color: rgba(var(--accent-rgb), 0.45);
+  outline: 0;
+}
+
+.artifactRenameControl small {
+  width: 100%;
+  color: var(--coral);
+  font-size: 11px;
+}
+
 .retrievalSummaryCard,
 .retrievalEmptyCard,
 .kbStatusSurface {

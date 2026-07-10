@@ -124,11 +124,12 @@ describe("live artifact hydration", () => {
 
     expect(result.artifact).toMatchObject({
       id: "standalone-three-document",
-      title: "generated-scene-1.three.ts",
       runtime: null,
       previewEligible: false,
       actions: ["Open", "Copy", "Download"]
     });
+    expect(result.artifact?.title).not.toMatch(/^generated-/);
+    expect(result.artifact?.title).toMatch(/\.three\.ts$/);
     expect(result.previewAvailable).toBe(false);
     expect(result.previewArtifactId).toBe("");
     expect(result.snapshot.preview).toMatchObject({
@@ -168,12 +169,13 @@ describe("live artifact hydration", () => {
 
     expect(result.artifact).toMatchObject({
       id: "react-three-fiber-component",
-      title: "generated-study-1.r3f.tsx",
       language: "TypeScript + React Three Fiber",
       runtime: null,
       previewEligible: false,
       actions: ["Open", "Copy", "Download"]
     });
+    expect(result.artifact?.title).not.toMatch(/^generated-/);
+    expect(result.artifact?.title).toMatch(/\.r3f\.tsx$/);
     expect(result.artifact?.summary).toContain(
       "React Three Fiber components need their own bundle runtime"
     );
@@ -410,20 +412,24 @@ describe("live artifact hydration", () => {
     );
 
     expect(result.artifact).toMatchObject({
-      title: "generated-sketch-1.p5.js",
       runtime: "p5",
       previewEligible: true
     });
     expect(result.artifact?.content).toBe(source);
+    expect(result.artifact?.title).not.toMatch(/^generated-/);
+    expect(result.artifact?.title).toMatch(/\.p5\.js$/);
     expect(result.artifact?.content).not.toContain("```");
     expect(result.snapshot.artifacts).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ title: "generated-sketch-1.p5.js" }),
-        expect.objectContaining({ title: "assistant-response.md", type: "export" })
+        expect.objectContaining({ title: expect.stringMatching(/\.p5\.js$/) }),
+        expect.objectContaining({
+          title: expect.stringMatching(/^(?!assistant-response).+\.md$/),
+          type: "export"
+        })
       ])
     );
     expect(result.previewArtifactId).toBe(result.artifact?.id);
-    expect(result.snapshot.code.title).toBe("generated-sketch-1.p5.js");
+    expect(result.snapshot.code.title).toBe(result.artifact?.title);
   });
 
   it("accepts every supported fenced p5 JavaScript label", () => {
@@ -532,8 +538,9 @@ describe("live artifact hydration", () => {
 
     expect(result.artifact).toMatchObject({
       status: "Runnable artifact extraction failed",
-      title: "generated-sketch-1.p5.js"
     });
+    expect(result.artifact?.title).not.toMatch(/^generated-/);
+    expect(result.artifact?.title).toMatch(/\.p5\.js$/);
     expect(result.previewAvailable).toBe(false);
     expect(result.snapshot.preview).toMatchObject({
       status: "Completed without runnable artifact",
@@ -598,6 +605,41 @@ describe("live artifact hydration", () => {
       artifactName: "aurora.frag",
       renderer: "surface.glsl",
       targetId: "browser_sandbox"
+    });
+  });
+
+  it("replaces a generic structured provider filename with a prompt-derived runtime name", () => {
+    const baseSnapshot = getLocalWorkspaceSnapshot();
+    const result = hydrateWorkspaceFromFinalEvent(
+      {
+        ...baseSnapshot,
+        messages: [
+          ...baseSnapshot.messages,
+          {
+            role: "user",
+            time: "15:14",
+            content: "Create a p5.js flow-field particle system with soft trails."
+          }
+        ]
+      },
+      finalEvent({
+        artifacts: [
+          {
+            id: "flow-field-provider-output",
+            title: "generated-sketch.p5.js",
+            language: "javascript",
+            runtime: "p5",
+            content:
+              "function setup() { createCanvas(640, 360); }\nfunction draw() { background(12); }"
+          }
+        ]
+      })
+    );
+
+    expect(result.artifact?.title).toBe("flow-field-particle-system-soft.p5.js");
+    expect(result.snapshot.preview).toMatchObject({
+      artifactName: "flow-field-particle-system-soft.p5.js",
+      sourceArtifactName: "flow-field-particle-system-soft.p5.js"
     });
   });
 
