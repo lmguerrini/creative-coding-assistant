@@ -1,4 +1,7 @@
-import type { AssistantMessage } from "./assistant-client";
+import type {
+  AssistantMessage,
+  AssistantWorkspaceSnapshot
+} from "./assistant-client";
 import type { WorkstationError } from "./workstation-errors";
 
 export type ConversationEntryPhase =
@@ -27,15 +30,52 @@ export type ConversationEntry = AssistantMessage & {
 
 export function buildConversationEntries(
   messages: AssistantMessage[],
-  createId: () => string
+  createId: () => string,
+  productOutcome?: AssistantWorkspaceSnapshot["workflow"]["productOutcome"]
 ): ConversationEntry[] {
-  return messages.map((message) => ({
-    ...message,
-    activity: null,
-    id: createId(),
-    pending: false,
-    phase: "complete"
-  }));
+  const terminalAssistantIndex = findTerminalAssistantIndex(messages);
+
+  return messages.map((message, index) => {
+    const restoresTerminalOutcome =
+      index === terminalAssistantIndex && productOutcome !== null && productOutcome;
+
+    return {
+      ...message,
+      activity: restoresTerminalOutcome ? productOutcome.summary : null,
+      id: createId(),
+      pending: false,
+      phase: restoresTerminalOutcome
+        ? conversationPhaseForProductOutcome(productOutcome.product_outcome)
+        : "complete"
+    };
+  });
+}
+
+function findTerminalAssistantIndex(messages: AssistantMessage[]) {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    if (messages[index]?.role === "assistant") {
+      return index;
+    }
+  }
+  return -1;
+}
+
+function conversationPhaseForProductOutcome(
+  productOutcome: NonNullable<
+    AssistantWorkspaceSnapshot["workflow"]["productOutcome"]
+  >["product_outcome"]
+): ConversationEntryPhase {
+  switch (productOutcome) {
+    case "PARTIAL":
+      return "partial";
+    case "FAILURE":
+      return "failed";
+    case "SUCCESS":
+      return "completed";
+    case "IN_PROGRESS":
+    default:
+      return "complete";
+  }
 }
 
 export function toPersistedConversation(

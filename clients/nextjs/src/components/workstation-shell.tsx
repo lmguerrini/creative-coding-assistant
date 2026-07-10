@@ -394,7 +394,11 @@ export function WorkstationShell({
   const previewRuntimeTelemetryKeysRef = useRef<Set<string>>(new Set());
   const previewRuntimeErrorScopesRef = useRef<Set<string>>(new Set());
   const [conversationEntries, setConversationEntries] = useState(() =>
-    buildConversationEntries(initialSnapshot.messages, createConversationEntryId)
+    buildConversationEntries(
+      initialSnapshot.messages,
+      createConversationEntryId,
+      initialSnapshot.workflow.productOutcome
+    )
   );
   const [composerValue, setComposerValue] = useState("");
   const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
@@ -749,7 +753,11 @@ export function WorkstationShell({
           );
           setSnapshot(restoredSnapshot);
           setConversationEntries(
-            buildConversationEntries(restoredSnapshot.messages, createConversationEntryId)
+            buildConversationEntries(
+              restoredSnapshot.messages,
+              createConversationEntryId,
+              restoredSnapshot.workflow.productOutcome
+            )
           );
           setImageAttachments(restoredImageAttachments);
           setImageUploadError(restoredSnapshot.multimodal.error ?? null);
@@ -1719,7 +1727,11 @@ export function WorkstationShell({
     previewRuntimeErrorScopesRef.current.clear();
     setSnapshot(clearedSnapshot);
     setConversationEntries(
-      buildConversationEntries(clearedSnapshot.messages, createConversationEntryId)
+      buildConversationEntries(
+        clearedSnapshot.messages,
+        createConversationEntryId,
+        clearedSnapshot.workflow.productOutcome
+      )
     );
     setImageAttachments(
       normalizeImageAttachments(clearedSnapshot.multimodal.imageAttachments)

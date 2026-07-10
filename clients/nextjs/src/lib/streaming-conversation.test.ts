@@ -34,6 +34,36 @@ describe("streaming conversation helpers", () => {
     ]);
   });
 
+  it("restores the terminal assistant card from the persisted product outcome", () => {
+    const entries = buildConversationEntries(
+      [
+        { role: "assistant", time: "10:15", content: "Earlier result." },
+        { role: "user", time: "10:16", content: "Create a p5 study." },
+        { role: "assistant", time: "10:17", content: "Latest result." }
+      ],
+      () => "message-id",
+      {
+        orchestration_status: "COMPLETED",
+        provider_status: "COMPLETED",
+        generation_status: "COMPLETED",
+        deliverable_status: "USABLE",
+        artifact_extraction_status: "EXTRACTED",
+        artifact_runnability: "UNSUPPORTED",
+        preview_status: "UNAVAILABLE",
+        runtime_health: "NOT_AVAILABLE",
+        product_outcome: "PARTIAL",
+        summary: "A usable artifact was produced, but live preview is unavailable.",
+        recovery_action: "Open Code to use the artifact."
+      }
+    );
+
+    expect(entries[0]).toMatchObject({ activity: null, phase: "complete" });
+    expect(entries[2]).toMatchObject({
+      activity: "A usable artifact was produced, but live preview is unavailable.",
+      phase: "partial"
+    });
+  });
+
   it("filters pending entries before persistence", () => {
     expect(
       toPersistedConversation([
