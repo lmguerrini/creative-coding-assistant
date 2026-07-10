@@ -420,6 +420,11 @@ export function buildWorkflowRuntimeModel(
     steps.find((step) => step.nodeId === latestNode)?.displayLabel ?? workflow.currentStep;
   const productOutcome = deriveProductOutcome({
     metadata: latestMetadata,
+    persistedProductOutcome:
+      isTerminalWorkflowStatus(latestStatus) &&
+      isTerminalProductOutcome(workflow.productOutcome)
+        ? workflow.productOutcome
+        : null,
     previewRuntimeError,
     workflowStatus: latestStatus
   });
@@ -501,14 +506,19 @@ function readPreviewRuntimeError(event: AssistantStreamEvent): WorkstationError 
 
 function deriveProductOutcome({
   metadata,
+  persistedProductOutcome,
   previewRuntimeError,
   workflowStatus
 }: {
   metadata: ReturnType<typeof readWorkflowMetadata>;
+  persistedProductOutcome: AssistantStreamProductOutcome | null;
   previewRuntimeError: WorkstationError | null;
   workflowStatus: string;
 }): AssistantStreamProductOutcome {
-  const outcome = metadata?.product_outcome ?? fallbackProductOutcome(workflowStatus);
+  const outcome =
+    metadata?.product_outcome ??
+    persistedProductOutcome ??
+    fallbackProductOutcome(workflowStatus);
   if (!previewRuntimeError) {
     return outcome;
   }
@@ -1051,7 +1061,19 @@ function parseTimestamp(value: string): number | null {
 }
 
 function normalizeWorkflowStatus(status: string) {
-  return status.toLowerCase();
+  const normalizedStatus = status.trim().toLowerCase();
+  return normalizedStatus === "complete" ? "completed" : normalizedStatus;
+}
+
+function isTerminalWorkflowStatus(status: string) {
+  return ["completed", "failed", "partial"].includes(normalizeWorkflowStatus(status));
+}
+
+function isTerminalProductOutcome(
+  productOutcome: AssistantStreamProductOutcome | null | undefined
+): productOutcome is AssistantStreamProductOutcome {
+  return productOutcome?.product_outcome !== undefined &&
+    productOutcome.product_outcome !== "IN_PROGRESS";
 }
 
 function buildWorkflowRuntimeError({

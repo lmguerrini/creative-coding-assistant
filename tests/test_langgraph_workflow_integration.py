@@ -190,6 +190,17 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             final_event.payload["workflow"]["clarification_reason"],
             "ambiguous_modality",
         )
+        clarification_outcome = final_event.payload["workflow"]["product_outcome"]
+        self.assertEqual(clarification_outcome["product_outcome"], "IN_PROGRESS")
+        self.assertEqual(
+            clarification_outcome["orchestration_status"],
+            "AWAITING_CLARIFICATION",
+        )
+        self.assertEqual(clarification_outcome["deliverable_status"], "PENDING")
+        self.assertEqual(
+            clarification_outcome["summary"],
+            "A clarification is required before generation can continue.",
+        )
         self.assertIn(
             "prompt_input",
             final_event.payload["workflow"]["completed_steps"],

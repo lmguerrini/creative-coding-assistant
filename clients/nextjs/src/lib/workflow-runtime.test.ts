@@ -60,6 +60,53 @@ describe("workflow runtime model", () => {
     expect(runtime.error?.suggestedAction).toContain("Open Code");
   });
 
+  it("keeps a restored successful outcome when local preview telemetry follows it", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const workflow = {
+      ...snapshot.workflow,
+      currentNode: "finalization" as const,
+      currentStep: "Finalization",
+      status: "Complete",
+      productOutcome: {
+        orchestration_status: "COMPLETED",
+        provider_status: "COMPLETED",
+        generation_status: "COMPLETED",
+        deliverable_status: "USABLE",
+        artifact_extraction_status: "EXTRACTED",
+        artifact_runnability: "RUNNABLE",
+        preview_status: "PREPARED",
+        runtime_health: "PENDING_BROWSER_VALIDATION",
+        product_outcome: "SUCCESS" as const,
+        summary: "The requested deliverable is ready.",
+        recovery_action: ""
+      }
+    };
+
+    const runtime = buildWorkflowRuntimeModel(workflow, [
+      {
+        event: {
+          event_type: "status",
+          sequence: 1,
+          payload: {
+            code: "preview_runtime_running",
+            message: "p5 runtime is running."
+          }
+        },
+        receivedAt: "2026-07-10T10:00:00Z",
+        receivedAtMs: Date.parse("2026-07-10T10:00:00Z")
+      }
+    ]);
+
+    expect(runtime.summary).toMatchObject({
+      status: "completed",
+      activity: { state: "completed", label: "Completed", terminal: true },
+      productOutcome: {
+        product_outcome: "SUCCESS",
+        runtime_health: "PENDING_BROWSER_VALIDATION"
+      }
+    });
+  });
+
   it("maps every user-facing live stage from the workflow node contract", () => {
     const stages = [
       ["planning", "Planning"],

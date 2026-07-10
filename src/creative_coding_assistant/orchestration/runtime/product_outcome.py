@@ -56,6 +56,21 @@ def derive_product_outcome(
         "generation" in failure_code or "provider" in failure_code
     )
 
+    if workflow_state.clarification is not None:
+        return {
+            "orchestration_status": "AWAITING_CLARIFICATION",
+            "provider_status": "NOT_STARTED",
+            "generation_status": "PENDING",
+            "deliverable_status": "PENDING",
+            "artifact_extraction_status": "PENDING",
+            "artifact_runnability": "PENDING",
+            "preview_status": "PENDING",
+            "runtime_health": "PENDING",
+            "product_outcome": "IN_PROGRESS",
+            "summary": "A clarification is required before generation can continue.",
+            "recovery_action": "Choose a clarification option to continue generation.",
+        }
+
     orchestration_status = {
         "running": "RUNNING",
         "completed": "COMPLETED",
