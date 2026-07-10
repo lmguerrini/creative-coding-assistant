@@ -3294,6 +3294,52 @@ describe("WorkstationShell", () => {
     expect(await screen.findByText("Runtime issue")).toBeVisible();
   });
 
+  it("retains failure classification after partial streamed output", async () => {
+    renderShell(getLocalWorkspaceSnapshot(), {
+      streamAssistantEvents: () =>
+        streamEvents([
+          {
+            event_type: "status",
+            sequence: 0,
+            payload: { code: "request_received", message: "Request accepted." }
+          },
+          {
+            event_type: "token_delta",
+            sequence: 1,
+            payload: { text: "Partial response that cannot complete." }
+          },
+          {
+            event_type: "error",
+            sequence: 2,
+            payload: {
+              code: "provider_unavailable",
+              message: "Provider unavailable."
+            }
+          }
+        ])
+    });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Generate a reactive sketch." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    const assistantMessage = (
+      await screen.findByText(/Partial response that cannot complete\./)
+    ).closest("article");
+    const errorCallout = screen
+      .getByText("Live stream interrupted")
+      .closest("article");
+
+    expect(assistantMessage).toHaveAttribute("data-stream-phase", "error");
+    expect(errorCallout).toHaveClass("chatErrorCallout");
+    expect(
+      within(errorCallout as HTMLElement).getByText(
+        "The model provider is unavailable for this live response."
+      )
+    ).toBeVisible();
+  });
+
   it("keeps preview available, on demand, and collapsible in the main column", () => {
     renderShell();
 

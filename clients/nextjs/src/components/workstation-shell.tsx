@@ -2262,6 +2262,7 @@ export function WorkstationShell({
     setActiveTab("Overview");
 
     let streamedAnswer = "";
+    let receivedTerminalStreamError = false;
     const requestAttachments = toAssistantRequestImageAttachments(imageAttachments);
 
     try {
@@ -2291,7 +2292,10 @@ export function WorkstationShell({
       for await (const streamEvent of streamAssistantEvents(streamRequest)) {
         applyStreamEventToWorkspace(streamEvent);
 
-        if (streamEvent.event_type === "token_delta") {
+        if (
+          streamEvent.event_type === "token_delta" &&
+          !receivedTerminalStreamError
+        ) {
           const delta = readPayloadText(streamEvent, "text");
           if (delta) {
             streamedAnswer += delta;
@@ -2307,7 +2311,7 @@ export function WorkstationShell({
           }
         }
 
-        if (streamEvent.event_type === "final") {
+        if (streamEvent.event_type === "final" && !receivedTerminalStreamError) {
           const answer = readPayloadText(streamEvent, "answer");
           streamedAnswer = answer ?? streamedAnswer;
           finalizeStreamingAssistantMessage({
@@ -2320,6 +2324,7 @@ export function WorkstationShell({
         }
 
         if (streamEvent.event_type === "error") {
+          receivedTerminalStreamError = true;
           const error =
             readStreamEventError(streamEvent) ??
             createWorkstationError({
@@ -2345,7 +2350,7 @@ export function WorkstationShell({
         }
       }
 
-      if (streamingAssistantIdRef.current && streamedAnswer) {
+      if (!receivedTerminalStreamError && streamingAssistantIdRef.current && streamedAnswer) {
         finalizeStreamingAssistantMessage({
           activity: artifactRefinement
             ? "Refinement completed."
@@ -2353,7 +2358,7 @@ export function WorkstationShell({
           content: buildAssistantConversationSummary(streamedAnswer),
           phase: "complete"
         });
-      } else if (streamingAssistantIdRef.current) {
+      } else if (!receivedTerminalStreamError && streamingAssistantIdRef.current) {
         const error = createWorkstationError({
           type: "stream_ended_before_completion",
           category: "stream",
