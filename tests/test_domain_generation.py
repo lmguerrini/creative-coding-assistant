@@ -211,8 +211,91 @@ class DomainGenerationTests(unittest.TestCase):
 
         self.assertEqual(len(artifacts), 1)
         self.assertFalse(artifacts[0].preview_eligible)
-        self.assertEqual(artifacts[0].status, "Preview unavailable")
-        self.assertIn("createGraphics()", artifacts[0].summary)
+        self.assertEqual(artifacts[0].status, "Runnable artifact extraction failed")
+        self.assertIn("Runnable artifact extraction failed", artifacts[0].summary)
+
+    def test_p5_fenced_javascript_labels_produce_previewable_javascript_artifacts(self) -> None:
+        request = AssistantRequest(
+            query="Create a p5.js flow-field particle system.",
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+        source = "\n".join(
+            [
+                "function setup() { createCanvas(640, 360); }",
+                "function draw() { background(12); circle(width / 2, height / 2, 32); }",
+            ]
+        )
+
+        for label in ("javascript", "js", "p5", "p5.js"):
+            with self.subTest(label=label):
+                artifacts = extract_workflow_artifacts(
+                    f"Intro prose.\n```{label}\n{source}\n```\nClosing prose.",
+                    request=request,
+                    route_decision=decision,
+                )
+                preview_results = prepare_workflow_preview_results(
+                    artifacts,
+                    request=request,
+                    route_decision=decision,
+                )
+
+                self.assertEqual(len(artifacts), 1)
+                self.assertTrue(artifacts[0].title.endswith(".p5.js"))
+                self.assertTrue(artifacts[0].preview_eligible)
+                self.assertEqual(artifacts[0].runtime, "p5")
+                self.assertNotIn("```", artifacts[0].content)
+                self.assertIn("function setup()", artifacts[0].content)
+                self.assertIn("function draw()", artifacts[0].content)
+                self.assertEqual(len(preview_results), 1)
+
+    def test_p5_extraction_prefers_lifecycle_source_and_marks_invalid_source_honestly(self) -> None:
+        request = AssistantRequest(
+            query="Create a p5.js flow-field particle system.",
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```javascript",
+                    "console.log('not a p5 sketch');",
+                    "```",
+                    "```javascript",
+                    "function setup() { createCanvas(640, 360); }",
+                    "function draw() { background(12); circle(80, 80, 24); }",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        self.assertTrue(artifacts[0].title.endswith(".p5.js"))
+        self.assertTrue(artifacts[0].preview_eligible)
+        self.assertNotIn("console.log", artifacts[0].content)
+
+        invalid = extract_workflow_artifacts(
+            "```javascript\nconsole.log('not a p5 sketch');\n```",
+            request=request,
+            route_decision=decision,
+        )
+        self.assertEqual(len(invalid), 1)
+        self.assertEqual(invalid[0].status, "Runnable artifact extraction failed")
+        self.assertFalse(invalid[0].preview_eligible)
+        self.assertIsNone(invalid[0].runtime)
+        self.assertIn("Runnable artifact extraction failed", invalid[0].summary)
+        self.assertEqual(
+            extract_workflow_artifacts(
+                "A prose-only response without executable source.",
+                request=request,
+                route_decision=decision,
+            ),
+            (),
+        )
 
     def test_p5_html_document_is_not_marked_preview_ready(self) -> None:
         request = AssistantRequest(

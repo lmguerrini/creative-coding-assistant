@@ -290,7 +290,7 @@ function readStructuredArtifactSources(
       continue;
     }
 
-    sources.push({
+    const source: GeneratedArtifactSource = {
       content,
       creativePlan: readCreativeExecutionPlanSummary(
         artifact.creative_plan ?? artifact.creativePlan
@@ -360,7 +360,37 @@ function readStructuredArtifactSources(
         readString(artifact.name) ??
         undefined,
       type: readArtifactType(artifact.type)
-    });
+    };
+
+    const nestedCodeBlocks = isMarkdownResponseSource(source)
+      ? parseMarkdownCodeBlocks(content)
+      : [];
+    if (nestedCodeBlocks.length > 0) {
+      sources.push(
+        ...nestedCodeBlocks.map((block) => ({
+          ...block,
+          creativePlan: source.creativePlan,
+          creativeTranslation: source.creativeTranslation,
+          critique: source.critique,
+          domain: source.domain,
+          isRecommended: source.isRecommended,
+          qualityRank: source.qualityRank,
+          qualityScore: source.qualityScore,
+          refinementPasses: source.refinementPasses,
+          refinementReason: source.refinementReason,
+          status: source.status
+        })),
+        {
+          ...source,
+          isDefault: false,
+          language: "markdown",
+          type: "export"
+        }
+      );
+      continue;
+    }
+
+    sources.push(source);
   }
 
   return sources;
@@ -414,7 +444,9 @@ function parseMarkdownCodeBlocks(answer: string): GeneratedArtifactSource[] {
 function parseFenceInfo(info: string) {
   const tokens = info.trim().split(/\s+/).filter(Boolean);
   const language = normalizeLanguageToken(tokens[0] ?? "");
-  const titleToken = tokens.find((token) => token.includes("."));
+  const titleToken = tokens.find(
+    (token, index) => index > 0 && token.includes(".")
+  );
   const namedTitle = tokens
     .map((token) => token.match(/^(?:file|filename|name)=(.+)$/i)?.[1])
     .find((value): value is string => Boolean(value));
@@ -434,11 +466,17 @@ function inferGeneratedArtifacts(
       totalSources: sources.length
     })
   );
-  const defaultIndex = inferredArtifacts.findIndex((artifact) => artifact.isDefault);
-  const fallbackDefaultIndex =
-    inferredArtifacts.findIndex((artifact) => artifact.previewKind) >= 0
-      ? inferredArtifacts.findIndex((artifact) => artifact.previewKind)
-      : 0;
+  const preferredPreviewIndex = inferredArtifacts.findIndex(
+    (artifact) => artifact.isDefault && Boolean(artifact.previewKind)
+  );
+  const previewIndex = inferredArtifacts.findIndex((artifact) => artifact.previewKind);
+  const defaultIndex =
+    preferredPreviewIndex >= 0
+      ? preferredPreviewIndex
+      : previewIndex >= 0
+        ? previewIndex
+        : inferredArtifacts.findIndex((artifact) => artifact.isDefault);
+  const fallbackDefaultIndex = previewIndex >= 0 ? previewIndex : 0;
   const defaultArtifactIndex =
     defaultIndex >= 0 ? defaultIndex : fallbackDefaultIndex;
 
@@ -678,6 +716,8 @@ function buildUnavailablePreviewSummary({
   trigger?: string;
 }): PreviewSummary {
   const artifactName = artifact?.title ?? "No runnable artifact";
+  const extractionFailed =
+    artifact?.status === "Runnable artifact extraction failed";
 
   return {
     ...basePreview,
@@ -691,13 +731,25 @@ function buildUnavailablePreviewSummary({
     sourceArtifactId: artifact?.id ?? "",
     sourceArtifactName: artifact?.title ?? "",
     state: "unavailable",
-    status: "Unavailable",
-    summary: `${artifactName} is available in the workspace, but it does not match the supported live p5.js, Three.js, GLSL, Hydra, Tone.js, GSAP, SVG, or Canvas preview runtimes yet.`,
+    status: extractionFailed ? "Completed without runnable artifact" : "Unavailable",
+    summary: extractionFailed
+      ? "A p5 source was found, but a runnable browser artifact could not be prepared. Open Code to review the generated source."
+      : `${artifactName} is available in the workspace, but it does not match the supported live p5.js, Three.js, GLSL, Hydra, Tone.js, GSAP, SVG, or Canvas preview runtimes yet.`,
     target: "",
     targetId: "",
     title: "Preview unavailable",
     trigger
   };
+}
+
+function isMarkdownResponseSource(source: GeneratedArtifactSource) {
+  const title = source.title?.toLowerCase() ?? "";
+  const language = normalizeLanguageToken(source.language ?? "");
+  return (
+    source.type === "export" ||
+    language === "markdown" ||
+    title.endsWith(".md")
+  );
 }
 
 function inferRuntimeKind(

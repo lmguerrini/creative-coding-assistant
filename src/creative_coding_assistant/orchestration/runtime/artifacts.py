@@ -290,6 +290,7 @@ def extract_workflow_artifacts(
     """Extract code artifacts from generated assistant output."""
 
     blocks = _parse_markdown_code_blocks(answer)
+    p5_requested = _is_p5_generation_request(request, route_decision)
     artifacts: list[WorkflowArtifact] = []
     for index, block in enumerate(blocks, start=1):
         artifact = _build_workflow_artifact(
@@ -299,10 +300,13 @@ def extract_workflow_artifacts(
             route_decision=route_decision,
             creative_translation=creative_translation,
             creative_plan=creative_plan,
+            p5_requested=p5_requested,
         )
         if artifact is not None:
             artifacts.append(artifact)
-    return _finalize_workflow_artifacts(tuple(artifacts))
+    return _finalize_workflow_artifacts(
+        _select_p5_generation_artifacts(tuple(artifacts), p5_requested=p5_requested)
+    )
 
 
 def prepare_workflow_preview_results(
@@ -388,7 +392,7 @@ def _parse_fence_info(info: str) -> dict[str, str | None]:
         ),
         None,
     )
-    title_token = next((token for token in tokens if "." in token), None)
+    title_token = next((token for token in tokens[1:] if "." in token), None)
     return {
         "language": language,
         "title": _sanitize_filename(named_title or title_token or "") or None,
@@ -403,11 +407,13 @@ def _build_workflow_artifact(
     route_decision: RouteDecision,
     creative_translation: CreativeTranslation | None,
     creative_plan: CreativeExecutionPlan | None,
+    p5_requested: bool,
 ) -> WorkflowArtifact | None:
     language = block.language or _infer_language(block.content, block.title)
     if not language:
         return None
-    runtime = _infer_runtime(block.content, language, block.title)
+    p5_candidate = p5_requested and _is_p5_javascript_block(block, language)
+    runtime = "p5" if p5_candidate else _infer_runtime(block.content, language, block.title)
     content = _prepare_p5_javascript_source(block.content) if runtime == "p5" else block.content
     preview_issue = _runtime_source_preview_issue(runtime, content)
     preview_safe = preview_issue is None
@@ -441,10 +447,16 @@ def _build_workflow_artifact(
     domain_label = _domain_label(artifact_domain)
     domain_value = _domain_value(artifact_domain)
     runtime_label = _RUNTIME_LABELS.get(runtime or "")
-    summary_parts = ["Extracted from the generation result"]
+    if p5_candidate and preview_issue:
+        summary_parts = [
+            "Runnable artifact extraction failed",
+            "the generated p5 source is not compatible with the browser preview",
+        ]
+    else:
+        summary_parts = ["Extracted from the generation result"]
     if runtime_label and preview_ready:
         summary_parts.append(f"matched {runtime_label} creative runtime")
-    elif preview_issue:
+    elif preview_issue and not p5_candidate:
         summary_parts.append(f"preview unavailable: {preview_issue}")
     elif domain_label and not is_previewable_generation_domain(artifact_domain):
         summary_parts.append("kept as code-only for the selected domain")
@@ -459,7 +471,13 @@ def _build_workflow_artifact(
         source_language=effective_language,
         content=content,
         summary="; ".join(summary_parts) + ".",
-        status="Preview unavailable" if preview_issue else "Generated",
+        status=(
+            "Runnable artifact extraction failed"
+            if p5_candidate and preview_issue
+            else "Preview unavailable"
+            if preview_issue
+            else "Generated"
+        ),
         source_order=index,
         domain=domain_value,
         is_creative=preview_ready,
@@ -471,6 +489,48 @@ def _build_workflow_artifact(
         creative_translation=creative_translation,
         creative_plan=creative_plan,
     )
+
+
+def _is_p5_generation_request(
+    request: AssistantRequest,
+    route_decision: RouteDecision,
+) -> bool:
+    del route_decision
+    return CreativeCodingDomain.P5_JS in {
+        *request.domains,
+        *detect_explicit_query_domains(request.query),
+    }
+
+
+def _is_p5_javascript_block(block: _CodeBlock, language: str) -> bool:
+    title = (block.title or "").lower()
+    return language in {"javascript", "p5", "p5.js"} or title.endswith(
+        (".js", ".p5.js", ".p5.ts")
+    )
+
+
+def _select_p5_generation_artifacts(
+    artifacts: tuple[WorkflowArtifact, ...],
+    *,
+    p5_requested: bool,
+) -> tuple[WorkflowArtifact, ...]:
+    if not p5_requested:
+        return artifacts
+
+    runnable_p5 = tuple(
+        artifact
+        for artifact in artifacts
+        if artifact.runtime == "p5" and artifact.preview_eligible
+    )
+    if runnable_p5:
+        return runnable_p5
+
+    failed_p5 = tuple(
+        artifact
+        for artifact in artifacts
+        if artifact.status == "Runnable artifact extraction failed"
+    )
+    return failed_p5[:1] or artifacts
 
 
 def _finalize_workflow_artifacts(

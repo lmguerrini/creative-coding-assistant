@@ -255,6 +255,119 @@ describe("live artifact hydration", () => {
     });
   });
 
+  it("promotes fenced p5 source from a structured Markdown response before selecting an artifact", () => {
+    const source = [
+      "function setup() { createCanvas(640, 360); }",
+      "function draw() { background(12); circle(width / 2, height / 2, 32); }"
+    ].join("\n");
+    const snapshot = getLocalWorkspaceSnapshot();
+    const result = hydrateWorkspaceFromFinalEvent(
+      snapshot,
+      finalEvent({
+        answer: "A runnable sketch was generated.",
+        artifacts: [
+          {
+            id: "assistant-response",
+            title: "assistant-response.md",
+            type: "export",
+            language: "markdown",
+            is_default: true,
+            content: [
+              "Use the following source:",
+              "```javascript",
+              source,
+              "```",
+              "Adjust the density after previewing."
+            ].join("\n")
+          }
+        ]
+      })
+    );
+
+    expect(result.artifact).toMatchObject({
+      title: "generated-sketch-1.p5.js",
+      runtime: "p5",
+      previewEligible: true
+    });
+    expect(result.artifact?.content).toBe(source);
+    expect(result.artifact?.content).not.toContain("```");
+    expect(result.snapshot.artifacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ title: "generated-sketch-1.p5.js" }),
+        expect.objectContaining({ title: "assistant-response.md", type: "export" })
+      ])
+    );
+    expect(result.previewArtifactId).toBe(result.artifact?.id);
+    expect(result.snapshot.code.title).toBe("generated-sketch-1.p5.js");
+  });
+
+  it("accepts every supported fenced p5 JavaScript label", () => {
+    const source = [
+      "function setup() { createCanvas(640, 360); }",
+      "function draw() { background(12); circle(80, 80, 24); }"
+    ].join("\n");
+
+    for (const label of ["javascript", "js", "p5", "p5.js"]) {
+      const result = hydrateWorkspaceFromFinalEvent(
+        getLocalWorkspaceSnapshot(),
+        finalEvent({ answer: `Intro\n\`\`\`${label}\n${source}\n\`\`\`\nOutro` })
+      );
+
+      expect(result.artifact?.title).toMatch(/\.p5\.js$/);
+      expect(result.previewAvailable).toBe(true);
+      expect(result.artifact?.content).not.toContain("```");
+    }
+  });
+
+  it("selects a lifecycle-ready p5 block over unrelated JavaScript", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        answer: [
+          "```js",
+          "console.log('helper only');",
+          "```",
+          "```javascript",
+          "function setup() { createCanvas(640, 360); }",
+          "function draw() { background(12); circle(80, 80, 24); }",
+          "```"
+        ].join("\n")
+      })
+    );
+
+    expect(result.artifact?.title).toMatch(/\.p5\.js$/);
+    expect(result.artifact?.content).not.toContain("helper only");
+    expect(result.previewAvailable).toBe(true);
+  });
+
+  it("keeps a failed p5 extraction explicit and unavailable", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        answer: "The generated source could not be previewed.",
+        artifacts: [
+          {
+            id: "failed-p5",
+            title: "generated-sketch-1.p5.js",
+            language: "javascript",
+            status: "Runnable artifact extraction failed",
+            content: "console.log('not a p5 lifecycle sketch');"
+          }
+        ]
+      })
+    );
+
+    expect(result.artifact).toMatchObject({
+      status: "Runnable artifact extraction failed",
+      title: "generated-sketch-1.p5.js"
+    });
+    expect(result.previewAvailable).toBe(false);
+    expect(result.snapshot.preview).toMatchObject({
+      status: "Completed without runnable artifact",
+      title: "Preview unavailable"
+    });
+  });
+
   it("does not route HTML p5-looking output to the live p5 renderer", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const result = hydrateWorkspaceFromFinalEvent(
