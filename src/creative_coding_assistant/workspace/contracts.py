@@ -70,6 +70,26 @@ class WorkspaceSessionWorkflowStep(BaseModel):
     detail: str
 
 
+class WorkspaceSessionProductOutcome(BaseModel):
+    """Canonical terminal product outcome retained across workspace reloads."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    orchestration_status: str = Field(min_length=1)
+    provider_status: str = Field(min_length=1)
+    generation_status: str = Field(min_length=1)
+    deliverable_status: str = Field(min_length=1)
+    artifact_extraction_status: str = Field(min_length=1)
+    artifact_runnability: str = Field(min_length=1)
+    preview_status: str = Field(min_length=1)
+    runtime_health: str = Field(min_length=1)
+    product_outcome: Literal[
+        "IN_PROGRESS", "SUCCESS", "PARTIAL", "FAILURE"
+    ] = Field(alias="product_outcome")
+    summary: str = Field(min_length=1)
+    recovery_action: str
+
+
 class WorkspaceSessionWorkflow(BaseModel):
     """Workflow snapshot stored for quiet restore after refresh."""
 
@@ -83,6 +103,10 @@ class WorkspaceSessionWorkflow(BaseModel):
     current_node: str = Field(default="intake", alias="currentNode", min_length=1)
     current_step: str = Field(default="Intake", alias="currentStep", min_length=1)
     steps: tuple[WorkspaceSessionWorkflowStep, ...] = Field(default_factory=tuple)
+    product_outcome: WorkspaceSessionProductOutcome | None = Field(
+        default=None,
+        alias="productOutcome",
+    )
 
 
 class WorkspaceSessionArtifact(BaseModel):

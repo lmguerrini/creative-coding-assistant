@@ -45,6 +45,16 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
         self.assertEqual(record.preferences.theme, "blueprint")
         self.assertEqual(record.layout.preview_height, 520)
 
+    def test_record_preserves_terminal_product_outcome(self) -> None:
+        record = WorkspaceSessionRecord.model_validate(
+            _session_payload(product_outcome=True)
+        )
+
+        assert record.workflow is not None
+        assert record.workflow.product_outcome is not None
+        self.assertEqual(record.workflow.product_outcome.product_outcome, "PARTIAL")
+        self.assertEqual(record.workflow.product_outcome.preview_status, "UNAVAILABLE")
+
     def test_sqlite_repository_round_trips_session_records(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             repository = SQLiteWorkspaceSessionRepository(
@@ -77,6 +87,7 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
                     active_inspector_tab="Preview",
                     theme="blueprint",
                     preview_height=520,
+                    product_outcome=True,
                 )
             ).encode("utf-8")
 
@@ -114,6 +125,10 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
         self.assertEqual(restored["layout"]["previewHeight"], 520)
         self.assertEqual(restored["preferences"]["theme"], "blueprint")
         self.assertEqual(restored["messages"][0]["content"], "Keep this chat.")
+        self.assertEqual(
+            restored["workflow"]["productOutcome"]["product_outcome"],
+            "PARTIAL",
+        )
 
     def test_wsgi_endpoint_updates_existing_session_with_put(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -224,6 +239,7 @@ def _session_payload(
     active_inspector_tab: str = "Code",
     theme: str = "codex",
     preview_height: int = 240,
+    product_outcome: bool = False,
 ) -> dict[str, object]:
     return {
         "schemaVersion": schema_version,
@@ -274,6 +290,25 @@ def _session_payload(
                     "detail": "Request received.",
                 }
             ],
+            **(
+                {
+                    "productOutcome": {
+                        "orchestration_status": "COMPLETED",
+                        "provider_status": "COMPLETED",
+                        "generation_status": "COMPLETED",
+                        "deliverable_status": "USABLE",
+                        "artifact_extraction_status": "EXTRACTED",
+                        "artifact_runnability": "UNSUPPORTED",
+                        "preview_status": "UNAVAILABLE",
+                        "runtime_health": "NOT_AVAILABLE",
+                        "product_outcome": "PARTIAL",
+                        "summary": "A usable artifact was produced, but live preview is unavailable.",
+                        "recovery_action": "Open Code to use the artifact.",
+                    }
+                }
+                if product_outcome
+                else {}
+            ),
         },
         "artifacts": [
             {
