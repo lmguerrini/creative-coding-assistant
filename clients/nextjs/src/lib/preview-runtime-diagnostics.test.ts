@@ -38,6 +38,62 @@ describe("preview runtime diagnostics", () => {
     expect(snapshot.health).toBe("nominal");
   });
 
+  it("classifies runtime-health thresholds and terminal errors deterministically", () => {
+    const snapshotAtInterval = (intervalMs: number) => {
+      const tracker = createPreviewRuntimeMetricsTracker(
+        {
+          detail: "Rendering a controlled scene.",
+          label: "Three.js runtime running",
+          state: "running",
+          error: null
+        },
+        { publishIntervalMs: 0 }
+      );
+
+      tracker.recordFrame({ renderedAtMs: 0 });
+      tracker.recordFrame({ renderedAtMs: intervalMs });
+      return tracker.snapshot();
+    };
+
+    expect(snapshotAtInterval(21.9).health).toBe("nominal");
+    expect(snapshotAtInterval(22).health).toBe("stressed");
+    expect(snapshotAtInterval(34).health).toBe("degraded");
+
+    const tracker = createPreviewRuntimeMetricsTracker(
+      {
+        detail: "Rendering a controlled scene.",
+        label: "Three.js runtime running",
+        state: "running",
+        error: null
+      },
+      { publishIntervalMs: 0 }
+    );
+    tracker.recordFrame({ renderedAtMs: 0 });
+    tracker.recordFrame({ renderedAtMs: 16 });
+    tracker.publishStatus({
+      detail: "WebGL became unavailable.",
+      label: "Three.js runtime failed",
+      state: "error",
+      error: {
+        category: "renderer",
+        debugMessage: "WebGL became unavailable.",
+        id: "renderer:three",
+        recoverable: true,
+        resetLabel: "Reset preview session",
+        retryLabel: "Reload preview state",
+        subsystem: "three_renderer",
+        suggestedAction: "Reload the preview state.",
+        type: "webgl_unavailable",
+        userMessage: "The Three.js preview runtime is unavailable."
+      }
+    });
+
+    expect(tracker.snapshot()).toMatchObject({
+      health: "failed",
+      runtimeState: "error"
+    });
+  });
+
   it("builds an operator-friendly overlay model when metrics are unavailable or failed", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const route = buildPreviewRendererRoute({
