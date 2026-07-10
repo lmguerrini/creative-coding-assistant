@@ -89,6 +89,13 @@ describe("telemetry dashboard model", () => {
       evalEventCount: 1
     });
     expect(model.provider.tokenUsage.totalTokens).toBe(150);
+    expect(model.runtime.activity).toMatchObject({
+      state: "completed",
+      label: "Completed"
+    });
+    expect(model.signals.find((signal) => signal.id === "workflow")).toMatchObject({
+      value: "Completed"
+    });
     expect(model.observability).toMatchObject({
       state: "linked",
       traceId: "trace-langsmith-123456",

@@ -663,6 +663,20 @@ a {
   color: var(--teal);
 }
 
+.sessionStatus[data-state="streaming"] span::before,
+.sessionStatus[data-state="executing"] span::before {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.14);
+  content: "";
+  animation: pulseNode 1.25s ease-in-out infinite;
+  vertical-align: 1px;
+}
+
 .sessionStatus[data-state="fallback"] span {
   background: rgba(243, 184, 82, 0.14);
   color: var(--amber);
@@ -2060,7 +2074,13 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 
 .messageMetaDetail small[data-phase="streaming"],
 .messageMetaDetail small[data-phase="thinking"],
-.messageMetaDetail small[data-phase="connecting"] {
+.messageMetaDetail small[data-phase="connecting"],
+.messageMetaDetail small[data-phase="planning"],
+.messageMetaDetail small[data-phase="retrieving"],
+.messageMetaDetail small[data-phase="generating"],
+.messageMetaDetail small[data-phase="reviewing"],
+.messageMetaDetail small[data-phase="refining"],
+.messageMetaDetail small[data-phase="finalizing"] {
   background: rgba(var(--accent-rgb), 0.14);
   color: var(--teal);
 }
@@ -2080,7 +2100,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   width: fit-content;
   align-items: center;
   gap: 8px;
-  color: var(--muted);
+  color: var(--muted-strong);
 }
 
 .messageActivity span {
@@ -2098,6 +2118,24 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .message[data-stream-phase="error"] .messageActivity span {
+  background: var(--coral);
+  box-shadow: 0 0 0 5px rgba(255, 122, 102, 0.12);
+  animation: none;
+}
+
+.messageActivity[data-activity="completed"] span {
+  background: var(--green);
+  box-shadow: 0 0 0 5px rgba(121, 211, 139, 0.14);
+  animation: none;
+}
+
+.messageActivity[data-activity="partial"] span {
+  background: var(--amber);
+  box-shadow: 0 0 0 5px rgba(243, 184, 82, 0.12);
+  animation: none;
+}
+
+.messageActivity[data-activity="failed"] span {
   background: var(--coral);
   box-shadow: 0 0 0 5px rgba(255, 122, 102, 0.12);
   animation: none;

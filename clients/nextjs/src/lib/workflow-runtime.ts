@@ -70,9 +70,33 @@ export type WorkflowRuntimeEvent = {
   at: string;
 };
 
+export type WorkflowRuntimeActivityState =
+  | "planning"
+  | "retrieving"
+  | "generating"
+  | "reviewing"
+  | "refining"
+  | "finalizing"
+  | "completed"
+  | "partial"
+  | "failed";
+
+/**
+ * The single user-facing execution state. Every live surface must derive its
+ * wording from this object instead of inferring a separate chat or telemetry
+ * label from transport event types.
+ */
+export type WorkflowRuntimeActivity = {
+  state: WorkflowRuntimeActivityState;
+  label: string;
+  detail: string;
+  terminal: boolean;
+};
+
 export type WorkflowRuntimeSummary = {
   status: string;
   productOutcome: AssistantStreamProductOutcome;
+  activity: WorkflowRuntimeActivity;
   currentNode: WorkflowNodeId;
   currentStep: string;
   reached: number;
@@ -83,6 +107,56 @@ export type WorkflowRuntimeSummary = {
   totalRuntimeMs: number | null;
   activeRuntimeMs: number | null;
 };
+
+export function deriveWorkflowRuntimeActivity({
+  currentNode,
+  productOutcome,
+  workflowStatus
+}: {
+  currentNode: WorkflowNodeId | null;
+  productOutcome: AssistantStreamProductOutcome | null | undefined;
+  workflowStatus: string;
+}): WorkflowRuntimeActivity {
+  switch (productOutcome?.product_outcome) {
+    case "SUCCESS":
+      return buildWorkflowRuntimeActivity(
+        "completed",
+        productOutcome.summary || "The requested output is ready."
+      );
+    case "PARTIAL":
+      return buildWorkflowRuntimeActivity(
+        "partial",
+        productOutcome.summary || "A usable result is available with a limitation."
+      );
+    case "FAILURE":
+      return buildWorkflowRuntimeActivity(
+        "failed",
+        productOutcome.summary || "The requested output could not be completed."
+      );
+    default:
+      break;
+  }
+
+  if (normalizeWorkflowStatus(workflowStatus) === "failed" || currentNode === "failure") {
+    return buildWorkflowRuntimeActivity(
+      "failed",
+      "The workflow stopped before the requested output was ready."
+    );
+  }
+
+  if (
+    normalizeWorkflowStatus(workflowStatus) === "completed" &&
+    productOutcome?.product_outcome !== "IN_PROGRESS"
+  ) {
+    return buildWorkflowRuntimeActivity(
+      "completed",
+      "The requested output is ready."
+    );
+  }
+
+  const state = workflowActivityStateForNode(currentNode);
+  return buildWorkflowRuntimeActivity(state);
+}
 
 export type WorkflowRuntimeModel = {
   steps: WorkflowRuntimeStep[];
@@ -149,8 +223,21 @@ export function buildWorkflowRuntimeModel(
     if (workflowMetadata) {
       latestStatus = normalizeWorkflowStatus(workflowMetadata.status);
       latestNode = workflowMetadata.step ?? workflowMetadata.current_step ?? latestNode;
-    } else if (nodeId) {
-      latestNode = nodeId;
+    } else {
+      if (nodeId) {
+        latestNode = nodeId;
+      } else if (traceEvent.event.event_type === "status" && events.length === 0) {
+        // A minimal transport status is still the beginning of a real run. Do
+        // not inherit an old workspace's generation node and tell chat/header
+        // different stories before the first structured workflow event arrives.
+        latestNode = "planning";
+      }
+
+      if (traceEvent.event.event_type === "final") {
+        latestStatus = "completed";
+      } else if (traceEvent.event.event_type === "error") {
+        latestStatus = "failed";
+      }
     }
 
     lastObservedAt = at;
@@ -341,6 +428,11 @@ export function buildWorkflowRuntimeModel(
     productOutcome.product_outcome === "IN_PROGRESS"
       ? currentStep
       : productOutcome.summary;
+  const activity = deriveWorkflowRuntimeActivity({
+    currentNode: latestNode,
+    productOutcome,
+    workflowStatus: latestStatus
+  });
   const totalRuntimeMs = Math.max(lastObservedAtMs - traceEvents[0].receivedAtMs, 0);
   const activeRuntimeMs =
     latestStatus === "running" && currentRecord?.openAttemptStartedAtMs != null
@@ -355,6 +447,7 @@ export function buildWorkflowRuntimeModel(
     summary: {
       status: productOutcomeStatus,
       productOutcome,
+      activity,
       currentNode: latestNode,
       currentStep: productOutcomeStep,
       reached,
@@ -464,6 +557,103 @@ function fallbackProductOutcome(workflowStatus: string): AssistantStreamProductO
   };
 }
 
+function workflowActivityStateForNode(
+  currentNode: WorkflowNodeId | null
+): Exclude<WorkflowRuntimeActivityState, "completed" | "partial" | "failed"> {
+  switch (currentNode) {
+    case "memory":
+    case "retrieval":
+    case "context_assembly":
+      return "retrieving";
+    case "generation":
+      return "generating";
+    case "artifact_extraction":
+    case "preview_preparation":
+    case "artifact_critique":
+    case "review":
+      return "reviewing";
+    case "refinement":
+      return "refining";
+    case "finalization":
+      return "finalizing";
+    default:
+      return "planning";
+  }
+}
+
+function buildWorkflowRuntimeActivity(
+  state: WorkflowRuntimeActivityState,
+  terminalDetail?: string
+): WorkflowRuntimeActivity {
+  switch (state) {
+    case "planning":
+      return {
+        state,
+        label: "Planning",
+        detail: "Planning the requested work.",
+        terminal: false
+      };
+    case "retrieving":
+      return {
+        state,
+        label: "Retrieving",
+        detail: "Retrieving relevant context.",
+        terminal: false
+      };
+    case "generating":
+      return {
+        state,
+        label: "Generating",
+        detail: "Generating the requested artifact.",
+        terminal: false
+      };
+    case "reviewing":
+      return {
+        state,
+        label: "Reviewing",
+        detail: "Reviewing the generated output.",
+        terminal: false
+      };
+    case "refining":
+      return {
+        state,
+        label: "Refining",
+        detail: "Refining the generated output.",
+        terminal: false
+      };
+    case "finalizing":
+      return {
+        state,
+        label: "Finalizing",
+        detail: "Finalizing the product result.",
+        terminal: false
+      };
+    case "completed":
+      return {
+        state,
+        label: "Completed",
+        detail: terminalDetail ?? "The requested output is ready.",
+        terminal: true
+      };
+    case "partial":
+      return {
+        state,
+        label: "Partial",
+        detail:
+          terminalDetail ?? "A usable result is available with a limitation.",
+        terminal: true
+      };
+    case "failed":
+      return {
+        state,
+        label: "Failed",
+        detail:
+          terminalDetail ?? "The requested output could not be completed.",
+        terminal: true
+      };
+  }
+}
+
 function workflowStatusForProductOutcome(
   productOutcome: AssistantStreamProductOutcome
 ) {
@@ -518,6 +708,12 @@ function buildFallbackWorkflowRuntimeModel(
     ["complete", "active", "skipped"].includes(step.state)
   ).length;
   const total = steps.filter((step) => step.state !== "branch").length;
+  const productOutcome = fallbackProductOutcome(workflow.status);
+  const activity = deriveWorkflowRuntimeActivity({
+    currentNode: workflow.currentNode,
+    productOutcome,
+    workflowStatus: workflow.status
+  });
 
   return {
     steps,
@@ -526,7 +722,8 @@ function buildFallbackWorkflowRuntimeModel(
     timeline: buildWorkflowTimelineModel([]),
     summary: {
       status: normalizeWorkflowStatus(workflow.status),
-      productOutcome: fallbackProductOutcome(workflow.status),
+      productOutcome,
+      activity,
       currentNode: workflow.currentNode,
       currentStep: workflow.currentStep,
       reached,

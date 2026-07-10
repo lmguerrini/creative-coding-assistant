@@ -66,18 +66,18 @@ describe("streaming conversation helpers", () => {
   });
 
   it("returns polished phase badges, placeholders, and composer labels", () => {
-    expect(getConversationPhaseBadge("streaming")).toBe("Live");
-    expect(getConversationPhasePlaceholder("thinking")).toBe(
-      "Thinking through the request..."
+    expect(getConversationPhaseBadge("streaming")).toBe("Generating");
+    expect(getConversationPhasePlaceholder("planning")).toBe(
+      "Planning the requested work..."
     );
     expect(
       getComposerStatusLabel({
         isReady: false,
         isStreaming: true,
-        phase: "streaming",
+        phase: "reviewing",
         streamError: null
       })
-    ).toBe("Generating response");
+    ).toBe("Reviewing");
     expect(
       getComposerStatusLabel({
         isReady: false,

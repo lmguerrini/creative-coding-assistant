@@ -73,6 +73,7 @@ export type TelemetryStreamLifecycle = {
 export type TelemetryRuntimeLifecycle = {
   workflowStatus: string;
   productOutcome: WorkflowRuntimeModel["summary"]["productOutcome"];
+  activity: WorkflowRuntimeModel["summary"]["activity"];
   currentStep: string;
   reachedNodes: number;
   totalNodes: number;
@@ -351,6 +352,7 @@ function buildRuntimeLifecycle(
   return {
     workflowStatus: workflowRuntime.summary.status,
     productOutcome: workflowRuntime.summary.productOutcome,
+    activity: workflowRuntime.summary.activity,
     currentStep: workflowRuntime.summary.currentStep,
     reachedNodes: workflowRuntime.summary.reached,
     totalNodes: workflowRuntime.summary.total,
@@ -550,8 +552,8 @@ function buildSignals({
     {
       id: "workflow",
       label: "Workflow",
-      value: runtime.currentStep,
-      detail: `${runtime.reachedNodes}/${runtime.totalNodes} nodes reached; ${runtime.transitionCount} transitions`,
+      value: runtime.activity.label,
+      detail: `${runtime.activity.detail} ${runtime.reachedNodes}/${runtime.totalNodes} nodes reached; ${runtime.transitionCount} transitions`,
       tone:
         runtime.workflowStatus === "failed"
           ? "danger"

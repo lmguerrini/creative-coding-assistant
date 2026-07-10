@@ -1993,7 +1993,7 @@ describe("WorkstationShell", () => {
     expect(submittedRequest).not.toHaveProperty("domain");
     expect(submittedRequest).not.toHaveProperty("domains");
     expect(screen.getByLabelText("Current session")).toHaveTextContent(
-      "Finalization"
+      "Completed"
     );
     expect(screen.getByRole("tab", { name: "Preview" })).toHaveAttribute(
       "aria-selected",
@@ -2836,26 +2836,47 @@ describe("WorkstationShell", () => {
     expect(within(retrievalPanel).getByText("Retry retrieval")).toBeVisible();
   });
 
-  it("shows connecting and live generation states during a streamed response", async () => {
+  it("synchronizes the active generation state without ambiguous live labels", async () => {
     const beforeTokens = createDeferred<void>();
     const beforeFinal = createDeferred<void>();
     const backendStream = vi.fn(async function* () {
       yield {
         event_type: "status",
         sequence: 0,
-        payload: { code: "request_received", message: "Request accepted." }
+        payload: {
+          code: "request_received",
+          workflow: {
+            current_step: "planning",
+            phase: "running",
+            status: "running"
+          }
+        }
       } satisfies AssistantStreamEvent;
       await beforeTokens.promise;
       yield {
         event_type: "token_delta",
         sequence: 1,
-        payload: { text: "Live draft" }
+        payload: {
+          text: "Live draft",
+          workflow: {
+            current_step: "generation",
+            phase: "running",
+            status: "running"
+          }
+        }
       } satisfies AssistantStreamEvent;
       await beforeFinal.promise;
       yield {
         event_type: "final",
         sequence: 2,
-        payload: { answer: "Live draft completed." }
+        payload: {
+          answer: "Live draft completed.",
+          workflow: {
+            current_step: "finalization",
+            phase: "completed",
+            status: "completed"
+          }
+        }
       } satisfies AssistantStreamEvent;
     });
 
@@ -2868,10 +2889,9 @@ describe("WorkstationShell", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
 
-    expect(await screen.findByText("Opening the live response...")).toBeVisible();
-    expect(screen.getByText("Request accepted.")).toBeVisible();
-    expect(screen.getByLabelText("Current session")).toHaveTextContent("Working");
-    expect(screen.queryByText("Opening live response")).not.toBeInTheDocument();
+    expect(await screen.findByText("Planning the requested work...")).toBeVisible();
+    expect(screen.getByLabelText("Current session")).toHaveTextContent("Planning");
+    expect(screen.queryByText("Thinking")).not.toBeInTheDocument();
     expect(screen.getByRole("log", { name: "Conversation" })).toHaveAttribute(
       "aria-busy",
       "true"
@@ -2885,11 +2905,12 @@ describe("WorkstationShell", () => {
 
     expect(
       screen.getByText(
-        "Generating response. Code and long-form output will appear in the Code panel, artifacts, and preview surfaces when the run completes."
+        "Generating the requested artifact. Code and long-form output will appear in the Code panel, artifacts, and preview surfaces when the run completes."
       )
     ).toBeVisible();
-    expect(screen.getAllByText("Generating response").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Live").length).toBeGreaterThan(0);
+    expect(screen.getByLabelText("Current session")).toHaveTextContent("Generating");
+    expect(screen.getAllByText("Generating").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Live")).not.toBeInTheDocument();
 
     beforeFinal.resolve();
 
@@ -3375,7 +3396,7 @@ describe("WorkstationShell", () => {
       .getByText("Live stream interrupted")
       .closest("article");
 
-    expect(assistantMessage).toHaveAttribute("data-stream-phase", "error");
+    expect(assistantMessage).toHaveAttribute("data-stream-phase", "failed");
     expect(errorCallout).toHaveClass("chatErrorCallout");
     expect(
       within(errorCallout as HTMLElement).getByText(

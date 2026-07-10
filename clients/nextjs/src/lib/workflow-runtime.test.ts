@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getLocalWorkspaceSnapshot } from "./assistant-client";
 import {
   buildWorkflowRuntimeModel,
+  deriveWorkflowRuntimeActivity,
   type WorkflowRuntimeTraceEvent
 } from "./workflow-runtime";
 
@@ -12,11 +13,62 @@ describe("workflow runtime model", () => {
 
     expect(runtime.summary.status).toBe("running");
     expect(runtime.summary.currentNode).toBe("generation");
+    expect(runtime.summary.activity).toMatchObject({
+      state: "generating",
+      label: "Generating"
+    });
     expect(runtime.summary.traceEventCount).toBe(0);
     expect(runtime.steps.find((step) => step.nodeId === "generation")).toMatchObject({
       state: "active",
       attemptCount: 1
     });
+  });
+
+  it("maps every user-facing live stage from the workflow node contract", () => {
+    const stages = [
+      ["planning", "Planning"],
+      ["retrieval", "Retrieving"],
+      ["generation", "Generating"],
+      ["review", "Reviewing"],
+      ["refinement", "Refining"],
+      ["finalization", "Finalizing"]
+    ] as const;
+
+    expect(
+      stages.map(([currentNode]) =>
+        deriveWorkflowRuntimeActivity({
+          currentNode,
+          productOutcome: null,
+          workflowStatus: "running"
+        }).label
+      )
+    ).toEqual(stages.map(([, label]) => label));
+    expect(
+      deriveWorkflowRuntimeActivity({
+        currentNode: "failure",
+        productOutcome: null,
+        workflowStatus: "failed"
+      })
+    ).toMatchObject({ state: "failed", label: "Failed", terminal: true });
+    expect(
+      deriveWorkflowRuntimeActivity({
+        currentNode: "finalization",
+        productOutcome: {
+          orchestration_status: "COMPLETED",
+          provider_status: "COMPLETED",
+          generation_status: "COMPLETED",
+          deliverable_status: "USABLE",
+          artifact_extraction_status: "EXTRACTED",
+          artifact_runnability: "RUNNABLE",
+          preview_status: "READY",
+          runtime_health: "PENDING_BROWSER_VALIDATION",
+          product_outcome: "IN_PROGRESS",
+          summary: "Product validation is still in progress.",
+          recovery_action: ""
+        },
+        workflowStatus: "completed"
+      })
+    ).toMatchObject({ state: "finalizing", label: "Finalizing", terminal: false });
   });
 
   it("downgrades product success when the preview runtime fails", () => {
@@ -45,6 +97,7 @@ describe("workflow runtime model", () => {
     expect(runtime.summary).toMatchObject({
       currentStep: "A usable artifact was produced, but the live preview failed.",
       status: "partial",
+      activity: { state: "partial", label: "Partial", terminal: true },
       productOutcome: {
         preview_status: "FAILED",
         runtime_health: "FAILED",
@@ -90,6 +143,7 @@ describe("workflow runtime model", () => {
     expect(runtime.summary).toMatchObject({
       currentStep: "A usable artifact was produced, but live preview is unavailable.",
       status: "partial",
+      activity: { state: "partial", label: "Partial", terminal: true },
       productOutcome: {
         deliverable_status: "USABLE",
         artifact_runnability: "UNSUPPORTED",

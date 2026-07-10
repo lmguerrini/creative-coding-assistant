@@ -6,6 +6,15 @@ export type ConversationEntryPhase =
   | "connecting"
   | "thinking"
   | "streaming"
+  | "planning"
+  | "retrieving"
+  | "generating"
+  | "reviewing"
+  | "refining"
+  | "finalizing"
+  | "completed"
+  | "partial"
+  | "failed"
   | "error"
   | "fallback";
 
@@ -40,28 +49,53 @@ export function toPersistedConversation(
 export function getConversationPhaseBadge(phase: ConversationEntryPhase) {
   switch (phase) {
     case "connecting":
-      return "Connecting";
     case "thinking":
-      return "Thinking";
+    case "planning":
+      return "Planning";
+    case "retrieving":
+      return "Retrieving";
+    case "generating":
     case "streaming":
-      return "Live";
-    case "error":
-      return "Error";
+      return "Generating";
+    case "reviewing":
+      return "Reviewing";
+    case "refining":
+      return "Refining";
+    case "finalizing":
+      return "Finalizing";
+    case "partial":
     case "fallback":
-      return "Fallback";
+      return "Partial";
+    case "failed":
+    case "error":
+      return "Failed";
+    case "completed":
     default:
-      return "Complete";
+      return "Completed";
   }
 }
 
 export function getConversationPhasePlaceholder(phase: ConversationEntryPhase) {
   switch (phase) {
     case "connecting":
-      return "Opening the live response...";
     case "thinking":
-      return "Thinking through the request...";
+    case "planning":
+      return "Planning the requested work...";
+    case "retrieving":
+      return "Retrieving relevant context...";
+    case "generating":
     case "streaming":
-      return "Generating the first response tokens...";
+      return "Generating the requested artifact...";
+    case "reviewing":
+      return "Reviewing the generated output...";
+    case "refining":
+      return "Refining the generated output...";
+    case "finalizing":
+      return "Finalizing the product result...";
+    case "partial":
+      return "A partial result is available.";
+    case "failed":
+      return "The requested output could not be completed.";
     case "error":
       return "The live response stopped before completion.";
     case "fallback":
@@ -72,26 +106,24 @@ export function getConversationPhasePlaceholder(phase: ConversationEntryPhase) {
 }
 
 export function getComposerStatusLabel({
+  activityLabel,
   isStreaming,
   isReady,
   phase,
   streamError
 }: {
+  activityLabel?: string | null;
   isReady: boolean;
   isStreaming: boolean;
   phase: ConversationEntryPhase | null;
   streamError: WorkstationError | null;
 }) {
   if (isStreaming) {
-    if (phase === "streaming") {
-      return "Generating response";
+    if (activityLabel) {
+      return activityLabel;
     }
 
-    if (phase === "connecting") {
-      return "Opening live response";
-    }
-
-    return "Thinking through the request";
+    return getConversationPhaseBadge(phase ?? "planning");
   }
 
   if (streamError) {

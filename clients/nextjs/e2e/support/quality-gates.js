@@ -307,6 +307,19 @@ async function fulfillOptions(route) {
 }
 
 function buildAssistantNdjson(scenario) {
+  const successfulProductOutcome = {
+    orchestration_status: "COMPLETED",
+    provider_status: "COMPLETED",
+    generation_status: "COMPLETED",
+    deliverable_status: "USABLE",
+    artifact_extraction_status: "EXTRACTED",
+    artifact_runnability: "RUNNABLE",
+    preview_status: "READY",
+    runtime_health: "PENDING_BROWSER_VALIDATION",
+    product_outcome: "SUCCESS",
+    summary: "The requested p5 artifact is ready for browser validation.",
+    recovery_action: ""
+  };
   const events = [
     streamEvent("status", 0, {
       message: "E2E request received.",
@@ -418,7 +431,12 @@ function buildAssistantNdjson(scenario) {
     streamEvent("final", 6, {
       answer: "Generated the E2E p5 orbit sketch with preview routing.",
       artifacts: [generatedArtifact],
-      workflow: { current_step: "finalization" }
+      workflow: {
+        current_step: "finalization",
+        phase: "completed",
+        product_outcome: successfulProductOutcome,
+        status: "completed"
+      }
     })
   ];
 

@@ -88,7 +88,9 @@ import { buildMultiPreviewComparisonModel } from "@/lib/multi-preview-comparison
 import { buildProjectBundle } from "@/lib/project-bundle";
 import {
   buildWorkflowRuntimeModel,
+  deriveWorkflowRuntimeActivity,
   type WorkflowRuntimeModel,
+  type WorkflowRuntimeActivity,
   type WorkflowRuntimeTraceEvent,
   type WorkflowRuntimeVisualState
 } from "@/lib/workflow-runtime";
@@ -1204,7 +1206,12 @@ export function WorkstationShell({
       : streamError
         ? "fallback"
         : "idle";
+  const activeWorkflowActivity =
+    streamState === "streaming" || streamState === "executing"
+      ? workflowRuntime.summary.activity
+      : null;
   const composerStateLabel = getComposerStatusLabel({
+    activityLabel: activeWorkflowActivity?.label,
     isReady: isComposerReady,
     isStreaming,
     phase: liveAssistantEntry?.phase ?? null,
@@ -1227,11 +1234,16 @@ export function WorkstationShell({
   );
   const sessionStatusLabel = blockingApprovalRequest
     ? getHitlApprovalStateLabel(blockingApprovalRequest.state)
-    : semanticSessionStatus?.label ?? workstationState.status.label;
+    : activeWorkflowActivity?.label ??
+      semanticSessionStatus?.label ??
+      workstationState.status.label;
   const sessionStatusDetail = blockingApprovalRequest
     ? blockingApprovalRequest.title
-    : semanticSessionStatus?.detail ?? workstationState.status.detail;
+    : activeWorkflowActivity?.detail ??
+      semanticSessionStatus?.detail ??
+      workstationState.status.detail;
   const userSessionStatus = formatUserModeSessionStatus({
+    activity: activeWorkflowActivity,
     hasFailedPreviewRuntime: runtimeConsole.health.signal === "failed",
     hasWorkspaceArtifacts,
     isDemoModeOpen,
@@ -2246,6 +2258,11 @@ export function WorkstationShell({
       : artifactRefinement
       ? `Refine ${artifactRefinement.title}: ${prompt}`
       : prompt;
+    const initialWorkflowActivity = deriveWorkflowRuntimeActivity({
+      currentNode: artifactRefinement ? "refinement" : "planning",
+      productOutcome: null,
+      workflowStatus: "running"
+    });
 
     pendingArtifactRefinementRef.current = pendingRefinement;
     streamingAssistantIdRef.current = assistantMessageId;
@@ -2262,12 +2279,10 @@ export function WorkstationShell({
       },
       {
         content: "",
-        activity: artifactRefinement
-          ? "Opening refinement pass."
-          : "Opening live response.",
+        activity: initialWorkflowActivity.detail,
         id: assistantMessageId,
         pending: true,
-        phase: "connecting",
+        phase: conversationPhaseForWorkflowActivity(initialWorkflowActivity),
         role: "assistant",
         time: timestamp
       }
@@ -2288,6 +2303,7 @@ export function WorkstationShell({
 
     let streamedAnswer = "";
     let receivedTerminalStreamError = false;
+    let latestWorkflowActivity = initialWorkflowActivity;
     const requestAttachments = toAssistantRequestImageAttachments(imageAttachments);
 
     try {
@@ -2315,6 +2331,9 @@ export function WorkstationShell({
       }
 
       for await (const streamEvent of streamAssistantEvents(streamRequest)) {
+        latestWorkflowActivity = deriveWorkflowRuntimeActivityForStreamEvent(
+          streamEvent
+        );
         applyStreamEventToWorkspace(streamEvent);
 
         if (
@@ -2326,11 +2345,9 @@ export function WorkstationShell({
             streamedAnswer += delta;
             startTransition(() => {
               updateStreamingAssistantMessage({
-                activity: artifactRefinement
-                  ? "Refining selected artifact."
-                  : "Generating response.",
+                activity: latestWorkflowActivity.detail,
                 content: streamingConversationSummary,
-                phase: "streaming"
+                phase: conversationPhaseForWorkflowActivity(latestWorkflowActivity)
               });
             });
           }
@@ -2339,12 +2356,11 @@ export function WorkstationShell({
         if (streamEvent.event_type === "final" && !receivedTerminalStreamError) {
           const answer = readPayloadText(streamEvent, "answer");
           streamedAnswer = answer ?? streamedAnswer;
-          const productOutcome = readWorkflowMetadata(streamEvent)?.product_outcome;
-          const conversationOutcome = formatConversationOutcome(productOutcome);
+          const conversationOutcome = formatConversationOutcome(
+            latestWorkflowActivity
+          );
           finalizeStreamingAssistantMessage({
-            activity: artifactRefinement
-              ? conversationOutcome.refinementActivity
-              : conversationOutcome.activity,
+            activity: conversationOutcome.activity,
             content: buildAssistantConversationSummary(streamedAnswer),
             phase: conversationOutcome.phase
           });
@@ -2352,6 +2368,9 @@ export function WorkstationShell({
 
         if (streamEvent.event_type === "error") {
           receivedTerminalStreamError = true;
+          const failedActivity = deriveWorkflowRuntimeActivityForStreamEvent(
+            streamEvent
+          );
           const error =
             readStreamEventError(streamEvent) ??
             createWorkstationError({
@@ -2366,24 +2385,29 @@ export function WorkstationShell({
             });
           setStreamError(error);
           finalizeStreamingAssistantMessage({
-            activity: error.userMessage,
+            activity: failedActivity.detail,
             content: streamedAnswer
               ? `${buildAssistantConversationSummary(
                   streamedAnswer
                 )}\n\nLive response error: ${error.userMessage}`
               : `Live response error: ${error.userMessage}`,
-            phase: "error"
+            phase: terminalConversationPhaseForWorkflowActivity(failedActivity)
           });
         }
       }
 
       if (!receivedTerminalStreamError && streamingAssistantIdRef.current && streamedAnswer) {
+        const completedActivity = latestWorkflowActivity.terminal
+          ? latestWorkflowActivity
+          : deriveWorkflowRuntimeActivity({
+              currentNode: "finalization",
+              productOutcome: null,
+              workflowStatus: "completed"
+            });
         finalizeStreamingAssistantMessage({
-          activity: artifactRefinement
-            ? "Refinement completed."
-            : "Response completed.",
+          activity: completedActivity.detail,
           content: buildAssistantConversationSummary(streamedAnswer),
-          phase: "complete"
+          phase: terminalConversationPhaseForWorkflowActivity(completedActivity)
         });
       } else if (!receivedTerminalStreamError && streamingAssistantIdRef.current) {
         const error = createWorkstationError({
@@ -2397,10 +2421,15 @@ export function WorkstationShell({
           resetLabel: "Clear workspace session"
         });
         setStreamError(error);
+        const failedActivity = deriveWorkflowRuntimeActivity({
+          currentNode: "failure",
+          productOutcome: null,
+          workflowStatus: "failed"
+        });
         finalizeStreamingAssistantMessage({
-          activity: error.userMessage,
+          activity: failedActivity.detail,
           content: error.userMessage,
-          phase: "error"
+          phase: terminalConversationPhaseForWorkflowActivity(failedActivity)
         });
       }
     } catch (error) {
@@ -2442,6 +2471,9 @@ export function WorkstationShell({
   function applyStreamEventToWorkspace(streamEvent: AssistantStreamEvent) {
     const receivedAt = new Date().toISOString();
     const receivedAtMs = Date.now();
+    const workflowActivity = deriveWorkflowRuntimeActivityForStreamEvent(
+      streamEvent
+    );
 
     setWorkflowTraceEvents((currentEvents) => [
       ...currentEvents,
@@ -2504,22 +2536,14 @@ export function WorkstationShell({
       );
     }
 
-    const eventDetail =
-      readPayloadText(streamEvent, "message") ??
-      readPayloadText(streamEvent, "answer") ??
-      null;
-
     if (
       streamEvent.event_type !== "token_delta" &&
       streamEvent.event_type !== "final" &&
       streamEvent.event_type !== "error"
     ) {
       updateStreamingAssistantMessage({
-        activity: eventDetail ?? "Thinking through the request.",
-        phase:
-          streamEvent.event_type === "status" && streamEvent.sequence === 0
-            ? "connecting"
-            : "thinking"
+        activity: workflowActivity.detail,
+        phase: conversationPhaseForWorkflowActivity(workflowActivity)
       });
     }
 
@@ -2658,7 +2682,10 @@ export function WorkstationShell({
   }: {
     activity: string;
     content: string;
-    phase: Extract<ConversationEntryPhase, "complete" | "error" | "fallback">;
+    phase: Extract<
+      ConversationEntryPhase,
+      "complete" | "completed" | "partial" | "failed" | "error" | "fallback"
+    >;
   }) {
     updateStreamingAssistantMessage({
       activity,
@@ -2803,6 +2830,7 @@ export function WorkstationShell({
         <div
           className="sessionStatus"
           aria-label="Current session"
+          data-activity={activeWorkflowActivity?.state}
           data-state={streamState}
         >
           <span>{visibleSessionStatusLabel}</span>
@@ -3127,7 +3155,10 @@ export function WorkstationShell({
                       ) : null}
                     </p>
                     {message.activity && message.phase !== "complete" ? (
-                      <div className="messageActivity">
+                      <div
+                        className="messageActivity"
+                        data-activity={message.phase}
+                      >
                         <span aria-hidden="true" />
                         <small>{message.activity}</small>
                       </div>
@@ -4388,13 +4419,13 @@ function OverviewInspector({
           <header>
             <div>
               <span>Workflow</span>
-              <strong>{runtime.summary.currentStep}</strong>
-              <p>{formatWorkflowStatusCopy(runtime.summary.status)}</p>
+              <strong>{runtime.summary.activity.label}</strong>
+              <p>{runtime.summary.activity.detail}</p>
             </div>
             <span
               className="liveDot"
               aria-hidden="true"
-              data-state={runtime.summary.status}
+              data-state={runtime.summary.activity.state}
             />
           </header>
           <div className="workflowSummaryMeta">
@@ -5138,8 +5169,8 @@ function WorkflowInspector({
       <div className="workflowSummaryGrid" aria-label="Workflow execution summary">
         <article className="workflowSummaryCard" role="group" aria-label="Workflow status">
           <span>Status</span>
-          <strong>{formatWorkflowStatusCopy(runtime.summary.status)}</strong>
-          <p>{runtime.summary.currentStep}</p>
+          <strong>{runtime.summary.activity.label}</strong>
+          <p>{runtime.summary.activity.detail}</p>
         </article>
         <article
           className="workflowSummaryCard"
@@ -5462,7 +5493,7 @@ function TelemetryInspector({
         >
           <header>
             <span>Runtime</span>
-            <strong>{dashboard.runtime.currentStep}</strong>
+            <strong>{dashboard.runtime.activity.label}</strong>
           </header>
           <dl>
             <div>
@@ -5482,7 +5513,7 @@ function TelemetryInspector({
               <dd>{formatRuntimeDuration(dashboard.runtime.totalRuntimeMs)}</dd>
             </div>
           </dl>
-          <p>{formatWorkflowStatusCopy(dashboard.runtime.workflowStatus)}</p>
+          <p>{dashboard.runtime.activity.detail}</p>
           <small>
             {dashboard.runtime.activeRuntimeMs != null
               ? `Active ${formatRuntimeDuration(dashboard.runtime.activeRuntimeMs)}`
@@ -7431,6 +7462,7 @@ function formatSessionTelemetryLabel(telemetry: ProviderTelemetryModel) {
 }
 
 function formatUserModeSessionStatus({
+  activity,
   hasFailedPreviewRuntime,
   hasWorkspaceArtifacts,
   isDemoModeOpen,
@@ -7438,6 +7470,7 @@ function formatUserModeSessionStatus({
   streamError,
   streamState
 }: {
+  activity: WorkflowRuntimeActivity | null;
   hasFailedPreviewRuntime: boolean;
   hasWorkspaceArtifacts: boolean;
   isDemoModeOpen: boolean;
@@ -7454,8 +7487,8 @@ function formatUserModeSessionStatus({
     case "executing":
     case "streaming":
       return {
-        label: "Working",
-        detail: "Generating response"
+        label: activity?.label ?? "Planning",
+        detail: activity?.detail ?? "Planning the requested work."
       };
     case "fallback":
       return {
@@ -7503,7 +7536,7 @@ function formatSemanticProductOutcomeStatus(
   switch (productOutcome.product_outcome) {
     case "SUCCESS":
       return {
-        label: "Complete",
+        label: "Completed",
         detail: productOutcome.summary
       };
     case "PARTIAL":
@@ -7513,7 +7546,7 @@ function formatSemanticProductOutcomeStatus(
       };
     case "FAILURE":
       return {
-        label: "Needs attention",
+        label: "Failed",
         detail: productOutcome.summary
       };
     default:
@@ -7521,29 +7554,61 @@ function formatSemanticProductOutcomeStatus(
   }
 }
 
-function formatConversationOutcome(
-  productOutcome: WorkflowRuntimeModel["summary"]["productOutcome"] | null | undefined
-) {
-  switch (productOutcome?.product_outcome) {
-    case "PARTIAL":
-      return {
-        activity: `Partial result: ${productOutcome.summary}`,
-        refinementActivity: `Partial refinement: ${productOutcome.summary}`,
-        phase: "fallback" as const
-      };
-    case "FAILURE":
-      return {
-        activity: `Response failed: ${productOutcome.summary}`,
-        refinementActivity: `Refinement failed: ${productOutcome.summary}`,
-        phase: "error" as const
-      };
-    default:
-      return {
-        activity: "Response completed.",
-        refinementActivity: "Refinement completed.",
-        phase: "complete" as const
-      };
-  }
+function deriveWorkflowRuntimeActivityForStreamEvent(
+  streamEvent: AssistantStreamEvent
+): WorkflowRuntimeActivity {
+  const workflow = readWorkflowMetadata(streamEvent);
+  const workflowStatus =
+    workflow?.status ??
+    (streamEvent.event_type === "error"
+      ? "failed"
+      : streamEvent.event_type === "final"
+        ? "completed"
+        : "running");
+
+  return deriveWorkflowRuntimeActivity({
+    currentNode:
+      workflow?.current_step ??
+      workflow?.step ??
+      workflowNodeFromAssistantStreamEvent(streamEvent) ??
+      null,
+    productOutcome: workflow?.product_outcome,
+    workflowStatus
+  });
+}
+
+function formatConversationOutcome(activity: WorkflowRuntimeActivity) {
+  return {
+    activity: activity.detail,
+    phase: terminalConversationPhaseForWorkflowActivity(activity)
+  };
+}
+
+function conversationPhaseForWorkflowActivity(
+  activity: WorkflowRuntimeActivity
+): Extract<
+  ConversationEntryPhase,
+  | "planning"
+  | "retrieving"
+  | "generating"
+  | "reviewing"
+  | "refining"
+  | "finalizing"
+  | "completed"
+  | "partial"
+  | "failed"
+> {
+  return activity.state;
+}
+
+function terminalConversationPhaseForWorkflowActivity(
+  activity: WorkflowRuntimeActivity
+): Extract<
+  ConversationEntryPhase,
+  "completed" | "partial" | "failed"
+> {
+  const phase = conversationPhaseForWorkflowActivity(activity);
+  return phase === "partial" || phase === "failed" ? phase : "completed";
 }
 
 function formatTokenUsageTotal(telemetry: ProviderTelemetryModel) {
@@ -7711,7 +7776,7 @@ function formatMessageTime() {
 }
 
 const streamingConversationSummary =
-  "Generating response. Code and long-form output will appear in the Code panel, artifacts, and preview surfaces when the run completes.";
+  "Generating the requested artifact. Code and long-form output will appear in the Code panel, artifacts, and preview surfaces when the run completes.";
 
 const generatedCodePattern =
   /```|<!doctype|<html|<script|function\s+(setup|draw)\s*\(|import\s+\*\s+as\s+THREE|gl_FragColor|void\s+main\s*\(/i;
