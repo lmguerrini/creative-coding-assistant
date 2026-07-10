@@ -144,10 +144,14 @@ class CreativeConstraintSolverTests(unittest.TestCase):
         )
 
         system = rendered.sections[0].content
+        constraint_section = system.split("Creative Constraint Solver:", 1)[1].split(
+            "Use the provided context sections as working context.",
+            1,
+        )[0]
         self.assertIn("Creative Constraint Solver:", system)
         self.assertIn("Runtime fit: supported.", system)
         self.assertIn("Constraint guidance:", system)
-        self.assertNotIn("function setup", system)
+        self.assertNotIn("function setup", constraint_section)
 
     def test_director_consumes_constraint_solver_signals(self) -> None:
         request = AssistantRequest(

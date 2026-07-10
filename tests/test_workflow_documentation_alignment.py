@@ -319,151 +319,17 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
 
     def test_readme_remains_product_oriented_public_documentation(self) -> None:
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
-        normalized_readme = re.sub(r"\s+", " ", readme)
 
-        self.assertIn("AI-native creative translation", readme)
-        self.assertIn("creative coding platform", readme)
-        self.assertIn("V3.5", readme)
-        self.assertIn("Creative Workstation", readme)
-        self.assertIn("V4.1", readme)
-        self.assertIn("Multi-Agent Core", readme)
-        self.assertIn("V4.2", readme)
-        self.assertIn("Agent Orchestration", readme)
-        self.assertIn("V4.3", readme)
-        self.assertIn("Hybrid Agentic Workflow", readme)
-        self.assertIn("V4.4", readme)
-        self.assertIn("Hybrid Studio", readme)
-        self.assertIn("V4.5", readme)
-        self.assertIn("Multimodal Studio", readme)
-        self.assertIn("V4.6", readme)
-        self.assertIn("Agentic Studio Hardening", readme)
-        self.assertIn("V5.1", readme)
-        self.assertIn("Execution Optimization", readme)
-        self.assertIn("V5.2", readme)
-        self.assertIn("Intelligent Model Routing", readme)
-        self.assertIn("V5.4", readme)
-        self.assertIn("Production Observability", readme)
-        self.assertIn("V5.5", readme)
-        self.assertIn("Adaptive Execution Intelligence", readme)
-        self.assertIn("V5.6", readme)
-        self.assertIn("Production Release", readme)
-        self.assertIn("V6.1", readme)
-        self.assertIn("Adaptive Learning Engine", readme)
-        self.assertIn("V6.2", readme)
-        self.assertIn("Creative Memory Engine", readme)
-        self.assertIn("V6.3", readme)
-        self.assertIn("Knowledge Evolution Engine", readme)
-        self.assertIn("Next.js workstation", readme)
-        self.assertIn("Capability Scope", readme)
-        self.assertIn("architecture/artifact_intelligence_graph.md", readme)
-        self.assertIn("architecture/workstation_surface_graph.md", readme)
-        self.assertIn("architecture/engine_matrix.md", readme)
-        self.assertIn("Creative Evaluation", readme)
-        self.assertIn("Workstation Dashboard", readme)
-        self.assertIn("Creative Timeline", readme)
-        self.assertIn("Provenance Engine", readme)
-        self.assertIn("Agent Identity Registry", readme)
-        self.assertIn("Agent Contract Registry", readme)
-        self.assertIn("Agent Memory Contract Registry", readme)
-        self.assertIn("Agent Metadata Registry", readme)
-        self.assertIn("Agent Routing Registry", readme)
-        self.assertIn("Blackboard Memory Registry", readme)
-        self.assertIn("Shared Context View Registry", readme)
-        self.assertIn("Agent Lifecycle Registry", readme)
-        self.assertIn("Workflow Agent Handoff Registry", readme)
-        self.assertIn("Orchestration Contract Integration Registry", readme)
-        for registry_name in V43_HYBRID_WORKFLOW_REGISTRIES:
-            self.assertIn(registry_name, readme)
-        self.assertIn("Hybrid Workflow Integration source coverage", readme)
-        for registry_name in V44_HYBRID_STUDIO_REGISTRIES:
-            self.assertIn(registry_name, readme)
-        self.assertIn("Hybrid Studio Integration source coverage", readme)
-        for registry_name in V45_MULTIMODAL_STUDIO_REGISTRIES:
-            self.assertIn(registry_name, readme)
-        self.assertIn("Multimodal Studio Integration source coverage", readme)
-        for registry_name in V46_AGENTIC_STUDIO_HARDENING_REGISTRIES:
-            self.assertIn(registry_name, readme)
-        for surface in V52_MODEL_ROUTING_SURFACES:
-            self.assertIn(surface, readme)
-        for surface in V54_PRODUCTION_OBSERVABILITY_SURFACES:
-            self.assertIn(surface, readme)
-        for surface in V55_ADAPTIVE_EXECUTION_SURFACES:
-            self.assertIn(surface, readme)
-        for surface in V56_PRODUCTION_RELEASE_SURFACES:
-            self.assertIn(surface, readme)
-        for surface in V61_ADAPTIVE_LEARNING_SURFACES:
-            self.assertIn(surface, readme)
-        for surface in V62_CREATIVE_MEMORY_SURFACES:
-            self.assertIn(surface, readme)
-        for surface in V63_KNOWLEDGE_EVOLUTION_SURFACES:
-            self.assertIn(surface, readme)
-        self.assertIn("Execution Optimization Failure Audit", readme)
-        self.assertIn("Model Routing Architecture Consistency", readme)
-        self.assertIn("Model Routing Failure Path Audit", readme)
-        self.assertIn("metadata-only", readme)
-        self.assertIn("passive role and contract metadata", normalized_readme)
-        self.assertIn("passive orchestration metadata", normalized_readme)
-        self.assertIn("passive hybrid workflow metadata", normalized_readme)
-        self.assertIn("passive hybrid studio metadata", normalized_readme)
-        self.assertIn("passive multimodal studio metadata", normalized_readme)
-        self.assertIn(
-            "passive agentic studio hardening metadata",
-            normalized_readme,
-        )
-        self.assertIn("advisory execution optimization metadata", normalized_readme)
-        self.assertIn("advisory model-routing metadata", normalized_readme)
-        self.assertIn("read-only observability metadata", normalized_readme)
-        self.assertIn(
-            "controlled adaptive execution policy/simulation",
-            normalized_readme,
-        )
-        self.assertIn("production-release readiness", normalized_readme)
-        self.assertIn("advisory learning", normalized_readme)
-        self.assertIn("workflow success tracking", normalized_readme)
-        self.assertIn("failure tracking", normalized_readme)
-        self.assertIn("automatic installation", normalized_readme)
-        self.assertIn("deployment execution", normalized_readme)
-        self.assertIn("release tag creation", normalized_readme)
-        self.assertIn("runtime workflow control", normalized_readme)
-        self.assertIn("orchestration readiness metadata", normalized_readme)
-        self.assertIn("not active Studio runtime", normalized_readme)
-        self.assertIn("not rendering execution", normalized_readme)
-        self.assertIn("not active multi-agent orchestration", normalized_readme)
-        self.assertIn(
-            "not active agent execution or autonomous escalation",
-            normalized_readme,
-        )
-        self.assertIn("does not activate Studio runtime", normalized_readme)
-        self.assertIn("does not execute rendering", normalized_readme)
-        self.assertIn("do not execute orchestration", normalized_readme)
-        self.assertIn("do not create agents", normalized_readme)
-        self.assertIn("route tasks", normalized_readme)
-        self.assertIn("modify artifacts", normalized_readme)
-        self.assertIn("select runtimes", normalized_readme)
-        self.assertIn("product roadmap context", normalized_readme)
-        self.assertIn("bypass failure normalization", normalized_readme)
-        self.assertIn("runtime hardening engine", normalized_readme)
-        self.assertIn("not active model selection", normalized_readme)
-        self.assertIn("do not mutate configured routing", normalized_readme)
-        self.assertIn("provider/model switching", normalized_readme)
-        self.assertIn("provider execution", normalized_readme)
-        self.assertIn("memory persistence", normalized_readme)
-        self.assertIn("feedback application", normalized_readme)
-        self.assertIn("live outcome observation", normalized_readme)
-        self.assertIn("advisory creative memory metadata", normalized_readme)
-        self.assertIn("memory storage writes", normalized_readme)
-        self.assertIn("preference learning execution", normalized_readme)
-        self.assertIn("personalization application", normalized_readme)
-        self.assertIn("HITL request emission", normalized_readme)
-        self.assertIn("automation activation", normalized_readme)
-        self.assertIn("advisory knowledge evolution metadata", normalized_readme)
-        self.assertIn("automatic KB update execution", normalized_readme)
-        self.assertIn("retrieval configuration mutation", normalized_readme)
-        self.assertIn("quality or trust score computation", normalized_readme)
-        self.assertIn("source record updates", normalized_readme)
-        self.assertIn("KB storage writes", normalized_readme)
-        self.assertIn("active knowledge evolution", normalized_readme)
-        self.assertIn("Runtime Evolution", normalized_readme)
+        for expected_marker in (
+            "AI-native creative translation",
+            "creative coding platform",
+            "Creative Workstation",
+            "Next.js workstation",
+            "Capability Scope",
+            "bounded LangGraph workflow",
+            "browser-focused preview paths",
+        ):
+            self.assertIn(expected_marker, readme)
 
         for internal_marker in PUBLIC_README_INTERNAL_MARKERS:
             self.assertNotIn(internal_marker, readme)

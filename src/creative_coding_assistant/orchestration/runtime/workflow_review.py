@@ -19,7 +19,7 @@ from creative_coding_assistant.orchestration.metadata.domain_generation import (
 from creative_coding_assistant.orchestration.refinement_passes import (
     DEFAULT_REFINEMENT_PASS_LIMIT,
 )
-from creative_coding_assistant.orchestration.routing import RouteDecision
+from creative_coding_assistant.orchestration.routing import RouteDecision, RouteName
 
 MAX_WORKFLOW_REFINEMENT_COUNT = DEFAULT_REFINEMENT_PASS_LIMIT
 
@@ -197,6 +197,19 @@ def request_requires_deliverable(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
 ) -> bool:
+    """Return whether the current request needs a code artifact to pass review.
+
+    Explain-mode requests can discuss a sketch, shader, or component without
+    asking the assistant to generate one. Treating those domain words as a
+    deliverable requirement incorrectly sends a usable explanatory response
+    through bounded code refinements and then a terminal product failure.
+    """
+
+    if request.mode is AssistantMode.EXPLAIN or (
+        route_decision is not None and route_decision.route is RouteName.EXPLAIN
+    ):
+        return False
+
     return _request_explicitly_asks_for_code(request) or request_requires_live_preview(
         request,
         route_decision,

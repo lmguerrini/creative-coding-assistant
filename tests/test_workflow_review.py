@@ -9,7 +9,11 @@ from creative_coding_assistant.orchestration import (
     WorkflowReviewOutcome,
     review_assistant_answer,
 )
-from creative_coding_assistant.orchestration.routing import route_request
+from creative_coding_assistant.orchestration.routing import (
+    RouteDecision,
+    RouteName,
+    route_request,
+)
 from creative_coding_assistant.orchestration.runtime.artifacts import (
     extract_workflow_artifacts,
 )
@@ -73,6 +77,34 @@ class WorkflowReviewTests(unittest.TestCase):
 
         self.assertEqual(result.outcome, WorkflowReviewOutcome.NEEDS_REFINEMENT)
         self.assertEqual(result.reasons, ("missing_explanation",))
+
+    def test_explain_mode_sketch_direction_does_not_require_a_code_artifact(self) -> None:
+        result = review_assistant_answer(
+            request=AssistantRequest(
+                query="Continue the sketch direction.",
+                mode=AssistantMode.EXPLAIN,
+            ),
+            answer="Use the previous palette and keep the motion subtle.",
+            refinement_count=0,
+        )
+
+        self.assertEqual(result.outcome, WorkflowReviewOutcome.PASS)
+        self.assertEqual(result.reasons, ())
+
+    def test_explain_route_overrides_default_generate_mode_for_deliverables(self) -> None:
+        request = AssistantRequest(query="Continue the sketch direction.")
+        result = review_assistant_answer(
+            request=request,
+            answer="Use the previous palette and keep the motion subtle.",
+            refinement_count=0,
+            route_decision=RouteDecision(
+                route=RouteName.EXPLAIN,
+                mode=request.mode,
+            ),
+        )
+
+        self.assertEqual(result.outcome, WorkflowReviewOutcome.PASS)
+        self.assertEqual(result.reasons, ())
 
     def test_review_flags_debug_mode_without_debug_guidance(self) -> None:
         result = review_assistant_answer(

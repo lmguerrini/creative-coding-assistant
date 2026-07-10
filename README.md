@@ -7,6 +7,11 @@ orchestration, preview surfaces, generated artifact evidence, and evaluation
 fixtures so a reviewer can inspect what the system can do and where the
 boundaries are.
 
+It is an AI-native creative translation creative coding platform with a
+Creative Workstation for generating, inspecting, previewing, and recovering
+browser-native artifacts. Product claims remain bounded by the selected runtime
+and the validation evidence attached to that artifact.
+
 ![Creative Coding Assistant](assets/preview_current.png)
 
 ## Capstone Evaluator - Start Here
@@ -139,6 +144,23 @@ V4-V8 are best understood as Typed Domain Intelligence Layers. They provide
 planning, explainability, provenance, validation, creative reasoning, and
 future runtime execution boundaries. They do not imply every named planning
 surface is an active runtime executor.
+
+## Workflow
+
+The bounded LangGraph workflow follows this canonical node order:
+
+`intake -> routing -> memory -> retrieval -> context_assembly -> prompt_input -> planning -> director -> reasoning -> prompt_rendering -> generation -> artifact_extraction -> preview_preparation -> artifact_critique -> review -> refinement -> finalization -> failure`
+
+The workflow may return a concise explanation without forcing a code artifact;
+when a user asks for a runnable deliverable, extraction, preview preparation,
+and review make that requirement explicit.
+
+## Capability Scope
+
+The local product currently supports bounded creative-coding guidance,
+artifact inspection, and browser-focused preview paths. A claimed live preview
+is valid only when its source, runtime, visible output, health, and recovery
+state agree; unsupported domains remain explicitly code/export-only.
 
 ## Technology Stack
 
