@@ -98,6 +98,55 @@ describe("workspace persistence client", () => {
     expect(record.artifacts[0]?.content).toBeUndefined();
   });
 
+  it("does not restore a runnable preview when its oversized source was omitted", () => {
+    const baseSnapshot = getLocalWorkspaceSnapshot();
+    const source = [
+      "function setup() { createCanvas(320, 180); }",
+      "function draw() { background(10); }",
+      ...Array.from({ length: 10_000 }, () => "// retained only in the original artifact")
+    ].join("\n");
+    const snapshot: typeof baseSnapshot = {
+      ...baseSnapshot,
+      artifacts: [
+        {
+          ...baseSnapshot.artifacts[0],
+          content: source,
+          domain: "p5",
+          previewEligible: true,
+          previewTarget: "browser_sandbox",
+          rendererId: "surface.p5",
+          runtime: "p5"
+        }
+      ],
+      code: {
+        ...baseSnapshot.code,
+        excerpt: source.split("\n")
+      }
+    };
+    const record = createWorkspaceSessionRecord({
+      activeArtifactId: "source-sketch",
+      activeInspectorTab: "Preview",
+      previewArtifactId: "source-sketch",
+      previewOpen: true,
+      snapshot
+    });
+
+    const restored = snapshotFromWorkspaceSessionRecord(baseSnapshot, record);
+
+    expect(record.artifacts[0]?.content).toBeUndefined();
+    expect(record.snapshot.code.excerpt.join("\n")).toContain(
+      "exceeds the local session restore limit"
+    );
+    expect(restored.preview).toMatchObject({
+      available: false,
+      active: false,
+      collapsed: true,
+      state: "unavailable",
+      title: "Preview unavailable"
+    });
+    expect(restored.preview.summary).toContain("not restored");
+  });
+
   it("restores a complete p5 source without collapsing its executable structure", () => {
     const source = [
       "function setup() {",

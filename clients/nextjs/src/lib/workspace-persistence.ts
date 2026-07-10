@@ -278,7 +278,13 @@ export function snapshotFromWorkspaceSessionRecord(
   const previewSupportIssue = previewArtifact
     ? getArtifactPreviewSupportIssue(previewArtifact)
     : null;
-  const preview = previewSupportIssue
+  const previewRecoveryIssue = getPersistedPreviewSourceRecoveryIssue(
+    restoredSnapshot,
+    record,
+    previewArtifact
+  );
+  const previewIssue = previewRecoveryIssue ?? previewSupportIssue;
+  const preview = previewIssue
     ? {
         ...restoredPreview,
         active: false,
@@ -291,7 +297,7 @@ export function snapshotFromWorkspaceSessionRecord(
         sourceArtifactName: previewArtifact?.title ?? "",
         state: "unavailable" as const,
         status: "Unavailable",
-        summary: `${previewArtifact?.title ?? "This artifact"} is saved as code, but it will not be started in the live preview. ${previewSupportIssue}`,
+        summary: `${previewArtifact?.title ?? "This artifact"} is saved as code, but it will not be started in the live preview. ${previewIssue}`,
         target: "",
         targetId: "" as const,
         title: "Preview unavailable"
@@ -327,6 +333,34 @@ export function snapshotFromWorkspaceSessionRecord(
     multimodal,
     preview
   };
+}
+
+function getPersistedPreviewSourceRecoveryIssue(
+  snapshot: AssistantWorkspaceSnapshot,
+  record: WorkspaceSessionRecord,
+  previewArtifact: ArtifactSummary | null
+): string | null {
+  if (!previewArtifact || !isCompactedCodeRecoveryNotice(snapshot.code.excerpt)) {
+    return null;
+  }
+
+  const previewOwnsRestoredCode =
+    previewArtifact.id === record.previewArtifactId ||
+    previewArtifact.id === record.activeArtifactId ||
+    previewArtifact.title === snapshot.code.title;
+  if (!previewOwnsRestoredCode) {
+    return null;
+  }
+
+  return "Its executable source was not restored because it exceeds the local session limit. Open the saved artifact or rerun the workflow before starting a live preview.";
+}
+
+function isCompactedCodeRecoveryNotice(excerpt: string[]): boolean {
+  return (
+    excerpt[0] === "// The generated source exceeds the local session restore limit." &&
+    excerpt[1] ===
+      "// Open the saved artifact or rerun the workflow instead of previewing a partial file."
+  );
 }
 
 function findRestoredPreviewArtifact(
