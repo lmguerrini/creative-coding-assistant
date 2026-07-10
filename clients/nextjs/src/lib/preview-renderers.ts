@@ -108,13 +108,12 @@ export const creativePreviewRendererRegistry: readonly CreativePreviewRendererDe
     displayName: "Three.js",
     surfaceLabel: "Three scene surface",
     description: "Scene-oriented surface for Three.js browser previews.",
-    matchExtensions: [".three.js", ".three.ts", ".r3f.tsx"],
+    matchExtensions: [".three.js", ".three.ts"],
     matchTokens: [
       "three",
       "webglrenderer",
       "scene",
-      "perspectivecamera",
-      "react-three"
+      "perspectivecamera"
     ],
     notes: [
       "Controlled Three.js-compatible browser runtime",
@@ -237,8 +236,7 @@ const supportedPreviewDomains = new Set([
   "svg_markup",
   "canvas",
   "canvas_2d",
-  "three_js",
-  "react_three_fiber"
+  "three_js"
 ]);
 
 const unsupportedBrowserRuntimeExtensions = [
@@ -284,8 +282,41 @@ export function buildPreviewRendererRoute({
     selectedArtifactName;
   const contextPreviewable = isArtifactPreviewable(selectedArtifact);
   const tone = resolvePreviewRendererTone(preview, contextPreviewable, targetId);
+  const isReactThreeFiberExport = isReactThreeFiberArtifact(
+    selectedArtifact ?? sourceArtifact
+  );
 
   if (preview.state === "unavailable" && !contextPreviewable) {
+    if (isReactThreeFiberExport) {
+      return {
+        targetId: null,
+        targetLabel: "Code export",
+        selectedArtifactId: selectedArtifact?.id ?? null,
+        selectedArtifactName,
+        sourceArtifactId: sourceArtifact?.id ?? null,
+        sourceArtifactName,
+        rendererId: null,
+        rendererLabel: "No bundled R3F runtime",
+        rendererDescription:
+          "React Three Fiber components are delivered as React component exports in this workstation.",
+        supportState: "unavailable",
+        supportLabel: "Code/export-only",
+        supportReason:
+          "This workstation does not bundle React Three Fiber for an internal live preview.",
+        surfaceKind: "unsupported",
+        surfaceTitle: "React Three Fiber export",
+        surfaceEyebrow: "Code/export-only",
+        surfaceSummary:
+          "Open Code to inspect, copy, or download the component. Use a React project with its own React Three Fiber bundle to run it.",
+        notes: [
+          "The generated component remains available as code",
+          "No internal R3F iframe or preview control is presented",
+          "Use a React application with a configured React Three Fiber bundle to run the export"
+        ],
+        tone
+      };
+    }
+
     return {
       targetId,
       targetLabel,
@@ -585,6 +616,23 @@ function hasUnsupportedBrowserRuntimeSignal(
 
   return unsupportedBrowserRuntimeExtensions.some((extension) =>
     normalizedTitle.endsWith(extension)
+  );
+}
+
+function isReactThreeFiberArtifact(artifact: ArtifactSummary | null) {
+  if (!artifact) {
+    return false;
+  }
+
+  const searchable = [artifact.title, artifact.domain, artifact.content, artifact.summary]
+    .filter((value): value is string => Boolean(value))
+    .join(" ")
+    .toLowerCase();
+  return (
+    artifact.domain === "react_three_fiber" ||
+    artifact.title.toLowerCase().endsWith(".r3f.tsx") ||
+    searchable.includes("@react-three/fiber") ||
+    searchable.includes("react three fiber")
   );
 }
 

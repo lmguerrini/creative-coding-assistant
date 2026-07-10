@@ -162,6 +162,18 @@ describe("artifact comparison", () => {
       runtime: null,
       title: "feedback-field.webgpu.ts"
     });
+    const reactThreeFiberExport = artifact({
+      content:
+        'import { Canvas } from "@react-three/fiber"; export default function Study() { return <Canvas />; }',
+      domain: "react_three_fiber",
+      id: "r3f",
+      language: "TypeScript + React Three Fiber",
+      previewEligible: false,
+      previewTarget: "",
+      rendererId: null,
+      runtime: null,
+      title: "kinetic-study.r3f.tsx"
+    });
 
     expect(classifyArtifactRuntimeSupport(previewable).state).toBe("previewable");
     expect(classifyArtifactRuntimeSupport(hydra).state).toBe("previewable");
@@ -171,5 +183,10 @@ describe("artifact comparison", () => {
     expect(classifyArtifactRuntimeSupport(canvas).state).toBe("previewable");
     expect(classifyArtifactRuntimeSupport(codeOnly).state).toBe("code_only");
     expect(classifyArtifactRuntimeSupport(unsupported).state).toBe("unsupported");
+    expect(classifyArtifactRuntimeSupport(reactThreeFiberExport)).toMatchObject({
+      label: "React export",
+      state: "code_only",
+      targetLabel: "Code export"
+    });
   });
 });

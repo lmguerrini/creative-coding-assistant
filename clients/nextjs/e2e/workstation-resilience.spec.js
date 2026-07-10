@@ -53,13 +53,10 @@ test.describe("V7.4 workstation resilience", () => {
     await installApiMocks(page, "partial-outcome");
     await expectLoadedWorkstation(page);
 
-    const composer = page.getByRole("textbox", { name: "Assistant prompt" });
-    await composer.click();
-    await composer.pressSequentially(
+    await submitCreativePrompt(
+      page,
       "Create a browser-ready React Three Fiber installation study."
     );
-    await expect(page.getByRole("button", { name: "Send prompt" })).toBeEnabled();
-    await page.getByRole("button", { name: "Send prompt" }).click();
 
     await expect(page.getByLabel("Current session")).toContainText("Partial");
     await expect(page.getByRole("log", { name: "Conversation" })).toContainText(
@@ -74,6 +71,13 @@ test.describe("V7.4 workstation resilience", () => {
     await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
       "Open Code to use the artifact"
     );
+    await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
+      "React Three Fiber export"
+    );
+    await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
+      "Code/export-only"
+    );
+    await expect(page.locator('iframe[title*="React Three Fiber"]')).toHaveCount(0);
     consoleGate.assertClean();
   });
 

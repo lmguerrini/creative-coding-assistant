@@ -104,6 +104,16 @@ export function classifyArtifactRuntimeSupport(
   const matchedRenderer = matchCreativePreviewRenderer(artifact);
   const hasPreviewContract = isArtifactPreviewable(artifact);
 
+  if (isReactThreeFiberExport(artifact)) {
+    return {
+      detail:
+        "This React Three Fiber component is available as a code export. The workstation does not bundle an internal R3F live runtime.",
+      label: "React export",
+      state: "code_only",
+      targetLabel: "Code export"
+    };
+  }
+
   if (hasPreviewContract) {
     if (targetId === "browser_sandbox" && !matchedRenderer) {
       return {
@@ -250,6 +260,19 @@ function buildPreviewLabel(
   }
 
   return "No live preview route";
+}
+
+function isReactThreeFiberExport(artifact: ArtifactSummary) {
+  const searchable = [artifact.title, artifact.domain, artifact.content, artifact.summary]
+    .filter((value): value is string => Boolean(value))
+    .join(" ")
+    .toLowerCase();
+  return (
+    artifact.domain === "react_three_fiber" ||
+    artifact.title.toLowerCase().endsWith(".r3f.tsx") ||
+    searchable.includes("@react-three/fiber") ||
+    searchable.includes("react three fiber")
+  );
 }
 
 function buildStatusLabel(artifact: ArtifactSummary) {

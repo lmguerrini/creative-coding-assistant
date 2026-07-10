@@ -201,6 +201,50 @@ describe("preview renderers", () => {
     });
   });
 
+  it("keeps React Three Fiber components as explicit code exports", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const artifact: ArtifactSummary = {
+      ...creativeArtifact({
+        content: [
+          'import { Canvas, useFrame } from "@react-three/fiber";',
+          "export default function Study() { return <Canvas><mesh /></Canvas>; }"
+        ].join("\n"),
+        domain: "react_three_fiber",
+        language: "TypeScript + React Three Fiber",
+        title: "kinetic-study.r3f.tsx"
+      }),
+      actions: ["Open", "Copy", "Download"],
+      previewEligible: false,
+      previewTarget: "",
+      rendererId: null,
+      runtime: null
+    };
+    const preview = {
+      ...snapshot.preview,
+      active: false,
+      artifactName: artifact.title,
+      available: false,
+      sourceArtifactId: artifact.id,
+      sourceArtifactName: artifact.title,
+      state: "unavailable" as const,
+      status: "Preview unavailable"
+    };
+
+    expect(matchCreativePreviewRenderer(artifact)).toBeNull();
+    expect(
+      buildPreviewRendererRoute({
+        artifacts: [artifact],
+        preview,
+        previewArtifactId: artifact.id
+      })
+    ).toMatchObject({
+      rendererId: null,
+      supportLabel: "Code/export-only",
+      supportState: "unavailable",
+      surfaceTitle: "React Three Fiber export"
+    });
+  });
+
   it("keeps HTML documents out of the p5 live renderer", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const artifact = creativeArtifact({
