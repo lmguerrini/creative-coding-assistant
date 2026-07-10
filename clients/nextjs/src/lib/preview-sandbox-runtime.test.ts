@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import type { PreviewRuntimeStatus } from "./preview-runtime-adapters";
 import {
@@ -9,6 +11,18 @@ import {
 } from "./preview-sandbox-runtime";
 
 describe("preview sandbox runtime", () => {
+  it("keeps standard p5 angle constants aligned with the sandbox globals", () => {
+    const sandboxDocument = readFileSync(
+      resolve(process.cwd(), "public/preview-sandbox.html"),
+      "utf8"
+    );
+
+    expect(sandboxDocument).toContain("PI: Math.PI,");
+    expect(sandboxDocument).toContain("TAU: Math.PI * 2,");
+    expect(sandboxDocument).toContain("TWO_PI: Math.PI * 2,");
+    expect(sandboxDocument).toContain("HALF_PI: Math.PI / 2,");
+  });
+
   it("prepares TypeScript-flavored p5 source for browser execution", () => {
     const prepared = preparePreviewExecutableSource(
       [

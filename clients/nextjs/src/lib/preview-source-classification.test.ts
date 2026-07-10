@@ -37,9 +37,10 @@ describe("p5 preview source classification", () => {
       "function setup() { createCanvas(320, 180); }",
       "function draw() {",
       "  const value = constrain(int(noise(frameCount * 0.01) * 320), 0, 320);",
+      "  const orbit = sin(TAU * frameCount * 0.01);",
       "  const active = particles.filter(p => p.life > 0);",
       "  background(8);",
-      "  circle(value, 90, active.length * 18);",
+      "  circle(value, 90 + orbit, active.length * 18);",
       "}"
     ].join("\n");
 
