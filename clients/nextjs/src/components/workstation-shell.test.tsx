@@ -3539,6 +3539,16 @@ describe("WorkstationShell", () => {
 
     expect(summary).not.toBeNull();
     fireEvent.click(summary as HTMLElement);
+    expect(within(preview).getByText("Fullscreen")).toBeVisible();
+    expect(within(preview).getByText("Restart")).toBeVisible();
+    expect(within(preview).getByText("Clear")).toBeVisible();
+    expect(within(preview).getByText("Reload")).toBeVisible();
+    expect(
+      within(preview).queryByRole("button", { name: "Collapse preview" })
+    ).not.toBeInTheDocument();
+    expect(
+      within(preview).queryByRole("button", { name: "Reset preview session" })
+    ).not.toBeInTheDocument();
     fireEvent.click(
       within(preview).getByRole("button", { name: "Enter preview fullscreen" })
     );
@@ -3654,27 +3664,6 @@ describe("WorkstationShell", () => {
       "Preview state cleared for aurora-field.p5.js. Reload or reset the session to restore the latest runtime context."
     );
 
-    fireEvent.click(
-      within(preview).getByRole("button", { name: "Reset preview session" })
-    );
-
-    await waitFor(() => {
-      expect(screen.getByLabelText("Operator checkpoint")).toHaveTextContent(
-        "Reset preview runtime"
-      );
-    });
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Reset runtime" }));
-      await Promise.resolve();
-    });
-
-    expect(
-      within(preview).getByText("aurora-field.p5.js", { selector: "summary span" })
-    ).toBeVisible();
-    expect(
-      within(preview).getByText("Generating", { selector: "summary small" })
-    ).toBeVisible();
-
     fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
     const notesArtifact = screen.getByLabelText("projection-notes.md artifact");
     fireEvent.click(
@@ -3691,8 +3680,6 @@ describe("WorkstationShell", () => {
     const events = screen.getByRole("group", { name: "Workflow event trace" });
 
     expect(within(events).getByText("Preview Runtime Clear Completed")).toBeVisible();
-    expect(within(events).getByText("Preview Runtime Reset Approval Requested")).toBeVisible();
-    expect(within(events).getByText("Preview Runtime Reset Completed")).toBeVisible();
   });
 
   it("restores a cleared preview through the non-destructive reload path", async () => {

@@ -34,7 +34,6 @@ import {
   Settings,
   Sparkles,
   TerminalSquare,
-  Undo2,
   X
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -1935,24 +1934,6 @@ export function WorkstationShell({
     });
   }
 
-  function handlePreviewSessionReset() {
-    requestOperatorApproval({
-      actionId: "preview_runtime_reset",
-      artifactTitle:
-        snapshot.artifacts.find((artifact) => artifact.id === resolvePreviewResetArtifactId())
-          ?.title ?? interactiveSnapshot.preview.artifactName,
-      execute: () => {
-        const nextArtifactId = resolvePreviewResetArtifactId();
-
-        setPreviewArtifactId(nextArtifactId);
-        setPreviewSessionOverride(null);
-        setIsPreviewFullscreen(false);
-        setPreviewRuntimeLive(null);
-        handlePreviewOpenChange(true, { preserveFocusMode: true });
-      }
-    });
-  }
-
   function handleInspectorResizeStart(event: MouseEvent<HTMLElement>) {
     if (isInspectorCollapsed || isFocusMode) {
       return;
@@ -3290,7 +3271,6 @@ export function WorkstationShell({
               onRuntimeDiagnostics={handlePreviewRuntimeDiagnostics}
               onResizeKeyDown={handlePreviewResizeKeyDown}
               onResizeStart={handlePreviewResizeStart}
-              onReset={handlePreviewSessionReset}
               onRestart={handlePreviewSessionRestart}
               onRuntimeFrame={appendPreviewRuntimeFrameEvent}
               onRuntimeStatus={appendPreviewRuntimeStatusEvent}
@@ -3456,7 +3436,6 @@ type PreviewShelfProps = WorkstationShellProps & {
   onRuntimeDiagnostics: (event: Omit<RuntimeConsoleLiveSnapshot, "updatedAt">) => void;
   onResizeKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
   onResizeStart: (event: MouseEvent<HTMLElement>) => void;
-  onReset: () => void;
   onRestart: () => void;
   onRuntimeFrame: (event: PreviewRuntimeFrameTelemetryEvent) => void;
   onRuntimeStatus: (event: PreviewRuntimeStatusTelemetryEvent) => void;
@@ -3951,7 +3930,6 @@ function PreviewShelf({
   onRuntimeDiagnostics,
   onResizeKeyDown,
   onResizeStart,
-  onReset,
   onRestart,
   onRuntimeFrame,
   onRuntimeStatus,
@@ -4068,6 +4046,7 @@ function PreviewShelf({
                 type="button"
               >
                 <Minimize2 size={15} />
+                <span className="previewControlLabel">Exit</span>
               </button>
             </div>
           ) : (
@@ -4082,17 +4061,6 @@ function PreviewShelf({
                 </small>
               </div>
               <div className="previewToolbarActions" aria-label="Preview controls">
-                {showDebugPanels ? (
-                  <button
-                    aria-label="Collapse preview"
-                    className="previewControlButton"
-                    onClick={() => onToggle(false)}
-                    title="Collapse preview"
-                    type="button"
-                  >
-                    <ChevronDown size={15} />
-                  </button>
-                ) : null}
                 <button
                   aria-label="Enter preview fullscreen"
                   aria-pressed={false}
@@ -4103,6 +4071,7 @@ function PreviewShelf({
                   type="button"
                 >
                   <Maximize2 size={15} />
+                  <span className="previewControlLabel">Fullscreen</span>
                 </button>
                 <button
                   aria-label="Restart preview session"
@@ -4113,6 +4082,7 @@ function PreviewShelf({
                   type="button"
                 >
                   <RotateCcw size={15} />
+                  <span className="previewControlLabel">Restart</span>
                 </button>
                 {showDebugPanels ? (
                   <>
@@ -4125,6 +4095,7 @@ function PreviewShelf({
                       type="button"
                     >
                       <X size={15} />
+                      <span className="previewControlLabel">Clear</span>
                     </button>
                     <button
                       aria-label="Reload preview state"
@@ -4135,16 +4106,7 @@ function PreviewShelf({
                       type="button"
                     >
                       <RefreshCw size={15} />
-                    </button>
-                    <button
-                      aria-label="Reset preview session"
-                      className="previewControlButton"
-                      disabled={!controller.canReset}
-                      onClick={onReset}
-                      title="Reset preview session"
-                      type="button"
-                    >
-                      <Undo2 size={15} />
+                      <span className="previewControlLabel">Reload</span>
                     </button>
                   </>
                 ) : null}

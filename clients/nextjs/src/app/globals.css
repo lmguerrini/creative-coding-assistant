@@ -2632,8 +2632,9 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .previewShelf[data-user-mode="true"] .previewControlButton {
-  width: 30px;
+  width: auto;
   height: 30px;
+  padding: 0 8px;
   border-color: rgba(255, 255, 255, 0.1);
   background: rgba(6, 8, 10, 0.58);
   backdrop-filter: blur(10px);
@@ -2890,10 +2891,13 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .previewControlButton {
-  display: grid;
-  width: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: auto;
   height: 36px;
-  place-items: center;
+  padding: 0 10px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background:
@@ -2908,6 +2912,13 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
     color 180ms ease,
     transform 180ms ease,
     opacity 180ms ease;
+}
+
+.previewControlLabel {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
 }
 
 .previewControlButton:hover {

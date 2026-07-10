@@ -31,7 +31,6 @@ export type PreviewControllerModel = {
   canClear: boolean;
   canFullscreen: boolean;
   canReload: boolean;
-  canReset: boolean;
   canRestart: boolean;
   indicators: PreviewRuntimeIndicator[];
   isFullscreen: boolean;
@@ -99,12 +98,6 @@ export function buildPreviewControllerModel({
     canClear: preview.available && sessionOverride?.mode !== "cleared",
     canFullscreen: preview.available,
     canReload: preview.available && sessionOverride?.mode !== "reloading",
-    canReset:
-      preview.available &&
-      (hasActiveSessionOverride(sessionOverride) ||
-        isFullscreen ||
-        Boolean(preview.outputArtifactName) ||
-        preview.state === "unavailable"),
     canRestart: preview.available,
     indicators,
     isFullscreen,

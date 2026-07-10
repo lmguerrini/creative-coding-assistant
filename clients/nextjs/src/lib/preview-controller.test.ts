@@ -33,7 +33,6 @@ describe("preview controller", () => {
       canClear: true,
       canFullscreen: true,
       canReload: true,
-      canReset: true,
       canRestart: true,
       isFullscreen: false,
       isSessionOverridden: false,
@@ -65,7 +64,6 @@ describe("preview controller", () => {
     ).toMatchObject({
       canClear: false,
       canReload: true,
-      canReset: true,
       isFullscreen: true,
       isSessionOverridden: true,
       sessionLabel: "Cleared"
