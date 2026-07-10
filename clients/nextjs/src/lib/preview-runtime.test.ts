@@ -134,6 +134,48 @@ describe("preview runtime", () => {
     });
   });
 
+  it("does not restore a persisted preview claim for standalone Three.js HTML", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const artifact: ArtifactSummary = {
+      ...snapshot.artifacts[0],
+      content: "<!doctype html><html><script>new THREE.Scene()</script></html>",
+      rendererId: "surface.three",
+      runtime: "three",
+      title: "generated-scene.three.ts"
+    };
+
+    const result = buildPreviewRuntimeSummary({
+      artifacts: [artifact],
+      basePreview: {
+        ...snapshot.preview,
+        artifactName: artifact.title,
+        available: true,
+        sourceArtifactId: artifact.id,
+        sourceArtifactName: artifact.title,
+        state: "ready",
+        title: "Preview available"
+      },
+      isOpen: true,
+      previewArtifactId: artifact.id,
+      streamError: null,
+      traceEvents: [],
+      workflow: {
+        ...snapshot.workflow,
+        currentNode: "finalization",
+        currentStep: "Finalization",
+        status: "Completed"
+      }
+    });
+
+    expect(isArtifactPreviewable(artifact)).toBe(false);
+    expect(result).toMatchObject({
+      active: false,
+      available: false,
+      state: "unavailable",
+      title: "Preview unavailable"
+    });
+  });
+
   it("surfaces preview failures from terminal preview events", () => {
     const snapshot = getLocalWorkspaceSnapshot();
 

@@ -37,6 +37,7 @@ describe("live artifact hydration", () => {
     });
     expect(result.previewArtifactId).toBe("live-generated-artifact");
     expect(result.previewAvailable).toBe(true);
+    expect(result.artifact?.content).not.toContain("import * as THREE");
     expect(result.snapshot.code.title).toBe("generated-scene.three.ts");
     expect(result.snapshot.code.excerpt).toContain(
       "const renderer = new THREE.WebGLRenderer({ antialias: true });"
@@ -62,6 +63,50 @@ describe("live artifact hydration", () => {
       supportState: "supported",
       surfaceKind: "three"
     });
+  });
+
+  it("keeps standalone Three.js HTML inspectable without falsely opening the controlled runtime", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        artifacts: [
+          {
+            id: "standalone-three-document",
+            title: "generated-scene-1.three.ts",
+            type: "code",
+            language: "typescript",
+            runtime: "three",
+            content: [
+              "<!-- standalone Three.js document -->",
+              "<!doctype html>",
+              "<html><body><canvas id=\"c\"></canvas>",
+              "<script type=\"module\">",
+              "import * as THREE from 'https://example.test/three.js';",
+              "const scene = new THREE.Scene();",
+              "</script></body></html>"
+            ].join("\n")
+          }
+        ]
+      })
+    );
+
+    expect(result.artifact).toMatchObject({
+      id: "standalone-three-document",
+      title: "generated-scene-1.three.ts",
+      runtime: null,
+      previewEligible: false,
+      actions: ["Open", "Copy", "Download"]
+    });
+    expect(result.previewAvailable).toBe(false);
+    expect(result.previewArtifactId).toBe("");
+    expect(result.snapshot.preview).toMatchObject({
+      available: false,
+      state: "unavailable",
+      title: "Preview unavailable"
+    });
+    expect(result.snapshot.preview.summary).toContain(
+      "Standalone HTML documents cannot run"
+    );
   });
 
   it("hydrates final stream code into a previewable GSAP artifact", () => {

@@ -12,6 +12,12 @@ export const p5HtmlSourceMismatchMessage =
 export const p5GlobalModeContractMessage =
   "Use a plain JavaScript global-mode sketch with function setup() and function draw(). Keep p5 calls inside those lifecycle functions or helpers they call.";
 
+export const threeHtmlSourceMismatchMessage =
+  "Standalone HTML documents cannot run in the controlled Three.js JavaScript preview runtime. Keep the document as an export, or provide self-contained Three.js scene JavaScript without HTML markup.";
+
+export const threeRuntimeContractMessage =
+  "Use self-contained JavaScript that creates a THREE.Scene, camera, renderer, and scene content. Module imports are normalized when possible, but HTML documents, React components, and TypeScript syntax are not executable in this bounded runtime.";
+
 const supportedP5GlobalFunctions = new Set([
   "abs",
   "atan2",
@@ -132,6 +138,47 @@ export function prepareP5JavaScriptSource(source: string) {
     return `${normalized}\n\nfunction draw() {}`;
   }
   return normalized;
+}
+
+export function getThreeRuntimeSourceSupportIssue(
+  source: string | null | undefined
+) {
+  const rawSource = source?.trim() ?? "";
+  if (!rawSource) {
+    return "The Three.js preview source is empty. Add a self-contained scene script.";
+  }
+  if (looksLikeHtmlSource(rawSource)) {
+    return threeHtmlSourceMismatchMessage;
+  }
+  if (/```/.test(rawSource)) {
+    return "Markdown fences cannot run in the controlled Three.js preview. Return the executable JavaScript source only.";
+  }
+  if (
+    /@react-three\/fiber|\breact-three-fiber\b|<Canvas(?:\s|>)/i.test(rawSource)
+  ) {
+    return "React Three Fiber components need their own bundle runtime and cannot run in the controlled Three.js JavaScript preview.";
+  }
+  if (!/\bTHREE\s*\./.test(rawSource)) {
+    return null;
+  }
+  if (
+    /^\s*(?:interface|type)\s+[A-Za-z_$][\w$]*/m.test(rawSource) ||
+    /\b(?:const|let|var)\s+[A-Za-z_$][\w$]*\s*:\s*[A-Za-z_$][\w$<>{}\[\]|, ]*(?==)/.test(rawSource) ||
+    /\bfunction\s*[A-Za-z_$]*\s*\([^)]*:\s*[A-Za-z_$]/.test(rawSource) ||
+    /\)\s*:\s*[A-Za-z_$][\w$<>{}\[\]|, ]*(?=\s*[{=])/.test(rawSource)
+  ) {
+    return `TypeScript syntax is not executable in this controlled preview. ${threeRuntimeContractMessage}`;
+  }
+  return null;
+}
+
+export function prepareThreeJavaScriptSource(source: string) {
+  return source
+    .replace(/\r\n/g, "\n")
+    .replace(/^\s*import\s+[^;\n]+;?\s*$/gm, "")
+    .replace(/^\s*export\s+default\s+/gm, "")
+    .replace(/^\s*export\s+(?=(?:async\s+)?function|class|const|let|var)/gm, "")
+    .trim();
 }
 
 function stripTypeScriptParameterAnnotations(source: string) {

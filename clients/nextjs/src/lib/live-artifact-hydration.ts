@@ -29,7 +29,9 @@ import {
 } from "./svg-canvas-runtime";
 import {
   getP5RuntimeSourceSupportIssue,
-  prepareP5JavaScriptSource
+  getThreeRuntimeSourceSupportIssue,
+  prepareP5JavaScriptSource,
+  prepareThreeJavaScriptSource
 } from "./preview-source-classification";
 
 export type LiveArtifactHydrationResult = {
@@ -91,6 +93,7 @@ type ArtifactInference = {
   language: string;
   previewEligible: boolean;
   previewKind: CreativeRuntimeKind | null;
+  previewSupportIssue: string | null;
   previewTarget: PreviewTargetId | "";
   rendererId: string | null;
   qualityRank: number | null;
@@ -241,6 +244,7 @@ function hydrateWorkspaceFromSources(
     : buildUnavailablePreviewSummary({
         artifact: activeArtifact,
         basePreview: snapshot.preview,
+        previewSupportIssue: activeInference.previewSupportIssue,
         trigger: options.previewTrigger
       });
   const code =
@@ -507,12 +511,19 @@ function inferGeneratedArtifact(
       ? runtimeKind ??
         inferRuntimeKind(rawContent, normalizedLanguage, source.title)
       : null;
-  const previewKind =
-    inferredPreviewKind === "p5" && getP5RuntimeSourceSupportIssue(rawContent)
-      ? null
-      : inferredPreviewKind;
+  const previewSupportIssue =
+    inferredPreviewKind === "p5"
+      ? getP5RuntimeSourceSupportIssue(rawContent)
+      : inferredPreviewKind === "three"
+        ? getThreeRuntimeSourceSupportIssue(rawContent)
+        : null;
+  const previewKind = previewSupportIssue ? null : inferredPreviewKind;
   const content =
-    previewKind === "p5" ? prepareP5JavaScriptSource(rawContent) : rawContent;
+    previewKind === "p5"
+      ? prepareP5JavaScriptSource(rawContent)
+      : previewKind === "three"
+        ? prepareThreeJavaScriptSource(rawContent)
+        : rawContent;
   const effectiveLanguage = previewKind === "p5" ? "javascript" : normalizedLanguage;
   const title =
     normalizePreviewArtifactTitle({
@@ -559,6 +570,7 @@ function inferGeneratedArtifact(
     language,
     previewEligible,
     previewKind,
+    previewSupportIssue,
     previewTarget,
     qualityRank: source.qualityRank ?? source.critique?.rank ?? null,
     qualityScore: source.qualityScore ?? source.critique?.overallScore ?? null,
@@ -606,7 +618,9 @@ function buildArtifactSummary(
         ? ["Open", "Preview", "Copy", "Download"]
         : ["Open", "Copy", "Download"]
       : ["Open", "Copy", "Download"];
-  const runtimeSummary = inferred.previewKind
+  const runtimeSummary = inferred.previewSupportIssue
+    ? `Live preview is unavailable for this source. ${inferred.previewSupportIssue}`
+    : inferred.previewKind
     ? `${previewRendererLabels[inferred.previewKind]} runtime signals matched from the generated artifact.`
     : inferred.previewEligible
       ? "Preview target metadata is available, but no supported creative runtime matched this output."
@@ -709,10 +723,12 @@ function buildPreviewableSummary({
 function buildUnavailablePreviewSummary({
   artifact,
   basePreview,
+  previewSupportIssue = null,
   trigger = "Final generation output"
 }: {
   artifact: ArtifactSummary | null;
   basePreview: PreviewSummary;
+  previewSupportIssue?: string | null;
   trigger?: string;
 }): PreviewSummary {
   const artifactName = artifact?.title ?? "No runnable artifact";
@@ -734,6 +750,8 @@ function buildUnavailablePreviewSummary({
     status: extractionFailed ? "Completed without runnable artifact" : "Unavailable",
     summary: extractionFailed
       ? "A p5 source was found, but a runnable browser artifact could not be prepared. Open Code to review the generated source."
+      : previewSupportIssue
+        ? `${artifactName} is saved as code, but it will not be started in the live preview. ${previewSupportIssue}`
       : `${artifactName} is available in the workspace, but it does not match the supported live p5.js, Three.js, GLSL, Hydra, Tone.js, GSAP, SVG, or Canvas preview runtimes yet.`,
     target: "",
     targetId: "",

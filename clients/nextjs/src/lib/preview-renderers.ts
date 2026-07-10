@@ -18,7 +18,10 @@ import {
   hasCanvasPreviewSignal,
   hasSvgPreviewSignal
 } from "./svg-canvas-runtime";
-import { getP5RuntimeSourceSupportIssue } from "./preview-source-classification";
+import {
+  getP5RuntimeSourceSupportIssue,
+  getThreeRuntimeSourceSupportIssue
+} from "./preview-source-classification";
 
 export type PreviewRendererTone =
   | "active"
@@ -347,6 +350,10 @@ export function buildPreviewRendererRoute({
       rendererArtifact?.content?.trim() && hasP5PreviewContract(rendererArtifact)
         ? getP5RuntimeSourceSupportIssue(rendererArtifact.content)
         : null;
+    const threeSupportIssue =
+      rendererArtifact?.content?.trim() && rendererArtifact.runtime === "three"
+        ? getThreeRuntimeSourceSupportIssue(rendererArtifact.content)
+        : null;
     const gsapSupportIssue =
       rendererArtifact && hasGsapPreviewSignal(rendererArtifact)
         ? getGsapRuntimeSupportIssue(rendererArtifact.content)
@@ -360,9 +367,15 @@ export function buildPreviewRendererRoute({
         ? getCanvasRuntimeSupportIssue(rendererArtifact.content)
         : null;
     const runtimeSupportIssue =
-      p5SupportIssue ?? gsapSupportIssue ?? svgSupportIssue ?? canvasSupportIssue;
+      p5SupportIssue ??
+      threeSupportIssue ??
+      gsapSupportIssue ??
+      svgSupportIssue ??
+      canvasSupportIssue;
     const unsupportedSurfaceSummary = p5SupportIssue
       ? `${sourceArtifactName} was identified as a p5 artifact, but the current source is not executable JavaScript for the p5 runtime.`
+      : threeSupportIssue
+        ? `${sourceArtifactName} was identified as a Three.js artifact, but its current source does not meet the controlled JavaScript runtime contract.`
       : gsapSupportIssue
         ? `${sourceArtifactName} was identified as a GSAP motion artifact, but the current source exceeds the bounded sandbox rules for live execution.`
         : svgSupportIssue
@@ -376,6 +389,12 @@ export function buildPreviewRendererRoute({
           "Use JavaScript p5 source with setup() or draw() to restore live preview support",
           "HTML documents are not executed inside the p5 JavaScript runtime"
         ]
+      : threeSupportIssue
+        ? [
+            "The artifact remains inspectable as code",
+            "Use plain self-contained Three.js JavaScript to restore live preview support",
+            "Standalone HTML and React Three Fiber artifacts remain export-only in this controlled runtime"
+          ]
       : gsapSupportIssue
       ? [
           "The artifact remains inspectable as code",
@@ -566,6 +585,12 @@ function validateCreativePreviewRenderer(
   if (renderer.kind !== "gsap") {
     if (renderer.kind === "p5") {
       return artifact.content?.trim() && getP5RuntimeSourceSupportIssue(artifact.content)
+        ? null
+        : renderer;
+    }
+
+    if (renderer.kind === "three") {
+      return artifact.content?.trim() && getThreeRuntimeSourceSupportIssue(artifact.content)
         ? null
         : renderer;
     }

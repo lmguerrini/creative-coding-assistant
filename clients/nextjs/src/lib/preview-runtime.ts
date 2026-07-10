@@ -15,6 +15,10 @@ import {
   formatPreviewTargetLabel,
   normalizePreviewTargetId
 } from "./preview-targets";
+import {
+  getP5RuntimeSourceSupportIssue,
+  getThreeRuntimeSourceSupportIssue
+} from "./preview-source-classification";
 import type { WorkflowRuntimeTraceEvent } from "./workflow-runtime";
 
 type BuildPreviewRuntimeSummaryInput = {
@@ -62,7 +66,9 @@ export function buildPreviewRuntimeSummary({
     ({ event }) => readPreviewArtifactUpdate(event) !== null
   );
   const workspaceHasPreview =
-    (basePreview.available && contextMatchesBasePreview) ||
+    (basePreview.available &&
+      contextMatchesBasePreview &&
+      (contextArtifact ? isArtifactPreviewable(contextArtifact) : true)) ||
     (contextArtifact ? isArtifactPreviewable(contextArtifact) : false) ||
     traceHasPreview;
   const activeSessionOverride = matchesPreviewSessionOverride(
@@ -185,7 +191,33 @@ export function buildPreviewRuntimeSummary({
 }
 
 export function isArtifactPreviewable(artifact: ArtifactSummary): boolean {
-  return artifact.actions.includes("Preview") || artifact.type === "preview";
+  if (!artifact.actions.includes("Preview") && artifact.type !== "preview") {
+    return false;
+  }
+
+  const source = artifact.content?.trim();
+  if (!source) {
+    return true;
+  }
+
+  const title = artifact.title.toLowerCase();
+  const isP5Artifact =
+    artifact.runtime === "p5" ||
+    artifact.rendererId === "surface.p5" ||
+    title.endsWith(".p5.js") ||
+    title.endsWith(".p5.ts");
+  if (isP5Artifact && getP5RuntimeSourceSupportIssue(source)) {
+    return false;
+  }
+
+  const isThreeArtifact =
+    artifact.runtime === "three" ||
+    artifact.rendererId === "surface.three" ||
+    title.endsWith(".three.js") ||
+    title.endsWith(".three.ts") ||
+    title.endsWith(".r3f.tsx");
+
+  return !(isThreeArtifact && getThreeRuntimeSourceSupportIssue(source));
 }
 
 function resolvePreviewRuntimeState({
