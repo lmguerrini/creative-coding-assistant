@@ -749,16 +749,22 @@ export function WorkstationShell({
           setSessionIntelligenceMetadata(null);
           imageAttachmentCounterRef.current = restoredImageAttachments.length;
           streamingAssistantIdRef.current = null;
+          const restoredActiveArtifactId = resolveRestoredArtifactId(
+            restoredSession.record.activeArtifactId,
+            restoredSnapshot.artifacts,
+            restoredSnapshot.artifacts[0]?.id ?? ""
+          );
+          const restoredPreviewArtifactId = resolveRestoredArtifactId(
+            restoredSession.record.previewArtifactId,
+            restoredSnapshot.artifacts,
+            getInitialPreviewArtifactId(restoredSnapshot)
+          );
+          const restoredArtifactSelectionWasNormalized =
+            restoredActiveArtifactId !== restoredSession.record.activeArtifactId ||
+            restoredPreviewArtifactId !== restoredSession.record.previewArtifactId;
           setActiveTab(restoredSession.record.activeInspectorTab);
-          setActiveArtifactId(
-            restoredSession.record.activeArtifactId ||
-              restoredSnapshot.artifacts[0]?.id ||
-              ""
-          );
-          setPreviewArtifactId(
-            restoredSession.record.previewArtifactId ||
-              getInitialPreviewArtifactId(restoredSnapshot)
-          );
+          setActiveArtifactId(restoredActiveArtifactId);
+          setPreviewArtifactId(restoredPreviewArtifactId);
           setIsPreviewOpen(restoredSession.record.previewOpen);
           setLayoutState(normalizeWorkspaceLayoutState(restoredSession.record.layout));
           setWorkspacePreferences(
@@ -778,7 +784,7 @@ export function WorkstationShell({
           setStreamEvents(restoredSnapshot.debug.events);
           lastPersistedFingerprintRef.current =
             fingerprintWorkspaceSessionRecord(restoredSession.record);
-          skipNextPersistenceSaveRef.current = true;
+          skipNextPersistenceSaveRef.current = !restoredArtifactSelectionWasNormalized;
           setPersistenceState(
             restoredSession.source === "local" ? "local" : "restored"
           );
@@ -7098,6 +7104,16 @@ function getInitialPreviewArtifactId(snapshot: AssistantWorkspaceSnapshot): stri
     snapshot.artifacts[0]?.id ??
     ""
   );
+}
+
+function resolveRestoredArtifactId(
+  requestedArtifactId: string,
+  artifacts: ArtifactSummary[],
+  fallbackArtifactId: string
+) {
+  return artifacts.some((artifact) => artifact.id === requestedArtifactId)
+    ? requestedArtifactId
+    : fallbackArtifactId;
 }
 
 function getInitialWorkflowIndex(steps: WorkflowStepState[]) {

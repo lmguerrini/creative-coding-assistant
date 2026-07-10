@@ -6483,6 +6483,46 @@ describe("WorkstationShell", () => {
     expect(document.documentElement).toHaveAttribute("data-cca-theme", "codex");
   });
 
+  it("repairs a stale restored active artifact before a later save", async () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const persistedRecord = createWorkspaceSessionRecord({
+      activeArtifactId: "missing-artifact",
+      activeInspectorTab: "Code",
+      previewArtifactId: "missing-preview-artifact",
+      previewOpen: true,
+      snapshot
+    });
+    const persistenceClient: WorkspacePersistenceClient = {
+      load: vi.fn(async () => ({
+        error: null,
+        record: persistedRecord,
+        source: "remote" as const
+      })),
+      save: vi.fn(async () => ({ error: null, target: "remote" as const }))
+    };
+
+    renderShell(snapshot, { persistenceClient }, { mode: "user" });
+
+    await waitFor(() =>
+      expect(document.querySelector(".workstation")).toHaveAttribute(
+        "data-active-tab",
+        "code"
+      )
+    );
+    vi.mocked(persistenceClient.save).mockClear();
+
+    fireEvent.click(screen.getByRole("button", { name: "Workspace density" }));
+
+    await waitFor(() =>
+      expect(persistenceClient.save).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          activeArtifactId: "source-sketch",
+          previewArtifactId: "source-sketch"
+        })
+      )
+    );
+  });
+
   it("saves workspace state changes after persistence is ready", async () => {
     const persistenceClient: WorkspacePersistenceClient = {
       load: vi.fn(async () => ({ error: null, record: null, source: "none" as const })),
