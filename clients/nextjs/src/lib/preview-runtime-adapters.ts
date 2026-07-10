@@ -1,6 +1,7 @@
 import type { CodeSummary, PreviewSummary } from "./assistant-client";
 import type { PreviewRendererRoute } from "./preview-renderers";
 import { parseHydraRuntimeSource } from "./hydra-runtime";
+import { getGlslRuntimeSourceSupportIssue } from "./preview-source-classification";
 import { parseToneRuntimeSource } from "./tone-runtime";
 import {
   createWorkstationError,
@@ -1020,18 +1021,11 @@ function buildFragmentShaderSource(
     };
   }
 
-  if (fragmentSource.length > 6000) {
+  const sourceIssue = getGlslRuntimeSourceSupportIssue(fragmentSource);
+  if (sourceIssue) {
     return {
       allowed: false,
-      reason: "The fragment shader is too large for this lightweight runtime."
-    };
-  }
-
-  if (/\b(?:while|sampler2D|samplerCube|texture2D|textureCube|discard)\b/i.test(fragmentSource)) {
-    return {
-      allowed: false,
-      reason:
-        "The fragment shader uses features outside the current bounded runtime subset."
+      reason: sourceIssue
     };
   }
 

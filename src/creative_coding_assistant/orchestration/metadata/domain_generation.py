@@ -105,7 +105,9 @@ _DOMAIN_GENERATION_GUIDANCE: dict[CreativeCodingDomain, tuple[str, ...]] = {
         "For GLSL generation, return a fragment shader with uniforms such as "
         "u_time and u_resolution when animation is useful.",
         "Prefer a .frag artifact name and avoid host-framework boilerplate "
-        "unless requested.",
+        "unless requested. Keep it within the bounded WebGL fragment preview: use "
+        "void main() or mainImage(), and do not use #version declarations, textures, "
+        "sampler declarations, discard, or while loops.",
     ),
     CreativeCodingDomain.THREE_JS: (
         "For Three.js generation, return a browser-oriented scene using scene, "

@@ -19,6 +19,7 @@ import {
   hasSvgPreviewSignal
 } from "./svg-canvas-runtime";
 import {
+  getGlslRuntimeSourceSupportIssue,
   getP5RuntimeSourceSupportIssue,
   getThreeRuntimeSourceSupportIssue
 } from "./preview-source-classification";
@@ -350,6 +351,10 @@ export function buildPreviewRendererRoute({
       rendererArtifact?.content?.trim() && hasP5PreviewContract(rendererArtifact)
         ? getP5RuntimeSourceSupportIssue(rendererArtifact.content)
         : null;
+    const glslSupportIssue =
+      rendererArtifact?.content?.trim() && hasGlslPreviewContract(rendererArtifact)
+        ? getGlslRuntimeSourceSupportIssue(rendererArtifact.content)
+        : null;
     const threeSupportIssue =
       rendererArtifact?.content?.trim() && rendererArtifact.runtime === "three"
         ? getThreeRuntimeSourceSupportIssue(rendererArtifact.content)
@@ -368,12 +373,15 @@ export function buildPreviewRendererRoute({
         : null;
     const runtimeSupportIssue =
       p5SupportIssue ??
+      glslSupportIssue ??
       threeSupportIssue ??
       gsapSupportIssue ??
       svgSupportIssue ??
       canvasSupportIssue;
     const unsupportedSurfaceSummary = p5SupportIssue
       ? `${sourceArtifactName} was identified as a p5 artifact, but the current source is not executable JavaScript for the p5 runtime.`
+      : glslSupportIssue
+        ? `${sourceArtifactName} was identified as a GLSL artifact, but its source exceeds the controlled WebGL fragment runtime contract.`
       : threeSupportIssue
         ? `${sourceArtifactName} was identified as a Three.js artifact, but its current source does not meet the controlled JavaScript runtime contract.`
       : gsapSupportIssue
@@ -389,6 +397,12 @@ export function buildPreviewRendererRoute({
           "Use JavaScript p5 source with setup() or draw() to restore live preview support",
           "HTML documents are not executed inside the p5 JavaScript runtime"
         ]
+      : glslSupportIssue
+        ? [
+            "The artifact remains inspectable as code",
+            "Use a compact fragment shader with void main() or mainImage() to restore live preview support",
+            "Texture sampling, sampler declarations, discard, while loops, and GLSL #version declarations are outside this bounded runtime"
+          ]
       : threeSupportIssue
         ? [
             "The artifact remains inspectable as code",
@@ -595,6 +609,12 @@ function validateCreativePreviewRenderer(
         : renderer;
     }
 
+    if (renderer.kind === "glsl") {
+      return artifact.content?.trim() && getGlslRuntimeSourceSupportIssue(artifact.content)
+        ? null
+        : renderer;
+    }
+
     if (renderer.kind === "svg") {
       return getSvgRuntimeSupportIssue(artifact.content) ? null : renderer;
     }
@@ -619,6 +639,18 @@ function hasP5PreviewContract({ rendererId, runtime, title }: ArtifactSummary) {
     normalizedRuntime === "p5" ||
     normalizedTitle.endsWith(".p5.js") ||
     normalizedTitle.endsWith(".p5.ts")
+  );
+}
+
+function hasGlslPreviewContract({ domain, rendererId, runtime, title }: ArtifactSummary) {
+  const normalizedDomain = domain?.trim().toLowerCase();
+  const normalizedRenderer = rendererId?.trim().toLowerCase();
+  const normalizedRuntime = runtime?.trim().toLowerCase();
+  return (
+    normalizedDomain === "glsl" ||
+    normalizedRenderer === "surface.glsl" ||
+    normalizedRuntime === "glsl" ||
+    /\.(?:glsl|frag|fs)$/i.test(title)
   );
 }
 

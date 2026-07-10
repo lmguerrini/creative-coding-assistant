@@ -554,6 +554,38 @@ describe("live artifact hydration", () => {
     });
   });
 
+  it("keeps unsupported GLSL source code-only before the WebGL runtime mounts", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        artifacts: [
+          {
+            id: "sampled-shader",
+            filename: "sampled-field.frag",
+            language: "glsl",
+            runtime: "glsl",
+            renderer_id: "surface.glsl",
+            preview_eligible: true,
+            content:
+              "uniform sampler2D sourceTexture; void main() { gl_FragColor = texture2D(sourceTexture, vec2(0.5)); }"
+          }
+        ]
+      })
+    );
+
+    expect(result.artifact).toMatchObject({
+      id: "sampled-shader",
+      runtime: null,
+      rendererId: null,
+      previewEligible: false,
+      actions: ["Open", "Copy", "Download"]
+    });
+    expect(result.previewAvailable).toBe(false);
+    expect(result.snapshot.preview.summary).toContain(
+      "outside the current bounded runtime subset"
+    );
+  });
+
   it("hydrates graph-owned artifact extraction events before finalization", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const result = hydrateWorkspaceFromArtifactExtractedEvent(

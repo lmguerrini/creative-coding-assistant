@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  getGlslRuntimeSourceSupportIssue,
   getP5RuntimeSourceSupportIssue,
   getThreeRuntimeSourceSupportIssue,
   prepareThreeJavaScriptSource,
@@ -43,5 +44,25 @@ describe("p5 preview source classification", () => {
     ].join("\n");
 
     expect(getP5RuntimeSourceSupportIssue(source)).toBeNull();
+  });
+});
+
+describe("GLSL preview source classification", () => {
+  it("accepts a compact bounded fragment shader and rejects unsupported source", () => {
+    expect(
+      getGlslRuntimeSourceSupportIssue(
+        "void main() { gl_FragColor = vec4(0.5 + 0.5 * sin(u_time)); }"
+      )
+    ).toBeNull();
+    expect(
+      getGlslRuntimeSourceSupportIssue(
+        "uniform sampler2D sourceTexture; void main() { gl_FragColor = texture2D(sourceTexture, vec2(0.5)); }"
+      )
+    ).toContain("outside the current bounded runtime subset");
+    expect(
+      getGlslRuntimeSourceSupportIssue(
+        "#version 300 es\nout vec4 color; void main() { color = vec4(1.0); }"
+      )
+    ).toContain("#version declarations");
   });
 });

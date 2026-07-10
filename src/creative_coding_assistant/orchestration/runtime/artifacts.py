@@ -787,6 +787,8 @@ def _infer_language(content: str, title: str | None) -> str:
 
 
 def _runtime_source_preview_issue(runtime: str | None, content: str) -> str | None:
+    if runtime == "glsl":
+        return _glsl_source_preview_issue(content)
     if runtime != "p5":
         return None
     if not content.strip():
@@ -822,6 +824,28 @@ def _runtime_source_preview_issue(runtime: str | None, content: str) -> str | No
         return (
             f"{name}() is not part of the supported browser p5 preview contract. "
             f"{_P5_GLOBAL_MODE_CONTRACT}"
+        )
+    return None
+
+
+def _glsl_source_preview_issue(content: str) -> str | None:
+    source = content.strip()
+    if not source:
+        return "The GLSL preview source is empty. Add a compact fragment shader."
+    if len(source) > 6000:
+        return "The fragment shader is too large for this lightweight runtime."
+    if re.search(r"^\s*#version\b", source, flags=re.M):
+        return "GLSL #version declarations cannot run in the controlled WebGL 1 fragment preview."
+    if re.search(
+        r"\b(?:while|sampler2D|samplerCube|texture|texture2D|textureCube|discard)\b",
+        source,
+        flags=re.I,
+    ):
+        return "The fragment shader uses features outside the current bounded runtime subset."
+    if not re.search(r"void\s+(?:main|mainImage)\s*\(", source, flags=re.I):
+        return (
+            "The fragment shader needs void main() or mainImage(). Use a compact WebGL 1 "
+            "fragment shader with u_time and u_resolution uniforms."
         )
     return None
 

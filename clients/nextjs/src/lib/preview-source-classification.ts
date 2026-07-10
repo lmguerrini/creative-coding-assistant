@@ -21,12 +21,37 @@ export const threeRuntimeContractMessage =
 export const reactThreeFiberBundleRuntimeMessage =
   "React Three Fiber components need their own bundle runtime and cannot run in the controlled Three.js JavaScript preview.";
 
+export const glslRuntimeContractMessage =
+  "Use a compact WebGL 1 fragment shader with void main() or mainImage(), u_time and u_resolution uniforms, and no texture sampling, sampler declarations, discard, or while loops.";
+
 export function isReactThreeFiberSource(source: string | null | undefined) {
   const rawSource = source?.trim() ?? "";
   return (
     /@react-three\/fiber|\breact-three-fiber\b/i.test(rawSource) ||
     /<Canvas(?:\s|>)/.test(rawSource)
   );
+}
+
+export function getGlslRuntimeSourceSupportIssue(
+  source: string | null | undefined
+) {
+  const rawSource = source?.trim() ?? "";
+  if (!rawSource) {
+    return "The GLSL preview source is empty. Add a compact fragment shader.";
+  }
+  if (rawSource.length > 6000) {
+    return "The fragment shader is too large for this lightweight runtime.";
+  }
+  if (/^\s*#version\b/m.test(rawSource)) {
+    return "GLSL #version declarations cannot run in the controlled WebGL 1 fragment preview.";
+  }
+  if (/\b(?:while|sampler2D|samplerCube|texture|texture2D|textureCube|discard)\b/i.test(rawSource)) {
+    return "The fragment shader uses features outside the current bounded runtime subset.";
+  }
+  if (!/void\s+(?:main|mainImage)\s*\(/i.test(rawSource)) {
+    return `The fragment shader needs void main() or mainImage(). ${glslRuntimeContractMessage}`;
+  }
+  return null;
 }
 
 const supportedP5GlobalFunctions = new Set([

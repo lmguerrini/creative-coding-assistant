@@ -16,6 +16,7 @@ import {
   normalizePreviewTargetId
 } from "./preview-targets";
 import {
+  getGlslRuntimeSourceSupportIssue,
   getP5RuntimeSourceSupportIssue,
   getThreeRuntimeSourceSupportIssue
 } from "./preview-source-classification";
@@ -207,6 +208,14 @@ export function isArtifactPreviewable(artifact: ArtifactSummary): boolean {
     title.endsWith(".p5.js") ||
     title.endsWith(".p5.ts");
   if (isP5Artifact && getP5RuntimeSourceSupportIssue(source)) {
+    return false;
+  }
+
+  const isGlslArtifact =
+    artifact.runtime === "glsl" ||
+    artifact.rendererId === "surface.glsl" ||
+    /\.(?:glsl|frag|fs)$/i.test(title);
+  if (isGlslArtifact && getGlslRuntimeSourceSupportIssue(source)) {
     return false;
   }
 

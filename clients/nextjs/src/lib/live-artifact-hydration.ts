@@ -28,6 +28,7 @@ import {
   hasSvgPreviewSignal
 } from "./svg-canvas-runtime";
 import {
+  getGlslRuntimeSourceSupportIssue,
   getP5RuntimeSourceSupportIssue,
   getThreeRuntimeSourceSupportIssue,
   isReactThreeFiberSource,
@@ -519,6 +520,8 @@ function inferGeneratedArtifact(
   const previewSupportIssue =
     reactThreeFiberSource
       ? reactThreeFiberBundleRuntimeMessage
+      : inferredPreviewKind === "glsl"
+        ? getGlslRuntimeSourceSupportIssue(rawContent)
       : inferredPreviewKind === "p5"
       ? getP5RuntimeSourceSupportIssue(rawContent)
       : inferredPreviewKind === "three"

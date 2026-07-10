@@ -176,6 +176,49 @@ describe("preview runtime", () => {
     });
   });
 
+  it("does not restore a persisted preview claim for unsupported GLSL source", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const artifact: ArtifactSummary = {
+      ...snapshot.artifacts[0],
+      content:
+        "uniform sampler2D sourceTexture; void main() { gl_FragColor = texture2D(sourceTexture, vec2(0.5)); }",
+      rendererId: "surface.glsl",
+      runtime: "glsl",
+      title: "sampled-field.frag"
+    };
+
+    const result = buildPreviewRuntimeSummary({
+      artifacts: [artifact],
+      basePreview: {
+        ...snapshot.preview,
+        artifactName: artifact.title,
+        available: true,
+        sourceArtifactId: artifact.id,
+        sourceArtifactName: artifact.title,
+        state: "ready",
+        title: "Preview available"
+      },
+      isOpen: true,
+      previewArtifactId: artifact.id,
+      streamError: null,
+      traceEvents: [],
+      workflow: {
+        ...snapshot.workflow,
+        currentNode: "finalization",
+        currentStep: "Finalization",
+        status: "Completed"
+      }
+    });
+
+    expect(isArtifactPreviewable(artifact)).toBe(false);
+    expect(result).toMatchObject({
+      active: false,
+      available: false,
+      state: "unavailable",
+      title: "Preview unavailable"
+    });
+  });
+
   it("surfaces preview failures from terminal preview events", () => {
     const snapshot = getLocalWorkspaceSnapshot();
 

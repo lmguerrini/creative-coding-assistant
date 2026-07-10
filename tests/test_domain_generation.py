@@ -129,6 +129,44 @@ class DomainGenerationTests(unittest.TestCase):
         self.assertEqual(preview_results, ())
         self.assertIn("code-only", artifacts[0].summary)
 
+    def test_unsupported_glsl_source_stays_code_only_before_preview_preparation(self) -> None:
+        request = AssistantRequest(
+            query="Create a GLSL fragment shader with a texture sampler.",
+            domains=(CreativeCodingDomain.GLSL,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```glsl sampled-field.frag",
+                    "uniform sampler2D sourceTexture;",
+                    "void main() {",
+                    "  gl_FragColor = texture2D(sourceTexture, vec2(0.5));",
+                    "}",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        self.assertEqual(artifacts[0].domain, CreativeCodingDomain.GLSL.value)
+        self.assertFalse(artifacts[0].preview_eligible)
+        self.assertIsNone(artifacts[0].runtime)
+        self.assertIsNone(artifacts[0].renderer_id)
+        self.assertEqual(artifacts[0].status, "Preview unavailable")
+        self.assertEqual(
+            prepare_workflow_preview_results(
+                artifacts,
+                request=request,
+                route_decision=decision,
+            ),
+            (),
+        )
+        self.assertIn("outside the current bounded runtime subset", artifacts[0].summary)
+
     def test_multi_domain_artifacts_keep_distinct_runtime_metadata(self) -> None:
         request = AssistantRequest(
             query="Create multiple visual candidates for an animated field.",
