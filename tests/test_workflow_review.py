@@ -1,11 +1,18 @@
 import unittest
 
-from creative_coding_assistant.contracts import AssistantMode, AssistantRequest
+from creative_coding_assistant.contracts import (
+    AssistantMode,
+    AssistantRequest,
+    CreativeCodingDomain,
+)
 from creative_coding_assistant.orchestration import (
     WorkflowReviewOutcome,
     review_assistant_answer,
 )
 from creative_coding_assistant.orchestration.routing import route_request
+from creative_coding_assistant.orchestration.runtime.artifacts import (
+    extract_workflow_artifacts,
+)
 
 
 class WorkflowReviewTests(unittest.TestCase):
@@ -101,6 +108,42 @@ class WorkflowReviewTests(unittest.TestCase):
             result.reasons,
             ("unterminated_code_block",),
         )
+
+    def test_review_flags_browser_safe_p5_source_without_a_runnable_preview(self) -> None:
+        request = AssistantRequest(
+            query=(
+                "Create a browser-safe p5.js morphogenesis sketch with setup(), "
+                "draw(), and interaction controls."
+            ),
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        route_decision = route_request(request)
+        answer = "\n".join(
+            [
+                "```js generated-sketch-1.p5.js",
+                "const trail = new Float32Array(64);",
+                "function setup() { createCanvas(640, 360); }",
+                "function draw() { background(8); circle(20, 20, 10); }",
+                "```",
+            ]
+        )
+        artifacts = extract_workflow_artifacts(
+            answer,
+            request=request,
+            route_decision=route_decision,
+        )
+
+        result = review_assistant_answer(
+            request=request,
+            answer=answer,
+            refinement_count=0,
+            artifacts=artifacts,
+            route_decision=route_decision,
+        )
+
+        self.assertEqual(result.outcome, WorkflowReviewOutcome.NEEDS_REFINEMENT)
+        self.assertEqual(result.reasons, ("missing_runnable_artifact",))
 
 
 if __name__ == "__main__":

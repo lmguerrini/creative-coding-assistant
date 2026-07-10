@@ -226,7 +226,14 @@ def request_requests_preview(request: AssistantRequest) -> bool:
 
     return bool(
         _tokens(request.query).intersection(
-            {"browser", "browser-ready", "preview", "runnable"}
+            {
+                "browser",
+                "browser-ready",
+                "browser-safe",
+                "browser_safe",
+                "preview",
+                "runnable",
+            }
         )
     )
 
