@@ -465,6 +465,30 @@ describe("workspace persistence client", () => {
     });
   });
 
+  it("ignores a malformed local session when the remote endpoint is unavailable", async () => {
+    const storage = new MemoryStorage();
+    storage.setItem(
+      "cca.workspace.local-user.local-nextjs-session",
+      '{"schemaVersion":4,"artifacts":"not-an-array"}'
+    );
+    const offlineFetch = vi.fn(async () => {
+      throw new Error("offline");
+    });
+    const client = createWorkspacePersistenceClient({
+      fetchImpl: offlineFetch,
+      storage
+    });
+
+    await expect(client.load()).resolves.toMatchObject({
+      error: expect.objectContaining({
+        category: "persistence",
+        type: "session_restore_unavailable"
+      }),
+      record: null,
+      source: "none"
+    });
+  });
+
   it("fingerprints records without timestamp churn", () => {
     const record = createWorkspaceSessionRecord({
       activeArtifactId: "source-sketch",
