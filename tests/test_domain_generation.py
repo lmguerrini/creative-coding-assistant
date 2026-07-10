@@ -357,6 +357,30 @@ class DomainGenerationTests(unittest.TestCase):
                 self.assertIn("function draw()", artifacts[0].content)
                 self.assertEqual(len(preview_results), 1)
 
+    def test_p5_fence_filename_metadata_is_preserved_without_the_prefix(self) -> None:
+        request = AssistantRequest(
+            query="Create a p5.js flow-field particle system.",
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```javascript filename=named-field.p5.js",
+                    "function setup() { createCanvas(640, 360); }",
+                    "function draw() { background(12); circle(80, 80, 24); }",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        self.assertEqual(artifacts[0].title, "named-field.p5.js")
+        self.assertTrue(artifacts[0].preview_eligible)
+
     def test_p5_extraction_prefers_lifecycle_source_and_marks_invalid_source_honestly(self) -> None:
         request = AssistantRequest(
             query="Create a p5.js flow-field particle system.",

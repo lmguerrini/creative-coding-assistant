@@ -412,6 +412,21 @@ describe("live artifact hydration", () => {
     }
   });
 
+  it("uses filename fence metadata without retaining the metadata prefix", () => {
+    const source = [
+      "function setup() { createCanvas(640, 360); }",
+      "function draw() { background(12); circle(80, 80, 24); }"
+    ].join("\n");
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        answer: `\`\`\`javascript filename=named-field.p5.js\n${source}\n\`\`\``
+      })
+    );
+
+    expect(result.artifact?.title).toBe("named-field.p5.js");
+  });
+
   it("keeps a constrained p5 sketch eligible when streamed as an artifact", () => {
     const result = hydrateWorkspaceFromFinalEvent(
       getLocalWorkspaceSnapshot(),
