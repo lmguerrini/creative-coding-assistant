@@ -12,6 +12,7 @@ import {
   type MouseEvent,
   type SyntheticEvent
 } from "react";
+import { createPortal } from "react-dom";
 import {
   Activity,
   Boxes,
@@ -4020,9 +4021,8 @@ function PreviewShelf({
     );
   }
 
-  return (
-    <section className="previewZone" aria-label="Preview workspace">
-      <details
+  const previewShelf = (
+    <details
         data-fullscreen={controller.isFullscreen ? "true" : "false"}
         data-layout-size={layoutSize}
         className="previewShelf"
@@ -4193,8 +4193,28 @@ function PreviewShelf({
         >
           <span aria-hidden="true" />
         </div>
-      </details>
-    </section>
+    </details>
+  );
+
+  return (
+    <>
+      <section className="previewZone" aria-label="Preview workspace">
+        {controller.isFullscreen ? null : previewShelf}
+      </section>
+      {controller.isFullscreen && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              aria-label="Fullscreen artwork canvas"
+              aria-modal="true"
+              className="previewFullscreenLayer"
+              role="dialog"
+            >
+              {previewShelf}
+            </div>,
+            document.body
+          )
+        : null}
+    </>
   );
 }
 
@@ -4699,16 +4719,33 @@ function ClarificationOverviewTile({
             <p>{question.prompt}</p>
             {question.suggestedOptions.length > 0 ? (
               <div className="clarificationOptionGrid">
-                {question.suggestedOptions.map((option) => (
-                  <button
-                    disabled={disabled}
-                    key={option}
-                    onClick={() => void onOptionSelect(option)}
-                    type="button"
-                  >
-                    {option}
-                  </button>
-                ))}
+                {question.suggestedOptions.map((option, index) => {
+                  const isRecommended = option === question.defaultRecommendation;
+                  const optionNumber = index + 1;
+
+                  return (
+                    <button
+                      aria-label={`Option ${optionNumber}: ${option}${
+                        isRecommended ? " (Recommended)" : ""
+                      }`}
+                      data-recommended={isRecommended}
+                      disabled={disabled}
+                      key={option}
+                      onClick={() => void onOptionSelect(option)}
+                      type="button"
+                    >
+                      <span aria-hidden="true" className="clarificationOptionNumber">
+                        {optionNumber}
+                      </span>
+                      <span className="clarificationOptionLabel">{option}</span>
+                      {isRecommended ? (
+                        <span className="clarificationOptionRecommendation">
+                          Recommended
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
               </div>
             ) : null}
             {question.defaultRecommendation ? (

@@ -2176,9 +2176,17 @@ describe("WorkstationShell", () => {
     expect(
       within(clarificationCard).getByText("What should the assistant generate first?")
     ).toBeVisible();
+    expect(
+      within(clarificationCard).getByRole("button", {
+        name: "Option 1: Visual sketch (Recommended)"
+      })
+    ).toBeVisible();
+    expect(within(clarificationCard).getByText("Recommended")).toBeVisible();
 
     fireEvent.click(
-      within(clarificationCard).getByRole("button", { name: "Visual sketch" })
+      within(clarificationCard).getByRole("button", {
+        name: "Option 1: Visual sketch (Recommended)"
+      })
     );
 
     expect(await screen.findByText("Generated after clarification.")).toBeVisible();
@@ -3527,7 +3535,6 @@ describe("WorkstationShell", () => {
     renderShell();
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
-    const details = preview.querySelector("details");
     const summary = within(preview).getByText("Preview available").closest("summary");
 
     expect(summary).not.toBeNull();
@@ -3536,32 +3543,69 @@ describe("WorkstationShell", () => {
       within(preview).getByRole("button", { name: "Enter preview fullscreen" })
     );
 
-    expect(details).toHaveAttribute("data-fullscreen", "true");
-    expect(preview.querySelector("summary")).not.toBeInTheDocument();
+    const fullscreenLayer = screen.getByRole("dialog", {
+      name: "Fullscreen artwork canvas"
+    });
+    const fullscreenDetails = fullscreenLayer.querySelector("details");
+
+    expect(fullscreenLayer.parentElement).toBe(document.body);
+    expect(fullscreenDetails).toHaveAttribute("data-fullscreen", "true");
+    expect(preview.querySelector("details")).not.toBeInTheDocument();
     expect(
-      within(preview).getByRole("button", { name: "Exit preview fullscreen" })
+      within(fullscreenLayer).getByRole("button", {
+        name: "Exit preview fullscreen"
+      })
     ).toBeVisible();
     expect(
-      within(preview).queryByLabelText("Focused preview context")
+      within(fullscreenLayer).queryByLabelText("Focused preview context")
     ).not.toBeInTheDocument();
     expect(
-      within(preview).queryByLabelText("Preview controls")
+      within(fullscreenLayer).queryByLabelText("Preview controls")
     ).not.toBeInTheDocument();
     expect(
-      within(preview).queryByRole("button", { name: "Restart preview session" })
+      within(fullscreenLayer).queryByRole("button", { name: "Restart preview session" })
     ).not.toBeInTheDocument();
     expect(
-      within(preview).queryByRole("button", { name: "Reload preview state" })
+      within(fullscreenLayer).queryByRole("button", { name: "Reload preview state" })
     ).not.toBeInTheDocument();
 
     fireEvent.click(
-      within(preview).getByRole("button", { name: "Exit preview fullscreen" })
+      within(fullscreenLayer).getByRole("button", {
+        name: "Exit preview fullscreen"
+      })
     );
 
-    expect(details).toHaveAttribute("data-fullscreen", "false");
+    expect(
+      screen.queryByRole("dialog", { name: "Fullscreen artwork canvas" })
+    ).not.toBeInTheDocument();
     expect(
       within(preview).getByText("aurora-field.p5.js", { selector: "summary span" })
     ).toBeVisible();
+  });
+
+  it("exits the portal fullscreen artwork layer with Escape", () => {
+    renderShell();
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const summary = within(preview).getByText("Preview available").closest("summary");
+
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+    fireEvent.click(
+      within(preview).getByRole("button", { name: "Enter preview fullscreen" })
+    );
+
+    expect(
+      screen.getByRole("dialog", { name: "Fullscreen artwork canvas" })
+    ).toBeVisible();
+    expect(document.body.style.overflow).toBe("hidden");
+
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    expect(
+      screen.queryByRole("dialog", { name: "Fullscreen artwork canvas" })
+    ).not.toBeInTheDocument();
+    expect(document.body.style.overflow).toBe("");
   });
 
   it("routes destructive preview runtime actions through an operator checkpoint", async () => {

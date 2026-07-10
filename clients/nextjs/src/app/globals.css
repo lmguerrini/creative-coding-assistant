@@ -2450,11 +2450,26 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
     transform 180ms ease;
 }
 
-.previewShelf[data-fullscreen="true"] {
+.previewFullscreenLayer {
   position: fixed;
   inset: 0;
-  z-index: 80;
+  z-index: 1000;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  isolation: isolate;
+  background: #05080b;
+}
+
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] {
+  position: absolute;
+  inset: 0;
   display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
   border: 0;
   border-radius: 0;
   background: #05080b;
@@ -2703,35 +2718,38 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   color: var(--foreground);
 }
 
-.previewShelf[data-fullscreen="true"] .previewPanel {
-  position: relative;
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewPanel {
+  position: absolute;
+  inset: 0;
   display: block;
-  height: auto;
+  width: 100%;
+  height: 100%;
   min-height: 100%;
   padding: 0;
 }
 
-.previewShelf[data-fullscreen="true"] .previewFullscreenClose {
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewFullscreenClose {
   position: absolute;
   top: 16px;
   right: 16px;
   z-index: 8;
 }
 
-.previewShelf[data-fullscreen="true"] .previewFullscreenClose .previewControlButton {
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewFullscreenClose .previewControlButton {
   border-color: rgba(255, 255, 255, 0.18);
   background: rgba(5, 8, 11, 0.8);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.34);
 }
 
-.previewShelf[data-fullscreen="true"] .previewBody,
-.previewShelf[data-fullscreen="true"] .previewSurface,
-.previewShelf[data-fullscreen="true"] .previewRuntimeStage {
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewBody,
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewSurface,
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewRuntimeStage {
+  width: 100%;
   height: 100%;
   min-height: 100%;
 }
 
-.previewShelf[data-fullscreen="true"] .previewSurface {
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewSurface {
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -2739,16 +2757,18 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   box-shadow: none;
 }
 
-.previewShelf[data-fullscreen="true"] .previewRuntimeStage,
-.previewShelf[data-fullscreen="true"] .previewRuntimeFrame {
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewRuntimeStage,
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewRuntimeFrame {
+  width: 100%;
+  height: 100%;
   min-height: 100%;
   border: 0;
   border-radius: 0;
 }
 
-.previewShelf[data-fullscreen="true"] .previewRuntimeOverlay,
-.previewShelf[data-fullscreen="true"] .previewRuntimeMeta,
-.previewShelf[data-fullscreen="true"] .previewRuntimeErrorBoundary {
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewRuntimeOverlay,
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewRuntimeMeta,
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewRuntimeErrorBoundary {
   display: none;
 }
 
@@ -3999,6 +4019,10 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .clarificationOptionGrid button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
   width: 100%;
   border: 1px solid rgba(var(--accent-rgb), 0.24);
   border-radius: 12px;
@@ -4013,6 +4037,34 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
     border-color 160ms ease,
     transform 160ms ease,
     background 160ms ease;
+}
+
+.clarificationOptionNumber {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.16);
+  color: var(--teal);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.clarificationOptionLabel {
+  min-width: 0;
+}
+
+.clarificationOptionRecommendation {
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.clarificationOptionGrid button[data-recommended="true"] {
+  border-color: rgba(var(--accent-rgb), 0.42);
 }
 
 .clarificationOptionGrid button:hover:not(:disabled) {
