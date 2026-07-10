@@ -28,7 +28,6 @@ PREVIEWABLE_GENERATION_DOMAINS: tuple[CreativeCodingDomain, ...] = (
     CreativeCodingDomain.P5_JS,
     CreativeCodingDomain.GLSL,
     CreativeCodingDomain.THREE_JS,
-    CreativeCodingDomain.REACT_THREE_FIBER,
 )
 
 SUPPORTED_GENERATION_RUNTIMES = frozenset({"p5", "glsl", "three"})
@@ -55,22 +54,12 @@ _RUNTIME_SUPPORT_BY_DOMAIN: dict[CreativeCodingDomain, DomainRuntimeSupport] = {
         preview_target=PreviewTarget.BROWSER_SANDBOX.value,
         label="Three.js browser preview",
     ),
-    CreativeCodingDomain.REACT_THREE_FIBER: DomainRuntimeSupport(
-        domain=CreativeCodingDomain.REACT_THREE_FIBER,
-        runtime="three",
-        renderer_id="surface.three",
-        preview_target=PreviewTarget.BROWSER_SANDBOX.value,
-        label="React Three Fiber browser preview",
-    ),
 }
 
 _DOMAINS_BY_RUNTIME: dict[str, tuple[CreativeCodingDomain, ...]] = {
     "p5": (CreativeCodingDomain.P5_JS,),
     "glsl": (CreativeCodingDomain.GLSL,),
-    "three": (
-        CreativeCodingDomain.THREE_JS,
-        CreativeCodingDomain.REACT_THREE_FIBER,
-    ),
+    "three": (CreativeCodingDomain.THREE_JS,),
 }
 
 _MULTI_CANDIDATE_PATTERN = re.compile(
@@ -126,7 +115,9 @@ _DOMAIN_GENERATION_GUIDANCE: dict[CreativeCodingDomain, tuple[str, ...]] = {
     CreativeCodingDomain.REACT_THREE_FIBER: (
         "For React Three Fiber generation, return React component code using "
         "Canvas-friendly components and hooks such as useFrame.",
-        "Prefer a .r3f.tsx artifact name and keep Three.js imperative escapes minimal.",
+        "Prefer a .r3f.tsx artifact name and keep Three.js imperative escapes minimal. "
+        "React Three Fiber is code-only in the current workstation: it needs its own "
+        "React bundle runtime and must not be presented as a live controlled Three.js preview.",
     ),
 }
 

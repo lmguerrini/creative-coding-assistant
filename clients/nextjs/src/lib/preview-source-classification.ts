@@ -18,6 +18,17 @@ export const threeHtmlSourceMismatchMessage =
 export const threeRuntimeContractMessage =
   "Use self-contained JavaScript that creates a THREE.Scene, camera, renderer, and scene content. Module imports are normalized when possible, but HTML documents, React components, and TypeScript syntax are not executable in this bounded runtime.";
 
+export const reactThreeFiberBundleRuntimeMessage =
+  "React Three Fiber components need their own bundle runtime and cannot run in the controlled Three.js JavaScript preview.";
+
+export function isReactThreeFiberSource(source: string | null | undefined) {
+  const rawSource = source?.trim() ?? "";
+  return (
+    /@react-three\/fiber|\breact-three-fiber\b/i.test(rawSource) ||
+    /<Canvas(?:\s|>)/.test(rawSource)
+  );
+}
+
 const supportedP5GlobalFunctions = new Set([
   "abs",
   "atan2",
@@ -155,10 +166,8 @@ export function getThreeRuntimeSourceSupportIssue(
   if (/```/.test(rawSource)) {
     return "Markdown fences cannot run in the controlled Three.js preview. Return the executable JavaScript source only.";
   }
-  if (
-    /@react-three\/fiber|\breact-three-fiber\b|<Canvas(?:\s|>)/i.test(rawSource)
-  ) {
-    return "React Three Fiber components need their own bundle runtime and cannot run in the controlled Three.js JavaScript preview.";
+  if (isReactThreeFiberSource(rawSource)) {
+    return reactThreeFiberBundleRuntimeMessage;
   }
   if (!/\bTHREE\s*\./.test(rawSource)) {
     return null;

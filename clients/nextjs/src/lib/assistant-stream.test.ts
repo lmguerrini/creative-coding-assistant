@@ -6584,6 +6584,12 @@ describe("assistant stream client", () => {
           summary: "p5.js runtime ready for sandbox execution.",
           completed_at: "2026-05-22T10:25:00Z",
           preview_artifact_id: "source-sketch",
+          details: {
+            artifact: {
+              domain: "p5_js",
+              preview_eligible: true
+            }
+          },
           request: {
             target: "browser_sandbox"
           },
@@ -6598,6 +6604,8 @@ describe("assistant stream client", () => {
       status: "succeeded",
       artifactId: "source-sketch",
       previewArtifactId: "source-sketch",
+      artifactDomain: "p5_js",
+      artifactPreviewEligible: true,
       rendererId: "surface.p5",
       target: "browser_sandbox",
       summary: "p5.js runtime ready for sandbox execution.",

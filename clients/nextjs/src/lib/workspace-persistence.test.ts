@@ -112,7 +112,7 @@ describe("workspace persistence client", () => {
       "}"
     ];
     const baseSnapshot = getLocalWorkspaceSnapshot();
-    const snapshot = {
+    const snapshot: typeof baseSnapshot = {
       ...baseSnapshot,
       artifacts: [
         {
@@ -149,6 +149,70 @@ describe("workspace persistence client", () => {
     expect(restored.artifacts[0]?.content).toBe(source.join("\n"));
     expect(restored.code.excerpt).toEqual(source);
     expect(getP5RuntimeSourceSupportIssue(restored.code.excerpt.join("\n"))).toBeNull();
+  });
+
+  it("restores stale React Three Fiber metadata as code-only", () => {
+    const baseSnapshot = getLocalWorkspaceSnapshot();
+    const source = [
+      'import { Canvas, useFrame } from "@react-three/fiber";',
+      "function Orb() { useFrame(() => {}); return <mesh />; }",
+      "export default function Study() { return <Canvas><Orb /></Canvas>; }"
+    ].join("\n");
+    const snapshot: typeof baseSnapshot = {
+      ...baseSnapshot,
+      artifacts: [
+        {
+          ...baseSnapshot.artifacts[0],
+          id: "react-three-fiber-study",
+          title: "generated-scene-1.three.ts",
+          language: "TypeScript + Three.js",
+          content: source,
+          domain: "react_three_fiber",
+          runtime: "three",
+          rendererId: "surface.three",
+          previewEligible: true,
+          previewTarget: "browser_sandbox",
+          actions: ["Open", "Preview", "Copy", "Download"],
+          summary: "Extracted from the generation result; matched Three.js creative runtime."
+        }
+      ],
+      preview: {
+        ...baseSnapshot.preview,
+        available: true,
+        renderer: "surface.three",
+        sourceArtifactId: "react-three-fiber-study",
+        state: "ready"
+      }
+    };
+    const record = createWorkspaceSessionRecord({
+      activeArtifactId: "react-three-fiber-study",
+      activeInspectorTab: "Code",
+      previewArtifactId: "react-three-fiber-study",
+      previewOpen: true,
+      snapshot
+    });
+
+    const restored = snapshotFromWorkspaceSessionRecord(baseSnapshot, record);
+
+    expect(restored.artifacts[0]).toMatchObject({
+      title: "generated-study-1.r3f.tsx",
+      language: "TypeScript + React Three Fiber",
+      runtime: null,
+      rendererId: null,
+      previewEligible: false,
+      previewTarget: "",
+      actions: ["Open", "Copy", "Download"]
+    });
+    expect(restored.preview).toMatchObject({
+      available: false,
+      active: false,
+      collapsed: true,
+      state: "unavailable",
+      title: "Preview unavailable"
+    });
+    expect(restored.preview.summary).toContain(
+      "React Three Fiber components need their own bundle runtime"
+    );
   });
 
   it("normalizes layout preferences into safe persisted values", () => {

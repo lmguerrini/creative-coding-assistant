@@ -439,7 +439,12 @@ def _build_workflow_artifact(
         block.title,
         language=effective_language,
         runtime=runtime,
-    ) or _default_artifact_title(effective_language, runtime, index)
+    ) or _default_artifact_title(
+        effective_language,
+        runtime,
+        index,
+        artifact_domain=artifact_domain,
+    )
     artifact_id = _sanitize_identifier(title) or f"generated-artifact-{index}"
     content_hash = sha256(content.encode("utf-8")).hexdigest()
     renderer_id = support.renderer_id if preview_ready else None
@@ -467,7 +472,12 @@ def _build_workflow_artifact(
         id=artifact_id,
         title=title,
         name=title,
-        language=_format_language_label(effective_language, effective_runtime, title),
+        language=_format_language_label(
+            effective_language,
+            effective_runtime,
+            title,
+            artifact_domain=artifact_domain,
+        ),
         source_language=effective_language,
         content=content,
         summary="; ".join(summary_parts) + ".",
@@ -983,7 +993,19 @@ def _normalize_language(value: str) -> str:
     return aliases.get(normalized, normalized)
 
 
-def _format_language_label(language: str, runtime: str | None, title: str) -> str:
+def _format_language_label(
+    language: str,
+    runtime: str | None,
+    title: str,
+    *,
+    artifact_domain: CreativeCodingDomain | None = None,
+) -> str:
+    if artifact_domain is CreativeCodingDomain.REACT_THREE_FIBER:
+        return (
+            "JavaScript + React Three Fiber"
+            if language == "javascript"
+            else "TypeScript + React Three Fiber"
+        )
     if runtime == "three":
         return (
             "JavaScript + Three.js"
@@ -1010,7 +1032,11 @@ def _default_artifact_title(
     language: str,
     runtime: str | None,
     index: int,
+    *,
+    artifact_domain: CreativeCodingDomain | None = None,
 ) -> str:
+    if artifact_domain is CreativeCodingDomain.REACT_THREE_FIBER:
+        return f"generated-study-{index}.r3f.tsx"
     if runtime == "three":
         extension = "js" if language == "javascript" else "ts"
         return f"generated-scene-{index}.three.{extension}"

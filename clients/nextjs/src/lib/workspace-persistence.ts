@@ -17,6 +17,10 @@ import {
   parseSubsystemErrorPayload,
   type WorkstationError
 } from "./workstation-errors";
+import {
+  getArtifactPreviewSupportIssue,
+  normalizeStoredArtifactRuntimeBoundary
+} from "./live-artifact-hydration";
 
 export const defaultLocalUserId = "local-user";
 export const defaultLocalSessionId = "local-nextjs-session";
@@ -252,19 +256,47 @@ export function snapshotFromWorkspaceSessionRecord(
   record: WorkspaceSessionRecord
 ): AssistantWorkspaceSnapshot {
   const restoredSnapshot = record.snapshot ?? fallback;
-  const artifacts = record.artifacts.length
+  const artifacts = (record.artifacts.length
     ? record.artifacts
-    : restoredSnapshot.artifacts;
+    : restoredSnapshot.artifacts
+  ).map(normalizeStoredArtifactRuntimeBoundary);
   const multimodal = normalizeWorkspaceMultimodal(
     fallback.multimodal,
     record.multimodal ?? restoredSnapshot.multimodal
   );
-  const preview = {
+  const restoredPreview = {
     ...restoredSnapshot.preview,
     ...record.preview,
     active: record.previewOpen,
     collapsed: !record.previewOpen
   };
+  const previewArtifact = findRestoredPreviewArtifact(
+    artifacts,
+    record,
+    restoredPreview
+  );
+  const previewSupportIssue = previewArtifact
+    ? getArtifactPreviewSupportIssue(previewArtifact)
+    : null;
+  const preview = previewSupportIssue
+    ? {
+        ...restoredPreview,
+        active: false,
+        artifactName: previewArtifact?.title ?? restoredPreview.artifactName,
+        available: false,
+        collapsed: true,
+        outputArtifactName: "",
+        renderer: "",
+        sourceArtifactId: previewArtifact?.id ?? "",
+        sourceArtifactName: previewArtifact?.title ?? "",
+        state: "unavailable" as const,
+        status: "Unavailable",
+        summary: `${previewArtifact?.title ?? "This artifact"} is saved as code, but it will not be started in the live preview. ${previewSupportIssue}`,
+        target: "",
+        targetId: "" as const,
+        title: "Preview unavailable"
+      }
+    : restoredPreview;
 
   return {
     ...fallback,
@@ -295,6 +327,28 @@ export function snapshotFromWorkspaceSessionRecord(
     multimodal,
     preview
   };
+}
+
+function findRestoredPreviewArtifact(
+  artifacts: ArtifactSummary[],
+  record: WorkspaceSessionRecord,
+  preview: PreviewSummary
+): ArtifactSummary | null {
+  const candidateIds = [
+    record.previewArtifactId,
+    record.activeArtifactId,
+    preview.sourceArtifactId,
+    preview.artifactName
+  ].filter(Boolean);
+  return (
+    candidateIds
+      .map((candidateId) =>
+        artifacts.find(
+          (artifact) => artifact.id === candidateId || artifact.title === candidateId
+        )
+      )
+      .find((artifact): artifact is ArtifactSummary => artifact !== undefined) ?? null
+  );
 }
 
 export function fingerprintWorkspaceSessionRecord(

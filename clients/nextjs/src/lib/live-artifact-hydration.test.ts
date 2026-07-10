@@ -109,6 +109,54 @@ describe("live artifact hydration", () => {
     );
   });
 
+  it("keeps React Three Fiber source code-only even when stale metadata claims a Three.js preview", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        artifacts: [
+          {
+            id: "react-three-fiber-component",
+            title: "generated-scene-1.three.ts",
+            type: "code",
+            language: "typescript",
+            runtime: "three",
+            renderer_id: "surface.three",
+            preview_eligible: true,
+            preview_target: "browser_sandbox",
+            summary: "Extracted from the generation result; matched Three.js creative runtime; for react three fiber.",
+            content: [
+              'import { Canvas, useFrame } from "@react-three/fiber";',
+              "function Orb() { useFrame(() => {}); return <mesh />; }",
+              "export default function Study() { return <Canvas><Orb /></Canvas>; }"
+            ].join("\n")
+          }
+        ]
+      })
+    );
+
+    expect(result.artifact).toMatchObject({
+      id: "react-three-fiber-component",
+      title: "generated-study-1.r3f.tsx",
+      language: "TypeScript + React Three Fiber",
+      runtime: null,
+      previewEligible: false,
+      actions: ["Open", "Copy", "Download"]
+    });
+    expect(result.artifact?.summary).toContain(
+      "React Three Fiber components need their own bundle runtime"
+    );
+    expect(result.artifact?.summary).not.toContain("matched Three.js creative runtime");
+    expect(result.previewAvailable).toBe(false);
+    expect(result.snapshot.preview).toMatchObject({
+      available: false,
+      state: "unavailable",
+      title: "Preview unavailable"
+    });
+    expect(result.snapshot.preview.summary).toContain(
+      "React Three Fiber components need their own bundle runtime"
+    );
+  });
+
   it("hydrates final stream code into a previewable GSAP artifact", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const result = hydrateWorkspaceFromFinalEvent(

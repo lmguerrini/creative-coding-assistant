@@ -2505,10 +2505,31 @@ export function WorkstationShell({
     }
 
     if (streamEvent.event_type === "preview_artifact") {
-      hasPreviewRuntimeEventRef.current = true;
       const previewUpdate = readPreviewArtifactUpdate(streamEvent);
       const nextPreviewArtifactId =
         previewUpdate?.previewArtifactId ?? previewUpdate?.artifactId ?? null;
+      const previewArtifact = nextPreviewArtifactId
+        ? snapshot.artifacts.find((artifact) => artifact.id === nextPreviewArtifactId) ??
+          null
+        : null;
+      const previewEventIsCodeOnly =
+        previewUpdate?.artifactDomain === "react_three_fiber" ||
+        previewUpdate?.artifactPreviewEligible === false;
+      const previewCanOpen =
+        previewUpdate?.status === "succeeded" &&
+        !previewEventIsCodeOnly &&
+        (!previewArtifact || isArtifactPreviewable(previewArtifact));
+
+      if (!previewCanOpen) {
+        hasPreviewRuntimeEventRef.current = false;
+        if (previewArtifact && !isArtifactPreviewable(previewArtifact)) {
+          setPreviewArtifactId("");
+        }
+        handlePreviewOpenChange(false);
+        return;
+      }
+
+      hasPreviewRuntimeEventRef.current = true;
 
       if (previewUpdate) {
         setPreviewSessionOverride((currentOverride) => {
@@ -6433,6 +6454,14 @@ function formatUserArtifactLabel(artifact: ArtifactSummary) {
   ]
     .join(" ")
     .toLowerCase();
+
+  if (
+    artifact.domain === "react_three_fiber" ||
+    artifact.title.toLowerCase().endsWith(".r3f.tsx") ||
+    searchable.includes("react three fiber")
+  ) {
+    return "React Three Fiber";
+  }
 
   if (searchable.includes("three")) {
     return "Three.js Scene";

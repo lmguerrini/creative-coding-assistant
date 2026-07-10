@@ -30,8 +30,10 @@ import {
 import {
   getP5RuntimeSourceSupportIssue,
   getThreeRuntimeSourceSupportIssue,
+  isReactThreeFiberSource,
   prepareP5JavaScriptSource,
-  prepareThreeJavaScriptSource
+  prepareThreeJavaScriptSource,
+  reactThreeFiberBundleRuntimeMessage
 } from "./preview-source-classification";
 
 export type LiveArtifactHydrationResult = {
@@ -511,8 +513,13 @@ function inferGeneratedArtifact(
       ? runtimeKind ??
         inferRuntimeKind(rawContent, normalizedLanguage, source.title)
       : null;
+  const reactThreeFiberSource =
+    type === "code" &&
+    (source.domain === "react_three_fiber" || isReactThreeFiberSource(rawContent));
   const previewSupportIssue =
-    inferredPreviewKind === "p5"
+    reactThreeFiberSource
+      ? reactThreeFiberBundleRuntimeMessage
+      : inferredPreviewKind === "p5"
       ? getP5RuntimeSourceSupportIssue(rawContent)
       : inferredPreviewKind === "three"
         ? getThreeRuntimeSourceSupportIssue(rawContent)
@@ -526,6 +533,11 @@ function inferGeneratedArtifact(
         : rawContent;
   const effectiveLanguage = previewKind === "p5" ? "javascript" : normalizedLanguage;
   const title =
+    normalizeReactThreeFiberTitle({
+      isReactThreeFiberSource: reactThreeFiberSource,
+      sourceOrder: totalSources > 1 ? sourceOrder : undefined,
+      title: sanitizeFileName(source.title ?? "")
+    }) ||
     normalizePreviewArtifactTitle({
       language: effectiveLanguage,
       previewKind,
@@ -538,7 +550,12 @@ function inferGeneratedArtifact(
       sourceOrder: totalSources > 1 ? sourceOrder : undefined,
       type
     });
-  const language = formatLanguageLabel(effectiveLanguage, previewKind, title);
+  const language = formatLanguageLabel(
+    effectiveLanguage,
+    previewKind,
+    title,
+    reactThreeFiberSource
+  );
   const rawPreviewTarget = normalizePreviewTarget(source.previewTarget);
   const previewTarget =
     type === "code"
@@ -626,7 +643,9 @@ function buildArtifactSummary(
       ? "Preview target metadata is available, but no supported creative runtime matched this output."
     : "No supported p5.js, Three.js, GLSL, Hydra, Tone.js, GSAP, SVG, or Canvas preview runtime matched this output.";
   const summary =
-    inferred.summary ??
+    inferred.previewSupportIssue
+      ? runtimeSummary
+      : inferred.summary ??
     (inferred.type === "code"
       ? `Hydrated from ${hydrationSource}. ${runtimeSummary}`
       : `Hydrated from ${hydrationSource} as a readable response artifact.`);
@@ -655,6 +674,45 @@ function buildArtifactSummary(
     runtime: inferred.previewKind,
     sourceOrder: inferred.sourceOrder,
     actions
+  };
+}
+
+export function getArtifactPreviewSupportIssue(
+  artifact: Pick<ArtifactSummary, "content" | "domain" | "type">
+) {
+  const isReactThreeFiberArtifact =
+    artifact.type === "code" &&
+    (artifact.domain === "react_three_fiber" ||
+      isReactThreeFiberSource(artifact.content));
+  return isReactThreeFiberArtifact ? reactThreeFiberBundleRuntimeMessage : null;
+}
+
+export function normalizeStoredArtifactRuntimeBoundary(
+  artifact: ArtifactSummary
+): ArtifactSummary {
+  const previewSupportIssue = getArtifactPreviewSupportIssue(artifact);
+  if (!previewSupportIssue) {
+    return artifact;
+  }
+
+  const title = normalizeReactThreeFiberTitle({
+    isReactThreeFiberSource: true,
+    sourceOrder: artifact.sourceOrder,
+    title: artifact.title
+  });
+  return {
+    ...artifact,
+    actions: artifact.actions.filter((action) => action !== "Preview"),
+    language:
+      artifact.language.toLowerCase().includes("javascript")
+        ? "JavaScript + React Three Fiber"
+        : "TypeScript + React Three Fiber",
+    previewEligible: false,
+    previewTarget: "",
+    rendererId: null,
+    runtime: null,
+    summary: `Live preview is unavailable for this source. ${previewSupportIssue}`,
+    title
   };
 }
 
@@ -983,11 +1041,38 @@ function normalizePreviewArtifactTitle({
   return title;
 }
 
+function normalizeReactThreeFiberTitle({
+  isReactThreeFiberSource,
+  sourceOrder,
+  title
+}: {
+  isReactThreeFiberSource: boolean;
+  sourceOrder?: number;
+  title: string;
+}) {
+  if (!isReactThreeFiberSource) {
+    return title;
+  }
+
+  if (title && !/\.three\.(?:js|ts)$/i.test(title)) {
+    return title;
+  }
+
+  const legacySequence = title.match(/^generated-scene(-\d+)?\.three\.(?:js|ts)$/i)?.[1];
+  return `generated-study${legacySequence ?? (sourceOrder ? `-${sourceOrder}` : "")}.r3f.tsx`;
+}
+
 function formatLanguageLabel(
   language: string,
   previewKind: CreativeRuntimeKind | null,
-  title: string
+  title: string,
+  isReactThreeFiberSource = false
 ) {
+  if (isReactThreeFiberSource) {
+    return language === "javascript"
+      ? "JavaScript + React Three Fiber"
+      : "TypeScript + React Three Fiber";
+  }
   if (previewKind === "three") {
     return language === "javascript" ? "JavaScript + Three.js" : "TypeScript + Three.js";
   }

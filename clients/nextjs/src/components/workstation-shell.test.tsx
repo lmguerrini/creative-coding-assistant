@@ -3120,6 +3120,92 @@ describe("WorkstationShell", () => {
     expect(preview.querySelector("details")).not.toHaveAttribute("open");
   });
 
+  it("does not open a stale preview event for a React Three Fiber artifact", async () => {
+    const baseSnapshot = getLocalWorkspaceSnapshot();
+    const snapshot: AssistantWorkspaceSnapshot = {
+      ...baseSnapshot,
+      artifacts: [
+        {
+          ...baseSnapshot.artifacts[0],
+          id: "react-three-fiber-study",
+          title: "installation.r3f.tsx",
+          language: "TypeScript + React Three Fiber",
+          content: [
+            'import { Canvas, useFrame } from "@react-three/fiber";',
+            "function Orb() { useFrame(() => {}); return <mesh />; }",
+            "export default function Study() { return <Canvas><Orb /></Canvas>; }"
+          ].join("\n"),
+          domain: "react_three_fiber",
+          runtime: null,
+          rendererId: null,
+          previewEligible: false,
+          previewTarget: "",
+          actions: ["Open", "Copy", "Download"]
+        }
+      ],
+      preview: {
+        ...baseSnapshot.preview,
+        available: false,
+        active: false,
+        collapsed: true,
+        state: "unavailable",
+        title: "Preview unavailable"
+      }
+    };
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "status",
+          sequence: 0,
+          payload: { code: "request_received", message: "Request accepted." }
+        },
+        {
+          event_type: "preview_artifact",
+          sequence: 1,
+          payload: {
+            artifact_id: "react-three-fiber-study",
+            status: "succeeded",
+            result: {
+              preview_artifact_id: "react-three-fiber-study",
+              details: {
+                artifact: {
+                  domain: "react_three_fiber",
+                  preview_eligible: false
+                }
+              },
+              request: { target: "browser_sandbox" },
+              provenance: { renderer_id: "surface.three" }
+            }
+          }
+        },
+        {
+          event_type: "final",
+          sequence: 2,
+          payload: { answer: "React Three Fiber source is ready to inspect." }
+        }
+      ])
+    );
+
+    renderUserShell(snapshot, { streamAssistantEvents: backendStream });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Return React Three Fiber source." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    expect(
+      await screen.findByText("React Three Fiber source is ready to inspect.")
+    ).toBeVisible();
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    expect(within(preview).getByText("Preview unavailable")).toBeVisible();
+    expect(
+      within(preview).queryByRole("button", { name: "Enter preview fullscreen" })
+    ).not.toBeInTheDocument();
+    expect(
+      within(preview).queryByRole("button", { name: "Restart preview session" })
+    ).not.toBeInTheDocument();
+  });
+
   it("falls back to the local draft path when the live response is unavailable", async () => {
     vi.useFakeTimers();
     renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: failingStream });

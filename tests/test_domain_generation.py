@@ -91,6 +91,44 @@ class DomainGenerationTests(unittest.TestCase):
         self.assertEqual(preview_results, ())
         self.assertIn("code-only", artifacts[0].summary)
 
+    def test_react_three_fiber_artifact_stays_code_only_without_a_bundle_runtime(self) -> None:
+        request = AssistantRequest(
+            query="Create a React Three Fiber installation study.",
+            domains=(CreativeCodingDomain.REACT_THREE_FIBER,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```tsx",
+                    'import { Canvas, useFrame } from "@react-three/fiber";',
+                    "function Orb() { useFrame(() => {}); return <mesh />; }",
+                    "export default function Study() { return <Canvas><Orb /></Canvas>; }",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+        preview_results = prepare_workflow_preview_results(
+            artifacts,
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        self.assertEqual(artifacts[0].domain, CreativeCodingDomain.REACT_THREE_FIBER.value)
+        self.assertEqual(artifacts[0].title, "generated-study-1.r3f.tsx")
+        self.assertEqual(artifacts[0].language, "TypeScript + React Three Fiber")
+        self.assertFalse(artifacts[0].preview_eligible)
+        self.assertIsNone(artifacts[0].runtime)
+        self.assertIsNone(artifacts[0].renderer_id)
+        self.assertEqual(artifacts[0].status, "Generated")
+        self.assertEqual(preview_results, ())
+        self.assertIn("code-only", artifacts[0].summary)
+
     def test_multi_domain_artifacts_keep_distinct_runtime_metadata(self) -> None:
         request = AssistantRequest(
             query="Create multiple visual candidates for an animated field.",
@@ -545,11 +583,10 @@ class DomainGenerationTests(unittest.TestCase):
 
         system_section = rendered.sections[0].content
         self.assertIn("Generation Runtime Guidance:", system_section)
-        self.assertIn(
-            "react_three_fiber has current live preview support",
-            system_section,
-        )
+        self.assertIn("react_three_fiber is code-only", system_section)
+        self.assertIn("do not claim live preview readiness", system_section)
         self.assertIn("Prefer a .r3f.tsx artifact name", system_section)
+        self.assertIn("needs its own React bundle runtime", system_section)
 
     def test_prompt_renderer_keeps_p5_generation_inside_the_preview_contract(self) -> None:
         request = AssistantRequest(

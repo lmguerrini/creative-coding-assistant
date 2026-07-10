@@ -378,6 +378,8 @@ export type AssistantPreviewArtifactUpdate = {
   status: AssistantPreviewArtifactStatus;
   artifactId: string | null;
   previewArtifactId: string | null;
+  artifactDomain: string | null;
+  artifactPreviewEligible: boolean | null;
   rendererId: string | null;
   target: string | null;
   summary: string | null;
@@ -10320,6 +10322,8 @@ export function readPreviewArtifactUpdate(
 
   const rawResult = event.payload.result;
   const result = isRecord(rawResult) ? rawResult : null;
+  const details = isRecord(result?.details) ? result.details : null;
+  const artifact = isRecord(details?.artifact) ? details.artifact : null;
   const provenance = isRecord(result?.provenance) ? result.provenance : null;
   const request = isRecord(result?.request) ? result.request : null;
   const error = isRecord(result?.error) ? result.error : null;
@@ -10339,6 +10343,11 @@ export function readPreviewArtifactUpdate(
     previewArtifactId:
       typeof result?.preview_artifact_id === "string"
         ? result.preview_artifact_id
+        : null,
+    artifactDomain: typeof artifact?.domain === "string" ? artifact.domain : null,
+    artifactPreviewEligible:
+      typeof artifact?.preview_eligible === "boolean"
+        ? artifact.preview_eligible
         : null,
     rendererId:
       typeof provenance?.renderer_id === "string" ? provenance.renderer_id : null,
