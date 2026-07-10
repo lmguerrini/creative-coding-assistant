@@ -37,6 +37,33 @@ describe("Hydra runtime model", () => {
     });
   });
 
+  it("parses readable multiline method chains as one bounded output chain", () => {
+    const result = parseHydraRuntimeSource(
+      [
+        "osc(12, 0.08, 1.4)",
+        "  .kaleid(5)",
+        "  .modulate(noise(3, 0.2), 0.14)",
+        "  .blend(shape(4, 0.36, 0.02), 0.24)",
+        "  .out(o0);"
+      ].join("\n")
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      program: {
+        renderTarget: "o0"
+      }
+    });
+    if (!result.ok) {
+      return;
+    }
+    expect(result.program.outputs.o0?.operators.map((operator) => operator.name)).toEqual([
+      "kaleid",
+      "modulate",
+      "blend"
+    ]);
+  });
+
   it("serializes parse failures instead of executable user source", () => {
     const prepared = prepareHydraRuntimeSource(
       "osc(10).constructor.constructor('return window')().out();"

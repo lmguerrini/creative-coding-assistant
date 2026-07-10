@@ -195,11 +195,25 @@ function splitHydraStatements(source: string) {
   const normalized = source
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/\/\/.*$/gm, "");
+  const foldedContinuations = normalized
+    .split("\n")
+    .reduce<string[]>((lines, line) => {
+      const trimmed = line.trim();
+      if (trimmed.startsWith(".") && lines.length > 0) {
+        const lastIndex = lines.length - 1;
+        lines[lastIndex] = `${lines[lastIndex]} ${trimmed}`;
+        return lines;
+      }
+
+      lines.push(line);
+      return lines;
+    }, [])
+    .join("\n");
   const statements: string[] = [];
   let current = "";
   let depth = 0;
 
-  for (const character of normalized) {
+  for (const character of foldedContinuations) {
     if (character === "(") {
       depth += 1;
     } else if (character === ")") {

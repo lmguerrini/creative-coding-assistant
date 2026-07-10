@@ -176,6 +176,79 @@ describe("preview sandbox runtime", () => {
     ).toContain("createGraphics() is not part of the supported browser p5 preview contract");
   });
 
+  it("rejects unsupported GLSL source again at the sandbox mount boundary", () => {
+    expect(
+      getPreviewRuntimeSourceMismatch({
+        kind: "glsl",
+        source: {
+          fingerprint: "sampled-fragment",
+          lineCount: 1,
+          source:
+            "uniform sampler2D sourceTexture; void main() { gl_FragColor = texture2D(sourceTexture, vec2(0.5)); }",
+          title: "sampled-field.frag"
+        }
+      })
+    ).toContain("outside the current bounded runtime subset");
+  });
+
+  it("rejects unsupported Three.js source again at the sandbox mount boundary", () => {
+    expect(
+      getPreviewRuntimeSourceMismatch({
+        kind: "three",
+        source: {
+          fingerprint: "three-html-document",
+          lineCount: 1,
+          source: "<!doctype html><html><body><script>new THREE.Scene()</script></body></html>",
+          title: "exported-scene.three.ts"
+        }
+      })
+    ).toContain("Standalone HTML documents cannot run");
+  });
+
+  it("reapplies every other bounded runtime source contract at the sandbox mount boundary", () => {
+    const rejectedSources = [
+      {
+        kind: "hydra" as const,
+        source: "osc(12, 0.2, 0.4)",
+        expected: "end with out()"
+      },
+      {
+        kind: "tone" as const,
+        source: "const value = 1;",
+        expected: "must reference the Tone namespace"
+      },
+      {
+        kind: "gsap" as const,
+        source: "fetch('https://example.test'); gsap.to('.particle', { x: 20 });",
+        expected: "Remote network access"
+      },
+      {
+        kind: "svg" as const,
+        source: "<svg onclick=\"alert(1)\"></svg>",
+        expected: "without event handlers"
+      },
+      {
+        kind: "canvas" as const,
+        source: "fetch('https://example.test'); ctx.fillRect(0, 0, 1, 1);",
+        expected: "Remote network access"
+      }
+    ];
+
+    for (const rejected of rejectedSources) {
+      expect(
+        getPreviewRuntimeSourceMismatch({
+          kind: rejected.kind,
+          source: {
+            fingerprint: `rejected-${rejected.kind}`,
+            lineCount: 1,
+            source: rejected.source,
+            title: `rejected.${rejected.kind}`
+          }
+        })
+      ).toContain(rejected.expected);
+    }
+  });
+
   it("prepares Hydra source as a bounded execution plan", () => {
     const source =
       "osc(10, 0.1, 1.2).modulate(shape(4, 0.3, 0.02), 0.12).out(o1); render(o1);";

@@ -4,14 +4,27 @@ import type {
   PreviewRuntimeSource,
   PreviewRuntimeStatus
 } from "./preview-runtime-adapters";
-import { prepareHydraRuntimeSource } from "./hydra-runtime";
-import { prepareToneRuntimeSource } from "./tone-runtime";
+import {
+  parseHydraRuntimeSource,
+  prepareHydraRuntimeSource
+} from "./hydra-runtime";
+import { getGsapRuntimeSupportIssue } from "./gsap-runtime";
+import {
+  getCanvasRuntimeSupportIssue,
+  getSvgRuntimeSupportIssue
+} from "./svg-canvas-runtime";
+import {
+  parseToneRuntimeSource,
+  prepareToneRuntimeSource
+} from "./tone-runtime";
 import {
   createWorkstationError,
   type WorkstationError
 } from "./workstation-errors";
 import {
+  getGlslRuntimeSourceSupportIssue,
   getP5RuntimeSourceSupportIssue,
+  getThreeRuntimeSourceSupportIssue,
   prepareP5JavaScriptSource
 } from "./preview-source-classification";
 
@@ -317,11 +330,30 @@ export function getPreviewRuntimeSourceMismatch({
   kind: PreviewExecutableRuntimeKind;
   source: PreviewRuntimeSource;
 }) {
-  if (kind === "p5") {
-    return getP5RuntimeSourceSupportIssue(source.source);
+  switch (kind) {
+    case "p5":
+      return getP5RuntimeSourceSupportIssue(source.source);
+    case "glsl":
+      return getGlslRuntimeSourceSupportIssue(source.source);
+    case "three":
+      return getThreeRuntimeSourceSupportIssue(source.source);
+    case "hydra": {
+      const parsed = parseHydraRuntimeSource(source.source);
+      return parsed.ok ? null : parsed.message;
+    }
+    case "tone": {
+      const parsed = parseToneRuntimeSource(source.source);
+      return parsed.ok ? null : parsed.message;
+    }
+    case "gsap":
+      return getGsapRuntimeSupportIssue(source.source);
+    case "svg":
+      return getSvgRuntimeSupportIssue(source.source);
+    case "canvas":
+      return getCanvasRuntimeSupportIssue(source.source);
+    default:
+      return null;
   }
-
-  return null;
 }
 
 function getSandboxStartingStatus(
