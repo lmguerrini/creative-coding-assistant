@@ -4290,6 +4290,13 @@ describe("WorkstationShell", () => {
     expect(
       within(surface).getByRole("button", { name: "Reload preview runtime" })
     ).toBeVisible();
+    expect(screen.getByLabelText("Current session")).toHaveTextContent(
+      "Needs attention"
+    );
+    expect(screen.getByLabelText("Current session")).toHaveTextContent(
+      "Preview needs attention"
+    );
+
   });
 
   it("shows runtime errors and reload requests inside the runtime console", async () => {

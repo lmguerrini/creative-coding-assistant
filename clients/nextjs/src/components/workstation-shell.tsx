@@ -1222,6 +1222,7 @@ export function WorkstationShell({
     ? blockingApprovalRequest.title
     : workstationState.status.detail;
   const userSessionStatus = formatUserModeSessionStatus({
+    hasFailedPreviewRuntime: runtimeConsole.health.signal === "failed",
     hasWorkspaceArtifacts,
     isDemoModeOpen,
     streamError,
@@ -7312,11 +7313,13 @@ function formatSessionTelemetryLabel(telemetry: ProviderTelemetryModel) {
 }
 
 function formatUserModeSessionStatus({
+  hasFailedPreviewRuntime,
   hasWorkspaceArtifacts,
   isDemoModeOpen,
   streamError,
   streamState
 }: {
+  hasFailedPreviewRuntime: boolean;
   hasWorkspaceArtifacts: boolean;
   isDemoModeOpen: boolean;
   streamError: WorkstationError | null;
@@ -7340,6 +7343,13 @@ function formatUserModeSessionStatus({
         detail: streamError ? "Live response unavailable" : "Fallback available"
       };
     default:
+      if (hasFailedPreviewRuntime) {
+        return {
+          label: "Needs attention",
+          detail: "Preview needs attention"
+        };
+      }
+
       if (hasWorkspaceArtifacts) {
         return {
           label: "Complete",
