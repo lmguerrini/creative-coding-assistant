@@ -19,18 +19,20 @@ const generatedArtifact = {
   summary: "E2E smoke p5 orbit field with deterministic preview routing.",
   content: [
     "let phase = 0;",
+    "const pointFor = function (index) { return index; };",
     "function setup() {",
     "  createCanvas(windowWidth, windowHeight);",
     "  pixelDensity(1);",
     "  colorMode(HSL, 360, 100, 100, 1);",
     "  noiseDetail(3, 0.5);",
+    "  strokeCap(ROUND);",
     "  noStroke();",
     "}",
     "function draw() {",
     "  phase += 0.012;",
     "  background(220, 38, 8, 0.14);",
     "  for (let i = 0; i < 18; i += 1) {",
-    "    const x = map(i, 0, 17, 32, width - 32);",
+    "    const x = map(pointFor(i), 0, 17, 32, width - 32);",
     "    const angle = noise(i * 0.12, phase) * TWO_PI;",
     "    fill(168 + i * 4, 72, 64, 0.76);",
     "    push();",
@@ -186,15 +188,16 @@ async function expectGeneratedPreview(page) {
   await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
     "P5 sketch surface"
   );
-  await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).not.toContainText(
+  await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
     "e2e-orbit-sketch.p5.js"
   );
-  await expect(page.getByRole("tab", { name: "Saved" })).toBeVisible();
-  await page.getByRole("tab", { name: "Saved" }).click();
-  await expect(page.getByRole("tabpanel", { name: "Saved outputs inspector" })).toContainText(
-    "P5 Sketch"
+  const artifactTab = page.getByRole("tab", { name: /^(Artifacts|Saved)$/ });
+  await expect(artifactTab).toBeVisible();
+  await artifactTab.click();
+  await expect(page.getByRole("tabpanel", { name: /^(Artifacts inspector|Saved outputs inspector)$/ })).toContainText(
+    "Visual / p5.js"
   );
-  await expect(page.getByRole("tabpanel", { name: "Saved outputs inspector" })).not.toContainText(
+  await expect(page.getByRole("tabpanel", { name: /^(Artifacts inspector|Saved outputs inspector)$/ })).toContainText(
     "e2e-orbit-sketch.p5.js"
   );
   await page.getByRole("tab", { name: "Code" }).click();

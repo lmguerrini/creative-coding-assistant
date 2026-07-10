@@ -166,7 +166,9 @@ export function hydrateWorkspaceFromFinalEvent(
     return withFinalEventProductOutcome({
       activeArtifactId: snapshot.artifacts[0]?.id ?? "",
       artifact: null,
-      previewArtifactId: "",
+      previewArtifactId: snapshot.preview.available
+        ? snapshot.preview.sourceArtifactId
+        : "",
       previewAvailable: snapshot.preview.available,
       snapshot
     }, event);
@@ -187,13 +189,27 @@ function withFinalEventProductOutcome(
     return result;
   }
 
+  const reconciledProductOutcome =
+    productOutcome.product_outcome === "SUCCESS" && !result.previewAvailable
+      ? {
+          ...productOutcome,
+          artifact_runnability: "UNSUPPORTED" as const,
+          preview_status: "UNAVAILABLE" as const,
+          runtime_health: "NOT_AVAILABLE" as const,
+          product_outcome: "PARTIAL" as const,
+          summary:
+            "A usable artifact was produced, but live preview is unavailable.",
+          recovery_action: "Open Code to use the artifact."
+        }
+      : productOutcome;
+
   return {
     ...result,
     snapshot: {
       ...result.snapshot,
       workflow: {
         ...result.snapshot.workflow,
-        productOutcome
+        productOutcome: reconciledProductOutcome
       }
     }
   };

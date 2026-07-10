@@ -697,6 +697,11 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             [event.payload["text"] for event in token_events],
             ["Graph ", "answer"],
         )
+        for event in token_events:
+            workflow = event.payload["workflow"]
+            self.assertEqual(workflow["step"], "generation")
+            self.assertNotIn("creative_plan", workflow)
+            self.assertIsNone(workflow["clarification"])
         self.assertEqual(
             generation_completed.payload["decision_reason"],
             "generation_completed",

@@ -17,10 +17,10 @@ test.describe("V7.4 workstation resilience", () => {
     await submitCreativePrompt(page, "Force a recoverable stream failure.");
 
     await expect(page.getByRole("log", { name: "Conversation" })).toContainText(
-      "The live response could not complete"
+      "Live response error: The live response stopped before completion."
     );
     await expect(page.getByRole("log", { name: "Conversation" })).toContainText(
-      "Retry from the composer"
+      "The workflow stopped before the requested output was ready."
     );
     await page.getByRole("textbox", { name: "Assistant prompt" }).fill("Retry after failure.");
     await expect(page.getByRole("button", { name: "Send prompt" })).toBeEnabled();
@@ -60,7 +60,7 @@ test.describe("V7.4 workstation resilience", () => {
 
     await expect(page.getByLabel("Current session")).toContainText("Partial");
     await expect(page.getByRole("log", { name: "Conversation" })).toContainText(
-      "Partial result"
+      "A usable artifact was produced, but live preview is unavailable."
     );
 
     await page.getByRole("button", { name: "Expand inspector" }).click();

@@ -6,7 +6,9 @@ test("executes a bounded Three.js scene with common scene-graph APIs", async ({ 
 
   const source = [
     "const scene = new THREE.Scene();",
-    "scene.background = new THREE.Color(0x101418);",
+    "const baseColor = new THREE.Color(0x101418);",
+    "const accentColor = baseColor.clone();",
+    "scene.background = baseColor;",
     "const camera = new THREE.PerspectiveCamera(50, 4 / 3, 0.1, 100);",
     "const pivot = new THREE.Object3D();",
     "pivot.add(camera);",
@@ -16,7 +18,7 @@ test("executes a bounded Three.js scene with common scene-graph APIs", async ({ 
     "scene.add(new THREE.HemisphereLight(0xffffff, 0x111111, 1));",
     "const floor = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), new THREE.MeshStandardMaterial({ color: 0x1d2933, side: THREE.DoubleSide }));",
     "group.add(floor);",
-    "const mesh = new THREE.Mesh(new THREE.TorusGeometry(1.2, 0.28, 18, 48), new THREE.MeshStandardMaterial({ color: 0x4cd7c8, emissive: 0x1d6f78 }));",
+    "const mesh = new THREE.Mesh(new THREE.TorusGeometry(1.2, 0.28, 18, 48), new THREE.MeshStandardMaterial({ color: accentColor, emissive: 0x1d6f78 }));",
     "group.add(mesh);",
     "const renderer = new THREE.WebGLRenderer({ antialias: true });",
     "renderer.outputEncoding = THREE.sRGBEncoding;",

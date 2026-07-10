@@ -7,7 +7,7 @@ from typing import Any
 
 from langgraph.config import get_stream_writer
 
-from creative_coding_assistant.contracts import StreamEvent
+from creative_coding_assistant.contracts import StreamEvent, StreamEventType
 from creative_coding_assistant.orchestration.artifact_critique import ArtifactCritiqueSummary
 from creative_coding_assistant.orchestration.artifacts import WorkflowArtifactCritique
 from creative_coding_assistant.orchestration.runtime.nodes.constants import (
@@ -364,6 +364,9 @@ def _emit(
                         workflow_state=workflow_state,
                         step=step,
                         phase=phase,
+                        include_model_payloads=(
+                            event.event_type is not StreamEventType.TOKEN_DELTA
+                        ),
                     ),
                 }
             }
@@ -375,6 +378,7 @@ def _serialize_workflow_runtime(
     workflow_state: AssistantWorkflowState,
     step: WorkflowStep | None,
     phase: str,
+    include_model_payloads: bool = True,
 ) -> dict[str, object]:
     runtime_step = step or workflow_state.current_step
     review_result = workflow_state.review_result
@@ -419,8 +423,14 @@ def _serialize_workflow_runtime(
         "clarification_question_count": (
             len(clarification.questions) if clarification is not None else 0
         ),
-        "clarification": _model_json_payload(clarification),
-        **_workflow_runtime_model_payloads(workflow_state),
+        "clarification": _model_json_payload(clarification)
+        if include_model_payloads
+        else None,
+        **(
+            _workflow_runtime_model_payloads(workflow_state)
+            if include_model_payloads
+            else {}
+        ),
         "image_reference_count": len(workflow_state.request.attachments),
         "image_references": [
             {

@@ -57,6 +57,56 @@ describe("preview renderers", () => {
     });
   });
 
+  it("executes the explicitly selected code artifact instead of stale GLSL preview metadata", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const threeArtifact = creativeArtifact({
+      content: [
+        "const scene = new THREE.Scene();",
+        "const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100);",
+        "const renderer = new THREE.WebGLRenderer();",
+        "scene.add(new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial()));"
+      ].join("\n"),
+      domain: "three_js",
+      runtime: "three",
+      title: "concentric-audio-glow.three.js"
+    });
+    const staleShader = creativeArtifact({
+      content: "void main() { gl_FragColor = vec4(1.0); }",
+      domain: "glsl",
+      language: "GLSL",
+      runtime: "glsl",
+      title: "stale-preview.frag"
+    });
+
+    expect(
+      buildPreviewRendererRoute({
+        artifacts: [threeArtifact, staleShader],
+        preview: {
+          ...snapshot.preview,
+          active: true,
+          available: true,
+          artifactName: staleShader.title,
+          outputArtifactName: staleShader.title,
+          renderer: "surface.glsl",
+          sourceArtifactId: staleShader.id,
+          sourceArtifactName: staleShader.title,
+          state: "ready",
+          status: "Preview open",
+          target: "Browser preview",
+          targetId: "browser_sandbox"
+        },
+        previewArtifactId: threeArtifact.id
+      })
+    ).toMatchObject({
+      rendererId: "surface.three",
+      selectedArtifactId: threeArtifact.id,
+      sourceArtifactId: threeArtifact.id,
+      sourceArtifactName: threeArtifact.title,
+      supportState: "supported",
+      surfaceKind: "three"
+    });
+  });
+
   it.each([
     {
       id: "surface.p5",

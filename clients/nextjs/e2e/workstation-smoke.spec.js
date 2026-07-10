@@ -23,6 +23,30 @@ test.describe("V7.4 workstation E2E smoke", () => {
     consoleGate.assertClean();
   });
 
+  test("keeps inspector controls readable without wrapped or overlapping labels", async ({
+    page
+  }) => {
+    const consoleGate = installConsoleGate(page);
+    await installApiMocks(page);
+    await expectLoadedWorkstation(page);
+
+    const inspectorTabs = page.getByRole("tablist", { name: "Inspector tabs" });
+    await expect(inspectorTabs).toBeVisible();
+    const labelLayout = await inspectorTabs.locator("button span").evaluateAll((labels) =>
+      labels.map((label) => {
+        const style = window.getComputedStyle(label);
+        return {
+          isSingleLine: style.whiteSpace === "nowrap",
+          fits: label.scrollWidth <= label.clientWidth
+        };
+      })
+    );
+
+    expect(labelLayout).not.toHaveLength(0);
+    expect(labelLayout.every(({ isSingleLine, fits }) => isSingleLine && fits)).toBe(true);
+    consoleGate.assertClean();
+  });
+
   test("completes a creative user journey with preview, code, artifacts, retrieval, and persistence", async ({
     page
   }) => {
@@ -49,10 +73,13 @@ test.describe("V7.4 workstation E2E smoke", () => {
     await expectLoadedWorkstation(page);
 
     const p5Suggestion =
-      "Create a single .p5.js JavaScript sketch for a flow-field particle system with setup(), draw(), soft trails, and interaction controls.";
+      "Create a single .p5.js JavaScript sketch for a flow-field particle system with setup(), draw(), soft trails, and interaction controls. Optimize for browser preview at 60 fps. Use strokeCap(ROUND) for rounded paths. Return only one runnable p5.js artifact.";
     await page.getByRole("button", { name: p5Suggestion }).click();
     await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue(
       p5Suggestion
+    );
+    await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue(
+      /strokeCap\(ROUND\)/
     );
     await page.getByRole("button", { name: "Send prompt" }).click();
 
@@ -105,19 +132,22 @@ test.describe("V7.4 workstation E2E smoke", () => {
     await expect(demoMode).toContainText("Capstone scenarios");
 
     await demoMode
-      .getByRole("button", { name: /p5\.js Generative Morphogenesis Sketch/ })
+      .getByRole("button", { name: /p5\.js Browser Preview Flow Field/ })
       .click();
 
     await expect(demoMode).toContainText("Prompt loaded");
     await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue(
-      /reaction diffusion/
+      /flow-field particle system/
+    );
+    await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue(
+      /strokeCap\(ROUND\)/
     );
     await expect(demoMode).not.toContainText(/HoloGenesis/i);
     await expect(demoMode).not.toContainText(/\bsacred\b/i);
     consoleGate.assertClean();
   });
 
-  test("preloads all integrated Demo Mode scenarios through the normal composer", async ({
+  test("runs the verified Demo Mode p5 prompt through the normal preview flow", async ({
     page
   }) => {
     const consoleGate = installConsoleGate(page);
@@ -132,60 +162,15 @@ test.describe("V7.4 workstation E2E smoke", () => {
       "collapsed"
     );
 
-    for (const label of [
-      "Three.js",
-      "p5.js",
-      "GLSL",
-      "Hydra",
-      "Retrieval",
-      "Concept Translation",
-      "Visual Planning",
-      "Installation Planning"
-    ]) {
-      await expect(demoMode.getByText(label).first()).toBeVisible();
-    }
-
-    const scenarios = [
-      {
-        button: /Three\.js Audio-Reactive Visual System/,
-        prompt: /Three\.js visual/
-      },
-      {
-        button: /p5\.js Generative Morphogenesis Sketch/,
-        prompt: /reaction diffusion/
-      },
-      {
-        button: /GLSL Shader And Post-Processing Visual/,
-        prompt: /GLSL fragment shader/
-      },
-      {
-        button: /Hydra Feedback-Pattern Demo/,
-        prompt: /hydra-synth browser artifact path/
-      },
-      {
-        button: /Retrieval-Grounded Creative Coding Answer/,
-        prompt: /registered source grounding/
-      },
-      {
-        button: /Concept-To-Visual Translation/,
-        prompt: /threshold, recursion, and return/
-      },
-      {
-        button: /Geometry And Morphogenesis Visual System/,
-        prompt: /geometry\/morphogenesis browser visual system/
-      },
-      {
-        button: /Installation And Immersive Scene Planning/,
-        prompt: /browser-based installation or immersive scene/
-      }
-    ];
-
-    for (const scenario of scenarios) {
-      await demoMode.getByRole("button", { name: scenario.button }).click();
-      await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue(
-        scenario.prompt
-      );
-    }
+    await expect(demoMode).toContainText("1 flows");
+    await demoMode
+      .getByRole("button", { name: /p5\.js Browser Preview Flow Field/ })
+      .click();
+    await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue(
+      /flow-field particle system/
+    );
+    await page.getByRole("button", { name: "Send prompt" }).click();
+    await expectGeneratedPreview(page);
 
     await expect(demoMode).not.toContainText(/HoloGenesis/i);
     await expect(demoMode).not.toContainText(/\bsacred\b/i);
@@ -202,8 +187,12 @@ test.describe("V7.4 workstation E2E smoke", () => {
     await page.getByRole("button", { name: "Demo Mode" }).click();
     await page
       .getByRole("region", { name: "Demo Mode" })
-      .getByRole("button", { name: /Three\.js Audio-Reactive Visual System/ })
+      .getByRole("button", { name: /p5\.js Browser Preview Flow Field/ })
       .click();
+    await expect(page.getByRole("button", { name: "Display mode" })).toContainText(
+      "Developer"
+    );
+    await page.getByRole("button", { name: "Display mode" }).click();
     await expect(page.getByRole("button", { name: "Display mode" })).toContainText(
       "User"
     );
@@ -238,11 +227,11 @@ test.describe("V7.4 workstation E2E smoke", () => {
     await expect(page.getByRole("region", { name: "Preview workspace" })).toHaveCount(0);
     await expect(page.getByRole("group", { name: "Empty creative workspace" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Display mode" })).toContainText(
-      "User"
+      "Developer"
     );
     await expect(page.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
       "data-state",
-      "collapsed"
+      "open"
     );
     consoleGate.assertClean();
   });

@@ -34,11 +34,13 @@ describe("p5 preview source classification", () => {
   it("accepts common p5 helpers and ordinary arrow callbacks in a global-mode sketch", () => {
     const source = [
       "const particles = [{ life: 1 }];",
+      "const retainParticle = function (particle) { return particle.life > 0; };",
       "function setup() { createCanvas(320, 180); }",
       "function draw() {",
       "  const value = constrain(int(noise(frameCount * 0.01) * 320), 0, 320);",
       "  const orbit = sin(TAU * frameCount * 0.01);",
-      "  const active = particles.filter(p => p.life > 0);",
+      "  const active = particles.filter(retainParticle);",
+      "  strokeCap(ROUND);",
       "  background(8);",
       "  circle(value, 90 + orbit, active.length * 18);",
       "}"

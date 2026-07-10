@@ -21,6 +21,8 @@ describe("preview sandbox runtime", () => {
     expect(sandboxDocument).toContain("TAU: Math.PI * 2,");
     expect(sandboxDocument).toContain("TWO_PI: Math.PI * 2,");
     expect(sandboxDocument).toContain("HALF_PI: Math.PI / 2,");
+    expect(sandboxDocument).toContain("ROUND: \"round\",");
+    expect(sandboxDocument).toContain("globals.strokeCap = function (cap)");
   });
 
   it("keeps the executable Three.js facade aligned with common generated scene APIs", () => {
@@ -34,6 +36,7 @@ describe("preview sandbox runtime", () => {
     expect(sandboxDocument).toContain("const HemisphereLight = function () { Object3D.call(this); };");
     expect(sandboxDocument).toContain("Object3D,");
     expect(sandboxDocument).toContain("shadowMap = { enabled: false, type: null }");
+    expect(sandboxDocument).toContain("Color.prototype.clone = function ()");
   });
 
   it("prepares TypeScript-flavored p5 source for browser execution", () => {

@@ -32,7 +32,7 @@ export type DemoModeRecommendation = {
   rationale: string;
 };
 
-export const demoModeScenarios = [
+export const demoModeScenarioCatalog = [
   {
     id: "three-audio-reactive-visual-system",
     title: "Three.js Audio-Reactive Visual System",
@@ -74,42 +74,42 @@ export const demoModeScenarios = [
   },
   {
     id: "p5-generative-morphogenesis-sketch",
-    title: "p5.js Generative Morphogenesis Sketch",
+    title: "p5.js Browser Preview Flow Field",
     description:
-      "Rule-based 2D growth system for demonstrating generative form, interaction controls, and browser-safe sketch guidance.",
-    category: "2D generative sketch",
+      "A bounded p5.js flow-field sketch with rounded paths, soft trails, and interaction controls for the supported browser preview.",
+    category: "2D browser sketch",
     runtime: "p5.js",
     prompt:
-      "Create a demo-ready p5.js generative morphogenesis sketch using reaction diffusion, flow fields, particles, branching, and emergent form. Include controls, browser-safe notes, source boundaries, compact artifact direction, and fallback. Keep it under 90 code lines or 450 words.",
-    estimatedGenerationTime: "33.9s optimized live smoke",
-    estimatedTokenUsage: "39,645 total / 2,839 output tokens",
+      "Create a single .p5.js JavaScript sketch for a flow-field particle system with setup(), draw(), soft trails, and interaction controls. Optimize for browser preview at 60 fps. Use strokeCap(ROUND) for rounded paths. Return only one runnable p5.js artifact.",
+    estimatedGenerationTime: "Configured-provider validation completed",
+    estimatedTokenUsage: "Usage reported by the active provider",
     workflowType: "Single-domain generation with retrieval",
     providerRequirement: "OpenAI provider configured for live generation",
-    retrievalRequirement: "5 retrieved contexts in optimized smoke",
+    retrievalRequirement: "Registered p5.js source grounding when available",
     previewAvailability:
-      "Optimized smoke produced artifact events; golden p5.js browser QA remains fallback",
-    fallbackAvailability: "Committed p5.js artifact QA and offline demo dataset",
+      "Eligible only through the supported p5.js browser preview contract",
+    fallbackAvailability: "Inspect Code if the browser runtime reports a validation error",
     expectedOutput:
-      "Browser-safe p5.js sketch with growth techniques and controls",
-    complexity: "High",
-    recommendedForDemo: "Generative growth system",
-    presentationTime: "60-75s",
+      "One runnable p5.js flow-field sketch with soft trails and pointer interaction",
+    complexity: "Bounded",
+    recommendedForDemo: "Browser preview flow field",
+    presentationTime: "45-60s",
     talkingPoint:
-      "Connects computational growth techniques to concrete p5.js implementation choices.",
+      "Shows one provider-validated prompt routed to the controlled p5.js browser surface.",
     expectedBehavior:
-      "The assistant should translate morphogenesis techniques into practical p5.js structure, visual controls, a clear visual growth story, and reviewable implementation notes.",
+      "The assistant should return one global-mode p5.js artifact with setup(), draw(), supported helpers, and an honest preview outcome.",
     fallback:
-      "Use the committed p5.js golden artifact QA record and the offline demo dataset if live generation is unavailable.",
+      "Use Code to inspect the generated artifact and retry with the same bounded p5.js contract if the preview is unavailable.",
     outputGuidance:
-      "Emphasize computational growth, rule systems, visual texture, and implementation constraints rather than metaphysical or authority claims.",
+      "Keep the artifact self-contained, global-mode, and within the documented browser-preview surface.",
     evidence: [
       "demo/golden_artifacts/browser_full_runtime_qa_results.json",
       "demo/golden_demo_dataset.json",
       "docs/CAPSTONE_EVALUATION_ETHICS.md"
     ],
     sourceBoundary:
-      "Generic morphogenesis techniques are represented in code/catalog signals; no Jason Webb or morphogenesis-resources source coverage is claimed.",
-    validationPath: "p5.js golden artifact rendered nonblank in local browser QA."
+      "The visible demo is restricted to the supported p5.js runtime; unvalidated runtime demos remain unavailable.",
+    validationPath: "Configured-provider artifact review plus local Chromium p5 preview smoke."
   },
   {
     id: "glsl-shader-post-processing-visual",
@@ -342,43 +342,31 @@ export const demoModeScenarios = [
       "Planning guidance only; no public deployment, live venue scan, engineering certification, or external tool execution is claimed.",
     validationPath: "Demo plan and fallback paths are documented in the final demo suite."
   }
-] as const satisfies readonly DemoModeScenario[];
+  ] as const satisfies readonly DemoModeScenario[];
+
+const eligibleDemoScenarioIds = new Set<DemoModeScenario["id"]>([
+  "p5-generative-morphogenesis-sketch"
+]);
+
+export const demoModeScenarios = demoModeScenarioCatalog.filter((scenario) =>
+  eligibleDemoScenarioIds.has(scenario.id)
+);
 
 export const demoModeScenarioCount = demoModeScenarios.length;
 
 export const demoModeRecommendedLiveSequence = [
   {
-    role: "Source grounding",
-    scenarioId: "retrieval-grounded-creative-coding-answer",
-    title: "Retrieval-grounded answer",
-    rationale: "19.2s optimized smoke, 5 retrieved contexts."
-  },
-  {
-    role: "3D audiovisual",
-    scenarioId: "three-audio-reactive-visual-system",
-    title: "Three.js audio-reactive visual",
-    rationale: "68.8s optimized smoke with artifact events."
-  },
-  {
-    role: "Shader preview",
-    scenarioId: "glsl-shader-post-processing-visual",
-    title: "GLSL shader visual",
-    rationale: "32.8s optimized smoke plus WebGL artifact QA."
-  },
-  {
-    role: "Retrieval evidence",
-    scenarioId: "retrieval-grounded-creative-coding-answer",
-    title: "Source-grounded creative answer",
-    rationale: "Provider-backed route with clear retrieval and RAGAs evidence."
-  },
-  {
-    role: "Installation scope",
-    scenarioId: "installation-immersive-scene-planning",
-    title: "Installation planning",
-    rationale: "52.2s optimized smoke, useful for scope, ethics, and handoff questions."
+    role: "Verified browser preview",
+    scenarioId: "p5-generative-morphogenesis-sketch",
+    title: "p5.js flow field",
+    rationale: "Configured-provider artifact plus Chromium p5 preview validation."
   }
 ] as const satisfies readonly DemoModeRecommendation[];
 
 export function getDefaultDemoModeScenario(): DemoModeScenario {
-  return demoModeScenarios[0];
+  const scenario = demoModeScenarios[0];
+  if (!scenario) {
+    throw new Error("Demo Mode requires at least one validated scenario.");
+  }
+  return scenario;
 }

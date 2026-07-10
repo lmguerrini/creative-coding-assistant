@@ -302,10 +302,12 @@ class DomainGenerationTests(unittest.TestCase):
             "\n".join(
                 [
                     "```js generated-sketch-1.p5.js",
+                    "const retainParticle = function (particle) { return particle.life > 0; };",
                     "function setup() { createCanvas(640, 360); }",
                     "function draw() {",
                     "  const x = constrain(int(noise(frameCount * 0.01) * width), 0, width);",
-                    "  const particles = [{ life: 1 }].filter(p => p.life > 0);",
+                    "  const particles = [{ life: 1 }].filter(retainParticle);",
+                    "  strokeCap(ROUND);",
                     "  background(8); circle(x, height / 2, 18);",
                     "}",
                     "```",

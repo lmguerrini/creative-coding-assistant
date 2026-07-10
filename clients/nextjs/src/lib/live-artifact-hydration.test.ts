@@ -97,6 +97,40 @@ describe("live artifact hydration", () => {
     });
   });
 
+  it("downgrades a claimed success when hydration cannot prepare a preview", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        answer: "The artifact is available as code.",
+        workflow: {
+          phase: "completed",
+          status: "completed",
+          product_outcome: {
+            orchestration_status: "COMPLETED",
+            provider_status: "COMPLETED",
+            generation_status: "COMPLETED",
+            deliverable_status: "USABLE",
+            artifact_extraction_status: "EXTRACTED",
+            artifact_runnability: "RUNNABLE",
+            preview_status: "PREPARED",
+            runtime_health: "PENDING_BROWSER_VALIDATION",
+            product_outcome: "SUCCESS",
+            summary: "The requested deliverable is ready.",
+            recovery_action: ""
+          }
+        }
+      })
+    );
+
+    expect(result.previewAvailable).toBe(false);
+    expect(result.snapshot.workflow.productOutcome).toMatchObject({
+      product_outcome: "PARTIAL",
+      artifact_runnability: "UNSUPPORTED",
+      preview_status: "UNAVAILABLE",
+      runtime_health: "NOT_AVAILABLE"
+    });
+  });
+
   it("keeps standalone Three.js HTML inspectable without falsely opening the controlled runtime", () => {
     const result = hydrateWorkspaceFromFinalEvent(
       getLocalWorkspaceSnapshot(),

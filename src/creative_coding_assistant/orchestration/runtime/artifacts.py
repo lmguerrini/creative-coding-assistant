@@ -265,14 +265,16 @@ _P5_GLOBAL_MODE_FUNCTIONS = frozenset(
         "color", "colorMode", "constrain", "cos", "createCanvas", "dist", "ellipse", "endShape",
         "fill", "floor", "frameRate", "int", "lerp", "line", "map", "max", "min", "noise",
         "noiseDetail", "noFill", "noStroke", "pixelDensity", "point", "pop", "pow", "push", "random",
-        "rect", "resizeCanvas", "rotate", "scale", "sin", "sqrt", "stroke", "strokeWeight",
+        "rect", "resizeCanvas", "rotate", "scale", "sin", "sqrt", "stroke", "strokeCap", "strokeWeight",
         "translate", "vertex",
     }
 )
 _P5_SAFE_JAVASCRIPT_GLOBAL_FUNCTIONS = frozenset(
     {"Array", "Boolean", "Number", "Object", "String", "isFinite", "isNaN", "parseFloat", "parseInt"}
 )
-_P5_CONTROL_FLOW_KEYWORDS = frozenset({"catch", "for", "if", "switch", "while"})
+_P5_CONTROL_FLOW_KEYWORDS = frozenset(
+    {"catch", "for", "function", "if", "switch", "while"}
+)
 _P5_GLOBAL_MODE_CONTRACT = (
     "Use a plain JavaScript global-mode sketch with function setup() and function draw(); "
     "keep p5 calls inside those lifecycle functions or helpers they call."

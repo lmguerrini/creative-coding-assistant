@@ -384,6 +384,7 @@ export function WorkstationShell({
   const [snapshot, setSnapshot] = useState(() =>
     withWorkspaceIdentity(initialSnapshot, workspaceIdentity)
   );
+  const snapshotRef = useRef(snapshot);
   const entryIdCounterRef = useRef(0);
   const approvalIdCounterRef = useRef(0);
   const localRuntimeSequenceRef = useRef(1000);
@@ -752,7 +753,7 @@ export function WorkstationShell({
           const restoredImageAttachments = normalizeImageAttachments(
             restoredSnapshot.multimodal.imageAttachments
           );
-          setSnapshot(restoredSnapshot);
+          replaceSnapshot(restoredSnapshot);
           setConversationEntries(
             buildConversationEntries(
               restoredSnapshot.messages,
@@ -808,7 +809,7 @@ export function WorkstationShell({
           return;
         }
 
-        setSnapshot(withWorkspaceIdentity(initialSnapshot, workspaceIdentity));
+        replaceSnapshot(withWorkspaceIdentity(initialSnapshot, workspaceIdentity));
         setPersistenceState(restoredSession.error ? "unavailable" : "ready");
       } catch {
         if (isMounted) {
@@ -1726,7 +1727,7 @@ export function WorkstationShell({
     previousPreviewRuntimeSessionKeyRef.current = null;
     previewRuntimeTelemetryKeysRef.current.clear();
     previewRuntimeErrorScopesRef.current.clear();
-    setSnapshot(clearedSnapshot);
+    replaceSnapshot(clearedSnapshot);
     setConversationEntries(
       buildConversationEntries(
         clearedSnapshot.messages,
@@ -2143,7 +2144,6 @@ export function WorkstationShell({
     if (nextOpen) {
       setActiveTab(userModeDefaultInspectorTab);
       updateLayout({ inspectorCollapsed: true });
-      updateWorkspacePreferences({ showDebugPanels: false });
     }
     setOpenUtilityPanel(null);
     setIsAttachmentMenuOpen(false);
@@ -2155,7 +2155,6 @@ export function WorkstationShell({
     setActiveTab(userModeDefaultInspectorTab);
     updateLayout({ inspectorCollapsed: true });
     setComposerValue(scenario.prompt);
-    updateWorkspacePreferences({ showDebugPanels: false });
     setOpenUtilityPanel(null);
     setIsAttachmentMenuOpen(false);
 
@@ -2518,16 +2517,18 @@ export function WorkstationShell({
         workflowMetadata?.creativePlan
     );
     if (creativePlanUpdate) {
-      setSnapshot((currentSnapshot) => ({
-        ...currentSnapshot,
+      replaceSnapshot({
+        ...snapshotRef.current,
         creativePlan: creativePlanUpdate
-      }));
+      });
     }
+
+    const currentSnapshot = snapshotRef.current;
 
     const workflowNode = workflowNodeFromAssistantStreamEvent(streamEvent);
     if (workflowNode) {
       setWorkflowProgressIndex(
-        getWorkflowNodeIndex(snapshot.workflow.steps, workflowNode)
+        getWorkflowNodeIndex(currentSnapshot.workflow.steps, workflowNode)
       );
     }
 
@@ -2544,13 +2545,13 @@ export function WorkstationShell({
 
     if (streamEvent.event_type === "artifact_extracted") {
       const hydration = annotateRefinedHydration(
-        hydrateWorkspaceFromArtifactExtractedEvent(snapshot, streamEvent),
+        hydrateWorkspaceFromArtifactExtractedEvent(currentSnapshot, streamEvent),
         pendingArtifactRefinementRef.current,
-        snapshot
+        currentSnapshot
       );
 
       if (hydration.artifact) {
-        setSnapshot(
+        replaceSnapshot(
           creativePlanUpdate
             ? { ...hydration.snapshot, creativePlan: creativePlanUpdate }
             : hydration.snapshot
@@ -2565,9 +2566,14 @@ export function WorkstationShell({
       const previewUpdate = readPreviewArtifactUpdate(streamEvent);
       const nextPreviewArtifactId =
         previewUpdate?.previewArtifactId ?? previewUpdate?.artifactId ?? null;
-      const previewArtifact = nextPreviewArtifactId
-        ? snapshot.artifacts.find((artifact) => artifact.id === nextPreviewArtifactId) ??
+      const emittedPreviewArtifact = nextPreviewArtifactId
+        ? currentSnapshot.artifacts.find((artifact) => artifact.id === nextPreviewArtifactId) ??
           null
+        : null;
+      const previewArtifact = nextPreviewArtifactId
+        ? currentSnapshot.artifacts.find(
+            (artifact) => artifact.refinedFromArtifactId === nextPreviewArtifactId
+          ) ?? emittedPreviewArtifact
         : null;
       const previewEventIsCodeOnly =
         previewUpdate?.artifactDomain === "react_three_fiber" ||
@@ -2601,10 +2607,10 @@ export function WorkstationShell({
       }
 
       if (
-        nextPreviewArtifactId &&
-        snapshot.artifacts.some((artifact) => artifact.id === nextPreviewArtifactId)
+        previewArtifact &&
+        currentSnapshot.artifacts.some((artifact) => artifact.id === previewArtifact.id)
       ) {
-        setPreviewArtifactId(nextPreviewArtifactId);
+        setPreviewArtifactId(previewArtifact.id);
       }
       if (workspacePreferences.autoOpenPreview) {
         handlePreviewOpenChange(true);
@@ -2614,15 +2620,15 @@ export function WorkstationShell({
 
     if (streamEvent.event_type === "final") {
       const hydration = annotateRefinedHydration(
-        hydrateWorkspaceFromFinalEvent(snapshot, streamEvent, {
+        hydrateWorkspaceFromFinalEvent(currentSnapshot, streamEvent, {
           skipPlainTextArtifact: hasPreviewRuntimeEventRef.current
         }),
         pendingArtifactRefinementRef.current,
-        snapshot
+        currentSnapshot
       );
 
       if (!hydration.artifact) {
-        setSnapshot(
+        replaceSnapshot(
           creativePlanUpdate
             ? { ...hydration.snapshot, creativePlan: creativePlanUpdate }
             : hydration.snapshot
@@ -2630,7 +2636,7 @@ export function WorkstationShell({
         return;
       }
 
-      setSnapshot(
+      replaceSnapshot(
         creativePlanUpdate
           ? { ...hydration.snapshot, creativePlan: creativePlanUpdate }
           : hydration.snapshot
@@ -2673,6 +2679,11 @@ export function WorkstationShell({
       };
       return nextMessages;
     });
+  }
+
+  function replaceSnapshot(nextSnapshot: AssistantWorkspaceSnapshot) {
+    snapshotRef.current = nextSnapshot;
+    setSnapshot(nextSnapshot);
   }
 
   function finalizeStreamingAssistantMessage({
@@ -2806,7 +2817,7 @@ export function WorkstationShell({
       return null;
     }
 
-    setSnapshot(renamed.snapshot);
+    replaceSnapshot(renamed.snapshot);
     setActiveArtifactId(artifact.id);
     if (isArtifactPreviewable(artifact)) {
       setPreviewArtifactId(artifact.id);
@@ -3550,7 +3561,7 @@ function EmptyWorkspaceState({
   const valueHighlights = [
     {
       title: "Build browser-native visuals",
-      detail: "Create p5.js, Three.js, GLSL, and Hydra-ready artifacts."
+      detail: "Create a verified p5.js browser-preview artifact."
     },
     {
       title: "Ground answers in official sources",
@@ -3566,17 +3577,9 @@ function EmptyWorkspaceState({
     }
   ];
   const promptSuggestions = [
-    "Create a single .p5.js JavaScript sketch for a flow-field particle system with setup(), draw(), soft trails, and interaction controls.",
-    "Design a Three.js kinetic sculpture with camera motion and audio-reactive lighting.",
-    "Generate a GLSL fragment shader with liquid glass refraction and restrained color.",
-    "Build a Hydra feedback pattern with slow color modulation and clear fallback notes."
+    "Create a single .p5.js JavaScript sketch for a flow-field particle system with setup(), draw(), soft trails, and interaction controls. Optimize for browser preview at 60 fps. Use strokeCap(ROUND) for rounded paths. Return only one runnable p5.js artifact."
   ];
-  const domainExamples = [
-    "p5.js sketches",
-    "Three.js scenes",
-    "GLSL shaders",
-    "Hydra feedback"
-  ];
+  const domainExamples = ["Verified p5.js browser preview"];
   const workflowExamples = [
     "Describe a visual system",
     "Generate browser-safe code",
@@ -7162,8 +7165,11 @@ function annotateRefinedHydration(
         (!idCollidesWithSource || artifact.id !== refinement.artifactId)
     )
   ];
+  const refinedPreviewWasPromoted =
+    hydration.snapshot.preview.sourceArtifactId === hydration.artifact.id ||
+    hydration.previewArtifactId === hydration.artifact.id;
   const preview =
-    hydration.snapshot.preview.sourceArtifactId === hydration.artifact.id
+    refinedPreviewWasPromoted
       ? {
           ...hydration.snapshot.preview,
           artifactName: refinedArtifact.title,
@@ -7179,7 +7185,7 @@ function annotateRefinedHydration(
     activeArtifactId: refinedArtifact.id,
     artifact: refinedArtifact,
     previewArtifactId:
-      hydration.previewArtifactId === hydration.artifact.id
+      refinedPreviewWasPromoted
         ? refinedArtifact.id
         : hydration.previewArtifactId,
     previewAvailable: hydration.previewAvailable,
@@ -7918,11 +7924,7 @@ function buildUserModeAssistantSummary(content: string) {
   }
 
   const containsGeneratedCode = generatedCodePattern.test(trimmedContent);
-  const strippedContent = trimmedContent
-    .replace(/```[\s\S]*?```/g, " ")
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<!doctype[\s\S]*?<body[^>]*>/gi, " ")
+  const strippedContent = stripGeneratedCodeFromConversation(trimmedContent)
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -7962,21 +7964,29 @@ function buildAssistantConversationSummary(answer: string) {
     return trimmedAnswer;
   }
 
-  const textOnly = trimmedAnswer
-    .replace(/```[\s\S]*?```/g, " ")
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ");
+  const textOnly = stripGeneratedCodeFromConversation(trimmedAnswer);
   const summary =
     textOnly
       .split(/\r?\n+/)
       .map((line) => line.replace(/\s+/g, " ").trim())
-      .find((line) => line.length > 0 && !/^file(name)?:/i.test(line)) ??
-    "The assistant generated a reviewable creative-coding output.";
+      .find(
+        (line) =>
+          line.length > 0 &&
+          !/^file(name)?:/i.test(line) &&
+          !/^```/.test(line)
+      ) ?? "Your requested creative-coding output is ready.";
 
   return `${truncateConversationSummary(
     summary,
     240
   )}\n\nCode and long-form output are available in the Code panel, artifacts, and preview surfaces. Next: inspect Preview, Code, and Retrieval evidence.`;
+}
+
+function stripGeneratedCodeFromConversation(value: string) {
+  return value
+    .replace(/```[\s\S]*?(?:```|$)/g, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ");
 }
 
 function truncateConversationSummary(value: string, maxLength: number) {

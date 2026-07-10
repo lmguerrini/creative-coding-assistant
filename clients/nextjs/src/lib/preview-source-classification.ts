@@ -96,6 +96,7 @@ const supportedP5GlobalFunctions = new Set([
   "sin",
   "sqrt",
   "stroke",
+  "strokeCap",
   "strokeWeight",
   "translate",
   "vertex"
@@ -116,6 +117,7 @@ const supportedJavaScriptGlobalFunctions = new Set([
 const controlFlowKeywords = new Set([
   "catch",
   "for",
+  "function",
   "if",
   "switch",
   "while"

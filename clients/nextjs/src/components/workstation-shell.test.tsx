@@ -1031,65 +1031,58 @@ describe("WorkstationShell", () => {
     const demoMode = screen.getByRole("region", { name: "Demo Mode" });
     expect(demoMode).toBeVisible();
     expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
-      "User"
+      "Developer"
     );
     expect(within(demoMode).getByText("Capstone scenarios")).toBeVisible();
     expect(
       within(demoMode).getByRole("button", {
-        name: /p5\.js Generative Morphogenesis Sketch/
+        name: /p5\.js Browser Preview Flow Field/
       })
     ).toBeVisible();
-    for (const label of [
-      "Three.js",
-      "p5.js",
-      "GLSL",
-      "Hydra",
-      "Retrieval",
-      "Concept Translation",
-      "Visual Planning",
-      "Installation Planning"
-    ]) {
-      expect(within(demoMode).getAllByText(label).length).toBeGreaterThan(0);
-    }
+    expect(within(demoMode).getByText("1 flows")).toBeVisible();
 
     fireEvent.click(
       within(demoMode).getByRole("button", {
-        name: /p5\.js Generative Morphogenesis Sketch/
+        name: /p5\.js Browser Preview Flow Field/
       })
     );
 
     expect(
       within(demoMode).getByRole("button", { name: /Prompt loaded/ })
     ).toBeVisible();
-    expect(within(demoMode).getByText("33.9s optimized live smoke")).toBeVisible();
     expect(
-      within(demoMode).queryByText("39,645 total / 2,839 output tokens")
-    ).not.toBeInTheDocument();
+      within(demoMode).getByText("Configured-provider validation completed")
+    ).toBeVisible();
     expect(
-      within(demoMode).getAllByText("Generative growth system").length
+      within(demoMode).getByText("Usage reported by the active provider")
+    ).toBeVisible();
+    expect(
+      within(demoMode).getAllByText("Browser preview flow field").length
     ).toBeGreaterThan(0);
     expect(
-      within(demoMode).queryByText("Source boundary")
-    ).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
-      "User"
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Display mode" }));
+      within(demoMode).getByText("Source boundary")
+    ).toBeVisible();
     expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
       "Developer"
     );
-    expect(within(demoMode).getByText("33.9s optimized live smoke")).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Display mode" }));
+    expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
+      "User"
+    );
     expect(
-      within(demoMode).getByText("39,645 total / 2,839 output tokens")
+      within(demoMode).getByText("Configured-provider validation completed")
     ).toBeVisible();
     expect(
-      within(demoMode).getByRole("button", { name: /Source grounding/ })
-    ).toBeVisible();
+      within(demoMode).queryByText("Usage reported by the active provider")
+    ).not.toBeInTheDocument();
+    expect(
+      within(demoMode).queryByRole("button", { name: /Source grounding/ })
+    ).not.toBeInTheDocument();
     const composer = screen.getByRole("textbox", {
       name: "Assistant prompt"
     }) as HTMLTextAreaElement;
-    expect(composer.value).toContain("reaction diffusion");
-    expect(composer.value).toContain("p5.js generative morphogenesis sketch");
+    expect(composer.value).toContain("flow-field particle system");
+    expect(composer.value).toContain("strokeCap(ROUND)");
     expect(demoMode).not.toHaveTextContent(/HoloGenesis/i);
     expect(demoMode).not.toHaveTextContent(/\bsacred\b/i);
   });
@@ -1208,17 +1201,16 @@ describe("WorkstationShell", () => {
     expect(screen.getByText("Ground answers in official sources")).toBeVisible();
     expect(screen.getByText("Preview, refine, and save artifacts")).toBeVisible();
     expect(screen.getByText("Support creative-coding workflows")).toBeVisible();
-    expect(screen.getByText("p5.js sketches")).toBeVisible();
-    expect(screen.getByText("Hydra feedback")).toBeVisible();
+    expect(screen.getByText("Verified p5.js browser preview")).toBeVisible();
     expect(screen.getByText("Describe a visual system")).toBeVisible();
     expect(screen.getByText("Generate browser-safe code")).toBeVisible();
     expect(screen.getByText("Ways to work")).toBeVisible();
     expect(screen.getByText("How it works")).toBeVisible();
+    const promptSuggestions = screen.getByLabelText("Prompt suggestions");
+    expect(within(promptSuggestions).getAllByRole("button")).toHaveLength(1);
     expect(
-      screen.getByRole("button", {
-        name: "Build a Hydra feedback pattern with slow color modulation and clear fallback notes."
-      })
-    ).toBeVisible();
+      screen.queryByRole("button", { name: /Three\.js kinetic sculpture|Hydra feedback/i })
+    ).not.toBeInTheDocument();
     expect(screen.queryByText("Workflows")).not.toBeInTheDocument();
     expect(screen.queryByText(/aurora/i)).not.toBeInTheDocument();
     expect(screen.queryByText("Session persistence issue")).not.toBeInTheDocument();
@@ -1243,7 +1235,7 @@ describe("WorkstationShell", () => {
     ).not.toBeInTheDocument();
 
     const p5Suggestion =
-      "Create a single .p5.js JavaScript sketch for a flow-field particle system with setup(), draw(), soft trails, and interaction controls.";
+      "Create a single .p5.js JavaScript sketch for a flow-field particle system with setup(), draw(), soft trails, and interaction controls. Optimize for browser preview at 60 fps. Use strokeCap(ROUND) for rounded paths. Return only one runnable p5.js artifact.";
     fireEvent.click(
       screen.getByRole("button", {
         name: p5Suggestion
@@ -1475,7 +1467,7 @@ describe("WorkstationShell", () => {
     const demoMode = screen.getByRole("region", { name: "Demo Mode" });
     fireEvent.click(
       within(demoMode).getByRole("button", {
-        name: /Three\.js Audio-Reactive Visual System/
+        name: /p5\.js Browser Preview Flow Field/
       })
     );
 
@@ -1483,7 +1475,7 @@ describe("WorkstationShell", () => {
       (screen.getByRole("textbox", {
         name: "Assistant prompt"
       }) as HTMLTextAreaElement).value
-    ).toContain("Three.js");
+    ).toContain("flow-field particle system");
 
     fireEvent.click(screen.getByRole("button", { name: "Command menu" }));
     fireEvent.click(screen.getByRole("button", { name: "Clear workspace session" }));
@@ -3041,6 +3033,43 @@ describe("WorkstationShell", () => {
       await within(conversation).findByText(/Code and long-form output are available/)
     ).toBeVisible();
     expect(within(conversation).queryByText(/function draw/)).not.toBeInTheDocument();
+  });
+
+  it("keeps an unterminated generated code fence out of the conversation", async () => {
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "final",
+          sequence: 0,
+          payload: {
+            answer: [
+              "```html",
+              "<!doctype html>",
+              "<script>function setup() { createCanvas(640, 360); }</script>"
+            ].join("\n")
+          }
+        }
+      ])
+    );
+
+    renderUserShell(getLocalWorkspaceSnapshot(), {
+      streamAssistantEvents: backendStream
+    });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Generate a browser sketch." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    const conversation = screen.getByRole("log", { name: "Conversation" });
+
+    expect(
+      await within(conversation).findByText(/Code and long-form output are available/)
+    ).toBeVisible();
+    expect(within(conversation).queryByText(/```html|<!doctype|function setup/i)).not.toBeInTheDocument();
+    expect(conversation).toHaveTextContent(
+      "Your requested creative-coding output is ready."
+    );
   });
 
   it("summarizes mixed generated code in User Mode while routing code to panels", async () => {
@@ -5017,10 +5046,9 @@ describe("WorkstationShell", () => {
     const backendStream = vi.fn(() =>
       streamEvents([
         {
-          event_type: "final",
+          event_type: "artifact_extracted",
           sequence: 0,
           payload: {
-            answer: "Refined artifact ready.",
             artifacts: [
               {
                 id: "source-sketch",
@@ -5044,6 +5072,21 @@ describe("WorkstationShell", () => {
                 summary: "Refined p5 sketch with calmer organic motion."
               }
             ]
+          }
+        },
+        {
+          event_type: "preview_artifact",
+          sequence: 1,
+          payload: {
+            artifact_id: "source-sketch",
+            status: "succeeded"
+          }
+        },
+        {
+          event_type: "final",
+          sequence: 2,
+          payload: {
+            answer: "Refined artifact ready."
           }
         }
       ])

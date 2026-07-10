@@ -2008,6 +2008,7 @@
         if (!context) throw new Error("Canvas 2D is unavailable in the sandbox.");
 
         const paint = {
+          cap: "round",
           fill: "#4cd7c8",
           stroke: "#edf3f2",
           useFill: true,
@@ -2033,6 +2034,9 @@
           HSB: "HSB",
           HSL: "HSL",
           RGB: "RGB",
+          ROUND: "round",
+          SQUARE: "square",
+          PROJECT: "butt",
           CLOSE: "CLOSE",
           CENTER: "CENTER",
           CORNER: "CORNER",
@@ -2145,6 +2149,10 @@
         };
         globals.noFill = function () { paint.useFill = false; };
         globals.noStroke = function () { paint.useStroke = false; };
+        globals.strokeCap = function (cap) {
+          const normalized = String(cap || "round").toLowerCase();
+          paint.cap = normalized === "square" ? "square" : normalized === "butt" || normalized === "project" ? "butt" : "round";
+        };
         globals.strokeWeight = function (weight) { paint.weight = Number(weight) || 1; };
         globals.push = function () { context.save(); };
         globals.pop = function () { context.restore(); };
@@ -2154,6 +2162,7 @@
 
         function drawShape(drawPath) {
           context.save();
+          context.lineCap = paint.cap;
           context.lineWidth = paint.weight;
           drawPath();
           if (paint.useFill) {
@@ -2192,6 +2201,7 @@
         };
         globals.line = function (x1, y1, x2, y2) {
           context.save();
+          context.lineCap = paint.cap;
           context.lineWidth = paint.weight;
           context.strokeStyle = paint.stroke;
           context.beginPath();
@@ -2227,6 +2237,7 @@
           }
           if (paint.useStroke) {
             context.lineWidth = paint.weight;
+            context.lineCap = paint.cap;
             context.strokeStyle = paint.stroke;
             context.stroke();
           }
@@ -2292,6 +2303,9 @@
         Color.prototype.toStyle = function () {
           if (typeof this.value === "string") return this.value;
           return "#" + (Number(this.value) || 0xffffff).toString(16).padStart(6, "0").slice(-6);
+        };
+        Color.prototype.clone = function () {
+          return new Color(this.value);
         };
         function Object3D() {
           this.children = [];

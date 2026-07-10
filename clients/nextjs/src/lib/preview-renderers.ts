@@ -264,9 +264,11 @@ export function buildPreviewRendererRoute({
     artifacts.find((artifact) => artifact.title === preview.sourceArtifactName) ??
     null;
   const sourceArtifact =
-    artifacts.find((artifact) => artifact.id === preview.sourceArtifactId) ??
-    artifacts.find((artifact) => artifact.title === preview.sourceArtifactName) ??
-    selectedArtifact;
+    selectedArtifact?.type === "code"
+      ? selectedArtifact
+      : artifacts.find((artifact) => artifact.id === preview.sourceArtifactId) ??
+        artifacts.find((artifact) => artifact.title === preview.sourceArtifactName) ??
+        selectedArtifact;
   const targetId =
     derivePreviewTargetIdFromArtifact(selectedArtifact) ??
     normalizePreviewTargetId(preview.targetId) ??
