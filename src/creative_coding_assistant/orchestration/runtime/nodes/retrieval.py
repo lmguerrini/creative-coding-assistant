@@ -32,6 +32,16 @@ def _retrieval_node(
         WorkflowStep.RETRIEVAL,
     )
     try:
+        execution_plan = workflow_state.execution_plan
+        if execution_plan is not None and not execution_plan.researcher_required:
+            return {
+                "workflow_state": _skip_node(
+                    workflow_state,
+                    runtime_context,
+                    WorkflowStep.RETRIEVAL,
+                    decision_reason="single_agent_researcher_not_selected",
+                )
+            }
         retrieval_context = _emit_streaming_step(
             runtime_context.stream_retrieval_context(
                 builder=runtime_context.event_builder,

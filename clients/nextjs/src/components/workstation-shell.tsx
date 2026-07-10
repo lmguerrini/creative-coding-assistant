@@ -96,6 +96,15 @@ import {
   type WorkflowRuntimeVisualState
 } from "@/lib/workflow-runtime";
 import {
+  buildWorkflowExecutionModel,
+  type WorkflowExecutionMode,
+  type WorkflowExecutionModel
+} from "@/lib/workflow-execution";
+import {
+  buildConversationContextModel,
+  type ConversationContextModel
+} from "@/lib/conversation-context";
+import {
   buildWorkflowExplorerModel,
   type WorkflowExplorerModel
 } from "@/lib/workflow-explorer";
@@ -221,6 +230,7 @@ import { AudioReactiveMappingSummaryCard } from "./audio-reactive-mapping-summar
 import { ArtifactRefinementPanel } from "./artifact-refinement-panel";
 import { CalibratedQualitySummary } from "./calibrated-quality-summary";
 import { CreativeTimelineSurface } from "./creative-timeline-surface";
+import { ConversationContextInspector } from "./conversation-context-inspector";
 import { CreativeCostIntelligenceDashboard } from "./creative-cost-intelligence-dashboard";
 import { CreativeQualityCriticSummary } from "./creative-quality-critic-summary";
 import { CreativeTranslationSummaryCard } from "./creative-translation-summary";
@@ -240,6 +250,10 @@ import { V3InspectorPanelsSurface } from "./v3-inspector-panels-surface";
 import { WorkstationDashboardSurface } from "./workstation-dashboard-surface";
 import { WorkflowExplorerSurface } from "./workflow-explorer-surface";
 import { WorkflowTimelineExplorer } from "./workflow-timeline-explorer";
+import {
+  WorkflowExecutionInspector,
+  WorkflowExecutionSelector
+} from "./workflow-execution-inspector";
 
 type WorkstationShellProps = {
   snapshot: AssistantWorkspaceSnapshot;
@@ -403,6 +417,7 @@ export function WorkstationShell({
     )
   );
   const [composerValue, setComposerValue] = useState("");
+  const [workflowMode, setWorkflowMode] = useState<WorkflowExecutionMode>("auto");
   const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
   const [isDemoModeOpen, setIsDemoModeOpen] = useState(false);
   const [activeDemoScenarioId, setActiveDemoScenarioId] = useState(
@@ -1011,6 +1026,18 @@ export function WorkstationShell({
   const workflowRuntime = useMemo(
     () => buildWorkflowRuntimeModel(interactiveSnapshot.workflow, workflowTraceEvents),
     [interactiveSnapshot.workflow, workflowTraceEvents]
+  );
+  const workflowExecution = useMemo(
+    () => buildWorkflowExecutionModel(workflowTraceEvents),
+    [workflowTraceEvents]
+  );
+  const conversationContext = useMemo(
+    () =>
+      buildConversationContextModel({
+        traceEvents: workflowTraceEvents,
+        visibleEntryCount: conversationEntries.length
+      }),
+    [conversationEntries.length, workflowTraceEvents]
   );
   const providerTelemetry = useMemo(
     () => buildProviderTelemetryModel(workflowTraceEvents),
@@ -2305,7 +2332,8 @@ export function WorkstationShell({
         conversationId: workspaceIdentity.sessionId,
         mode: "generate",
         projectId: workspaceIdentity.projectId,
-        query: prompt
+        query: prompt,
+        workflowMode
       };
 
       if (clarificationResponse) {
@@ -3276,6 +3304,13 @@ export function WorkstationShell({
                   {composerStateLabel}
                 </span>
               ) : null}
+              {workspacePreferences.showDebugPanels ? (
+                <WorkflowExecutionSelector
+                  disabled={isStreaming}
+                  mode={workflowMode}
+                  onChange={setWorkflowMode}
+                />
+              ) : null}
               <button
                 aria-label="Send prompt"
                 className="sendButton"
@@ -3441,7 +3476,9 @@ export function WorkstationShell({
                     telemetryDashboard={telemetryDashboard}
                     transferFeedback={transferFeedback}
                     workflowExplorer={workflowExplorer}
+                    workflowExecution={workflowExecution}
                     creativeTimeline={creativeTimeline}
+                    conversationContext={conversationContext}
                     v3InspectorPanels={v3InspectorPanels}
                     workflowRuntime={workflowRuntime}
                     workflowIssues={workflowIssues}
@@ -4250,7 +4287,9 @@ type InspectorPanelProps = {
   telemetryDashboard: TelemetryDashboardModel;
   transferFeedback: ArtifactActionFeedback | null;
   workflowExplorer: WorkflowExplorerModel;
+  workflowExecution: WorkflowExecutionModel;
   creativeTimeline: CreativeTimelineModel;
+  conversationContext: ConversationContextModel;
   v3InspectorPanels: V3InspectorPanelsModel;
   workflowRuntime: WorkflowRuntimeModel;
   workflowIssues: WorkstationError[];
@@ -4286,7 +4325,9 @@ function InspectorPanel({
   telemetryDashboard,
   transferFeedback,
   workflowExplorer,
+  workflowExecution,
   creativeTimeline,
+  conversationContext,
   v3InspectorPanels,
   workflowRuntime,
   workflowIssues
@@ -4333,7 +4374,9 @@ function InspectorPanel({
     return (
       <WorkflowInspector
         creativeTimeline={creativeTimeline}
+        conversationContext={conversationContext}
         explorer={workflowExplorer}
+        execution={workflowExecution}
         runtime={workflowRuntime}
         provenance={provenance}
         v3InspectorPanels={v3InspectorPanels}
@@ -5165,6 +5208,8 @@ function ProvenanceSourceList({
 
 function WorkflowInspector({
   creativeTimeline,
+  conversationContext,
+  execution,
   explorer,
   issues,
   provenance,
@@ -5174,6 +5219,8 @@ function WorkflowInspector({
   showDebugPanels
 }: {
   creativeTimeline: CreativeTimelineModel;
+  conversationContext: ConversationContextModel;
+  execution: WorkflowExecutionModel;
   explorer: WorkflowExplorerModel;
   issues: WorkstationError[];
   provenance: ProvenanceEngineModel;
@@ -5204,6 +5251,7 @@ function WorkflowInspector({
           ))}
         </div>
       ) : null}
+      <WorkflowExecutionInspector execution={execution} />
       <WorkflowProgress
         label="Workflow inspector progress"
         progress={workflowProgress}
@@ -5266,6 +5314,9 @@ function WorkflowInspector({
         </article>
       </div>
       <WorkflowExplorerSurface model={explorer} />
+      {showDebugPanels ? (
+        <ConversationContextInspector context={conversationContext} />
+      ) : null}
       <ProvenanceSummaryCard provenance={provenance} />
       <CreativeTimelineSurface timeline={creativeTimeline} />
       <V3InspectorPanelsSurface model={v3InspectorPanels} />

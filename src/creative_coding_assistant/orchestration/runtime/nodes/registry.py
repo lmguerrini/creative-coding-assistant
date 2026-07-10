@@ -147,6 +147,17 @@ def _linear_workflow_edge_spec(
             selector=transitions.next_node_after_prompt_input,
             targets={
                 WorkflowStep.PLANNING.value: WorkflowStep.PLANNING.value,
+                WorkflowStep.PROMPT_RENDERING.value: WorkflowStep.PROMPT_RENDERING.value,
+                WorkflowStep.FINALIZATION.value: WorkflowStep.FINALIZATION.value,
+                WorkflowStep.FAILURE.value: WorkflowStep.FAILURE.value,
+            },
+        )
+    if current_node == WorkflowStep.PREVIEW_PREPARATION.value:
+        return _WorkflowGraphConditionalEdgeSpec(
+            source=current_node,
+            selector=transitions.next_node_after_preview_preparation,
+            targets={
+                WorkflowStep.ARTIFACT_CRITIQUE.value: WorkflowStep.ARTIFACT_CRITIQUE.value,
                 WorkflowStep.FINALIZATION.value: WorkflowStep.FINALIZATION.value,
                 WorkflowStep.FAILURE.value: WorkflowStep.FAILURE.value,
             },

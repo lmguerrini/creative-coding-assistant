@@ -38,7 +38,10 @@ from creative_coding_assistant.orchestration.runtime.nodes.state import (
     _start_node,
     _workflow_state,
 )
-from creative_coding_assistant.orchestration.workflow import WorkflowStep
+from creative_coding_assistant.orchestration.workflow import (
+    AssistantWorkflowState,
+    WorkflowStep,
+)
 from creative_coding_assistant.orchestration.workflow_review import (
     MAX_WORKFLOW_REFINEMENT_COUNT,
 )
@@ -131,6 +134,7 @@ def _preview_preparation_node(
                     workflow_state.model_copy(update={"preview_results": ()}),
                     runtime_context,
                     WorkflowStep.PREVIEW_PREPARATION,
+                    transition_target=_preview_preparation_target(workflow_state),
                     decision_reason="no_artifacts_for_preview",
                 )
             }
@@ -146,6 +150,7 @@ def _preview_preparation_node(
                     workflow_state.model_copy(update={"preview_results": ()}),
                     runtime_context,
                     WorkflowStep.PREVIEW_PREPARATION,
+                    transition_target=_preview_preparation_target(workflow_state),
                     decision_reason="no_previewable_artifacts",
                 )
             }
@@ -166,6 +171,7 @@ def _preview_preparation_node(
                 workflow_state,
                 runtime_context,
                 WorkflowStep.PREVIEW_PREPARATION,
+                transition_target=_preview_preparation_target(workflow_state),
                 decision_reason="preview_metadata_prepared",
                 preview_results=preview_results,
             )
@@ -177,6 +183,18 @@ def _preview_preparation_node(
             step=WorkflowStep.PREVIEW_PREPARATION,
             exc=exc,
         )
+
+
+def _preview_preparation_target(
+    workflow_state: AssistantWorkflowState,
+) -> str | None:
+    execution_plan = workflow_state.execution_plan
+    return (
+        WorkflowStep.FINALIZATION.value
+        if execution_plan is not None and execution_plan.is_single_agent
+        else None
+    )
+
 
 def _artifact_critique_node(
     state: AssistantWorkflowGraphState,

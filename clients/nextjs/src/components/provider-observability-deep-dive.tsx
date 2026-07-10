@@ -102,6 +102,36 @@ export function ProviderObservabilityDeepDive({
               : "Request timing metadata unavailable"}
           </small>
         </section>
+
+        <section
+          aria-label="Agent configuration"
+          className="providerObservabilitySection"
+        >
+          <header>
+            <span>Agent configuration</span>
+            <strong>{telemetry.configuration.route ?? "Route unavailable"}</strong>
+          </header>
+          <dl>
+            <MetricDefinition label="Model" value={telemetry.summary.modelLabel} />
+            <MetricDefinition
+              label="Messages"
+              value={formatCount(telemetry.configuration.messageCount)}
+            />
+            <MetricDefinition
+              label="Temperature"
+              value={formatParameter(telemetry.configuration.temperature)}
+            />
+            <MetricDefinition
+              label="Top P"
+              value={formatParameter(telemetry.configuration.topP)}
+            />
+            <MetricDefinition
+              label="Max output tokens"
+              value={formatCount(telemetry.configuration.maxOutputTokens)}
+            />
+          </dl>
+          <small>{formatParameterSource(telemetry)}</small>
+        </section>
       </div>
 
       <section
@@ -288,6 +318,25 @@ function formatDuration(value: number | null) {
     return "Unavailable";
   }
   return value < 1000 ? `${Math.round(value)}ms` : `${(value / 1000).toFixed(1)}s`;
+}
+
+function formatCount(value: number | null) {
+  return value == null ? "Unavailable" : value.toLocaleString();
+}
+
+function formatParameter(value: number | null) {
+  return value == null ? "Not published" : String(value);
+}
+
+function formatParameterSource(telemetry: ProviderTelemetryModel) {
+  switch (telemetry.configuration.parameterSource) {
+    case "provider_reported":
+      return "Sampling parameters are provider-reported for this request.";
+    case "request_record":
+      return "The request record is available; the provider did not publish sampling parameters.";
+    default:
+      return "Parameter provenance was not published for this request.";
+  }
 }
 
 function formatCostSource(telemetry: ProviderTelemetryModel) {

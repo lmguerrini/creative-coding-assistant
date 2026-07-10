@@ -14,6 +14,7 @@ from creative_coding_assistant.contracts import (
     CreativeCodingDomain,
     StreamEvent,
     StreamEventType,
+    WorkflowExecutionMode,
 )
 from creative_coding_assistant.core import Settings
 from creative_coding_assistant.orchestration import (
@@ -36,6 +37,9 @@ from creative_coding_assistant.orchestration.routing import (
     RouteCapability,
     RouteDecision,
     RouteName,
+)
+from creative_coding_assistant.orchestration.runtime.execution import (
+    resolve_workflow_execution_plan,
 )
 
 
@@ -135,6 +139,30 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         final = events[-1]
 
         self.assertEqual(routing_status.payload["route"]["route"], "generate")
+        self.assertEqual(
+            routing_status.payload["route"]["execution"],
+            {
+                "requested_mode": "auto",
+                "resolved_mode": "multi_agent",
+                "rationale": (
+                    "Auto selected Multi Agent because the request benefits from planning, "
+                    "generation, critique, and bounded review."
+                ),
+                "agent_roles": [
+                    "planner",
+                    "researcher",
+                    "generator",
+                    "critic",
+                    "reviewer",
+                ],
+                "researcher_required": True,
+                "researcher_reason": (
+                    "Planner requested bounded retrieval so the multi-agent route can ground "
+                    "the selected creative domain before generation."
+                ),
+                "max_refinement_loops": 1,
+            },
+        )
         self.assertEqual(review_passed.payload["score"], 1.0)
         self.assertEqual(
             review_passed.payload["rationale"],
@@ -209,6 +237,102 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             "generation",
             final_event.payload["workflow"]["completed_steps"],
         )
+
+    def test_single_agent_selection_executes_the_bounded_direct_route(self) -> None:
+        graph = build_assistant_workflow_graph()
+        request = AssistantRequest(
+            query="Generate a p5.js sketch.",
+            domain=CreativeCodingDomain.P5_JS,
+            workflow_mode=WorkflowExecutionMode.SINGLE_AGENT,
+        )
+
+        events = tuple(
+            stream_assistant_workflow_events(
+                graph=graph,
+                request=request,
+                runtime=_runtime(),
+            )
+        )
+
+        started_nodes = _node_payloads(events, StreamEventType.NODE_STARTED)
+        completed_nodes = _node_payloads(events, StreamEventType.NODE_COMPLETED)
+        route_selected = _first_event(events, StreamEventType.STATUS, "route_selected")
+        retrieval_completion = _first_transition(
+            events,
+            StreamEventType.NODE_COMPLETED,
+            source="retrieval",
+        )
+        prompt_transition = _first_transition(
+            events,
+            StreamEventType.NODE_COMPLETED,
+            source="prompt_input",
+            target="prompt_rendering",
+        )
+        preview_transition = _first_transition(
+            events,
+            StreamEventType.NODE_COMPLETED,
+            source="preview_preparation",
+            target="finalization",
+        )
+
+        self.assertEqual(
+            route_selected.payload["route"]["execution"]["requested_mode"],
+            "single_agent",
+        )
+        self.assertEqual(
+            route_selected.payload["route"]["execution"]["resolved_mode"],
+            "single_agent",
+        )
+        self.assertEqual(
+            route_selected.payload["route"]["execution"]["agent_roles"],
+            ["generator"],
+        )
+        self.assertFalse(
+            route_selected.payload["route"]["execution"]["researcher_required"]
+        )
+        self.assertEqual(
+            retrieval_completion.payload["resolution"],
+            "skipped",
+        )
+        self.assertEqual(
+            retrieval_completion.payload["decision_reason"],
+            "single_agent_researcher_not_selected",
+        )
+        self.assertIn("prompt_rendering", started_nodes)
+        self.assertIn("finalization", completed_nodes)
+        self.assertNotIn("planning", started_nodes)
+        self.assertNotIn("director", started_nodes)
+        self.assertNotIn("reasoning", started_nodes)
+        self.assertNotIn("artifact_critique", started_nodes)
+        self.assertNotIn("review", started_nodes)
+        self.assertEqual(
+            prompt_transition.payload["decision_reason"],
+            "prompt_input_unavailable",
+        )
+        self.assertEqual(
+            preview_transition.payload["decision_reason"],
+            "no_artifacts_for_preview",
+        )
+
+    def test_explicit_multi_agent_selection_preserves_the_bounded_team_plan(
+        self,
+    ) -> None:
+        request = AssistantRequest(
+            query="Generate a p5.js sketch.",
+            domain=CreativeCodingDomain.P5_JS,
+            workflow_mode=WorkflowExecutionMode.MULTI_AGENT,
+        )
+
+        plan = resolve_workflow_execution_plan(request, _route_generate(request))
+
+        self.assertEqual(plan.requested_mode, WorkflowExecutionMode.MULTI_AGENT)
+        self.assertEqual(plan.resolved_mode, WorkflowExecutionMode.MULTI_AGENT)
+        self.assertEqual(
+            plan.agent_roles,
+            ("planner", "researcher", "generator", "critic", "reviewer"),
+        )
+        self.assertTrue(plan.researcher_required)
+        self.assertEqual(plan.max_refinement_loops, 1)
 
     def test_graph_plans_between_prompt_input_and_prompt_rendering(self) -> None:
         graph = build_assistant_workflow_graph()

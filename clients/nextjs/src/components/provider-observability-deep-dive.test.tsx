@@ -14,8 +14,10 @@ describe("ProviderObservabilityDeepDive", () => {
             payload: {
               generation_input: {
                 request: {
+                  route: "general",
                   stream: true
-                }
+                },
+                messages: [{ role: "user" }, { role: "system" }]
               }
             },
             sequence: 0
@@ -65,6 +67,11 @@ describe("ProviderObservabilityDeepDive", () => {
                   request_id: "req_123",
                   response_id: "resp_123"
                 },
+                parameters: {
+                  max_output_tokens: 512,
+                  temperature: 0.35,
+                  top_p: 0.9
+                },
                 token_usage: {
                   input_tokens: 1200,
                   output_tokens: 300,
@@ -100,6 +107,20 @@ describe("ProviderObservabilityDeepDive", () => {
     ).toBeVisible();
     expect(within(deepDive).getByText("Transient timeout")).toBeVisible();
     expect(within(deepDive).getByText("Primary region saturated")).toBeVisible();
+
+    const configuration = within(deepDive).getByRole("region", {
+      name: "Agent configuration"
+    });
+    expect(within(configuration).getByText("general")).toBeVisible();
+    expect(within(configuration).getByText("2")).toBeVisible();
+    expect(within(configuration).getByText("0.35")).toBeVisible();
+    expect(within(configuration).getByText("0.9")).toBeVisible();
+    expect(within(configuration).getByText("512")).toBeVisible();
+    expect(
+      within(configuration).getByText(
+        "Sampling parameters are provider-reported for this request."
+      )
+    ).toBeVisible();
   });
 
   it("renders legacy sessions without inventing unavailable provider metadata", () => {
@@ -121,6 +142,7 @@ describe("ProviderObservabilityDeepDive", () => {
       within(deepDive).getByText("Provider retry metadata unavailable.")
     ).toBeVisible();
     expect(within(deepDive).getByText("No provider fallback path observed.")).toBeVisible();
+    expect(within(deepDive).getAllByText("Not published")).toHaveLength(2);
   });
 });
 

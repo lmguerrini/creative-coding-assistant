@@ -31,6 +31,7 @@ from creative_coding_assistant.contracts import (
     CreativeCodingDomain,
     StreamEvent,
     StreamEventType,
+    WorkflowExecutionMode,
 )
 from creative_coding_assistant.core.config import Settings, load_settings
 from creative_coding_assistant.orchestration import AssistantService
@@ -61,6 +62,10 @@ class AssistantStreamRequest(BaseModel):
     domain: CreativeCodingDomain | None = None
     domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
     mode: AssistantMode = AssistantMode.GENERATE
+    workflow_mode: WorkflowExecutionMode = Field(
+        default=WorkflowExecutionMode.AUTO,
+        alias="workflowMode",
+    )
     attachments: tuple[AssistantImageReference, ...] = Field(default_factory=tuple)
     artifact_refinement: AssistantArtifactRefinement | None = Field(
         default=None,
@@ -93,6 +98,7 @@ class AssistantStreamRequest(BaseModel):
             domain=self.domain,
             domains=self.domains,
             mode=self.mode,
+            workflow_mode=self.workflow_mode,
             attachments=self.attachments,
             artifact_refinement=self.artifact_refinement,
             clarification_response=self.clarification_response,

@@ -435,10 +435,16 @@ export type AssistantStreamRequest = {
   domain?: string;
   domains?: string[];
   mode?: string;
+  workflowMode?: WorkflowExecutionMode;
   attachments?: AssistantRequestImageAttachment[];
   artifactRefinement?: AssistantArtifactRefinementRequest;
   clarificationResponse?: string;
 };
+
+export type WorkflowExecutionMode =
+  | "auto"
+  | "single_agent"
+  | "multi_agent";
 
 export type AssistantStreamOptions = {
   endpoint?: string;

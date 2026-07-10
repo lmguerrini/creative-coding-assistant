@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from langgraph.runtime import Runtime
 
+from creative_coding_assistant.orchestration.runtime.execution import (
+    resolve_workflow_execution_plan,
+)
 from creative_coding_assistant.orchestration.runtime.nodes.contracts import (
     AssistantWorkflowGraphContext,
     AssistantWorkflowGraphState,
@@ -32,21 +35,35 @@ def _routing_node(
     try:
         decision = runtime_context.route_fn(workflow_state.request)
         route_payload = decision.model_dump(mode="json")
+        execution_plan = resolve_workflow_execution_plan(
+            workflow_state.request,
+            decision,
+        )
+        route_payload["execution"] = execution_plan.model_dump(mode="json")
+        selected_state = workflow_state.model_copy(
+            update={
+                "route_decision": decision,
+                "execution_plan": execution_plan,
+            }
+        )
         _emit_streaming_step(
             runtime_context.stream_route_selected(
                 builder=runtime_context.event_builder,
                 decision=decision,
                 route_payload=route_payload,
             ),
-            workflow_state=workflow_state,
+            workflow_state=selected_state,
         )
         return {
             "workflow_state": _complete_node(
-                workflow_state,
+                selected_state,
                 runtime_context,
                 WorkflowStep.ROUTING,
-                decision_reason=f"route_selected:{decision.route.value}",
+                decision_reason=(
+                    f"workflow_selected:{execution_plan.resolved_mode.value}"
+                ),
                 route_decision=decision,
+                execution_plan=execution_plan,
             ),
             "route_payload": route_payload,
         }

@@ -66,6 +66,14 @@ class AssistantMode(StrEnum):
     PREVIEW = "preview"
 
 
+class WorkflowExecutionMode(StrEnum):
+    """User-selectable execution posture for one assistant request."""
+
+    AUTO = "auto"
+    SINGLE_AGENT = "single_agent"
+    MULTI_AGENT = "multi_agent"
+
+
 SUPPORTED_IMAGE_REFERENCE_MIME_TYPES = frozenset(
     {"image/png", "image/jpeg", "image/webp", "image/gif"}
 )
@@ -174,6 +182,10 @@ class AssistantRequest(BaseModel):
     domain: CreativeCodingDomain | None = None
     domains: tuple[CreativeCodingDomain, ...] = Field(default_factory=tuple)
     mode: AssistantMode = AssistantMode.GENERATE
+    workflow_mode: WorkflowExecutionMode = Field(
+        default=WorkflowExecutionMode.AUTO,
+        alias="workflowMode",
+    )
     attachments: tuple[AssistantImageReference, ...] = Field(default_factory=tuple)
     artifact_refinement: AssistantArtifactRefinement | None = Field(
         default=None,

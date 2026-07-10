@@ -20,6 +20,7 @@ import {
   buildWorkflowTimelineModel,
   type WorkflowTimelineModel
 } from "./workflow-timeline";
+import { buildWorkflowExecutionModel } from "./workflow-execution";
 
 export type WorkflowRuntimeTraceEvent = {
   event: AssistantStreamEvent;
@@ -175,6 +176,14 @@ type WorkflowRecord = {
 };
 
 const workflowTerminalStates = new Set(["completed", "failed"]);
+const singleAgentBypassedNodes = new Set<WorkflowNodeId>([
+  "planning",
+  "director",
+  "reasoning",
+  "artifact_critique",
+  "review",
+  "refinement"
+]);
 
 export function buildWorkflowRuntimeModel(
   workflow: AssistantWorkspaceSnapshot["workflow"],
@@ -189,6 +198,11 @@ export function buildWorkflowRuntimeModel(
   );
   const transitions: WorkflowRuntimeTransition[] = [];
   const events: WorkflowRuntimeEvent[] = [];
+  const execution = buildWorkflowExecutionModel(traceEvents);
+  const routeBypassedNodes =
+    execution.resolvedMode === "single_agent"
+      ? singleAgentBypassedNodes
+      : new Set<WorkflowNodeId>();
   let latestStatus = normalizeWorkflowStatus(workflow.status);
   let latestNode: WorkflowNodeId = workflow.currentNode;
   let lastObservedNode: WorkflowNodeId | null = null;
@@ -392,16 +406,22 @@ export function buildWorkflowRuntimeModel(
         : 0;
     const durationMs =
       record.totalDurationMs + (activeDurationMs > 0 ? activeDurationMs : 0);
+    const bypassedBySelectedRoute =
+      routeBypassedNodes.has(baseStep.nodeId) && record.step.eventCount === 0;
     const state = deriveWorkflowVisualState({
       baseStep,
       currentNode: latestNode,
       latestMetadata,
       latestStatus,
-      record
+      record,
+      bypassedBySelectedRoute
     });
 
     return {
       ...record.step,
+      detail: bypassedBySelectedRoute
+        ? "Skipped by the selected Single Agent route."
+        : record.step.detail,
       state,
       durationMs: durationMs > 0 ? durationMs : null,
       completedAt:
@@ -840,12 +860,14 @@ function hydrateSkippedStep(record: WorkflowRecord | undefined) {
 
 function deriveWorkflowVisualState({
   baseStep,
+  bypassedBySelectedRoute,
   currentNode,
   latestMetadata,
   latestStatus,
   record
 }: {
   baseStep: WorkflowStepState;
+  bypassedBySelectedRoute: boolean;
   currentNode: WorkflowNodeId;
   latestMetadata: ReturnType<typeof readWorkflowMetadata>;
   latestStatus: string;
@@ -864,6 +886,10 @@ function deriveWorkflowVisualState({
   }
 
   if (latestMetadata?.skipped_steps.includes(baseStep.nodeId)) {
+    return "skipped";
+  }
+
+  if (bypassedBySelectedRoute) {
     return "skipped";
   }
 

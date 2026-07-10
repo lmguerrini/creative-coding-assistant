@@ -88,11 +88,17 @@ def _prompt_input_node(
             workflow_state=workflow_state,
         )
         if prompt_input is None:
+            execution_plan = workflow_state.execution_plan
             return {
                 "workflow_state": _skip_node(
                     workflow_state,
                     runtime_context,
                     WorkflowStep.PROMPT_INPUT,
+                    transition_target=(
+                        WorkflowStep.PROMPT_RENDERING.value
+                        if execution_plan is not None and execution_plan.is_single_agent
+                        else None
+                    ),
                     decision_reason="prompt_input_unavailable",
                 )
             }
@@ -128,6 +134,12 @@ def _prompt_input_node(
                 workflow_state,
                 runtime_context,
                 WorkflowStep.PROMPT_INPUT,
+                transition_target=(
+                    WorkflowStep.PROMPT_RENDERING.value
+                    if workflow_state.execution_plan is not None
+                    and workflow_state.execution_plan.is_single_agent
+                    else None
+                ),
                 decision_reason="prompt_input_prepared",
                 prompt_input=prompt_input,
             )

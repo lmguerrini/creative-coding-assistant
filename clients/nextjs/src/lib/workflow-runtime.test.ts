@@ -24,6 +24,56 @@ describe("workflow runtime model", () => {
     });
   });
 
+  it("marks stages bypassed by a selected single-agent route as skipped", () => {
+    const workflow = getLocalWorkspaceSnapshot().workflow;
+    const at = "2026-07-11T10:00:00Z";
+    const runtime = buildWorkflowRuntimeModel(workflow, [
+      {
+        event: {
+          event_type: "status",
+          sequence: 1,
+          payload: {
+            code: "route_selected",
+            route: {
+              execution: {
+                requested_mode: "single_agent",
+                resolved_mode: "single_agent",
+                rationale: "Single Agent was selected for this run.",
+                agent_roles: ["generator"],
+                researcher_required: false,
+                max_refinement_loops: 0
+              }
+            },
+            workflow: {
+              completed_steps: ["intake"],
+              current_step: "routing",
+              phase: "running",
+              refinement_count: 0,
+              skipped_steps: [],
+              status: "running"
+            }
+          }
+        },
+        receivedAt: at,
+        receivedAtMs: Date.parse(at)
+      }
+    ]);
+
+    for (const nodeId of [
+      "planning",
+      "director",
+      "reasoning",
+      "artifact_critique",
+      "review",
+      "refinement"
+    ] as const) {
+      expect(runtime.steps.find((step) => step.nodeId === nodeId)).toMatchObject({
+        state: "skipped",
+        detail: "Skipped by the selected Single Agent route."
+      });
+    }
+  });
+
   it("uses a persisted terminal product outcome when trace events are unavailable", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const workflow = {

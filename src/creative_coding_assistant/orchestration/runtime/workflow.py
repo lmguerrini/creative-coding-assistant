@@ -126,6 +126,9 @@ from creative_coding_assistant.orchestration.reflection_loop_engine import (
 )
 from creative_coding_assistant.orchestration.retrieval import RetrievalContextResponse
 from creative_coding_assistant.orchestration.routing import RouteDecision
+from creative_coding_assistant.orchestration.runtime.execution import (
+    WorkflowExecutionPlan,
+)
 from creative_coding_assistant.orchestration.runtime_capabilities import (
     RuntimeCapabilityProfile,
 )
@@ -229,6 +232,7 @@ class AssistantWorkflowState(BaseModel):
     completed_steps: tuple[WorkflowStep, ...] = ()
     skipped_steps: tuple[WorkflowStep, ...] = ()
     route_decision: RouteDecision | None = None
+    execution_plan: WorkflowExecutionPlan | None = None
     memory_context: MemoryContextResponse | None = None
     retrieval_context: RetrievalContextResponse | None = None
     assembled_context: AssembledContextResponse | None = None

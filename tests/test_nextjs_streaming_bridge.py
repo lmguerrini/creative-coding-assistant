@@ -13,6 +13,7 @@ from creative_coding_assistant.contracts import (
     AssistantRequest,
     StreamEvent,
     StreamEventType,
+    WorkflowExecutionMode,
 )
 from creative_coding_assistant.orchestration import StreamEventBuilder
 
@@ -26,6 +27,7 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
                 "projectId": "workspace-a",
                 "domain": "webgpu_wgsl",
                 "mode": "generate",
+                "workflowMode": "single_agent",
                 "clarificationResponse": "Use one p5.js browser sketch first.",
                 "artifactRefinement": {
                     "artifactId": "source-sketch",
@@ -140,6 +142,10 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
             ["minimal"],
         )
         self.assertEqual(assistant_request.project_id, "workspace-a")
+        self.assertEqual(
+            assistant_request.workflow_mode,
+            WorkflowExecutionMode.SINGLE_AGENT,
+        )
         self.assertEqual(assistant_request.domain.value, "webgpu_wgsl")
         self.assertEqual(
             assistant_request.clarification_response,

@@ -47,7 +47,19 @@ def next_node_after_prompt_input(state: AssistantWorkflowGraphState) -> str:
         return "failure"
     if _workflow_state(state).clarification is not None:
         return WorkflowStep.FINALIZATION.value
+    execution_plan = _workflow_state(state).execution_plan
+    if execution_plan is not None and execution_plan.is_single_agent:
+        return WorkflowStep.PROMPT_RENDERING.value
     return WorkflowStep.PLANNING.value
+
+
+def next_node_after_preview_preparation(state: AssistantWorkflowGraphState) -> str:
+    if _has_pending_failure(state):
+        return WorkflowStep.FAILURE.value
+    execution_plan = _workflow_state(state).execution_plan
+    if execution_plan is not None and execution_plan.is_single_agent:
+        return WorkflowStep.FINALIZATION.value
+    return WorkflowStep.ARTIFACT_CRITIQUE.value
 
 
 def next_node_selector(next_node: str) -> _GraphTransitionSelector:

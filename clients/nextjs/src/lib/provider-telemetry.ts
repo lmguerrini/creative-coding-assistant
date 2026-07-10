@@ -123,6 +123,15 @@ export type ProviderTelemetryExecution = {
   fallbackPaths: ProviderTelemetryFallbackPath[];
 };
 
+export type ProviderTelemetryConfiguration = {
+  route: string | null;
+  messageCount: number | null;
+  temperature: number | null;
+  topP: number | null;
+  maxOutputTokens: number | null;
+  parameterSource: "provider_reported" | "request_record" | "not_published";
+};
+
 export type ProviderTelemetryModel = {
   status: ProviderTelemetryStatus;
   provider: ProviderTelemetryProvider;
@@ -133,6 +142,7 @@ export type ProviderTelemetryModel = {
   lifecycle: ProviderTelemetryLifecycleStep[];
   stream: ProviderTelemetryStreamSummary;
   execution: ProviderTelemetryExecution;
+  configuration: ProviderTelemetryConfiguration;
   summary: {
     providerLabel: string;
     modelLabel: string;
@@ -216,7 +226,8 @@ export function buildProviderTelemetryModel(
         executionRecord: emptyExecutionRecord,
         status: "idle",
         traceEvents
-      })
+      }),
+      configuration: buildConfiguration(traceEvents)
     });
   }
 
@@ -264,9 +275,11 @@ export function buildProviderTelemetryModel(
     status,
     traceEvents
   });
+  const configuration = buildConfiguration(traceEvents);
 
   return buildTelemetryModel({
     cost,
+    configuration,
     execution,
     provider,
     pricing,
@@ -283,6 +296,7 @@ export function buildProviderTelemetryModel(
 
 function buildTelemetryModel({
   cost,
+  configuration,
   execution,
   provider,
   pricing,
@@ -292,6 +306,7 @@ function buildTelemetryModel({
   tokenUsage
 }: {
   cost: ProviderTelemetryCostEstimate;
+  configuration: ProviderTelemetryConfiguration;
   execution: ProviderTelemetryExecution;
   provider: ProviderTelemetryProvider;
   pricing: ProviderTelemetryPricing | null;
@@ -312,6 +327,7 @@ function buildTelemetryModel({
     lifecycle,
     stream,
     execution,
+    configuration,
     summary: {
       providerLabel: provider.name ?? "Provider pending",
       modelLabel: provider.model ?? "Model pending",
@@ -346,6 +362,70 @@ function buildTelemetryModel({
           : "Retry metadata unavailable",
       issueLabel: summarizeIssues(execution)
     }
+  };
+}
+
+function buildConfiguration(
+  traceEvents: WorkflowRuntimeTraceEvent[]
+): ProviderTelemetryConfiguration {
+  let route: string | null = null;
+  let messageCount: number | null = null;
+  let temperature: number | null = null;
+  let topP: number | null = null;
+  let maxOutputTokens: number | null = null;
+  let hasRequestRecord = false;
+  let hasProviderParameters = false;
+
+  for (const traceEvent of traceEvents) {
+    const payload = traceEvent.event.payload;
+    const telemetry = readTelemetryRecord(payload);
+    const generationInput = readUsageRecord(payload.generation_input);
+    const request = readUsageRecord(generationInput?.request);
+    const parameters =
+      readUsageRecord(telemetry?.parameters) ??
+      readUsageRecord(telemetry?.request_parameters) ??
+      readUsageRecord(payload.parameters) ??
+      readUsageRecord(payload.request_parameters);
+
+    if (request) {
+      hasRequestRecord = true;
+      route = readString(request.route) ?? route;
+    }
+    if (Array.isArray(generationInput?.messages)) {
+      messageCount = generationInput.messages.length;
+    }
+    if (parameters) {
+      const nextTemperature = readFiniteNumber(parameters, "temperature");
+      const nextTopP = readFiniteNumber(parameters, "top_p", "topP");
+      const nextMaxOutputTokens = readFiniteNumber(
+        parameters,
+        "max_output_tokens",
+        "maxOutputTokens",
+        "max_tokens",
+        "maxTokens"
+      );
+
+      temperature = nextTemperature ?? temperature;
+      topP = nextTopP ?? topP;
+      maxOutputTokens = nextMaxOutputTokens ?? maxOutputTokens;
+      hasProviderParameters ||=
+        nextTemperature !== null ||
+        nextTopP !== null ||
+        nextMaxOutputTokens !== null;
+    }
+  }
+
+  return {
+    route,
+    messageCount,
+    temperature,
+    topP,
+    maxOutputTokens,
+    parameterSource: hasProviderParameters
+      ? "provider_reported"
+      : hasRequestRecord
+        ? "request_record"
+        : "not_published"
   };
 }
 
