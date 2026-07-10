@@ -288,6 +288,7 @@ def _failure_node(
         runtime_context.event_builder.final(
             answer=answer,
             route=state.get("route_payload"),
+            **_final_event_model_payloads(final_state),
             **optional_event_payload(
                 "observability",
                 runtime_context.observability.event_payload(

@@ -156,7 +156,7 @@ class CoreBackendServiceTests(unittest.TestCase):
 
     def test_assistant_service_collects_streamed_response(self) -> None:
         service = AssistantService()
-        request = AssistantRequest(query="Explain a GLSL fragment shader.")
+        request = AssistantRequest(query="Explain how color interpolation works.")
 
         response = service.respond(request)
 
