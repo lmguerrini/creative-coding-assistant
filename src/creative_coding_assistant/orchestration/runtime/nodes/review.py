@@ -16,6 +16,7 @@ from creative_coding_assistant.orchestration.runtime.nodes.emissions import (
 )
 from creative_coding_assistant.orchestration.runtime.nodes.review_logic import (
     _review_requests_retry,
+    _review_requires_terminal_deliverable_failure,
     _review_transition,
 )
 from creative_coding_assistant.orchestration.runtime.nodes.state import (
@@ -26,8 +27,14 @@ from creative_coding_assistant.orchestration.runtime.nodes.state import (
     _start_node,
     _workflow_state,
 )
-from creative_coding_assistant.orchestration.workflow import WorkflowStep
-from creative_coding_assistant.orchestration.workflow_review import review_assistant_answer
+from creative_coding_assistant.orchestration.workflow import (
+    WorkflowFailureInfo,
+    WorkflowStep,
+)
+from creative_coding_assistant.orchestration.workflow_review import (
+    MAX_WORKFLOW_REFINEMENT_COUNT,
+    review_assistant_answer,
+)
 
 
 def _review_node(
@@ -52,10 +59,30 @@ def _review_node(
             ),
             refinement_count=workflow_state.refinement_count,
             artifact_critique_summary=workflow_state.artifact_critique_summary,
+            artifacts=workflow_state.artifacts,
+            route_decision=workflow_state.route_decision,
         )
         transition_target, decision_reason = _review_transition(
             review_result,
             workflow_state,
+        )
+        pending_failure = (
+            WorkflowFailureInfo(
+                step=WorkflowStep.REVIEW,
+                code="required_deliverable_not_produced",
+                message=(
+                    "The requested deliverable was not produced after "
+                    f"{MAX_WORKFLOW_REFINEMENT_COUNT} bounded refinement "
+                    f"attempt{'s' if MAX_WORKFLOW_REFINEMENT_COUNT == 1 else 's'}. "
+                    "Review the response, then retry with the requested runtime "
+                    "and artifact format."
+                ),
+            )
+            if _review_requires_terminal_deliverable_failure(
+                review_result,
+                workflow_state,
+            )
+            else None
         )
         _emit_review_outcome(
             runtime_context,
@@ -84,7 +111,7 @@ def _review_node(
                 transition_target=transition_target,
                 decision_reason=decision_reason,
             )
-        return {
+        result = {
             "workflow_state": _complete_node(
                 workflow_state,
                 runtime_context,
@@ -94,6 +121,9 @@ def _review_node(
                 review_result=review_result,
             )
         }
+        if pending_failure is not None:
+            result["pending_failure"] = pending_failure
+        return result
     except Exception as exc:
         return _handle_workflow_exception(
             workflow_state=workflow_state,

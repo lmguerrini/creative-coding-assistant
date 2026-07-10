@@ -827,6 +827,7 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
       }
       lookAt() {}
     }
+    class Group extends Object3D {}
     class Geometry {
       constructor(type) {
         this.type = type;
@@ -838,6 +839,7 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
     class DodecahedronGeometry extends Geometry { constructor() { super("sphere"); } }
     class TorusGeometry extends Geometry { constructor() { super("torus"); } }
     class TorusKnotGeometry extends Geometry { constructor() { super("torus"); } }
+    class PlaneGeometry extends Geometry { constructor() { super("plane"); } }
     class MeshStandardMaterial {
       constructor(options) {
         this.color = new Color(options && options.color != null ? options.color : 0x4cd7c8);
@@ -856,6 +858,7 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
     class Light extends Object3D {}
     class AmbientLight extends Light {}
     class DirectionalLight extends Light {}
+    class HemisphereLight extends Light {}
     class PointLight extends Light {}
     class Clock {
       constructor() { this.started = performance.now(); }
@@ -868,6 +871,9 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
         this.clearColor = new Color(0x05080b);
         this.lastScene = null;
         this.lastCamera = null;
+        this.outputEncoding = null;
+        this.physicallyCorrectLights = false;
+        this.shadowMap = { enabled: false, type: null };
         renderers.push(this);
       }
       setClearColor(value) { this.clearColor = new Color(value); }
@@ -946,20 +952,27 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
       BoxGeometry,
       Clock,
       Color,
+      DoubleSide: "double",
       DirectionalLight,
       DodecahedronGeometry,
+      Group,
+      HemisphereLight,
       IcosahedronGeometry,
       Mesh,
       MeshBasicMaterial,
       MeshPhongMaterial,
       MeshStandardMaterial,
+      Object3D,
+      PlaneGeometry,
       PerspectiveCamera,
+      PCFSoftShadowMap: "pcf-soft",
       PointLight,
       Scene,
       SphereGeometry,
       TorusGeometry,
       TorusKnotGeometry,
       WebGLRenderer,
+      sRGBEncoding: "srgb",
       MathUtils: { degToRad: (value) => value * Math.PI / 180 },
       __runDefaultLoop: runDefaultLoop
     };

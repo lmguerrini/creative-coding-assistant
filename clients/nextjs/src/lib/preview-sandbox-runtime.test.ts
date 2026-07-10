@@ -23,6 +23,19 @@ describe("preview sandbox runtime", () => {
     expect(sandboxDocument).toContain("HALF_PI: Math.PI / 2,");
   });
 
+  it("keeps the executable Three.js facade aligned with common generated scene APIs", () => {
+    const sandboxDocument = readFileSync(
+      resolve(process.cwd(), "public/preview-sandbox.html"),
+      "utf8"
+    );
+
+    expect(sandboxDocument).toContain("function Group() { Object3D.call(this); }");
+    expect(sandboxDocument).toContain("const PlaneGeometry = geometry(\"plane\");");
+    expect(sandboxDocument).toContain("const HemisphereLight = function () { Object3D.call(this); };");
+    expect(sandboxDocument).toContain("Object3D,");
+    expect(sandboxDocument).toContain("shadowMap = { enabled: false, type: null }");
+  });
+
   it("prepares TypeScript-flavored p5 source for browser execution", () => {
     const prepared = preparePreviewExecutableSource(
       [

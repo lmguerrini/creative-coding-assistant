@@ -1053,10 +1053,15 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
 
         workflow_state = final_state["workflow_state"]
         self.assertEqual(generation.calls, 3)
-        self.assertEqual(workflow_state.status, WorkflowStatus.COMPLETED)
+        self.assertEqual(workflow_state.status, WorkflowStatus.FAILED)
         self.assertEqual(
             workflow_state.final_answer,
-            "Still no fenced code after retry.",
+            (
+                "Workflow failed during review "
+                "(required_deliverable_not_produced): The requested deliverable was "
+                "not produced after 2 bounded refinement attempts. Review the response, "
+                "then retry with the requested runtime and artifact format."
+            ),
         )
         self.assertEqual(
             workflow_state.review_result.outcome,

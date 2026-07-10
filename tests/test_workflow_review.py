@@ -5,6 +5,7 @@ from creative_coding_assistant.orchestration import (
     WorkflowReviewOutcome,
     review_assistant_answer,
 )
+from creative_coding_assistant.orchestration.routing import route_request
 
 
 class WorkflowReviewTests(unittest.TestCase):
@@ -78,6 +79,28 @@ class WorkflowReviewTests(unittest.TestCase):
 
         self.assertEqual(result.outcome, WorkflowReviewOutcome.NEEDS_REFINEMENT)
         self.assertEqual(result.reasons, ("missing_debug_guidance",))
+
+    def test_review_flags_unterminated_previewable_artifact_output(self) -> None:
+        request = AssistantRequest(
+            query=(
+                "Design a Three.js kinetic sculpture with camera motion, soft studio "
+                "lighting, and a browser-ready animated scene."
+            ),
+            mode=AssistantMode.GENERATE,
+        )
+        result = review_assistant_answer(
+            request=request,
+            answer="```html\n<!doctype html>\n<html><body>",
+            refinement_count=0,
+            artifacts=(),
+            route_decision=route_request(request),
+        )
+
+        self.assertEqual(result.outcome, WorkflowReviewOutcome.NEEDS_REFINEMENT)
+        self.assertEqual(
+            result.reasons,
+            ("unterminated_code_block",),
+        )
 
 
 if __name__ == "__main__":

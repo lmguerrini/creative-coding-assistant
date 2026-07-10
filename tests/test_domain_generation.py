@@ -712,6 +712,33 @@ class DomainGenerationTests(unittest.TestCase):
         self.assertIn("Do not use createGraphics", system_section)
         self.assertIn("p5.Vector", system_section)
 
+    def test_prompt_renderer_keeps_three_generation_inside_the_preview_contract(self) -> None:
+        request = AssistantRequest(
+            query="Design a Three.js kinetic sculpture with camera motion.",
+            domains=(CreativeCodingDomain.THREE_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+        prompt_input = StructuredPromptInputBuilder().build(
+            build_prompt_input_request(
+                assistant_request=request,
+                route_decision=decision,
+                assembled_context=None,
+            )
+        )
+        rendered = JinjaPromptRenderer().render(
+            build_rendered_prompt_request(
+                route_decision=decision,
+                prompt_input=prompt_input,
+            )
+        )
+
+        system_section = rendered.sections[0].content
+        self.assertIn("fully closed fenced javascript artifact", system_section)
+        self.assertIn("filename=...three.js", system_section)
+        self.assertIn("Do not return HTML", system_section)
+        self.assertIn("below 7,500 characters", system_section)
+
 
 @dataclass(frozen=True)
 class _ImageReference:

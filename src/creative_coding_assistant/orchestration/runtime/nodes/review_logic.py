@@ -23,6 +23,8 @@ def _review_transition(
 ) -> tuple[str, str]:
     if _review_requests_retry(review_result, workflow_state):
         return WorkflowStep.REFINEMENT.value, "review_failed_retry_available"
+    if _review_requires_terminal_deliverable_failure(review_result, workflow_state):
+        return WorkflowStep.FAILURE.value, "required_deliverable_not_produced"
     if review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT:
         return WorkflowStep.FINALIZATION.value, "review_failed_retry_limit_reached"
     return WorkflowStep.FINALIZATION.value, "review_passed"
@@ -46,4 +48,24 @@ def _review_requests_retry(
         review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
         and workflow_state.refinement_count < MAX_WORKFLOW_REFINEMENT_COUNT
         and decision.should_continue
+    )
+
+
+def _review_requires_terminal_deliverable_failure(
+    review_result: WorkflowReviewResult,
+    workflow_state: AssistantWorkflowState,
+) -> bool:
+    return (
+        review_result.outcome is WorkflowReviewOutcome.NEEDS_REFINEMENT
+        and workflow_state.refinement_count >= MAX_WORKFLOW_REFINEMENT_COUNT
+        and any(
+            reason
+            in {
+                "missing_code_block",
+                "unterminated_code_block",
+                "missing_requested_artifact",
+                "missing_runnable_artifact",
+            }
+            for reason in review_result.reasons
+        )
     )

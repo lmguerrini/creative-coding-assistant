@@ -2307,6 +2307,8 @@
         function PerspectiveCamera() { Object3D.call(this); this.position.z = 4; cameras.push(this); }
         PerspectiveCamera.prototype = Object.create(Object3D.prototype);
         PerspectiveCamera.prototype.lookAt = function () {};
+        function Group() { Object3D.call(this); }
+        Group.prototype = Object.create(Object3D.prototype);
         function Geometry(type) { this.type = type; }
         function materialColor(options, key, fallback) {
           return new Color(options && options[key] != null ? options[key] : fallback);
@@ -2326,6 +2328,9 @@
           this.context = this.domElement.getContext("2d");
           this.clearColor = new Color(0x05080b);
           this.lastScene = null;
+          this.outputEncoding = null;
+          this.physicallyCorrectLights = false;
+          this.shadowMap = { enabled: false, type: null };
           renderers.push(this);
         }
         WebGLRenderer.prototype.setClearColor = function (value) { this.clearColor = new Color(value); };
@@ -2386,10 +2391,12 @@
 
         function geometry(type) { return function () { Geometry.call(this, type); }; }
         const BoxGeometry = geometry("box");
+        const PlaneGeometry = geometry("plane");
         const SphereGeometry = geometry("sphere");
         const TorusGeometry = geometry("torus");
         const AmbientLight = function () { Object3D.call(this); };
         const DirectionalLight = function () { Object3D.call(this); };
+        const HemisphereLight = function () { Object3D.call(this); };
         const PointLight = function () { Object3D.call(this); };
         const Clock = function () { this.started = performance.now(); };
         Clock.prototype.getElapsedTime = function () { return (performance.now() - this.started) / 1000; };
@@ -2399,20 +2406,27 @@
           BoxGeometry,
           Clock,
           Color,
+          DoubleSide: "double",
           DirectionalLight,
           DodecahedronGeometry: SphereGeometry,
+          Group,
+          HemisphereLight,
           IcosahedronGeometry: SphereGeometry,
           Mesh,
           MeshBasicMaterial: MeshStandardMaterial,
           MeshPhongMaterial: MeshStandardMaterial,
           MeshStandardMaterial,
+          Object3D,
+          PlaneGeometry,
           PerspectiveCamera,
+          PCFSoftShadowMap: "pcf-soft",
           PointLight,
           Scene,
           SphereGeometry,
           TorusGeometry,
           TorusKnotGeometry: TorusGeometry,
           WebGLRenderer,
+          sRGBEncoding: "srgb",
           MathUtils: { degToRad: function (value) { return value * Math.PI / 180; } },
           runDefaultLoop: function () {
             const token = activeToken;

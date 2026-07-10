@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -11,9 +12,14 @@ from creative_coding_assistant.orchestration._metadata_utils import _token_set
 from creative_coding_assistant.orchestration.artifact_critique import (
     ArtifactCritiqueSummary,
 )
+from creative_coding_assistant.orchestration.artifacts import WorkflowArtifact
+from creative_coding_assistant.orchestration.metadata.domain_generation import (
+    is_previewable_generation_domain,
+)
 from creative_coding_assistant.orchestration.refinement_passes import (
     DEFAULT_REFINEMENT_PASS_LIMIT,
 )
+from creative_coding_assistant.orchestration.routing import RouteDecision
 
 MAX_WORKFLOW_REFINEMENT_COUNT = DEFAULT_REFINEMENT_PASS_LIMIT
 
@@ -96,6 +102,8 @@ def review_assistant_answer(
     answer: str | None,
     refinement_count: int,
     artifact_critique_summary: ArtifactCritiqueSummary | None = None,
+    artifacts: Sequence[WorkflowArtifact] | None = None,
+    route_decision: RouteDecision | None = None,
 ) -> WorkflowReviewResult:
     """Run conservative deterministic checks on a generated answer."""
 
@@ -109,6 +117,8 @@ def review_assistant_answer(
             request=request,
             answer=normalized_answer,
             reasons=reasons,
+            artifacts=artifacts,
+            route_decision=route_decision,
         )
     if (
         artifact_critique_summary
@@ -136,6 +146,8 @@ def _collect_answer_quality_reasons(
     request: AssistantRequest,
     answer: str,
     reasons: list[str],
+    artifacts: Sequence[WorkflowArtifact] | None,
+    route_decision: RouteDecision | None,
 ) -> None:
     answer_lower = answer.lower()
     answer_tokens = _tokens(answer)
@@ -146,8 +158,24 @@ def _collect_answer_quality_reasons(
     if len(answer) < _MIN_ANSWER_CHARS:
         reasons.append("answer_too_short")
 
-    if _request_explicitly_asks_for_code(request) and "```" not in answer:
-        reasons.append("missing_code_block")
+    requires_deliverable = _request_requires_deliverable(request, route_decision)
+    if requires_deliverable:
+        fence_count = answer.count("```")
+        if fence_count == 0:
+            reasons.append("missing_code_block")
+        elif fence_count % 2:
+            reasons.append("unterminated_code_block")
+
+    if artifacts is not None and requires_deliverable:
+        if not artifacts and not any(
+            reason in {"missing_code_block", "unterminated_code_block"}
+            for reason in reasons
+        ):
+            reasons.append("missing_requested_artifact")
+        elif artifacts and _request_requires_live_preview(request, route_decision) and not any(
+            artifact.preview_eligible for artifact in artifacts
+        ):
+            reasons.append("missing_runnable_artifact")
 
     if request.mode is AssistantMode.EXPLAIN and not answer_tokens.intersection(
         _EXPLANATION_MARKERS
@@ -163,6 +191,35 @@ def _collect_answer_quality_reasons(
 def _request_explicitly_asks_for_code(request: AssistantRequest) -> bool:
     query_tokens = _tokens(request.query)
     return bool(query_tokens.intersection(_CODE_REQUEST_MARKERS))
+
+
+def _request_requires_deliverable(
+    request: AssistantRequest,
+    route_decision: RouteDecision | None,
+) -> bool:
+    return _request_explicitly_asks_for_code(request) or _request_requires_live_preview(
+        request,
+        route_decision,
+    )
+
+
+def _request_requires_live_preview(
+    request: AssistantRequest,
+    route_decision: RouteDecision | None,
+) -> bool:
+    domains = (
+        route_decision.domains
+        if route_decision is not None
+        else (request.domain, *request.domains)
+    )
+    preview_intent_markers = {"browser", "browser-ready", "preview", "runnable"}
+    return (
+        bool(_tokens(request.query).intersection(preview_intent_markers))
+        and any(
+            domain is not None and is_previewable_generation_domain(domain)
+            for domain in domains
+        )
+    )
 
 
 def _tokens(value: str) -> set[str]:

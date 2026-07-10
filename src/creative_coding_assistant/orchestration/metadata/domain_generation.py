@@ -110,9 +110,18 @@ _DOMAIN_GENERATION_GUIDANCE: dict[CreativeCodingDomain, tuple[str, ...]] = {
         "sampler declarations, discard, or while loops.",
     ),
     CreativeCodingDomain.THREE_JS: (
-        "For Three.js generation, return a browser-oriented scene using scene, "
-        "camera, renderer, geometry/material, and animation-loop concepts.",
-        "Prefer a .three.js artifact name and avoid React wrappers unless requested.",
+        "For Three.js generation, return exactly one compact, fully closed fenced "
+        "javascript artifact using a filename=...three.js fence attribute. The filename "
+        "must briefly describe the requested scene (for example, "
+        "kinetic-light-sculpture.three.js).",
+        "Use self-contained browser-oriented Three.js scene JavaScript with "
+        "THREE.Scene, PerspectiveCamera, WebGLRenderer, geometry, material, lights, "
+        "and an animation-loop concept. Keep the source below 7,500 characters so it "
+        "fits the bounded preview runtime.",
+        "Do not return HTML, <!doctype>, <script>, CSS, CDN URLs, imports, React "
+        "wrappers, TypeScript syntax, Markdown outside the one fence, or browser DOM "
+        "operations such as document or window. The controlled preview supplies the "
+        "canvas and animation surface.",
     ),
     CreativeCodingDomain.REACT_THREE_FIBER: (
         "For React Three Fiber generation, return React component code using "
