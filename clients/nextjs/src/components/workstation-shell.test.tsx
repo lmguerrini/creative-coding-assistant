@@ -3398,9 +3398,22 @@ describe("WorkstationShell", () => {
     );
 
     expect(details).toHaveAttribute("data-fullscreen", "true");
+    expect(preview.querySelector("summary")).not.toBeInTheDocument();
     expect(
       within(preview).getByRole("button", { name: "Exit preview fullscreen" })
     ).toBeVisible();
+    expect(
+      within(preview).queryByLabelText("Focused preview context")
+    ).not.toBeInTheDocument();
+    expect(
+      within(preview).queryByLabelText("Preview controls")
+    ).not.toBeInTheDocument();
+    expect(
+      within(preview).queryByRole("button", { name: "Restart preview session" })
+    ).not.toBeInTheDocument();
+    expect(
+      within(preview).queryByRole("button", { name: "Reload preview state" })
+    ).not.toBeInTheDocument();
 
     fireEvent.click(
       within(preview).getByRole("button", { name: "Exit preview fullscreen" })

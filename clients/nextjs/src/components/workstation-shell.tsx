@@ -3966,120 +3966,125 @@ function PreviewShelf({
         onToggle={handleToggle}
         open={isPreviewPanelOpen}
       >
-        <summary
-          aria-expanded={isPreviewPanelOpen}
-          onClick={handleSummaryClick}
-        >
-          <span className="previewSummaryIcon" aria-hidden="true">
-            <Play size={16} />
-          </span>
-          <div>
-            <strong>{snapshot.preview.title}</strong>
-            <span>
-              {showDebugPanels
-                ? snapshot.preview.artifactName
-                : formatUserPreviewArtifactLabel(snapshot)}
+        {!controller.isFullscreen ? (
+          <summary
+            aria-expanded={isPreviewPanelOpen}
+            onClick={handleSummaryClick}
+          >
+            <span className="previewSummaryIcon" aria-hidden="true">
+              <Play size={16} />
             </span>
-          </div>
-          <div className="previewSummaryMeta">
-            <small data-state={snapshot.preview.state}>{snapshot.preview.status}</small>
-            <span className="previewSummaryChevron" aria-hidden="true">
-              <ChevronDown size={15} />
-            </span>
-          </div>
-        </summary>
-        <div className="previewPanel" style={panelStyle}>
-          <div className="previewToolbar">
-            <div className="previewToolbarFocus" aria-label="Focused preview context">
-              <span>{route.surfaceEyebrow}</span>
-              <strong>{route.surfaceTitle}</strong>
-              <small>
+            <div>
+              <strong>{snapshot.preview.title}</strong>
+              <span>
                 {showDebugPanels
-                  ? `${snapshot.preview.status} / ${route.rendererLabel}`
-                  : snapshot.preview.status}
-              </small>
+                  ? snapshot.preview.artifactName
+                  : formatUserPreviewArtifactLabel(snapshot)}
+              </span>
             </div>
-            <div className="previewToolbarActions" aria-label="Preview controls">
-              {showDebugPanels ? (
+            <div className="previewSummaryMeta">
+              <small data-state={snapshot.preview.state}>{snapshot.preview.status}</small>
+              <span className="previewSummaryChevron" aria-hidden="true">
+                <ChevronDown size={15} />
+              </span>
+            </div>
+          </summary>
+        ) : null}
+        <div className="previewPanel" style={panelStyle}>
+          {controller.isFullscreen ? (
+            <div className="previewFullscreenClose" aria-label="Fullscreen preview controls">
+              <button
+                aria-label="Exit preview fullscreen"
+                aria-pressed
+                className="previewControlButton"
+                onClick={() => onFullscreenToggle(false)}
+                title="Exit preview fullscreen"
+                type="button"
+              >
+                <Minimize2 size={15} />
+              </button>
+            </div>
+          ) : (
+            <div className="previewToolbar">
+              <div className="previewToolbarFocus" aria-label="Focused preview context">
+                <span>{route.surfaceEyebrow}</span>
+                <strong>{route.surfaceTitle}</strong>
+                <small>
+                  {showDebugPanels
+                    ? `${snapshot.preview.status} / ${route.rendererLabel}`
+                    : snapshot.preview.status}
+                </small>
+              </div>
+              <div className="previewToolbarActions" aria-label="Preview controls">
+                {showDebugPanels ? (
+                  <button
+                    aria-label="Collapse preview"
+                    className="previewControlButton"
+                    onClick={() => onToggle(false)}
+                    title="Collapse preview"
+                    type="button"
+                  >
+                    <ChevronDown size={15} />
+                  </button>
+                ) : null}
                 <button
-                  aria-label="Collapse preview"
+                  aria-label="Enter preview fullscreen"
+                  aria-pressed={false}
                   className="previewControlButton"
-                  onClick={() => onToggle(false)}
-                  title="Collapse preview"
+                  disabled={!controller.canFullscreen}
+                  onClick={() => onFullscreenToggle(true)}
+                  title="Enter preview fullscreen"
                   type="button"
                 >
-                  <ChevronDown size={15} />
-                </button>
-              ) : null}
-              <button
-                aria-label={
-                  controller.isFullscreen
-                    ? "Exit preview fullscreen"
-                    : "Enter preview fullscreen"
-                }
-                aria-pressed={controller.isFullscreen}
-                className="previewControlButton"
-                disabled={!controller.canFullscreen}
-                onClick={() => onFullscreenToggle(!controller.isFullscreen)}
-                title={
-                  controller.isFullscreen
-                    ? "Exit preview fullscreen"
-                    : "Enter preview fullscreen"
-                }
-                type="button"
-              >
-                {controller.isFullscreen ? (
-                  <Minimize2 size={15} />
-                ) : (
                   <Maximize2 size={15} />
-                )}
-              </button>
-              <button
-                aria-label="Restart preview session"
-                className="previewControlButton"
-                disabled={!controller.canRestart}
-                onClick={onRestart}
-                title="Restart preview session"
-                type="button"
-              >
-                <RotateCcw size={15} />
-              </button>
-              {showDebugPanels ? (
-                <>
-                  <button
-                    aria-label="Clear preview state"
-                    className="previewControlButton"
-                    disabled={!controller.canClear}
-                    onClick={onClear}
-                    title="Clear preview state"
-                    type="button"
-                  >
-                    <X size={15} />
-                  </button>
-                  <button
-                    aria-label="Reload preview state"
-                    className="previewControlButton"
-                    disabled={!controller.canReload}
-                    onClick={onReload}
-                    title="Reload preview state"
-                    type="button"
-                  >
-                    <RefreshCw size={15} />
-                  </button>
-                  <button
-                    aria-label="Reset preview session"
-                    className="previewControlButton"
-                    disabled={!controller.canReset}
-                    onClick={onReset}
-                    title="Reset preview session"
-                    type="button"
-                  >
-                    <Undo2 size={15} />
-                  </button>
-                </>
-              ) : null}
+                </button>
+                <button
+                  aria-label="Restart preview session"
+                  className="previewControlButton"
+                  disabled={!controller.canRestart}
+                  onClick={onRestart}
+                  title="Restart preview session"
+                  type="button"
+                >
+                  <RotateCcw size={15} />
+                </button>
+                {showDebugPanels ? (
+                  <>
+                    <button
+                      aria-label="Clear preview state"
+                      className="previewControlButton"
+                      disabled={!controller.canClear}
+                      onClick={onClear}
+                      title="Clear preview state"
+                      type="button"
+                    >
+                      <X size={15} />
+                    </button>
+                    <button
+                      aria-label="Reload preview state"
+                      className="previewControlButton"
+                      disabled={!controller.canReload}
+                      onClick={onReload}
+                      title="Reload preview state"
+                      type="button"
+                    >
+                      <RefreshCw size={15} />
+                    </button>
+                    <button
+                      aria-label="Reset preview session"
+                      className="previewControlButton"
+                      disabled={!controller.canReset}
+                      onClick={onReset}
+                      title="Reset preview session"
+                      type="button"
+                    >
+                      <Undo2 size={15} />
+                    </button>
+                  </>
+                ) : null}
+              </div>
             </div>
-          </div>
+          )}
           <div className="previewBody">
             {snapshot.preview.error ? (
               <SubsystemErrorCallout
