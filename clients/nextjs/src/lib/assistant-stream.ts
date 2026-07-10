@@ -260,6 +260,20 @@ export type AssistantStreamEvent = {
 
 export type AssistantStreamWorkflowPhase = "running" | "completed" | "failed";
 
+export type AssistantStreamProductOutcome = {
+  orchestration_status: string;
+  provider_status: string;
+  generation_status: string;
+  deliverable_status: string;
+  artifact_extraction_status: string;
+  artifact_runnability: string;
+  preview_status: string;
+  runtime_health: string;
+  product_outcome: "IN_PROGRESS" | "SUCCESS" | "PARTIAL" | "FAILURE";
+  summary: string;
+  recovery_action: string;
+};
+
 export type AssistantStreamImageReferenceMetadata = {
   id: string;
   name: string;
@@ -281,6 +295,7 @@ export type AssistantStreamWorkflowMetadata = {
   artifact_critique_count: number;
   recommended_artifact_id: string | null;
   preview_artifact_count: number;
+  product_outcome?: AssistantStreamProductOutcome | null;
   image_reference_count: number;
   image_references: AssistantStreamImageReferenceMetadata[];
   clarification?: ClarificationSummary | null;
@@ -757,6 +772,7 @@ export function readWorkflowMetadata(
       ? rawWorkflow.image_reference_count
       : imageReferences.length;
   const clarification = readClarificationSummary(rawWorkflow.clarification);
+  const productOutcome = readProductOutcome(rawWorkflow.product_outcome);
   const clarificationRequired =
     rawWorkflow.clarification_required === true || clarification !== null;
   const clarificationReason =
@@ -1025,6 +1041,7 @@ export function readWorkflowMetadata(
     artifact_critique_count: artifactCritiqueCount,
     recommended_artifact_id: recommendedArtifactId,
     preview_artifact_count: previewArtifactCount,
+    ...(productOutcome ? { product_outcome: productOutcome } : {}),
     image_reference_count: imageReferenceCount,
     image_references: imageReferences,
     ...(clarificationRequired
@@ -1275,6 +1292,52 @@ export function readWorkflowMetadata(
           creative_reasoning_available: true
         }
       : {})
+  };
+}
+
+function readProductOutcome(value: unknown): AssistantStreamProductOutcome | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const productOutcome = value.product_outcome;
+  if (
+    productOutcome !== "IN_PROGRESS" &&
+    productOutcome !== "SUCCESS" &&
+    productOutcome !== "PARTIAL" &&
+    productOutcome !== "FAILURE"
+  ) {
+    return null;
+  }
+
+  const fields = [
+    "orchestration_status",
+    "provider_status",
+    "generation_status",
+    "deliverable_status",
+    "artifact_extraction_status",
+    "artifact_runnability",
+    "preview_status",
+    "runtime_health",
+    "summary",
+    "recovery_action"
+  ] as const;
+  if (fields.some((field) => typeof value[field] !== "string")) {
+    return null;
+  }
+
+  return {
+    orchestration_status: value.orchestration_status as string,
+    provider_status: value.provider_status as string,
+    generation_status: value.generation_status as string,
+    deliverable_status: value.deliverable_status as string,
+    artifact_extraction_status: value.artifact_extraction_status as string,
+    artifact_runnability: value.artifact_runnability as string,
+    preview_status: value.preview_status as string,
+    runtime_health: value.runtime_health as string,
+    product_outcome: productOutcome,
+    summary: value.summary as string,
+    recovery_action: value.recovery_action as string
   };
 }
 

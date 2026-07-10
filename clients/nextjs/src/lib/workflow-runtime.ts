@@ -9,7 +9,8 @@ import {
   readStreamEventError,
   readWorkflowMetadata,
   workflowNodeFromAssistantStreamEvent,
-  type AssistantStreamEvent
+  type AssistantStreamEvent,
+  type AssistantStreamProductOutcome
 } from "./assistant-stream";
 import {
   createWorkstationError,
@@ -71,6 +72,7 @@ export type WorkflowRuntimeEvent = {
 
 export type WorkflowRuntimeSummary = {
   status: string;
+  productOutcome: AssistantStreamProductOutcome;
   currentNode: WorkflowNodeId;
   currentStep: string;
   reached: number;
@@ -329,12 +331,16 @@ export function buildWorkflowRuntimeModel(
   const total = steps.filter((step) => step.state !== "branch").length;
   const currentStep =
     steps.find((step) => step.nodeId === latestNode)?.displayLabel ?? workflow.currentStep;
-  const productOutcomeStatus = previewRuntimeError
-    ? "completed_with_preview_error"
-    : latestStatus;
-  const productOutcomeStep = previewRuntimeError
-    ? "Completed with preview error"
-    : currentStep;
+  const productOutcome = deriveProductOutcome({
+    metadata: latestMetadata,
+    previewRuntimeError,
+    workflowStatus: latestStatus
+  });
+  const productOutcomeStatus = workflowStatusForProductOutcome(productOutcome);
+  const productOutcomeStep =
+    productOutcome.product_outcome === "IN_PROGRESS"
+      ? currentStep
+      : productOutcome.summary;
   const totalRuntimeMs = Math.max(lastObservedAtMs - traceEvents[0].receivedAtMs, 0);
   const activeRuntimeMs =
     latestStatus === "running" && currentRecord?.openAttemptStartedAtMs != null
@@ -348,6 +354,7 @@ export function buildWorkflowRuntimeModel(
     timeline: buildWorkflowTimelineModel(traceEvents),
     summary: {
       status: productOutcomeStatus,
+      productOutcome,
       currentNode: latestNode,
       currentStep: productOutcomeStep,
       reached,
@@ -361,7 +368,7 @@ export function buildWorkflowRuntimeModel(
       totalRuntimeMs,
       activeRuntimeMs
     },
-    error: previewRuntimeError ?? buildWorkflowRuntimeError({
+    error: previewRuntimeError ?? buildProductOutcomeError(productOutcome) ?? buildWorkflowRuntimeError({
       currentNode: latestNode,
       currentStep,
       latestStatus,
@@ -399,6 +406,100 @@ function readPreviewRuntimeError(event: AssistantStreamEvent): WorkstationError 
   });
 }
 
+function deriveProductOutcome({
+  metadata,
+  previewRuntimeError,
+  workflowStatus
+}: {
+  metadata: ReturnType<typeof readWorkflowMetadata>;
+  previewRuntimeError: WorkstationError | null;
+  workflowStatus: string;
+}): AssistantStreamProductOutcome {
+  const outcome = metadata?.product_outcome ?? fallbackProductOutcome(workflowStatus);
+  if (!previewRuntimeError) {
+    return outcome;
+  }
+
+  return {
+    ...outcome,
+    preview_status: "FAILED",
+    runtime_health: "FAILED",
+    product_outcome: "PARTIAL",
+    summary: "A usable artifact was produced, but the live preview failed.",
+    recovery_action:
+      "Open Code to use the artifact, then reload or regenerate the preview."
+  };
+}
+
+function fallbackProductOutcome(workflowStatus: string): AssistantStreamProductOutcome {
+  const normalizedStatus = normalizeWorkflowStatus(workflowStatus);
+  const productOutcome =
+    normalizedStatus === "failed"
+      ? "FAILURE"
+      : normalizedStatus === "completed"
+        ? "SUCCESS"
+        : "IN_PROGRESS";
+  const isTerminalFailure = productOutcome === "FAILURE";
+
+  return {
+    orchestration_status: normalizedStatus.toUpperCase(),
+    provider_status: "UNKNOWN",
+    generation_status: isTerminalFailure ? "FAILED" : "UNKNOWN",
+    deliverable_status: "UNKNOWN",
+    artifact_extraction_status: "UNKNOWN",
+    artifact_runnability: "UNKNOWN",
+    preview_status: "UNKNOWN",
+    runtime_health: "UNKNOWN",
+    product_outcome: productOutcome,
+    summary:
+      productOutcome === "FAILURE"
+        ? "The workflow ended in failure."
+        : productOutcome === "SUCCESS"
+          ? "The workflow completed."
+          : "Generation and product validation are in progress.",
+    recovery_action:
+      productOutcome === "FAILURE"
+        ? "Review the failure details, then retry the request."
+        : ""
+  };
+}
+
+function workflowStatusForProductOutcome(
+  productOutcome: AssistantStreamProductOutcome
+) {
+  switch (productOutcome.product_outcome) {
+    case "FAILURE":
+      return "failed";
+    case "PARTIAL":
+      return "partial";
+    case "SUCCESS":
+      return "completed";
+    default:
+      return "running";
+  }
+}
+
+function buildProductOutcomeError(
+  productOutcome: AssistantStreamProductOutcome
+): WorkstationError | null {
+  if (productOutcome.product_outcome !== "PARTIAL") {
+    return null;
+  }
+
+  return createWorkstationError({
+    type: "product_outcome_partial",
+    category: "workflow_runtime",
+    subsystem: "product_outcome",
+    userMessage: productOutcome.summary,
+    recoverable: true,
+    suggestedAction:
+      productOutcome.recovery_action ||
+      "Open Code to review the usable output, then retry the unavailable step.",
+    retryLabel: "Reload preview",
+    resetLabel: "Clear workspace session"
+  });
+}
+
 function buildFallbackWorkflowRuntimeModel(
   workflow: AssistantWorkspaceSnapshot["workflow"]
 ): WorkflowRuntimeModel {
@@ -425,6 +526,7 @@ function buildFallbackWorkflowRuntimeModel(
     timeline: buildWorkflowTimelineModel([]),
     summary: {
       status: normalizeWorkflowStatus(workflow.status),
+      productOutcome: fallbackProductOutcome(workflow.status),
       currentNode: workflow.currentNode,
       currentStep: workflow.currentStep,
       reached,

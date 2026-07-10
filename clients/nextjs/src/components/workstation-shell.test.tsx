@@ -4384,10 +4384,10 @@ describe("WorkstationShell", () => {
       within(surface).getByRole("button", { name: "Reload preview runtime" })
     ).toBeVisible();
     expect(screen.getByLabelText("Current session")).toHaveTextContent(
-      "Needs attention"
+      "Partial"
     );
     expect(screen.getByLabelText("Current session")).toHaveTextContent(
-      "Preview needs attention"
+      "A usable artifact was produced, but the live preview failed."
     );
 
   });

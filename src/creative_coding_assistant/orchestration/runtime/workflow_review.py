@@ -158,7 +158,7 @@ def _collect_answer_quality_reasons(
     if len(answer) < _MIN_ANSWER_CHARS:
         reasons.append("answer_too_short")
 
-    requires_deliverable = _request_requires_deliverable(request, route_decision)
+    requires_deliverable = request_requires_deliverable(request, route_decision)
     if requires_deliverable:
         fence_count = answer.count("```")
         if fence_count == 0:
@@ -172,7 +172,7 @@ def _collect_answer_quality_reasons(
             for reason in reasons
         ):
             reasons.append("missing_requested_artifact")
-        elif artifacts and _request_requires_live_preview(request, route_decision) and not any(
+        elif artifacts and request_requires_live_preview(request, route_decision) and not any(
             artifact.preview_eligible for artifact in artifacts
         ):
             reasons.append("missing_runnable_artifact")
@@ -193,17 +193,17 @@ def _request_explicitly_asks_for_code(request: AssistantRequest) -> bool:
     return bool(query_tokens.intersection(_CODE_REQUEST_MARKERS))
 
 
-def _request_requires_deliverable(
+def request_requires_deliverable(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
 ) -> bool:
-    return _request_explicitly_asks_for_code(request) or _request_requires_live_preview(
+    return _request_explicitly_asks_for_code(request) or request_requires_live_preview(
         request,
         route_decision,
     )
 
 
-def _request_requires_live_preview(
+def request_requires_live_preview(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
 ) -> bool:
@@ -212,12 +212,21 @@ def _request_requires_live_preview(
         if route_decision is not None
         else (request.domain, *request.domains)
     )
-    preview_intent_markers = {"browser", "browser-ready", "preview", "runnable"}
     return (
-        bool(_tokens(request.query).intersection(preview_intent_markers))
+        request_requests_preview(request)
         and any(
             domain is not None and is_previewable_generation_domain(domain)
             for domain in domains
+        )
+    )
+
+
+def request_requests_preview(request: AssistantRequest) -> bool:
+    """Return whether the user explicitly asked for browser or runnable output."""
+
+    return bool(
+        _tokens(request.query).intersection(
+            {"browser", "browser-ready", "preview", "runnable"}
         )
     )
 

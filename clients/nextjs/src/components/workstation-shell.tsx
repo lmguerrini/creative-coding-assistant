@@ -52,6 +52,7 @@ import {
   readCreativeExecutionPlanSummary,
   readStreamEventError,
   readPreviewArtifactUpdate,
+  readWorkflowMetadata,
   streamAssistantEvents as streamBackendAssistantEvents,
   workflowNodeFromAssistantStreamEvent,
   type AssistantArtifactRefinementRequest,
@@ -1221,16 +1222,20 @@ export function WorkstationShell({
     ? activeArtifact.title
     : formatUserArtifactLabel(activeArtifact);
   const isInspectorCollapsed = layoutState.inspectorCollapsed;
+  const semanticSessionStatus = formatSemanticProductOutcomeStatus(
+    workflowRuntime.summary.productOutcome
+  );
   const sessionStatusLabel = blockingApprovalRequest
     ? getHitlApprovalStateLabel(blockingApprovalRequest.state)
-    : workstationState.status.label;
+    : semanticSessionStatus?.label ?? workstationState.status.label;
   const sessionStatusDetail = blockingApprovalRequest
     ? blockingApprovalRequest.title
-    : workstationState.status.detail;
+    : semanticSessionStatus?.detail ?? workstationState.status.detail;
   const userSessionStatus = formatUserModeSessionStatus({
     hasFailedPreviewRuntime: runtimeConsole.health.signal === "failed",
     hasWorkspaceArtifacts,
     isDemoModeOpen,
+    productOutcome: workflowRuntime.summary.productOutcome,
     streamError,
     streamState
   });
@@ -2334,12 +2339,14 @@ export function WorkstationShell({
         if (streamEvent.event_type === "final" && !receivedTerminalStreamError) {
           const answer = readPayloadText(streamEvent, "answer");
           streamedAnswer = answer ?? streamedAnswer;
+          const productOutcome = readWorkflowMetadata(streamEvent)?.product_outcome;
+          const conversationOutcome = formatConversationOutcome(productOutcome);
           finalizeStreamingAssistantMessage({
             activity: artifactRefinement
-              ? "Refinement completed."
-              : "Response completed.",
+              ? conversationOutcome.refinementActivity
+              : conversationOutcome.activity,
             content: buildAssistantConversationSummary(streamedAnswer),
-            phase: "complete"
+            phase: conversationOutcome.phase
           });
         }
 
@@ -4250,6 +4257,7 @@ function InspectorPanel({
         controller={previewController}
         dashboard={telemetryDashboard}
         preview={snapshot.preview}
+        productOutcome={workflowRuntime.summary.productOutcome}
         route={previewRoute}
         runtimeSource={previewRuntimeSource}
         showDebugPanels={showDebugPanels}
@@ -4258,7 +4266,12 @@ function InspectorPanel({
   }
 
   if (activeTab === "Runtime") {
-    return <RuntimeConsoleInspector console={runtimeConsole} />;
+    return (
+      <RuntimeConsoleInspector
+        console={runtimeConsole}
+        productOutcome={workflowRuntime.summary.productOutcome}
+      />
+    );
   }
 
   if (activeTab === "Workflow") {
@@ -4300,6 +4313,7 @@ function InspectorPanel({
         onArtifactRefine={onArtifactRefine}
         onArtifactSelect={onArtifactSelect}
         preview={snapshot.preview}
+        productOutcome={workflowRuntime.summary.productOutcome}
         showDebugPanels={showDebugPanels}
         transferFeedback={transferFeedback}
       />
@@ -4437,6 +4451,17 @@ function OverviewInspector({
           <span>Artifacts</span>
           <strong>{snapshot.artifacts.length}</strong>
           <p>{activeArtifact.title}</p>
+        </div>
+        <div
+          aria-label="Product outcome summary"
+          className="overviewTile"
+          data-state={runtime.summary.status}
+          role="group"
+        >
+          <span>Product outcome</span>
+          <strong>{runtime.summary.productOutcome.product_outcome}</strong>
+          <p>{runtime.summary.productOutcome.summary}</p>
+          <small>{runtime.summary.productOutcome.recovery_action || "No recovery action"}</small>
         </div>
         {snapshot.creativePlan ? (
           <CreativePlanOverviewTile plan={snapshot.creativePlan} />
@@ -4652,6 +4677,7 @@ function PreviewInspector({
   controller,
   dashboard,
   preview,
+  productOutcome,
   route,
   runtimeSource,
   showDebugPanels
@@ -4659,6 +4685,7 @@ function PreviewInspector({
   controller: PreviewControllerModel;
   dashboard: TelemetryDashboardModel;
   preview: AssistantWorkspaceSnapshot["preview"];
+  productOutcome: WorkflowRuntimeModel["summary"]["productOutcome"];
   route: PreviewRendererRoute;
   runtimeSource: PreviewRuntimeSource;
   showDebugPanels: boolean;
@@ -4682,12 +4709,10 @@ function PreviewInspector({
             <span>Preview</span>
             <strong>{formatPreviewStateLabel(preview.state, preview.active)}</strong>
             <p>
-              {preview.state === "ready"
-                ? "Visual output is ready in the preview shelf."
-                : "Preview will open when a runnable visual artifact is ready."}
+              {productOutcome.summary}
             </p>
           </div>
-          <span>{preview.state === "ready" ? "Ready" : "Fallback"}</span>
+          <span>{productOutcome.product_outcome}</span>
         </article>
         <article className="previewInspectorCard previewInspectorCard--user" role="group">
           <header>
@@ -4695,9 +4720,7 @@ function PreviewInspector({
             <strong>{route.surfaceTitle}</strong>
           </header>
           <p>
-            {preview.state === "ready"
-              ? "Use the preview shelf for the visual canvas. Developer diagnostics stay hidden in User Mode."
-              : "Continue with Code or Saved outputs if preview is not available yet."}
+            {productOutcome.recovery_action || "Use the preview shelf for the visual canvas."}
           </p>
         </article>
       </section>
@@ -4758,6 +4781,14 @@ function PreviewInspector({
             <div>
               <dt>Support</dt>
               <dd>{route.supportLabel}</dd>
+            </div>
+            <div>
+              <dt>Product outcome</dt>
+              <dd>{productOutcome.product_outcome}</dd>
+            </div>
+            <div>
+              <dt>Delivery</dt>
+              <dd>{productOutcome.deliverable_status}</dd>
             </div>
             <div>
               <dt>Opened from</dt>
@@ -5110,6 +5141,15 @@ function WorkflowInspector({
           <strong>{formatWorkflowStatusCopy(runtime.summary.status)}</strong>
           <p>{runtime.summary.currentStep}</p>
         </article>
+        <article
+          className="workflowSummaryCard"
+          role="group"
+          aria-label="Semantic product outcome"
+        >
+          <span>Product outcome</span>
+          <strong>{runtime.summary.productOutcome.product_outcome}</strong>
+          <p>{`${runtime.summary.productOutcome.orchestration_status} orchestration / ${runtime.summary.productOutcome.deliverable_status} delivery / ${runtime.summary.productOutcome.preview_status} preview`}</p>
+        </article>
         <article className="workflowSummaryCard" role="group" aria-label="Workflow runtime">
           <span>Runtime</span>
           <strong>{formatRuntimeDuration(runtime.summary.totalRuntimeMs)}</strong>
@@ -5451,6 +5491,46 @@ function TelemetryInspector({
         </article>
 
         <article
+          aria-label="Semantic product outcome"
+          className="telemetryDashboardCard telemetryDashboardCard--wide"
+          data-state={dashboard.runtime.workflowStatus}
+          role="group"
+        >
+          <header>
+            <span>Product outcome</span>
+            <strong>{dashboard.runtime.productOutcome.product_outcome}</strong>
+          </header>
+          <dl>
+            <div>
+              <dt>Orchestration</dt>
+              <dd>{dashboard.runtime.productOutcome.orchestration_status}</dd>
+            </div>
+            <div>
+              <dt>Provider</dt>
+              <dd>{dashboard.runtime.productOutcome.provider_status}</dd>
+            </div>
+            <div>
+              <dt>Generation</dt>
+              <dd>{dashboard.runtime.productOutcome.generation_status}</dd>
+            </div>
+            <div>
+              <dt>Extraction</dt>
+              <dd>{dashboard.runtime.productOutcome.artifact_extraction_status}</dd>
+            </div>
+            <div>
+              <dt>Runnable</dt>
+              <dd>{dashboard.runtime.productOutcome.artifact_runnability}</dd>
+            </div>
+            <div>
+              <dt>Runtime health</dt>
+              <dd>{dashboard.runtime.productOutcome.runtime_health}</dd>
+            </div>
+          </dl>
+          <p>{dashboard.runtime.productOutcome.summary}</p>
+          <small>{dashboard.runtime.productOutcome.recovery_action || "No recovery action"}</small>
+        </article>
+
+        <article
           aria-label="Renderer and preview health"
           className="telemetryDashboardCard"
           data-state={dashboard.preview.state}
@@ -5602,6 +5682,7 @@ type ArtifactsInspectorProps = {
   onArtifactRefine: (artifact: ArtifactSummary, instruction: string) => Promise<void>;
   onArtifactSelect: (artifact: ArtifactSummary) => void;
   preview: AssistantWorkspaceSnapshot["preview"];
+  productOutcome: WorkflowRuntimeModel["summary"]["productOutcome"];
   showDebugPanels: boolean;
   transferFeedback: ArtifactActionFeedback | null;
 };
@@ -5619,6 +5700,7 @@ function ArtifactsInspector({
   onArtifactRefine,
   onArtifactSelect,
   preview,
+  productOutcome,
   showDebugPanels,
   transferFeedback
 }: ArtifactsInspectorProps) {
@@ -5633,6 +5715,10 @@ function ArtifactsInspector({
     code,
     preview
   });
+  const artifactDeliveryStatus =
+    productOutcome.deliverable_status === "UNKNOWN"
+      ? activeArtifact.status
+      : productOutcome.deliverable_status;
 
   if (!showDebugPanels) {
     return (
@@ -5704,7 +5790,7 @@ function ArtifactsInspector({
           </div>
           <div>
             <dt>Status</dt>
-            <dd>{activeArtifact.status}</dd>
+            <dd>{artifactDeliveryStatus}</dd>
           </div>
           <div>
             <dt>Lines</dt>
@@ -5722,6 +5808,12 @@ function ArtifactsInspector({
             <dt>Runtime</dt>
             <dd>{formatArtifactRuntimeDetail(activeArtifact)}</dd>
           </div>
+          {productOutcome.artifact_runnability !== "UNKNOWN" ? (
+            <div>
+              <dt>Runnability</dt>
+              <dd>{productOutcome.artifact_runnability}</dd>
+            </div>
+          ) : null}
           {activeArtifact.qualityScore !== undefined &&
           activeArtifact.qualityScore !== null ? (
             <div>
@@ -7282,6 +7374,8 @@ function formatWorkflowStatusCopy(status: string) {
       return "Completed";
     case "completed_with_preview_error":
       return "Completed with preview error";
+    case "partial":
+      return "Partial";
     case "failed":
       return "Failed";
     default:
@@ -7340,12 +7434,14 @@ function formatUserModeSessionStatus({
   hasFailedPreviewRuntime,
   hasWorkspaceArtifacts,
   isDemoModeOpen,
+  productOutcome,
   streamError,
   streamState
 }: {
   hasFailedPreviewRuntime: boolean;
   hasWorkspaceArtifacts: boolean;
   isDemoModeOpen: boolean;
+  productOutcome: WorkflowRuntimeModel["summary"]["productOutcome"];
   streamError: WorkstationError | null;
   streamState: string;
 }) {
@@ -7367,6 +7463,12 @@ function formatUserModeSessionStatus({
         detail: streamError ? "Live response unavailable" : "Fallback available"
       };
     default:
+      {
+        const semanticStatus = formatSemanticProductOutcomeStatus(productOutcome);
+        if (semanticStatus) {
+          return semanticStatus;
+        }
+      }
       if (hasFailedPreviewRuntime) {
         return {
           label: "Needs attention",
@@ -7391,6 +7493,55 @@ function formatUserModeSessionStatus({
       return {
         label: "Ready",
         detail: "Start a prompt"
+      };
+  }
+}
+
+function formatSemanticProductOutcomeStatus(
+  productOutcome: WorkflowRuntimeModel["summary"]["productOutcome"]
+) {
+  switch (productOutcome.product_outcome) {
+    case "SUCCESS":
+      return {
+        label: "Complete",
+        detail: productOutcome.summary
+      };
+    case "PARTIAL":
+      return {
+        label: "Partial",
+        detail: productOutcome.summary
+      };
+    case "FAILURE":
+      return {
+        label: "Needs attention",
+        detail: productOutcome.summary
+      };
+    default:
+      return null;
+  }
+}
+
+function formatConversationOutcome(
+  productOutcome: WorkflowRuntimeModel["summary"]["productOutcome"] | null | undefined
+) {
+  switch (productOutcome?.product_outcome) {
+    case "PARTIAL":
+      return {
+        activity: `Partial result: ${productOutcome.summary}`,
+        refinementActivity: `Partial refinement: ${productOutcome.summary}`,
+        phase: "fallback" as const
+      };
+    case "FAILURE":
+      return {
+        activity: `Response failed: ${productOutcome.summary}`,
+        refinementActivity: `Refinement failed: ${productOutcome.summary}`,
+        phase: "error" as const
+      };
+    default:
+      return {
+        activity: "Response completed.",
+        refinementActivity: "Refinement completed.",
+        phase: "complete" as const
       };
   }
 }

@@ -19,7 +19,7 @@ describe("workflow runtime model", () => {
     });
   });
 
-  it("does not report full workflow success when the preview runtime fails", () => {
+  it("downgrades product success when the preview runtime fails", () => {
     const workflow = getLocalWorkspaceSnapshot().workflow;
     const runtime = buildWorkflowRuntimeModel(workflow, [
       {
@@ -43,10 +43,60 @@ describe("workflow runtime model", () => {
     ]);
 
     expect(runtime.summary).toMatchObject({
-      currentStep: "Completed with preview error",
-      status: "completed_with_preview_error"
+      currentStep: "A usable artifact was produced, but the live preview failed.",
+      status: "partial",
+      productOutcome: {
+        preview_status: "FAILED",
+        runtime_health: "FAILED",
+        product_outcome: "PARTIAL"
+      }
     });
     expect(runtime.error?.userMessage).toContain("colorMode is not defined");
+  });
+
+  it("preserves a backend partial outcome when an artifact cannot open in preview", () => {
+    const workflow = getLocalWorkspaceSnapshot().workflow;
+    const runtime = buildWorkflowRuntimeModel(workflow, [
+      {
+        event: {
+          event_type: "final",
+          sequence: 1,
+          payload: {
+            workflow: {
+              current_step: "finalization",
+              phase: "completed",
+              status: "completed",
+              product_outcome: {
+                orchestration_status: "COMPLETED",
+                provider_status: "COMPLETED",
+                generation_status: "COMPLETED",
+                deliverable_status: "USABLE",
+                artifact_extraction_status: "EXTRACTED",
+                artifact_runnability: "UNSUPPORTED",
+                preview_status: "UNAVAILABLE",
+                runtime_health: "NOT_AVAILABLE",
+                product_outcome: "PARTIAL",
+                summary: "A usable artifact was produced, but live preview is unavailable.",
+                recovery_action: "Open Code to use the artifact, then regenerate the preview."
+              }
+            }
+          }
+        },
+        receivedAt: "2026-07-10T10:00:00Z",
+        receivedAtMs: Date.parse("2026-07-10T10:00:00Z")
+      }
+    ]);
+
+    expect(runtime.summary).toMatchObject({
+      currentStep: "A usable artifact was produced, but live preview is unavailable.",
+      status: "partial",
+      productOutcome: {
+        deliverable_status: "USABLE",
+        artifact_runnability: "UNSUPPORTED",
+        product_outcome: "PARTIAL"
+      }
+    });
+    expect(runtime.error?.suggestedAction).toContain("Open Code");
   });
 
   it("preserves explicit planning and director transition metadata", () => {

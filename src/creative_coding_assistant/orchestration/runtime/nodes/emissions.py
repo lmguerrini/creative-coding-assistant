@@ -16,6 +16,9 @@ from creative_coding_assistant.orchestration.runtime.nodes.constants import (
     ASSISTANT_WORKFLOW_NODE_ORDER,
 )
 from creative_coding_assistant.orchestration.runtime.nodes.contracts import AssistantWorkflowRuntime
+from creative_coding_assistant.orchestration.runtime.product_outcome import (
+    derive_product_outcome,
+)
 from creative_coding_assistant.orchestration.workflow import (
     AssistantWorkflowState,
     WorkflowFailureInfo,
@@ -408,6 +411,7 @@ def _serialize_workflow_runtime(
             else None
         ),
         "preview_artifact_count": len(workflow_state.preview_results),
+        "product_outcome": derive_product_outcome(workflow_state),
         "clarification_required": clarification is not None,
         "clarification_reason": (
             clarification.reason.value if clarification is not None else None

@@ -47,6 +47,21 @@ const generatedArtifact = {
   ].join("\n")
 };
 
+const codeOnlyR3fArtifact = {
+  id: "e2e-r3f-study",
+  title: "e2e-r3f-study.r3f.tsx",
+  type: "code",
+  language: "typescript",
+  domain: "react_three_fiber",
+  preview_eligible: false,
+  status: "Generated",
+  summary: "Code-only React Three Fiber study without a bundled preview runtime.",
+  content: [
+    'import { Canvas } from "@react-three/fiber";',
+    "export default function Study() { return <Canvas><mesh /></Canvas>; }"
+  ].join("\n")
+};
+
 const retrievalSource = {
   id: "e2e-source-p5-reference",
   title: "p5.js createCanvas reference",
@@ -122,6 +137,16 @@ async function installApiMocks(page, scenario = "success") {
     if (scenario === "provider-fallback") {
       await route.fulfill({
         body: buildProviderFallbackNdjson(),
+        contentType: "application/x-ndjson",
+        headers: corsHeaders,
+        status: 200
+      });
+      return;
+    }
+
+    if (scenario === "partial-outcome") {
+      await route.fulfill({
+        body: buildPartialOutcomeNdjson(),
         contentType: "application/x-ndjson",
         headers: corsHeaders,
         status: 200
@@ -453,6 +478,53 @@ function buildProviderFallbackNdjson() {
   ]
     .map((event) => JSON.stringify(event))
     .join("\n")}\n`;
+}
+
+function buildPartialOutcomeNdjson() {
+  const productOutcome = {
+    orchestration_status: "COMPLETED",
+    provider_status: "COMPLETED",
+    generation_status: "COMPLETED",
+    deliverable_status: "USABLE",
+    artifact_extraction_status: "EXTRACTED",
+    artifact_runnability: "UNSUPPORTED",
+    preview_status: "UNAVAILABLE",
+    runtime_health: "NOT_AVAILABLE",
+    product_outcome: "PARTIAL",
+    summary: "A usable artifact was produced, but live preview is unavailable.",
+    recovery_action: "Open Code to use the artifact, then regenerate the preview."
+  };
+  const workflow = {
+    step: "finalization",
+    phase: "completed",
+    status: "completed",
+    current_step: "finalization",
+    completed_steps: ["intake", "routing", "generation", "artifact_extraction"],
+    skipped_steps: ["preview_preparation"],
+    refinement_count: 0,
+    review_outcome: "pass",
+    review_reasons: [],
+    artifact_count: 1,
+    artifact_critique_count: 0,
+    recommended_artifact_id: codeOnlyR3fArtifact.id,
+    preview_artifact_count: 0,
+    product_outcome: productOutcome
+  };
+  const events = [
+    streamEvent("artifact_extracted", 0, {
+      artifacts: [codeOnlyR3fArtifact],
+      code: "artifact_extracted",
+      message: "E2E code-only R3F artifact extracted.",
+      workflow: { ...workflow, current_step: "artifact_extraction", phase: "running", status: "running" }
+    }),
+    streamEvent("final", 1, {
+      answer: "Generated the E2E React Three Fiber study as a code-only artifact.",
+      artifacts: [codeOnlyR3fArtifact],
+      workflow
+    })
+  ];
+
+  return `${events.map((event) => JSON.stringify(event)).join("\n")}\n`;
 }
 
 function streamEvent(eventType, sequence, payload) {

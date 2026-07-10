@@ -748,6 +748,22 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertEqual(final.payload["workflow"]["artifact_count"], 0)
         self.assertEqual(final.payload["workflow"]["artifact_critique_count"], 0)
         self.assertEqual(final.payload["workflow"]["preview_artifact_count"], 0)
+        self.assertEqual(
+            final.payload["workflow"]["product_outcome"],
+            {
+                "orchestration_status": "COMPLETED",
+                "provider_status": "COMPLETED",
+                "generation_status": "COMPLETED",
+                "deliverable_status": "NOT_REQUIRED",
+                "artifact_extraction_status": "NOT_REQUIRED",
+                "artifact_runnability": "NOT_REQUIRED",
+                "preview_status": "NOT_REQUIRED",
+                "runtime_health": "NOT_REQUIRED",
+                "product_outcome": "SUCCESS",
+                "summary": "The response is ready.",
+                "recovery_action": "",
+            },
+        )
 
     def test_review_failure_runs_one_refinement_attempt(self) -> None:
         graph = build_assistant_workflow_graph()

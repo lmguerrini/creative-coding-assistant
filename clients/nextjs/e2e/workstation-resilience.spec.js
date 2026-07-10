@@ -46,6 +46,37 @@ test.describe("V7.4 workstation resilience", () => {
     consoleGate.assertClean();
   });
 
+  test("presents an unsupported requested runtime as a partial product outcome", async ({
+    page
+  }) => {
+    const consoleGate = installConsoleGate(page);
+    await installApiMocks(page, "partial-outcome");
+    await expectLoadedWorkstation(page);
+
+    const composer = page.getByRole("textbox", { name: "Assistant prompt" });
+    await composer.click();
+    await composer.pressSequentially(
+      "Create a browser-ready React Three Fiber installation study."
+    );
+    await expect(page.getByRole("button", { name: "Send prompt" })).toBeEnabled();
+    await page.getByRole("button", { name: "Send prompt" }).click();
+
+    await expect(page.getByLabel("Current session")).toContainText("Partial");
+    await expect(page.getByRole("log", { name: "Conversation" })).toContainText(
+      "Partial result"
+    );
+
+    await page.getByRole("button", { name: "Expand inspector" }).click();
+    await page.getByRole("tab", { name: "Preview" }).click();
+    await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
+      "PARTIAL"
+    );
+    await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
+      "Open Code to use the artifact"
+    );
+    consoleGate.assertClean();
+  });
+
   test("handles a longer creative session without unbounded local storage growth", async ({
     page
   }) => {

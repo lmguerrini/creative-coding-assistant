@@ -2,11 +2,14 @@ import type {
   RuntimeConsoleEvent,
   RuntimeConsoleModel
 } from "@/lib/runtime-console";
+import type { WorkflowRuntimeModel } from "@/lib/workflow-runtime";
 
 export function RuntimeConsoleInspector({
-  console
+  console,
+  productOutcome
 }: {
   console: RuntimeConsoleModel;
+  productOutcome?: WorkflowRuntimeModel["summary"]["productOutcome"];
 }) {
   const statusMetric = console.metrics.find((metric) => metric.id === "status");
 
@@ -31,6 +34,8 @@ export function RuntimeConsoleInspector({
         </div>
         <small>{console.hero.sessionLabel}</small>
       </article>
+
+      {productOutcome ? <ProductOutcomeRuntimeCard productOutcome={productOutcome} /> : null}
 
       {console.emptyTitle ? (
         <article
@@ -198,6 +203,47 @@ export function RuntimeConsoleInspector({
         </div>
       )}
     </section>
+  );
+}
+
+function ProductOutcomeRuntimeCard({
+  productOutcome
+}: {
+  productOutcome: WorkflowRuntimeModel["summary"]["productOutcome"];
+}) {
+  return (
+    <article
+      aria-label="Semantic runtime outcome"
+      className="runtimeConsoleCard runtimeConsoleCard--wide"
+      data-tone={
+        productOutcome.product_outcome === "FAILURE"
+          ? "danger"
+          : productOutcome.product_outcome === "PARTIAL"
+            ? "warning"
+            : "success"
+      }
+      role="group"
+    >
+      <header>
+        <span>Product outcome</span>
+        <strong>{productOutcome.product_outcome}</strong>
+      </header>
+      <p>{productOutcome.summary}</p>
+      <div className="runtimeConsoleHealthSignals" role="list">
+        <div role="listitem">
+          <span>Preview</span>
+          <strong>{productOutcome.preview_status}</strong>
+        </div>
+        <div role="listitem">
+          <span>Runtime health</span>
+          <strong>{productOutcome.runtime_health}</strong>
+        </div>
+        <div role="listitem">
+          <span>Recovery</span>
+          <strong>{productOutcome.recovery_action || "None required"}</strong>
+        </div>
+      </div>
+    </article>
   );
 }
 

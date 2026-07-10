@@ -221,11 +221,10 @@ function workflowHealthCard(
 ): WorkstationDashboardCard {
   const hasError =
     runtime.summary.status === "failed" ||
-    runtime.summary.status === "completed_with_preview_error" ||
     workstationState.currentRun.errorSeen;
   const tone: WorkstationDashboardCardTone = hasError
     ? "error"
-    : runtime.summary.retryCount > 0
+    : runtime.summary.status === "partial" || runtime.summary.retryCount > 0
       ? "watch"
       : "good";
 
@@ -307,6 +306,8 @@ function formatWorkflowStatus(status: string) {
       return "Completed";
     case "completed_with_preview_error":
       return "Completed with preview error";
+    case "partial":
+      return "Partial";
     case "failed":
       return "Failed";
     case "running":

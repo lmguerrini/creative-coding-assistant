@@ -72,6 +72,7 @@ export type TelemetryStreamLifecycle = {
 
 export type TelemetryRuntimeLifecycle = {
   workflowStatus: string;
+  productOutcome: WorkflowRuntimeModel["summary"]["productOutcome"];
   currentStep: string;
   reachedNodes: number;
   totalNodes: number;
@@ -349,6 +350,7 @@ function buildRuntimeLifecycle(
 ): TelemetryRuntimeLifecycle {
   return {
     workflowStatus: workflowRuntime.summary.status,
+    productOutcome: workflowRuntime.summary.productOutcome,
     currentStep: workflowRuntime.summary.currentStep,
     reachedNodes: workflowRuntime.summary.reached,
     totalNodes: workflowRuntime.summary.total,
@@ -501,7 +503,7 @@ function deriveDashboardStatus({
 }): TelemetryDashboardStatus {
   if (
     stream.state === "error" ||
-    workflowRuntime.error ||
+    workflowRuntime.summary.status === "failed" ||
     providerTelemetry.status === "error" ||
     preview.state === "error" ||
     retrieval.state === "error"
@@ -510,6 +512,7 @@ function deriveDashboardStatus({
   }
 
   if (
+    workflowRuntime.summary.status === "partial" ||
     preview.state === "unavailable" ||
     retrieval.state === "unavailable" ||
     observability.state === "requested"
