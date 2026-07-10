@@ -426,6 +426,7 @@ def _build_workflow_artifact(
         route_decision=route_decision,
         source_order=index,
     )
+    intentional_code_only = artifact_domain is CreativeCodingDomain.REACT_THREE_FIBER
     support = get_domain_runtime_support(artifact_domain)
     preview_ready = (
         support is not None
@@ -461,7 +462,7 @@ def _build_workflow_artifact(
         summary_parts = ["Extracted from the generation result"]
     if runtime_label and preview_ready:
         summary_parts.append(f"matched {runtime_label} creative runtime")
-    elif preview_issue and not p5_candidate:
+    elif preview_issue and not p5_candidate and not intentional_code_only:
         summary_parts.append(f"preview unavailable: {preview_issue}")
     elif domain_label and not is_previewable_generation_domain(artifact_domain):
         summary_parts.append("kept as code-only for the selected domain")
@@ -485,7 +486,7 @@ def _build_workflow_artifact(
             "Runnable artifact extraction failed"
             if p5_candidate and preview_issue
             else "Preview unavailable"
-            if preview_issue
+            if preview_issue and not intentional_code_only
             else "Generated"
         ),
         source_order=index,
@@ -789,6 +790,8 @@ def _infer_language(content: str, title: str | None) -> str:
 def _runtime_source_preview_issue(runtime: str | None, content: str) -> str | None:
     if runtime == "glsl":
         return _glsl_source_preview_issue(content)
+    if runtime == "three":
+        return _three_source_preview_issue(content)
     if runtime != "p5":
         return None
     if not content.strip():
@@ -846,6 +849,49 @@ def _glsl_source_preview_issue(content: str) -> str | None:
         return (
             "The fragment shader needs void main() or mainImage(). Use a compact WebGL 1 "
             "fragment shader with u_time and u_resolution uniforms."
+        )
+    return None
+
+
+def _three_source_preview_issue(content: str) -> str | None:
+    source = content.strip()
+    if not source:
+        return "The Three.js preview source is empty. Add a self-contained scene script."
+    if _looks_like_html_source(source):
+        return (
+            "Standalone HTML documents cannot run in the controlled Three.js JavaScript "
+            "preview. Keep the document as an export, or provide self-contained Three.js "
+            "scene JavaScript without HTML markup."
+        )
+    if "```" in source:
+        return (
+            "Markdown fences cannot run in the controlled Three.js preview. Return the "
+            "executable JavaScript source only."
+        )
+    if re.search(r"@react-three/fiber|\breact-three-fiber\b|<Canvas(?:\s|>)", source, flags=re.I):
+        return (
+            "React Three Fiber components need their own bundle runtime and cannot run in "
+            "the controlled Three.js JavaScript preview."
+        )
+    if not re.search(r"\bTHREE\s*\.", source):
+        return None
+    if (
+        re.search(r"^\s*(?:interface|type)\s+[A-Za-z_$][\w$]*", source, flags=re.M)
+        or re.search(
+            r"\b(?:const|let|var)\s+[A-Za-z_$][\w$]*\s*:\s*"
+            r"[A-Za-z_$][\w$<>{}\[\]|, ]*(?==)",
+            source,
+        )
+        or re.search(r"\bfunction\s*[A-Za-z_$]*\s*\([^)]*:\s*[A-Za-z_$]", source)
+        or re.search(
+            r"\)\s*:\s*[A-Za-z_$][\w$<>{}\[\]|, ]*(?=\s*[{=])",
+            source,
+        )
+    ):
+        return (
+            "TypeScript syntax is not executable in this controlled preview. Use "
+            "self-contained JavaScript that creates a THREE.Scene, camera, renderer, and "
+            "scene content."
         )
     return None
 

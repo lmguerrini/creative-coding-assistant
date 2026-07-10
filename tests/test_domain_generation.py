@@ -439,6 +439,42 @@ class DomainGenerationTests(unittest.TestCase):
         self.assertIsNone(artifacts[0].renderer_id)
         self.assertEqual(preview_results, ())
 
+    def test_three_html_document_is_not_marked_preview_ready(self) -> None:
+        request = AssistantRequest(
+            query="Create a Three.js scene.",
+            domains=(CreativeCodingDomain.THREE_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```html exported-scene.three.ts",
+                    "<!doctype html>",
+                    "<html><body><script>",
+                    "const scene = new THREE.Scene();",
+                    "</script></body></html>",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        self.assertFalse(artifacts[0].preview_eligible)
+        self.assertIsNone(artifacts[0].runtime)
+        self.assertIsNone(artifacts[0].renderer_id)
+        self.assertEqual(
+            prepare_workflow_preview_results(
+                artifacts,
+                request=request,
+                route_decision=decision,
+            ),
+            (),
+        )
+
     def test_artifacts_preserve_creative_translation_metadata(self) -> None:
         request = AssistantRequest(
             query=("Create a meditative glowing spiral with drifting cyan particles."),
