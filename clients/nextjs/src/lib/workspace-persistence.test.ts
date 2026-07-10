@@ -48,6 +48,47 @@ describe("workspace persistence client", () => {
     expect(record.updatedAt).toBeDefined();
   });
 
+  it("restores a persisted partial product outcome without inventing success", () => {
+    const baseSnapshot = getLocalWorkspaceSnapshot();
+    const snapshot = {
+      ...baseSnapshot,
+      workflow: {
+        ...baseSnapshot.workflow,
+        currentNode: "finalization" as const,
+        currentStep: "Finalization",
+        status: "Complete",
+        productOutcome: {
+          orchestration_status: "COMPLETED",
+          provider_status: "COMPLETED",
+          generation_status: "COMPLETED",
+          deliverable_status: "USABLE",
+          artifact_extraction_status: "EXTRACTED",
+          artifact_runnability: "UNSUPPORTED",
+          preview_status: "UNAVAILABLE",
+          runtime_health: "NOT_AVAILABLE",
+          product_outcome: "PARTIAL" as const,
+          summary: "A usable artifact was produced, but live preview is unavailable.",
+          recovery_action: "Open Code to use the artifact."
+        }
+      }
+    };
+    const record = createWorkspaceSessionRecord({
+      activeArtifactId: "source-sketch",
+      activeInspectorTab: "Overview",
+      previewArtifactId: "",
+      previewOpen: false,
+      snapshot
+    });
+
+    const restored = snapshotFromWorkspaceSessionRecord(baseSnapshot, record);
+
+    expect(restored.workflow.productOutcome).toMatchObject({
+      product_outcome: "PARTIAL",
+      preview_status: "UNAVAILABLE",
+      artifact_runnability: "UNSUPPORTED"
+    });
+  });
+
   it("compacts oversized live workspace snapshots for remote persistence", () => {
     const largeText = "live generated code and reasoning ".repeat(15_000);
     const snapshot = {

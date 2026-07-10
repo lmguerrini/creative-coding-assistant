@@ -1,4 +1,5 @@
 import type { WorkstationError } from "./workstation-errors";
+import type { AssistantStreamProductOutcome } from "./assistant-stream";
 
 export type InspectorTabName =
   | "Overview"
@@ -2847,6 +2848,7 @@ export type AssistantWorkspaceSnapshot = {
     currentNode: WorkflowNodeId;
     currentStep: string;
     steps: WorkflowStepState[];
+    productOutcome?: AssistantStreamProductOutcome | null;
   };
   artifacts: ArtifactSummary[];
   clarification?: ClarificationSummary | null;

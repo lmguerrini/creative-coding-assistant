@@ -2627,6 +2627,11 @@ export function WorkstationShell({
       );
 
       if (!hydration.artifact) {
+        setSnapshot(
+          creativePlanUpdate
+            ? { ...hydration.snapshot, creativePlan: creativePlanUpdate }
+            : hydration.snapshot
+        );
         return;
       }
 

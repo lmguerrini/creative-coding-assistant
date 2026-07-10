@@ -8,6 +8,7 @@ import type {
   WorkflowNodeId,
   WorkflowStepState
 } from "./assistant-client";
+import { readProductOutcome } from "./assistant-stream";
 import {
   buildMultimodalSummary,
   normalizeImageAttachments
@@ -655,7 +656,8 @@ function normalizeWorkspaceWorkflow(
         : fallback.currentNode,
     currentStep:
       typeof value.currentStep === "string" ? value.currentStep : fallback.currentStep,
-    steps: mergedSteps
+    steps: mergedSteps,
+    productOutcome: readProductOutcome(value.productOutcome)
   };
 }
 

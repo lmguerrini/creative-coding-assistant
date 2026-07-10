@@ -24,6 +24,42 @@ describe("workflow runtime model", () => {
     });
   });
 
+  it("uses a persisted terminal product outcome when trace events are unavailable", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const workflow = {
+      ...snapshot.workflow,
+      currentNode: "finalization" as const,
+      currentStep: "Finalization",
+      status: "Complete",
+      productOutcome: {
+        orchestration_status: "COMPLETED",
+        provider_status: "COMPLETED",
+        generation_status: "COMPLETED",
+        deliverable_status: "USABLE",
+        artifact_extraction_status: "EXTRACTED",
+        artifact_runnability: "UNSUPPORTED",
+        preview_status: "UNAVAILABLE",
+        runtime_health: "NOT_AVAILABLE",
+        product_outcome: "PARTIAL" as const,
+        summary: "A usable artifact was produced, but live preview is unavailable.",
+        recovery_action: "Open Code to use the artifact."
+      }
+    };
+
+    const runtime = buildWorkflowRuntimeModel(workflow, []);
+
+    expect(runtime.summary).toMatchObject({
+      status: "partial",
+      currentStep: "A usable artifact was produced, but live preview is unavailable.",
+      activity: { state: "partial", label: "Partial", terminal: true },
+      productOutcome: {
+        product_outcome: "PARTIAL",
+        artifact_runnability: "UNSUPPORTED"
+      }
+    });
+    expect(runtime.error?.suggestedAction).toContain("Open Code");
+  });
+
   it("maps every user-facing live stage from the workflow node contract", () => {
     const stages = [
       ["planning", "Planning"],

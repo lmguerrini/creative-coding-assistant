@@ -2562,6 +2562,79 @@ describe("WorkstationShell", () => {
     expect(within(codePanel).getByText("Markdown export")).toBeVisible();
   });
 
+  it("persists a final partial outcome when final hydration has no replacement artifact", async () => {
+    const persistenceClient: WorkspacePersistenceClient = {
+      load: vi.fn(async () => ({ error: null, record: null, source: "none" as const })),
+      save: vi.fn(async () => ({ error: null, target: "local" as const }))
+    };
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "preview_artifact",
+          sequence: 0,
+          payload: {
+            artifact_id: "source-sketch",
+            status: "succeeded"
+          }
+        },
+        {
+          event_type: "final",
+          sequence: 1,
+          payload: {
+            answer: "The generated artifact remains available in Code.",
+            workflow: {
+              current_step: "finalization",
+              phase: "completed",
+              status: "completed",
+              product_outcome: {
+                orchestration_status: "COMPLETED",
+                provider_status: "COMPLETED",
+                generation_status: "COMPLETED",
+                deliverable_status: "USABLE",
+                artifact_extraction_status: "EXTRACTED",
+                artifact_runnability: "UNSUPPORTED",
+                preview_status: "UNAVAILABLE",
+                runtime_health: "NOT_AVAILABLE",
+                product_outcome: "PARTIAL",
+                summary: "A usable artifact was produced, but live preview is unavailable.",
+                recovery_action: "Open Code to use the artifact."
+              }
+            }
+          }
+        }
+      ])
+    );
+
+    renderUserShell(getLocalWorkspaceSnapshot(), {
+      persistenceClient,
+      streamAssistantEvents: backendStream
+    });
+    await waitFor(() => expect(persistenceClient.save).toHaveBeenCalled());
+    vi.mocked(persistenceClient.save).mockClear();
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Create a browser-safe p5 study." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    expect(
+      await screen.findByText("The generated artifact remains available in Code.")
+    ).toBeVisible();
+    expect(screen.getByLabelText("Current session")).toHaveTextContent("Partial");
+    await waitFor(() => {
+      expect(persistenceClient.save).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          workflow: expect.objectContaining({
+            productOutcome: expect.objectContaining({
+              product_outcome: "PARTIAL",
+              preview_status: "UNAVAILABLE"
+            })
+          })
+        })
+      );
+    });
+  });
+
   it("uploads image references and sends them with the next backend request", async () => {
     const backendStream = vi.fn(() =>
       streamEvents([

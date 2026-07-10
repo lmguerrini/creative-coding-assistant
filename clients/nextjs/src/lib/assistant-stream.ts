@@ -1295,7 +1295,9 @@ export function readWorkflowMetadata(
   };
 }
 
-function readProductOutcome(value: unknown): AssistantStreamProductOutcome | null {
+export function readProductOutcome(
+  value: unknown
+): AssistantStreamProductOutcome | null {
   if (!isRecord(value)) {
     return null;
   }

@@ -708,7 +708,8 @@ function buildFallbackWorkflowRuntimeModel(
     ["complete", "active", "skipped"].includes(step.state)
   ).length;
   const total = steps.filter((step) => step.state !== "branch").length;
-  const productOutcome = fallbackProductOutcome(workflow.status);
+  const persistedProductOutcome = workflow.productOutcome ?? null;
+  const productOutcome = persistedProductOutcome ?? fallbackProductOutcome(workflow.status);
   const activity = deriveWorkflowRuntimeActivity({
     currentNode: workflow.currentNode,
     productOutcome,
@@ -721,11 +722,16 @@ function buildFallbackWorkflowRuntimeModel(
     events: [],
     timeline: buildWorkflowTimelineModel([]),
     summary: {
-      status: normalizeWorkflowStatus(workflow.status),
+      status: persistedProductOutcome
+        ? workflowStatusForProductOutcome(productOutcome)
+        : normalizeWorkflowStatus(workflow.status),
       productOutcome,
       activity,
       currentNode: workflow.currentNode,
-      currentStep: workflow.currentStep,
+      currentStep:
+        !persistedProductOutcome || productOutcome.product_outcome === "IN_PROGRESS"
+          ? workflow.currentStep
+          : productOutcome.summary,
       reached,
       total,
       retryCount: 0,
@@ -735,7 +741,8 @@ function buildFallbackWorkflowRuntimeModel(
       activeRuntimeMs: null
     },
     error:
-      normalizeWorkflowStatus(workflow.status) === "failed"
+      buildProductOutcomeError(productOutcome) ??
+      (normalizeWorkflowStatus(workflow.status) === "failed"
         ? createWorkstationError({
             type: "workflow_failed",
             category: "workflow_runtime",
@@ -747,7 +754,7 @@ function buildFallbackWorkflowRuntimeModel(
             retryLabel: "Send prompt again",
             resetLabel: "Clear workspace session"
           })
-        : null
+        : null)
   };
 }
 

@@ -20,7 +20,10 @@ import type {
   SacredConsistencyObservation
 } from "./assistant-client";
 import type { AssistantStreamEvent } from "./assistant-stream";
-import { readCreativeExecutionPlanSummary } from "./assistant-stream";
+import {
+  readCreativeExecutionPlanSummary,
+  readWorkflowMetadata
+} from "./assistant-stream";
 import { normalizeCreativeTranslation } from "./creative-translation";
 import { hasGsapPreviewSignal } from "./gsap-runtime";
 import {
@@ -158,16 +161,40 @@ export function hydrateWorkspaceFromFinalEvent(
     sources.length > 0 &&
     sources.every((source) => source.origin === "answer")
   ) {
-    return {
+    return withFinalEventProductOutcome({
       activeArtifactId: snapshot.artifacts[0]?.id ?? "",
       artifact: null,
       previewArtifactId: "",
       previewAvailable: snapshot.preview.available,
       snapshot
-    };
+    }, event);
   }
 
-  return hydrateWorkspaceFromSources(snapshot, sources);
+  return withFinalEventProductOutcome(
+    hydrateWorkspaceFromSources(snapshot, sources),
+    event
+  );
+}
+
+function withFinalEventProductOutcome(
+  result: LiveArtifactHydrationResult,
+  event: AssistantStreamEvent
+): LiveArtifactHydrationResult {
+  const productOutcome = readWorkflowMetadata(event)?.product_outcome;
+  if (!productOutcome) {
+    return result;
+  }
+
+  return {
+    ...result,
+    snapshot: {
+      ...result.snapshot,
+      workflow: {
+        ...result.snapshot.workflow,
+        productOutcome
+      }
+    }
+  };
 }
 
 export function hydrateWorkspaceFromArtifactExtractedEvent(

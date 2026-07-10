@@ -65,6 +65,38 @@ describe("live artifact hydration", () => {
     });
   });
 
+  it("retains a final partial product outcome for session persistence", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        answer: "The artifact is available as code.",
+        workflow: {
+          phase: "completed",
+          status: "completed",
+          product_outcome: {
+            orchestration_status: "COMPLETED",
+            provider_status: "COMPLETED",
+            generation_status: "COMPLETED",
+            deliverable_status: "USABLE",
+            artifact_extraction_status: "EXTRACTED",
+            artifact_runnability: "UNSUPPORTED",
+            preview_status: "UNAVAILABLE",
+            runtime_health: "NOT_AVAILABLE",
+            product_outcome: "PARTIAL",
+            summary: "A usable artifact was produced, but live preview is unavailable.",
+            recovery_action: "Open Code to use the artifact."
+          }
+        }
+      })
+    );
+
+    expect(result.snapshot.workflow.productOutcome).toMatchObject({
+      product_outcome: "PARTIAL",
+      artifact_runnability: "UNSUPPORTED",
+      preview_status: "UNAVAILABLE"
+    });
+  });
+
   it("keeps standalone Three.js HTML inspectable without falsely opening the controlled runtime", () => {
     const result = hydrateWorkspaceFromFinalEvent(
       getLocalWorkspaceSnapshot(),
