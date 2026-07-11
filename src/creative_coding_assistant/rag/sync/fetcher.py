@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import html
 import re
+import ssl
 from datetime import UTC, datetime
 from typing import Protocol
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
+import certifi
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -57,11 +59,16 @@ class UrllibSourceTransport:
         if timeout_seconds <= 0:
             raise ValueError("Official source fetch timeout must be positive.")
         self._timeout_seconds = timeout_seconds
+        self._ssl_context = ssl.create_default_context(cafile=certifi.where())
 
     def fetch(self, url: str) -> TransportResponse:
         try:
             request = Request(url, headers=self._REQUEST_HEADERS)
-            with urlopen(request, timeout=self._timeout_seconds) as response:  # noqa: S310
+            with urlopen(  # noqa: S310
+                request,
+                context=self._ssl_context,
+                timeout=self._timeout_seconds,
+            ) as response:
                 charset = response.headers.get_content_charset() or "utf-8"
                 content = response.read().decode(charset, errors="replace")
                 return TransportResponse(

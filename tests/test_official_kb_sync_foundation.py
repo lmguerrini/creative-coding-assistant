@@ -1,3 +1,4 @@
+import ssl
 import tempfile
 import unittest
 from datetime import UTC, datetime
@@ -46,6 +47,7 @@ class OfficialKnowledgeBaseSyncFoundationTests(unittest.TestCase):
         self.assertIn("Mozilla/5.0", request.headers["User-agent"])
         self.assertIn("text/html", request.headers["Accept"])
         self.assertEqual(request.headers["Accept-language"], "en-US,en;q=0.9")
+        self.assertIsInstance(urlopen_mock.call_args.kwargs["context"], ssl.SSLContext)
         self.assertEqual(urlopen_mock.call_args.kwargs["timeout"], 10.0)
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.content_type, "text/html")
