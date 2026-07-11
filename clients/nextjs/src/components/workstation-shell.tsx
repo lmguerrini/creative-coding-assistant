@@ -21,6 +21,7 @@ import {
   Command,
   Database,
   Gauge,
+  LayoutDashboard,
   LayoutGrid,
   Maximize2,
   Minimize2,
@@ -214,6 +215,13 @@ import {
   type WorkstationDashboardModel
 } from "@/lib/workstation-dashboard";
 import {
+  buildProductIntelligenceModel,
+  getProductIntelligenceSection,
+  productIntelligenceCategories,
+  type ProductIntelligenceCategory,
+  type ProductIntelligenceModel
+} from "@/lib/product-intelligence";
+import {
   buildSessionIntelligenceModel,
   readSessionIntelligenceMetadata,
   type SessionIntelligenceMetadataInput,
@@ -248,6 +256,10 @@ import { SacredConsistencySummary } from "./sacred-consistency-summary";
 import { SubsystemErrorCallout } from "./subsystem-error-callout";
 import { V3InspectorPanelsSurface } from "./v3-inspector-panels-surface";
 import { WorkstationDashboardSurface } from "./workstation-dashboard-surface";
+import {
+  ProductIntelligenceDashboard,
+  ProductIntelligenceInspector
+} from "./product-intelligence-dashboard";
 import { WorkflowExplorerSurface } from "./workflow-explorer-surface";
 import { WorkflowTimelineExplorer } from "./workflow-timeline-explorer";
 import {
@@ -282,14 +294,25 @@ type PreviewRuntimeFrameTelemetryEvent = PreviewRuntimeTelemetryBase & {
 
 const inspectorTabIcons = {
   Overview: Sparkles,
-  Preview: Play,
-  Runtime: Command,
-  Code: Braces,
+  Architecture: Boxes,
   Workflow: Activity,
+  Agents: Sparkles,
+  Runtime: Command,
+  Preview: Play,
+  Code: Braces,
+  "Knowledge Base": Database,
+  Memory: Database,
+  Sessions: LayoutGrid,
+  Providers: Command,
   Telemetry: Gauge,
+  Metrics: Gauge,
+  Validation: Activity,
+  "Product Bugs": Activity,
+  LangSmith: TerminalSquare,
+  Settings,
   Artifacts: Boxes,
   Retrieval: TerminalSquare
-} satisfies Record<InspectorTabName, LucideIcon>;
+} satisfies Record<ProductIntelligenceCategory, LucideIcon>;
 
 type WorkflowState = WorkflowStepState["state"];
 type WorkspaceWorkflow = AssistantWorkspaceSnapshot["workflow"];
@@ -331,12 +354,13 @@ type PendingArtifactRefinement = AssistantArtifactRefinementRequest & {
 const localWorkflowIntervalMs = 850;
 const artifactFeedbackDurationMs = 1400;
 const defaultWorkspacePersistenceClient = createWorkspacePersistenceClient();
-const userModeInspectorTabs = new Set<InspectorTabName>([
+const userModeInspectorTabs = new Set<ProductIntelligenceCategory>([
   "Preview",
   "Code",
-  "Artifacts"
+  "Artifacts",
+  "Settings"
 ]);
-const userModeDefaultInspectorTab: InspectorTabName = "Preview";
+const userModeDefaultInspectorTab: ProductIntelligenceCategory = "Preview";
 const persistenceStateLabels = {
   loading: "Restoring session",
   ready: "Local session ready",
@@ -429,9 +453,23 @@ export function WorkstationShell({
   const [imageUploadError, setImageUploadError] = useState<WorkstationError | null>(
     initialSnapshot.multimodal.error ?? null
   );
-  const [activeTab, setActiveTab] = useState<InspectorTabName>(
+  const [activeTab, setActiveTab] = useState<ProductIntelligenceCategory>(
     getInitialActiveTab(initialSnapshot)
   );
+  const [inspectorTabs, setInspectorTabs] = useState<
+    ProductIntelligenceCategory[]
+  >(() =>
+    Array.from(
+      new Set<ProductIntelligenceCategory>([
+        "Overview",
+        ...initialSnapshot.inspectorTabs.map((tab) => tab.label)
+      ])
+    )
+  );
+  const [isInspectorAddMenuOpen, setIsInspectorAddMenuOpen] = useState(false);
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [dashboardCategory, setDashboardCategory] =
+    useState<ProductIntelligenceCategory>("Overview");
   const [activeArtifactId, setActiveArtifactId] = useState(
     initialSnapshot.artifacts[0]?.id ?? ""
   );
@@ -550,6 +588,12 @@ export function WorkstationShell({
       setActiveTab(userModeDefaultInspectorTab);
     }
   }, [activeTab, workspacePreferences.showDebugPanels]);
+
+  useEffect(() => {
+    setInspectorTabs((currentTabs) =>
+      currentTabs.includes(activeTab) ? currentTabs : [...currentTabs, activeTab]
+    );
+  }, [activeTab]);
 
   useEffect(() => {
     if (workspacePreferences.showDebugPanels) {
@@ -872,6 +916,7 @@ export function WorkstationShell({
       }),
     [hasActiveWorkflowRun, snapshot.workflow, workflowProgressIndex]
   );
+  const persistedInspectorTab = toSnapshotInspectorTab(activeTab);
   const interactiveSnapshot: AssistantWorkspaceSnapshot = useMemo(
     () => ({
       ...snapshot,
@@ -879,7 +924,7 @@ export function WorkstationShell({
       code: buildCodeSummaryForArtifact(snapshot.code, activeArtifact),
       inspectorTabs: snapshot.inspectorTabs.map((tab) => ({
         ...tab,
-        active: tab.label === activeTab,
+        active: tab.label === persistedInspectorTab,
         badge:
           tab.label === "Artifacts" ? String(snapshot.artifacts.length) : tab.badge
       })),
@@ -912,7 +957,6 @@ export function WorkstationShell({
     }),
     [
       activeArtifact,
-      activeTab,
       clarification,
       imageAttachments,
       imageUploadError,
@@ -921,6 +965,7 @@ export function WorkstationShell({
       isStreaming,
       persistedMessages,
       previewArtifactId,
+      persistedInspectorTab,
       snapshot,
       streamError,
       streamEvents,
@@ -998,7 +1043,7 @@ export function WorkstationShell({
     () =>
       createWorkspaceSessionRecord({
         activeArtifactId,
-        activeInspectorTab: activeTab,
+        activeInspectorTab: persistedInspectorTab,
         layout: layoutState,
         preferences: workspacePreferences,
         previewArtifactId,
@@ -1007,12 +1052,12 @@ export function WorkstationShell({
       }),
     [
       activeArtifactId,
-      activeTab,
       interactiveSnapshot,
       layoutState,
       workspacePreferences,
       isPreviewOpen,
-      previewArtifactId
+      previewArtifactId,
+      persistedInspectorTab
     ]
   );
   const activeArtifactDocument = useMemo(
@@ -1089,7 +1134,7 @@ export function WorkstationShell({
     () =>
       buildWorkstationState({
         activeArtifactId,
-        activeInspectorTab: activeTab,
+        activeInspectorTab: persistedInspectorTab,
         activeWorkflowNodeId: workflowRuntime.summary.currentNode,
         inspectorCollapsed: layoutState.inspectorCollapsed,
         isStreaming,
@@ -1103,7 +1148,6 @@ export function WorkstationShell({
       }),
     [
       activeArtifactId,
-      activeTab,
       interactiveSnapshot,
       isPreviewFullscreen,
       isPreviewOpen,
@@ -1113,7 +1157,8 @@ export function WorkstationShell({
       streamError,
       telemetryDashboard.evaluation,
       workflowRuntime.summary.currentNode,
-      workflowTraceEvents
+      workflowTraceEvents,
+      persistedInspectorTab
     ]
   );
   const sessionIntelligence = useMemo(
@@ -1190,29 +1235,47 @@ export function WorkstationShell({
       workflowTraceEvents
     ]
   );
-  const inspectorTabs = useMemo(
+  const productIntelligence = useMemo(
     () =>
-      interactiveSnapshot.inspectorTabs.map((tab) =>
-        tab.label === "Runtime"
-          ? {
-              ...tab,
-              badge: runtimeConsole.badge ?? tab.badge
-            }
-          : tab
-      ),
-    [interactiveSnapshot.inspectorTabs, runtimeConsole.badge]
+      buildProductIntelligenceModel({
+        conversationContext,
+        providerTelemetry,
+        retrievalRuntime,
+        runtimeConsole,
+        sessionIntelligence,
+        snapshot: interactiveSnapshot,
+        telemetryDashboard,
+        v3InspectorPanels,
+        workflowExecution,
+        workflowRuntime,
+        workstationDashboard
+      }),
+    [
+      conversationContext,
+      interactiveSnapshot,
+      providerTelemetry,
+      retrievalRuntime,
+      runtimeConsole,
+      sessionIntelligence,
+      telemetryDashboard,
+      v3InspectorPanels,
+      workflowExecution,
+      workflowRuntime,
+      workstationDashboard
+    ]
   );
   const visibleInspectorTabs = useMemo(
     () =>
-      workspacePreferences.showDebugPanels
-        ? inspectorTabs
-        : inspectorTabs.filter((tab) => userModeInspectorTabs.has(tab.label)),
+      inspectorTabs.filter(
+        (tab) =>
+          workspacePreferences.showDebugPanels || userModeInspectorTabs.has(tab)
+      ),
     [inspectorTabs, workspacePreferences.showDebugPanels]
   );
-  const activeTabSummary =
-    activeTab === "Runtime"
-      ? runtimeConsole.summary
-      : workstationState.panels.activeTabSummary;
+  const activeTabSummary = getProductIntelligenceSection(
+    productIntelligence,
+    activeTab
+  ).detail;
   const isComposerReady = Boolean(composerValue.trim()) && !isStreaming;
   const approvalSummary = useMemo(
     () => summarizeHitlApprovalRequests(approvalRequests),
@@ -1437,7 +1500,7 @@ export function WorkstationShell({
     );
   }
 
-  function revealInspectorTab(nextTab: InspectorTabName) {
+  function revealInspectorTab(nextTab: ProductIntelligenceCategory) {
     if (isFocusMode) {
       handleFocusModeToggle();
     }
@@ -1447,6 +1510,17 @@ export function WorkstationShell({
     }
 
     setActiveTab(nextTab);
+    setInspectorTabs((currentTabs) =>
+      currentTabs.includes(nextTab) ? currentTabs : [...currentTabs, nextTab]
+    );
+    setIsInspectorAddMenuOpen(false);
+    setOpenUtilityPanel(null);
+  }
+
+  function openDashboard(category: ProductIntelligenceCategory = activeTab) {
+    setDashboardCategory(category);
+    setIsDashboardOpen(true);
+    setIsInspectorAddMenuOpen(false);
     setOpenUtilityPanel(null);
   }
 
@@ -2863,6 +2937,7 @@ export function WorkstationShell({
     <main
       className="workstation"
       data-active-tab={activeTab.toLowerCase()}
+      data-dashboard={isDashboardOpen ? "open" : "closed"}
       data-density={layoutState.density}
       data-focus-mode={isFocusMode ? "true" : "false"}
       data-inspector-state={isInspectorCollapsed ? "collapsed" : "open"}
@@ -2899,9 +2974,20 @@ export function WorkstationShell({
 
         <div
           ref={utilityTrayRef}
-          className="topbarActions"
-          aria-label="Workspace actions"
-        >
+        className="topbarActions"
+        aria-label="Workspace actions"
+      >
+          <button
+            aria-label="Open Product Intelligence Dashboard"
+            aria-pressed={isDashboardOpen}
+            className="toolbarToggle"
+            onClick={() => openDashboard()}
+            title="Open Product Intelligence Dashboard"
+            type="button"
+          >
+            <LayoutDashboard size={16} />
+            <span>Dashboard</span>
+          </button>
           <button
             aria-controls="demo-mode-panel"
             aria-expanded={isDemoModeOpen}
@@ -3053,6 +3139,14 @@ export function WorkstationShell({
         </div>
       </header>
 
+      {isDashboardOpen ? (
+        <ProductIntelligenceDashboard
+          activeCategory={dashboardCategory}
+          model={productIntelligence}
+          onCategoryChange={setDashboardCategory}
+          onClose={() => setIsDashboardOpen(false)}
+        />
+      ) : (
       <section className="workspaceLayout" aria-label="Creative workspace">
         <div className="mainColumn">
           <section className="sessionPanel" aria-label="Creative session">
@@ -3299,28 +3393,31 @@ export function WorkstationShell({
                   value={composerValue}
                 />
               </div>
-              {workspacePreferences.showDebugPanels ? (
-                <span className="composerState" aria-live="polite">
-                  {composerStateLabel}
-                </span>
-              ) : null}
-              {workspacePreferences.showDebugPanels ? (
-                <WorkflowExecutionSelector
-                  disabled={isStreaming}
-                  mode={workflowMode}
-                  onChange={setWorkflowMode}
-                />
-              ) : null}
-              <button
-                aria-label="Send prompt"
-                className="sendButton"
-                data-ready={isComposerReady}
-                disabled={!isComposerReady}
-                title={isComposerReady ? "Send prompt" : "Type a prompt to send"}
-                type="submit"
-              >
-                <SendHorizontal size={18} />
-              </button>
+              <div className="composerActions">
+                {workspacePreferences.showDebugPanels ? (
+                  <span className="composerState" aria-live="polite">
+                    {composerStateLabel}
+                  </span>
+                ) : null}
+                {workspacePreferences.showDebugPanels ? (
+                  <WorkflowExecutionSelector
+                    disabled={isStreaming}
+                    mode={workflowMode}
+                    onChange={setWorkflowMode}
+                  />
+                ) : null}
+                <button
+                  aria-label="Send prompt"
+                  className="sendButton"
+                  data-ready={isComposerReady}
+                  disabled={!isComposerReady}
+                  title={isComposerReady ? "Send prompt" : "Type a prompt to send"}
+                  type="submit"
+                >
+                  <SendHorizontal size={18} />
+                  <span>Send</span>
+                </button>
+              </div>
             </form>
           </section>
 
@@ -3404,46 +3501,94 @@ export function WorkstationShell({
                       </h2>
                       <p>{activeTabSummary}</p>
                     </div>
-                    <button
-                      className="iconButton"
-                      type="button"
-                      aria-label="Collapse inspector"
-                      onClick={() => handleInspectorCollapsedChange(true)}
-                    >
-                      <PanelRight size={18} />
-                    </button>
+                    <div className="inspectorHeaderActions">
+                      <button
+                        className="inspectorDashboardButton"
+                        onClick={() => openDashboard(activeTab)}
+                        type="button"
+                      >
+                        Open in Dashboard
+                      </button>
+                      <button
+                        className="iconButton"
+                        type="button"
+                        aria-label="Collapse inspector"
+                        onClick={() => handleInspectorCollapsedChange(true)}
+                      >
+                        <PanelRight size={18} />
+                      </button>
+                    </div>
                   </header>
 
                   <div className="inspectorTabs" role="tablist" aria-label="Inspector tabs">
                     {visibleInspectorTabs.map((tab) => {
-                      const Icon = inspectorTabIcons[tab.label];
+                      const Icon = inspectorTabIcons[tab];
                       const displayLabel = formatInspectorTabDisplayLabel(
-                        tab.label,
+                        tab,
                         workspacePreferences.showDebugPanels
                       );
 
                       return (
                         <button
-                          aria-controls={`${tab.label.toLowerCase()}-inspector-panel`}
+                          aria-controls={getInspectorPanelId(tab)}
                           aria-label={displayLabel}
-                          aria-selected={tab.active}
-                          data-active={tab.active}
-                          id={`${tab.label.toLowerCase()}-inspector-tab`}
-                          key={tab.label}
-                          onClick={() => setActiveTab(tab.label)}
+                          aria-selected={tab === activeTab}
+                          data-active={tab === activeTab}
+                          id={`${getInspectorPanelId(tab)}-tab`}
+                          key={tab}
+                          onClick={() => setActiveTab(tab)}
                           role="tab"
-                          tabIndex={tab.active ? 0 : -1}
-                          title={tab.summary}
+                          tabIndex={tab === activeTab ? 0 : -1}
+                          title={getProductIntelligenceSection(productIntelligence, tab).summary}
                           type="button"
                         >
                           <Icon size={15} aria-hidden="true" />
                           <span>{displayLabel}</span>
-                          {workspacePreferences.showDebugPanels && tab.badge ? (
-                            <small>{` ${tab.badge}`}</small>
+                          {workspacePreferences.showDebugPanels &&
+                          tab === "Runtime" && runtimeConsole.badge ? (
+                            <small>{` ${runtimeConsole.badge}`}</small>
                           ) : null}
                         </button>
                       );
                     })}
+                    <div className="inspectorTabAdd">
+                      <button
+                        aria-expanded={isInspectorAddMenuOpen}
+                        aria-haspopup="menu"
+                        aria-label="Add Inspector tab"
+                        className="inspectorAddButton"
+                        onClick={() =>
+                          setIsInspectorAddMenuOpen((isOpen) => !isOpen)
+                        }
+                        title="Add Inspector tab"
+                        type="button"
+                      >
+                        <Plus size={15} aria-hidden="true" />
+                      </button>
+                      {isInspectorAddMenuOpen ? (
+                        <div
+                          aria-label="Available Inspector tabs"
+                          className="inspectorAddMenu"
+                          role="menu"
+                        >
+                          {productIntelligenceCategories
+                            .filter((category) => !inspectorTabs.includes(category))
+                            .map((category) => (
+                              <button
+                                key={category}
+                                onClick={() => revealInspectorTab(category)}
+                                role="menuitem"
+                                type="button"
+                              >
+                                {category}
+                              </button>
+                            ))}
+                          {productIntelligenceCategories.every((category) =>
+                            inspectorTabs.includes(category)
+                          ) ? <span>All dashboard categories are open.</span> : null}
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
 
                   <InspectorPanel
@@ -3463,6 +3608,7 @@ export function WorkstationShell({
                     onArtifactTransfer={handleArtifactTransfer}
                     onClarificationOptionSelect={handleClarificationOptionSelect}
                     providerTelemetry={providerTelemetry}
+                    productIntelligence={productIntelligence}
                     workstationDashboard={workstationDashboard}
                     previewController={previewController}
                     runtimeConsole={runtimeConsole}
@@ -3489,6 +3635,7 @@ export function WorkstationShell({
           </>
         ) : null}
       </section>
+      )}
     </main>
   );
 }
@@ -4262,7 +4409,7 @@ type InspectorPanelProps = {
   activeArtifactDocument: ArtifactDocument;
   activeArtifactHighlights: HighlightedLine[];
   activeArtifactId: string;
-  activeTab: InspectorTabName;
+  activeTab: ProductIntelligenceCategory;
   artifactTransferError: WorkstationError | null;
   copyFeedback: ArtifactActionFeedback | null;
   isStreaming: boolean;
@@ -4274,6 +4421,7 @@ type InspectorPanelProps = {
   onArtifactTransfer: (artifact: ArtifactSummary) => void;
   onClarificationOptionSelect: (option: string) => Promise<void>;
   providerTelemetry: ProviderTelemetryModel;
+  productIntelligence: ProductIntelligenceModel;
   workstationDashboard: WorkstationDashboardModel;
   previewController: PreviewControllerModel;
   provenance: ProvenanceEngineModel;
@@ -4312,6 +4460,7 @@ function InspectorPanel({
   onArtifactTransfer,
   onClarificationOptionSelect,
   providerTelemetry,
+  productIntelligence,
   workstationDashboard,
   previewController,
   provenance,
@@ -4332,6 +4481,10 @@ function InspectorPanel({
   workflowRuntime,
   workflowIssues
 }: InspectorPanelProps) {
+  if (!isEstablishedInspectorTab(activeTab)) {
+    return <ProductIntelligenceInspector category={activeTab} model={productIntelligence} />;
+  }
+
   if (activeTab === "Code") {
     return (
       <CodeInspector
@@ -6123,13 +6276,13 @@ function UserArtifactActionRow({
 }
 
 type CommandMenuPanelProps = {
-  activeTab: InspectorTabName;
+  activeTab: ProductIntelligenceCategory;
   hasBlockingApproval: boolean;
   isFocusMode: boolean;
   isPreviewAvailable: boolean;
   isPreviewOpen: boolean;
   onFocusModeToggle: () => void;
-  onOpenTab: (tab: InspectorTabName) => void;
+  onOpenTab: (tab: ProductIntelligenceCategory) => void;
   onPreviewToggle: () => void;
   onWorkspaceClear: () => void;
   showDebugPanels: boolean;
@@ -7405,12 +7558,43 @@ function WorkflowProgress({
   );
 }
 
-function getInitialActiveTab(snapshot: AssistantWorkspaceSnapshot): InspectorTabName {
+function getInitialActiveTab(snapshot: AssistantWorkspaceSnapshot): ProductIntelligenceCategory {
   return snapshot.inspectorTabs.find((tab) => tab.active)?.label ?? "Overview";
 }
 
+function toSnapshotInspectorTab(
+  tab: ProductIntelligenceCategory
+): InspectorTabName {
+  return isSnapshotInspectorTab(tab) ? tab : "Overview";
+}
+
+function isSnapshotInspectorTab(
+  tab: ProductIntelligenceCategory
+): tab is InspectorTabName {
+  return [
+    "Overview",
+    "Preview",
+    "Runtime",
+    "Code",
+    "Workflow",
+    "Telemetry",
+    "Artifacts",
+    "Retrieval"
+  ].includes(tab);
+}
+
+function isEstablishedInspectorTab(
+  tab: ProductIntelligenceCategory
+): tab is InspectorTabName {
+  return isSnapshotInspectorTab(tab);
+}
+
+function getInspectorPanelId(tab: ProductIntelligenceCategory) {
+  return `${tab.toLowerCase().replace(/\s+/g, "-")}-inspector-panel`;
+}
+
 function formatInspectorTabDisplayLabel(
-  tab: InspectorTabName,
+  tab: ProductIntelligenceCategory,
   showDebugPanels: boolean
 ) {
   if (!showDebugPanels && tab === "Artifacts") {
@@ -7530,7 +7714,7 @@ function buildInteractiveWorkflow(
     ...workflow,
     currentNode: currentStep.nodeId,
     currentStep: currentStep.displayLabel,
-    status: boundedProgressIndex >= finalizationIndex ? "Complete" : "Running",
+    status: boundedProgressIndex >= finalizationIndex ? "Success" : "Running",
     steps
   };
 }
@@ -7573,13 +7757,13 @@ function formatWorkflowStatusCopy(status: string) {
       return "Ready";
     case "complete":
     case "completed":
-      return "Completed";
+      return "Success";
     case "completed_with_preview_error":
-      return "Completed with preview error";
+      return "Partial";
     case "partial":
       return "Partial";
     case "failed":
-      return "Failed";
+      return "Failure";
     default:
       return "Running";
   }
@@ -7682,7 +7866,7 @@ function formatUserModeSessionStatus({
 
       if (hasWorkspaceArtifacts) {
         return {
-          label: "Complete",
+          label: "Success",
           detail: "Output ready"
         };
       }
@@ -7707,7 +7891,7 @@ function formatSemanticProductOutcomeStatus(
   switch (productOutcome.product_outcome) {
     case "SUCCESS":
       return {
-        label: "Completed",
+        label: "Success",
         detail: productOutcome.summary
       };
     case "PARTIAL":
@@ -7717,7 +7901,7 @@ function formatSemanticProductOutcomeStatus(
       };
     case "FAILURE":
       return {
-        label: "Failed",
+        label: "Failure",
         detail: productOutcome.summary
       };
     default:
@@ -7827,11 +8011,11 @@ function formatProviderRuntimeLabel(telemetry: ProviderTelemetryModel) {
 function formatTelemetryStatus(status: ProviderTelemetryModel["status"]) {
   switch (status) {
     case "complete":
-      return "Complete";
+      return "Success";
     case "error":
-      return "Error";
+      return "Failure";
     case "streaming":
-      return "Streaming";
+      return "Generating";
     default:
       return "Idle";
   }
@@ -7840,13 +8024,13 @@ function formatTelemetryStatus(status: ProviderTelemetryModel["status"]) {
 function formatDashboardStatusLabel(status: TelemetryDashboardModel["status"]) {
   switch (status) {
     case "complete":
-      return "Complete";
+      return "Success";
     case "degraded":
-      return "Degraded";
+      return "Partial";
     case "error":
-      return "Error";
+      return "Failure";
     case "running":
-      return "Running";
+      return "Generating";
     default:
       return "Idle";
   }

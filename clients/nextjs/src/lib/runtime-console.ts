@@ -443,7 +443,7 @@ function buildRuntimeConsoleHealth({
   if (latestError || health === "failed" || runtimeState === "error") {
     return {
       signal: "failed",
-      label: "Failed",
+      label: "Failure",
       explanation:
         latestError ??
         diagnostics[0] ??
@@ -633,7 +633,7 @@ function buildRuntimeConsoleBadge(
   latestError: string | null
 ) {
   if (latestError) {
-    return "Error";
+    return "Failure";
   }
 
   if (liveRuntime?.metrics.fps != null) {
@@ -641,7 +641,7 @@ function buildRuntimeConsoleBadge(
   }
 
   if (liveRuntime?.status.state === "running") {
-    return "Live";
+    return "Running";
   }
 
   if (liveRuntime?.status.state === "starting") {

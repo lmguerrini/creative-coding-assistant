@@ -75,7 +75,7 @@ describe("session intelligence", () => {
     });
 
     expect(intelligence.source).toBe("stream");
-    expect(intelligence.statusLabel).toBe("Completed");
+    expect(intelligence.statusLabel).toBe("Success");
     expect(intelligence.metadata.session_summary).toBe(
       "Stream provided a compact session summary."
     );

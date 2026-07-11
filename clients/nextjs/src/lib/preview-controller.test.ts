@@ -36,7 +36,7 @@ describe("preview controller", () => {
       canRestart: true,
       isFullscreen: false,
       isSessionOverridden: false,
-      sessionLabel: "Live",
+      sessionLabel: "Success",
       indicators: expect.arrayContaining([
         expect.objectContaining({ id: "artifact", value: "preview-request.json" }),
         expect.objectContaining({ id: "target", value: "JSON panel" }),
@@ -99,7 +99,7 @@ describe("preview controller", () => {
     ).toMatchObject({
       canReload: true,
       isSessionOverridden: false,
-      sessionLabel: "Live"
+      sessionLabel: "Success"
     });
   });
 });

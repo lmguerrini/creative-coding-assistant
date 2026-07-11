@@ -661,7 +661,7 @@ function buildWorkflowRuntimeActivity(
     case "completed":
       return {
         state,
-        label: "Completed",
+        label: "Success",
         detail: terminalDetail ?? "The requested output is ready.",
         terminal: true
       };
@@ -676,7 +676,7 @@ function buildWorkflowRuntimeActivity(
     case "failed":
       return {
         state,
-        label: "Failed",
+        label: "Failure",
         detail:
           terminalDetail ?? "The requested output could not be completed.",
         terminal: true

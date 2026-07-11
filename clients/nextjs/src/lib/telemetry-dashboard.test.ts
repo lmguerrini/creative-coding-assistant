@@ -91,10 +91,10 @@ describe("telemetry dashboard model", () => {
     expect(model.provider.tokenUsage.totalTokens).toBe(150);
     expect(model.runtime.activity).toMatchObject({
       state: "completed",
-      label: "Completed"
+      label: "Success"
     });
     expect(model.signals.find((signal) => signal.id === "workflow")).toMatchObject({
-      value: "Completed"
+      value: "Success"
     });
     expect(model.observability).toMatchObject({
       state: "linked",

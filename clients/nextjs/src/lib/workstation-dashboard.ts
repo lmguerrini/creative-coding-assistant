@@ -303,13 +303,13 @@ function dashboardItemSource(item: V3InspectorPanelItem) {
 function formatWorkflowStatus(status: string) {
   switch (status) {
     case "completed":
-      return "Completed";
+      return "Success";
     case "completed_with_preview_error":
-      return "Completed with preview error";
+      return "Partial";
     case "partial":
       return "Partial";
     case "failed":
-      return "Failed";
+      return "Failure";
     case "running":
       return "Running";
     default:

@@ -1021,6 +1021,21 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("button", { name: "Settings" })).toBeVisible();
   });
 
+  it("opens the full Product Intelligence Dashboard from the workspace", () => {
+    renderShell(getInitialWorkspaceSnapshot());
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open Product Intelligence Dashboard" })
+    );
+
+    expect(
+      screen.getByRole("region", { name: "Product Intelligence Dashboard" })
+    ).toBeVisible();
+    expect(screen.queryByRole("region", { name: "Creative workspace" })).not.toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Dashboard categories" }))
+      .toHaveTextContent("Product Bugs");
+  });
+
   it("opens integrated Demo Mode and loads a scenario into the normal composer", () => {
     renderShell(getInitialWorkspaceSnapshot());
 
@@ -1985,7 +2000,7 @@ describe("WorkstationShell", () => {
     expect(submittedRequest).not.toHaveProperty("domain");
     expect(submittedRequest).not.toHaveProperty("domains");
     expect(screen.getByLabelText("Current session")).toHaveTextContent(
-      "Completed"
+      "Success"
     );
     expect(screen.getByRole("tab", { name: "Preview" })).toHaveAttribute(
       "aria-selected",
@@ -4614,7 +4629,7 @@ describe("WorkstationShell", () => {
       name: "Runtime event history"
     });
 
-    expect(health).toHaveTextContent("Failed");
+    expect(health).toHaveTextContent("Failure");
     expect(diagnostics).toHaveTextContent("1 active");
     expect(diagnostics).toHaveTextContent("WebGL is unavailable in the preview frame.");
     expect(eventHistory).toHaveTextContent("Error");

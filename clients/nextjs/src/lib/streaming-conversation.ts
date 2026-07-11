@@ -108,10 +108,10 @@ export function getConversationPhaseBadge(phase: ConversationEntryPhase) {
       return "Partial";
     case "failed":
     case "error":
-      return "Failed";
+      return "Failure";
     case "completed":
     default:
-      return "Completed";
+      return "Success";
   }
 }
 

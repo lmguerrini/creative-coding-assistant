@@ -42,7 +42,7 @@ export type BuildSessionIntelligenceInput = {
 };
 
 const completionStatusLabels = {
-  completed: "Completed",
+  completed: "Success",
   idle: "Idle",
   needs_attention: "Needs attention",
   running: "Running"

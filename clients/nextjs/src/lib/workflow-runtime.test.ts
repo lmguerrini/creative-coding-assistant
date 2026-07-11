@@ -149,7 +149,7 @@ describe("workflow runtime model", () => {
 
     expect(runtime.summary).toMatchObject({
       status: "completed",
-      activity: { state: "completed", label: "Completed", terminal: true },
+      activity: { state: "completed", label: "Success", terminal: true },
       productOutcome: {
         product_outcome: "SUCCESS",
         runtime_health: "PENDING_BROWSER_VALIDATION"
@@ -182,7 +182,7 @@ describe("workflow runtime model", () => {
         productOutcome: null,
         workflowStatus: "failed"
       })
-    ).toMatchObject({ state: "failed", label: "Failed", terminal: true });
+    ).toMatchObject({ state: "failed", label: "Failure", terminal: true });
     expect(
       deriveWorkflowRuntimeActivity({
         currentNode: "finalization",

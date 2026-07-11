@@ -183,7 +183,7 @@ describe("runtime console diagnostics", () => {
 
     expect(model.health).toMatchObject({
       signal: "failed",
-      label: "Failed"
+      label: "Failure"
     });
     expect(model.errors).toContain(errorMessage);
     expect(model.events).toEqual([

@@ -132,9 +132,9 @@ function formatPreviewSessionLabel(
     case "generating":
       return "Generating";
     case "ready":
-      return preview.active ? "Live" : "Ready";
+      return preview.active ? "Success" : "Ready";
     case "error":
-      return "Failed";
+      return "Failure";
     case "unavailable":
       return "Unavailable";
     default:
