@@ -564,6 +564,10 @@ button:not(:disabled) {
   cursor: pointer;
 }
 
+button:enabled:hover {
+  cursor: pointer;
+}
+
 button:disabled {
   cursor: not-allowed;
 }
@@ -12646,6 +12650,38 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   padding: 0.36rem 0.52rem;
 }
 
+.kbActionGuide {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+  gap: 0.45rem;
+  margin: 0.65rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kbActionGuide li {
+  display: grid;
+  align-content: start;
+  gap: 0.2rem;
+  min-height: 62px;
+  padding: 0.5rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--line) 78%, var(--teal));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 94%, var(--teal));
+}
+
+.kbActionGuide strong {
+  color: var(--foreground);
+  font-size: 0.68rem;
+  font-weight: 780;
+}
+
+.kbActionGuide span {
+  color: var(--muted);
+  font-size: 0.65rem;
+  line-height: 1.3;
+}
+
 .kbActionSpinner,
 .kbOperationSpinner {
   display: inline-block;
@@ -12729,7 +12765,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 
 .kbSourceChangeSummary strong,
 .kbSourceChangeSummary .kbSourceChangeTitle,
-.kbSourceChangeSummary .kbSourceChangeId,
 .kbSourceChangeSummary small {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -12782,13 +12817,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   line-height: 1.25;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-}
-
-.kbSourceChangeId {
-  color: var(--muted);
-  font-size: 0.66rem;
-  line-height: 1.25;
-  white-space: nowrap;
 }
 
 .kbSourceChangeSummary small {

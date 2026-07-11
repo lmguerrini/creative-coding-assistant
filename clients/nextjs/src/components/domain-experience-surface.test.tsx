@@ -66,7 +66,9 @@ describe("KnowledgeBaseInventorySurface", () => {
     fireEvent.click(check);
 
     expect(await screen.findByRole("list", { name: "Source change summary" }))
-      .toHaveTextContent("changedthree.js Documentationthree_docs");
+      .toHaveTextContent("changedthree.js Documentation");
+    expect(screen.getByRole("list", { name: "Knowledge Base action guide" }))
+      .toHaveTextContent("Check for updatesCompares official content with local fingerprints. Read-only.");
     expect(fetcher).toHaveBeenCalledWith(
       "http://localhost:8000/api/knowledge-base",
       expect.objectContaining({

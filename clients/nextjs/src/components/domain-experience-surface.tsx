@@ -310,6 +310,12 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
       <p className="kbSourceBoundary">
         Select sources to check their official content fingerprints. Updating is an explicit, confirmed operation; a failed rebuild restores the prior local index.
       </p>
+      <ul aria-label="Knowledge Base action guide" className="kbActionGuide">
+        <li><strong>Check for updates</strong><span>Compares official content with local fingerprints. Read-only.</span></li>
+        <li><strong>Validate index</strong><span>Inspects the local index only. No official pages are fetched.</span></li>
+        <li><strong>Update selected</strong><span>Synchronizes selected official content after confirmation.</span></li>
+        <li><strong>Rebuild selected</strong><span>Re-runs the selected source build; a failure restores the prior index.</span></li>
+      </ul>
       {operationState ? (
         <>
           <p aria-live="polite" className="kbOperationStatus" data-status={operationState.status}>
@@ -322,7 +328,6 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
                 <li data-status={change.changeStatus} key={change.sourceId}>
                   <strong className="kbSourceChangeBadge">{formatSourceChangeStatus(change.changeStatus)}</strong>
                   <span className="kbSourceChangeTitle">{sourceTitleById.get(change.sourceId) ?? change.sourceId}</span>
-                  <span className="kbSourceChangeId">{change.sourceId}</span>
                   {change.detail ? <small>{change.detail}</small> : null}
                 </li>
               ))}
