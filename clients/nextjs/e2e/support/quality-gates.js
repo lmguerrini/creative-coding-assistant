@@ -103,6 +103,62 @@ const toneRetrievalSource = {
   excerpt: "Tone.Transport schedules bounded musical timing after an explicit browser audio start."
 };
 
+const domainExperiencePayload = {
+  schemaVersion: "domain-experience.v1",
+  domains: [
+    {
+      domain: "p5_js",
+      display_name: "p5.js",
+      delivery_kind: "browser_preview",
+      live_preview: true,
+      demo_eligible: true
+    },
+    {
+      domain: "three_js",
+      display_name: "Three.js",
+      delivery_kind: "browser_preview",
+      live_preview: true,
+      demo_eligible: true
+    },
+    {
+      domain: "glsl",
+      display_name: "GLSL",
+      delivery_kind: "browser_preview",
+      live_preview: true,
+      demo_eligible: true
+    },
+    {
+      domain: "tone_js",
+      display_name: "Tone.js",
+      delivery_kind: "browser_preview",
+      live_preview: true,
+      demo_eligible: true
+    },
+    {
+      domain: "hydra",
+      display_name: "Hydra",
+      delivery_kind: "code_export",
+      live_preview: false,
+      demo_eligible: false
+    }
+  ],
+  knowledgeBase: {
+    status: "available",
+    detail: "E2E domain inventory is available.",
+    registeredSourceCount: 5,
+    registeredDomainCount: 5,
+    indexedSourceCount: 5,
+    indexedDomainCount: 5,
+    indexedChunkCount: 12,
+    lastIndexedAt: null,
+    freshnessStatus: "not_reported",
+    freshnessDetail: "E2E source freshness is not reported.",
+    updateStatus: "ready",
+    updateHint: "E2E mock inventory is current.",
+    provenanceBoundary: "E2E inventory is independent from retrieval runs."
+  }
+};
+
 function installConsoleGate(page) {
   const errors = [];
 
@@ -150,6 +206,19 @@ function installConsoleGate(page) {
 
 async function installApiMocks(page, scenario = "success") {
   await page.route("**/api/workspace/session**", handleWorkspaceSessionRoute);
+  await page.route("**/api/domain-experience", async (route, request) => {
+    if (request.method() === "OPTIONS") {
+      await fulfillOptions(route);
+      return;
+    }
+
+    await route.fulfill({
+      body: JSON.stringify(domainExperiencePayload),
+      contentType: "application/json",
+      headers: corsHeaders,
+      status: 200
+    });
+  });
   await page.route("**/api/assistant/stream", async (route, request) => {
     if (request.method() === "OPTIONS") {
       await fulfillOptions(route);

@@ -10,7 +10,7 @@ const {
   submitCreativePrompt
 } = require("./support/quality-gates");
 
-test.describe("V7.4 workstation E2E smoke", () => {
+test.describe("V9.6 workstation E2E smoke", () => {
   test("loads localhost and preserves first-run shell reliability", async ({ page }) => {
     const consoleGate = installConsoleGate(page);
     await installApiMocks(page);
@@ -145,7 +145,7 @@ test.describe("V7.4 workstation E2E smoke", () => {
     consoleGate.assertClean();
   });
 
-  test("opens integrated Demo Mode and preloads a curated scenario", async ({
+  test("loads a curated Demo Mode prompt into the normal composer", async ({
     page
   }) => {
     const consoleGate = installConsoleGate(page);
@@ -162,12 +162,10 @@ test.describe("V7.4 workstation E2E smoke", () => {
       .getByRole("button", { name: /Physarum drift/ })
       .click();
 
-    await expect(demoMode).toContainText("Prompt loaded");
+    await expect(demoMode).toHaveCount(0);
     await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue(
       /physarum-drift\.p5\.js/
     );
-    await expect(demoMode).not.toContainText(/HoloGenesis/i);
-    await expect(demoMode).not.toContainText(/\bsacred\b/i);
     consoleGate.assertClean();
   });
 
@@ -184,7 +182,7 @@ test.describe("V7.4 workstation E2E smoke", () => {
     await expect(demoMode).toBeVisible();
     await expect(page.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
       "data-state",
-      "collapsed"
+      "open"
     );
 
     await expect(demoMode).toContainText("10 flows");
@@ -199,8 +197,6 @@ test.describe("V7.4 workstation E2E smoke", () => {
       artifactTitle: "physarum-drift-2.p5.js"
     });
 
-    await expect(demoMode).not.toContainText(/HoloGenesis/i);
-    await expect(demoMode).not.toContainText(/\bsacred\b/i);
     consoleGate.assertClean();
   });
 

@@ -619,7 +619,7 @@ function parseMarkdownCodeBlocks(answer: string): GeneratedArtifactSource[] {
       language: info.language,
       origin: "code_fence",
       title: info.title,
-      type: "code"
+      type: info.language === "markdown" ? "export" : "code"
     });
   }
 

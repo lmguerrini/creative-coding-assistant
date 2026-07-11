@@ -1038,11 +1038,11 @@ describe("WorkstationShell", () => {
     );
 
     expect(
-      screen.getByRole("region", { name: "Product Intelligence Dashboard" })
+      screen.getByRole("region", { name: "Advanced Dashboard" })
     ).toBeVisible();
     expect(screen.queryByRole("region", { name: "Creative workspace" })).not.toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Dashboard categories" }))
-      .toHaveTextContent("Product Bugs");
+      .toHaveTextContent("Telemetry & Evaluation");
   });
 
   it("opens integrated Demo Mode and loads a scenario into the normal composer", () => {
@@ -1074,37 +1074,10 @@ describe("WorkstationShell", () => {
       })
     );
 
-    expect(
-      within(demoMode).getByRole("button", { name: /Prompt loaded/ })
-    ).toBeVisible();
-    expect(
-      within(demoMode).getByText("Single-agent runnable-code generation")
-    ).toBeVisible();
-    expect(
-      within(demoMode).getAllByText("Expected validation").length
-    ).toBeGreaterThan(0);
-    expect(
-      within(demoMode).getAllByText("p5.js browser preview").length
-    ).toBeGreaterThan(0);
-    expect(
-      within(demoMode).getByText("Source boundary")
-    ).toBeVisible();
+    expect(screen.queryByRole("region", { name: "Demo Mode" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
       "Developer"
     );
-    fireEvent.click(screen.getByRole("button", { name: "Display mode" }));
-    expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
-      "User"
-    );
-    expect(
-      within(demoMode).getByText("p5.js browser preview")
-    ).toBeVisible();
-    expect(
-      within(demoMode).queryByText("Expected validation")
-    ).not.toBeInTheDocument();
-    expect(
-      within(demoMode).queryByRole("button", { name: /Source grounding/ })
-    ).not.toBeInTheDocument();
     const composer = screen.getByRole("textbox", {
       name: "Assistant prompt"
     }) as HTMLTextAreaElement;

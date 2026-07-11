@@ -20,6 +20,16 @@ describe("curated prompt library", () => {
     );
   });
 
+  it("keeps the Three.js hero visually specific and inside the controlled color API", () => {
+    const prompt = homepagePromptLibrary.find(
+      (candidate) => candidate.id === "kinetic-orbit-sculpture"
+    );
+
+    expect(prompt?.prompt).toContain("TorusKnotGeometry");
+    expect(prompt?.prompt).toContain("warm-gold sculpture");
+    expect(prompt?.prompt).toContain("never call setHSL");
+  });
+
   it("records all canonical morphogenesis inspirations without claiming external execution", () => {
     expect(morphogenesisPromptLibrary).toHaveLength(12);
     expect(morphogenesisPromptLibrary.map((prompt) => prompt.concept)).toEqual([

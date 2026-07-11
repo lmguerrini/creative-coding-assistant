@@ -30,7 +30,7 @@ function buildModel(): ProductIntelligenceModel {
 }
 
 describe("Product Intelligence surfaces", () => {
-  it("renders every flat Dashboard category and switches the detailed surface", () => {
+  it("groups Dashboard categories into a concise decision-oriented navigation", () => {
     const onCategoryChange = vi.fn();
     const onClose = vi.fn();
 
@@ -44,7 +44,7 @@ describe("Product Intelligence surfaces", () => {
     );
 
     expect(screen.getByRole("navigation", { name: "Dashboard categories" }))
-      .toHaveTextContent("Product Bugs");
+      .toHaveTextContent("Telemetry & Evaluation");
     expect(screen.getByRole("heading", { name: "Overview" })).toBeVisible();
 
     fireEvent.click(screen.getByLabelText("Help with Overview"));
@@ -52,8 +52,10 @@ describe("Product Intelligence surfaces", () => {
       "Review the metric cards for the current values"
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /Workflow/ }));
-    expect(onCategoryChange).toHaveBeenCalledWith("Workflow");
+    fireEvent.click(
+      screen.getByRole("button", { name: /Architecture & Workflow/ })
+    );
+    expect(onCategoryChange).toHaveBeenCalledWith("Architecture");
 
     fireEvent.click(screen.getByRole("button", { name: "Return to workspace" }));
     expect(onClose).toHaveBeenCalledOnce();

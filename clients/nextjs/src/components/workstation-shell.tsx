@@ -226,6 +226,7 @@ import {
   fetchDomainExperienceCatalog,
   loadingDomainExperienceCatalog,
   type DomainExperienceCatalog,
+  type DomainExperienceRecord,
   type KnowledgeBaseInventory
 } from "@/lib/domain-experience";
 import {
@@ -1307,6 +1308,9 @@ export function WorkstationShell({
       inspectorTabs.filter((tab) => availableInspectorCategories.includes(tab)),
     [availableInspectorCategories, inspectorTabs]
   );
+  const hasAvailableInspectorTabs = availableInspectorCategories.some(
+    (category) => !inspectorTabs.includes(category)
+  );
   useEffect(() => {
     if (!visibleInspectorTabs.includes(activeTab)) {
       return;
@@ -2292,20 +2296,14 @@ export function WorkstationShell({
     const nextOpen = !isDemoModeOpen;
 
     setIsDemoModeOpen(nextOpen);
-    if (nextOpen) {
-      setActiveTab(userModeDefaultInspectorTab);
-      updateLayout({ inspectorCollapsed: true });
-    }
     setOpenUtilityPanel(null);
     setIsAttachmentMenuOpen(false);
   }
 
   function handleDemoScenarioLoad(scenario: DemoModeScenario) {
     setActiveDemoScenarioId(scenario.id);
-    setIsDemoModeOpen(true);
+    setIsDemoModeOpen(false);
     setWorkflowMode(scenario.workflowMode);
-    setActiveTab(userModeDefaultInspectorTab);
-    updateLayout({ inspectorCollapsed: true });
     setComposerValue(scenario.prompt);
     setOpenUtilityPanel(null);
     setIsAttachmentMenuOpen(false);
@@ -2313,6 +2311,18 @@ export function WorkstationShell({
     window.requestAnimationFrame(() => {
       composerTextareaRef.current?.focus({ preventScroll: true });
     });
+  }
+
+  function handleInspectorTabClose(tab: ProductIntelligenceCategory) {
+    if (tab === "Overview") {
+      return;
+    }
+
+    setInspectorTabs((currentTabs) => currentTabs.filter((item) => item !== tab));
+    if (activeTab === tab) {
+      setActiveTab("Overview");
+    }
+    setIsInspectorAddMenuOpen(false);
   }
 
   async function handleComposerSubmit(event: FormEvent<HTMLFormElement>) {
@@ -3353,7 +3363,10 @@ export function WorkstationShell({
               role="log"
             >
               {conversationEntries.length === 0 && !isStreaming && !isDemoModeOpen ? (
-                <EmptyWorkspaceState onSelectPrompt={handleEmptyStatePromptSelect} />
+                <EmptyWorkspaceState
+                  domains={domainExperience.domains}
+                  onSelectPrompt={handleEmptyStatePromptSelect}
+                />
               ) : null}
               {conversationEntries.map((message, index) => {
                 const displayContent = getConversationDisplayContent(
@@ -3623,26 +3636,38 @@ export function WorkstationShell({
                       );
 
                       return (
-                        <button
-                          aria-controls={getInspectorPanelId(tab)}
-                          aria-label={displayLabel}
-                          aria-selected={tab === activeTab}
-                          data-active={tab === activeTab}
-                          id={`${getInspectorPanelId(tab)}-tab`}
-                          key={tab}
-                          onClick={() => setActiveTab(tab)}
-                          role="tab"
-                          tabIndex={tab === activeTab ? 0 : -1}
-                          title={getProductIntelligenceSection(productIntelligence, tab).summary}
-                          type="button"
-                        >
-                          <Icon size={15} aria-hidden="true" />
-                          <span>{displayLabel}</span>
-                          {workspacePreferences.showDebugPanels &&
-                          tab === "Runtime" && runtimeConsole.badge ? (
-                            <small>{` ${runtimeConsole.badge}`}</small>
+                        <div className="inspectorTabItem" key={tab}>
+                          <button
+                            aria-controls={getInspectorPanelId(tab)}
+                            aria-label={displayLabel}
+                            aria-selected={tab === activeTab}
+                            data-active={tab === activeTab}
+                            id={`${getInspectorPanelId(tab)}-tab`}
+                            onClick={() => setActiveTab(tab)}
+                            role="tab"
+                            tabIndex={tab === activeTab ? 0 : -1}
+                            title={getProductIntelligenceSection(productIntelligence, tab).summary}
+                            type="button"
+                          >
+                            <Icon size={15} aria-hidden="true" />
+                            <span>{displayLabel}</span>
+                            {workspacePreferences.showDebugPanels &&
+                            tab === "Runtime" && runtimeConsole.badge ? (
+                              <small>{` ${runtimeConsole.badge}`}</small>
+                            ) : null}
+                          </button>
+                          {tab !== "Overview" ? (
+                            <button
+                              aria-label={`Close ${displayLabel} Inspector tab`}
+                              className="inspectorTabClose"
+                              onClick={() => handleInspectorTabClose(tab)}
+                              title={`Close ${displayLabel}`}
+                              type="button"
+                            >
+                              <X aria-hidden="true" size={12} />
+                            </button>
                           ) : null}
-                        </button>
+                        </div>
                       );
                     })}
                     <div className="inspectorTabAdd">
@@ -3651,6 +3676,7 @@ export function WorkstationShell({
                         aria-haspopup="menu"
                         aria-label="Add Inspector tab"
                         className="inspectorAddButton"
+                        disabled={!hasAvailableInspectorTabs}
                         onClick={() =>
                           setIsInspectorAddMenuOpen((isOpen) => !isOpen)
                         }
@@ -3659,7 +3685,7 @@ export function WorkstationShell({
                       >
                         <Plus size={15} aria-hidden="true" />
                       </button>
-                      {isInspectorAddMenuOpen ? (
+                      {isInspectorAddMenuOpen && hasAvailableInspectorTabs ? (
                         <div
                           aria-label="Available Inspector tabs"
                           className="inspectorAddMenu"
@@ -3677,9 +3703,6 @@ export function WorkstationShell({
                                 {category}
                               </button>
                             ))}
-                          {availableInspectorCategories.every((category) =>
-                            inspectorTabs.includes(category)
-                          ) ? <span>All dashboard categories are open.</span> : null}
                         </div>
                       ) : null}
                     </div>
@@ -3837,8 +3860,10 @@ function ImageReferenceShelf({
 }
 
 function EmptyWorkspaceState({
+  domains,
   onSelectPrompt
 }: {
+  domains: DomainExperienceRecord[];
   onSelectPrompt: (prompt: string) => void;
 }) {
   const valueHighlights = [
@@ -3859,12 +3884,7 @@ function EmptyWorkspaceState({
       detail: "Plan, generate, inspect, preview, export, and recover clearly."
     }
   ];
-  const domainExamples = [
-    "p5.js",
-    "Three.js",
-    "GLSL",
-    "Tone.js"
-  ];
+  const domainCards = getHomepageDomainCards(domains);
   const workflowExamples = [
     "Describe a visual system",
     "Generate browser-safe code",
@@ -3913,11 +3933,27 @@ function EmptyWorkspaceState({
       </div>
 
       <div className="emptyWorkspaceGrid">
-        <section aria-label="Domain examples">
-          <span>Domains</span>
-          <div>
-            {domainExamples.map((domain) => (
-              <small key={domain}>{domain}</small>
+        <section aria-label="Supported creative domains" className="homepageDomains">
+          <header>
+            <span>Domains</span>
+            <small>What can run here, export, or hand off.</small>
+          </header>
+          <div className="homepageDomainGroups">
+            {domainCards.map((group) => (
+              <section key={group.label}>
+                <span>{group.label}</span>
+                <div>
+                  {group.domains.map((domain) => (
+                    <article data-kind={domain.kind} key={domain.name}>
+                      <div>
+                        <strong>{domain.name}</strong>
+                        <small>{domain.status}</small>
+                      </div>
+                      <p>{domain.detail}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
             ))}
           </div>
         </section>
@@ -3942,6 +3978,57 @@ function EmptyWorkspaceState({
       </details>
     </article>
   );
+}
+
+function getHomepageDomainCards(domains: DomainExperienceRecord[]) {
+  const fallback = [
+    { id: "p5", displayName: "p5.js", deliveryKind: "browser_preview", livePreview: true },
+    { id: "three", displayName: "Three.js", deliveryKind: "browser_preview", livePreview: true },
+    { id: "glsl", displayName: "GLSL", deliveryKind: "browser_preview", livePreview: true },
+    { id: "tone", displayName: "Tone.js", deliveryKind: "browser_preview", livePreview: true },
+    { id: "hydra", displayName: "Hydra", deliveryKind: "code_export", livePreview: false }
+  ] as const;
+  const records = domains.length > 0 ? domains : fallback;
+  const isAudio = (record: { id: string; displayName: string }) =>
+    `${record.id} ${record.displayName}`.toLowerCase().includes("tone") ||
+    `${record.id} ${record.displayName}`.toLowerCase().includes("audio");
+  const toCard = (
+    record: (typeof records)[number],
+    kind: string,
+    status: string,
+    detail: string
+  ) => {
+    const isHydra = `${record.id} ${record.displayName}`.toLowerCase().includes("hydra");
+
+    return {
+      name: record.displayName,
+      kind,
+      status: isHydra ? "Code / export only" : status,
+      detail: isHydra
+        ? "Initial scope is source export and native-tool handoff; interactive browser mode is not available yet."
+        : detail
+    };
+  };
+  const browser = records
+    .filter((record) => record.deliveryKind === "browser_preview" && record.livePreview && !isAudio(record))
+    .map((record) => toCard(record, "live", "Live browser preview", "Bounded visual runtime in this workspace."));
+  const audio = records
+    .filter((record) => record.deliveryKind === "browser_preview" && record.livePreview && isAudio(record))
+    .map((record) => toCard(record, "audio", "Browser audio", "Preview is browser-safe; sound stays user-started."));
+  const exports = records
+    .filter((record) => record.deliveryKind === "code_export" || (record.deliveryKind === "browser_preview" && !record.livePreview))
+    .map((record) => toCard(record, "export", "Code / export", "Source is available without an in-workspace live claim."));
+  const handoffs = records
+    .filter((record) => record.deliveryKind === "external_handoff")
+    .slice(0, 4)
+    .map((record) => toCard(record, "handoff", "External handoff", "A design and implementation handoff for its native tool."));
+
+  return [
+    { label: "Live browser", domains: browser },
+    { label: "Audio in browser", domains: audio },
+    { label: "Code & export", domains: exports },
+    { label: "External tools", domains: handoffs }
+  ].filter((group) => group.domains.length > 0);
 }
 
 function DemoModePanel({
@@ -4375,57 +4462,6 @@ function PreviewShelf({
                     : snapshot.preview.status}
                 </small>
               </div>
-              <div className="previewToolbarActions" aria-label="Preview controls">
-                <button
-                  aria-label="Enter preview fullscreen"
-                  aria-pressed={false}
-                  className="previewControlButton"
-                  disabled={!controller.canFullscreen}
-                  onClick={() => onFullscreenToggle(true)}
-                  title="Enter preview fullscreen"
-                  type="button"
-                >
-                  <Maximize2 size={15} />
-                  <span className="previewControlLabel">Fullscreen</span>
-                </button>
-                <button
-                  aria-label="Restart preview session"
-                  className="previewControlButton"
-                  disabled={!controller.canRestart}
-                  onClick={onRestart}
-                  title="Restart preview session"
-                  type="button"
-                >
-                  <RotateCcw size={15} />
-                  <span className="previewControlLabel">Restart</span>
-                </button>
-                {showDebugPanels ? (
-                  <>
-                    <button
-                      aria-label="Clear preview state"
-                      className="previewControlButton"
-                      disabled={!controller.canClear}
-                      onClick={onClear}
-                      title="Clear preview state"
-                      type="button"
-                    >
-                      <X size={15} />
-                      <span className="previewControlLabel">Clear</span>
-                    </button>
-                    <button
-                      aria-label="Reload preview state"
-                      className="previewControlButton"
-                      disabled={!controller.canReload}
-                      onClick={onReload}
-                      title="Reload preview state"
-                      type="button"
-                    >
-                      <RefreshCw size={15} />
-                      <span className="previewControlLabel">Reload</span>
-                    </button>
-                  </>
-                ) : null}
-              </div>
             </div>
           )}
           <div className="previewBody">
@@ -4435,6 +4471,55 @@ function PreviewShelf({
                 error={snapshot.preview.error}
                 title="Preview runtime failed"
               />
+            ) : null}
+            {!controller.isFullscreen ? (
+            <div className="previewArtworkControls" aria-label="Preview controls">
+              <button
+                aria-label="Enter preview fullscreen"
+                aria-pressed={false}
+                className="previewControlButton"
+                disabled={!controller.canFullscreen}
+                onClick={() => onFullscreenToggle(true)}
+                title="Enter preview fullscreen"
+                type="button"
+              >
+                <Maximize2 size={15} />
+                <span className="previewControlLabel">Fullscreen</span>
+              </button>
+              <button
+                aria-label="Restart preview session"
+                className="previewControlButton"
+                disabled={!controller.canRestart}
+                onClick={onRestart}
+                title="Restart preview session"
+                type="button"
+              >
+                <RotateCcw size={15} />
+                <span className="previewControlLabel">Restart</span>
+              </button>
+              <button
+                aria-label="Clear preview state"
+                className="previewControlButton"
+                disabled={!controller.canClear}
+                onClick={onClear}
+                title="Clear preview state"
+                type="button"
+              >
+                <X size={15} />
+                <span className="previewControlLabel">Clear</span>
+              </button>
+              <button
+                aria-label="Reload preview state"
+                className="previewControlButton"
+                disabled={!controller.canReload}
+                onClick={onReload}
+                title="Reload preview state"
+                type="button"
+              >
+                <RefreshCw size={15} />
+                <span className="previewControlLabel">Reload</span>
+              </button>
+            </div>
             ) : null}
             <PreviewRendererSurface
               chrome="immersive"

@@ -27,10 +27,10 @@ export const homepagePromptLibrary = [
     id: "kinetic-orbit-sculpture",
     title: "Kinetic orbit sculpture",
     description: "A luminous spatial study for the Three.js preview.",
-    concept: "Kinetic geometry and camera motion",
+    concept: "Kinetic sculpture, orbital light, and camera motion",
     runtime: "Three.js browser preview",
     prompt:
-      "Create exactly one self-contained .three.js artifact named kinetic-orbit-sculpture.three.js. Use plain JavaScript only: THREE.Scene, PerspectiveCamera, WebGLRenderer, one torus or sphere sculpture, two lights, a dark background, and an animation loop with slow camera orbit. Do not declare canvas, width, height, or pixelRatio. Do not use imports, HTML, React, TypeScript, Points, BufferGeometry, external assets, Markdown, or prose. Return only the artifact.",
+      "Create exactly one self-contained .three.js artifact named kinetic-orbit-sculpture.three.js. Use plain JavaScript only: THREE.Scene, PerspectiveCamera, WebGLRenderer, a central TorusKnotGeometry or sphere sculpture, three thin orbit rings, two PointLights, an AmbientLight, a deep navy background, and a requestAnimationFrame loop. Compose it as a polished hero: warm-gold sculpture, cool-blue rim light, slow object rotation, gentle ring counter-rotation, and a slow camera orbit that keeps the subject framed. Use hexadecimal color strings or numeric hex values only; never call setHSL. Do not declare canvas, width, height, or pixelRatio. Do not use imports, HTML, React, TypeScript, Points, BufferGeometry, external assets, Markdown, or prose. Return only the artifact.",
     expectedArtifact: "kinetic-orbit-sculpture.three.js",
     previewBoundary: "Runs in the controlled Three.js browser preview.",
     fallback: "Inspect the code artifact; standalone HTML and React exports remain code-only."

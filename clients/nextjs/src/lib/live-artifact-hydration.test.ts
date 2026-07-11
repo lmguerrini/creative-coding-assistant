@@ -542,6 +542,27 @@ describe("live artifact hydration", () => {
     expect(result.artifact?.title).toBe("named-field.p5.js");
   });
 
+  it("keeps a named fenced Markdown handoff as a clean export artifact", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        answer: [
+          "```markdown filename=chladni-touchdesigner-handoff-2.md",
+          "# Chladni TouchDesigner Handoff",
+          "",
+          "Keep the implementation in the external-tool handoff boundary.",
+          "```"
+        ].join("\n")
+      })
+    );
+
+    expect(result.artifact).toMatchObject({
+      title: "chladni-touchdesigner-handoff-2.md",
+      type: "export"
+    });
+    expect(result.artifact?.content).not.toContain("```markdown");
+  });
+
   it("keeps a constrained p5 sketch eligible when streamed as an artifact", () => {
     const result = hydrateWorkspaceFromFinalEvent(
       getLocalWorkspaceSnapshot(),
