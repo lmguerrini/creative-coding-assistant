@@ -248,7 +248,9 @@ test.describe("V7.4 workstation E2E smoke", () => {
       "Create a compact p5 fallback sketch if the provider is unavailable."
     );
 
-    await expect(page.getByText("Provider fallback completed")).toBeVisible();
+    await expect(
+      page.getByLabel("Product outcome summary").getByText("Provider fallback completed")
+    ).toBeVisible();
     await expect(page.getByRole("region", { name: "Preview workspace" })).toContainText(
       "Preview unavailable"
     );

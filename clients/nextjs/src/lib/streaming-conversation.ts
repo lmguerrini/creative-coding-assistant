@@ -31,21 +31,28 @@ export type ConversationEntry = AssistantMessage & {
 export function buildConversationEntries(
   messages: AssistantMessage[],
   createId: () => string,
-  productOutcome?: AssistantWorkspaceSnapshot["workflow"]["productOutcome"]
+  workflow?: AssistantWorkspaceSnapshot["workflow"]
 ): ConversationEntry[] {
   const terminalAssistantIndex = findTerminalAssistantIndex(messages);
+  const productOutcome = workflow?.productOutcome;
 
   return messages.map((message, index) => {
+    const restoresOutcome =
+      index === terminalAssistantIndex ? productOutcome ?? null : null;
     const restoresTerminalOutcome =
-      index === terminalAssistantIndex && productOutcome !== null && productOutcome;
+      restoresOutcome?.product_outcome !== "IN_PROGRESS" ? restoresOutcome : null;
+    const restoresInProgressOutcome =
+      restoresOutcome?.product_outcome === "IN_PROGRESS" ? restoresOutcome : null;
 
     return {
       ...message,
-      activity: restoresTerminalOutcome ? productOutcome.summary : null,
+      activity: restoresOutcome?.summary ?? null,
       id: createId(),
       pending: false,
       phase: restoresTerminalOutcome
-        ? conversationPhaseForProductOutcome(productOutcome.product_outcome)
+        ? conversationPhaseForProductOutcome(restoresTerminalOutcome.product_outcome)
+        : restoresInProgressOutcome
+          ? conversationPhaseForWorkflowNode(workflow?.currentNode)
         : "complete"
     };
   });
@@ -75,6 +82,30 @@ function conversationPhaseForProductOutcome(
     case "IN_PROGRESS":
     default:
       return "complete";
+  }
+}
+
+function conversationPhaseForWorkflowNode(
+  currentNode: AssistantWorkspaceSnapshot["workflow"]["currentNode"] | undefined
+): ConversationEntryPhase {
+  switch (currentNode) {
+    case "memory":
+    case "retrieval":
+    case "context_assembly":
+      return "retrieving";
+    case "generation":
+      return "generating";
+    case "artifact_extraction":
+    case "preview_preparation":
+    case "artifact_critique":
+    case "review":
+      return "reviewing";
+    case "refinement":
+      return "refining";
+    case "finalization":
+      return "finalizing";
+    default:
+      return "planning";
   }
 }
 

@@ -43,17 +43,23 @@ describe("streaming conversation helpers", () => {
       ],
       () => "message-id",
       {
-        orchestration_status: "COMPLETED",
-        provider_status: "COMPLETED",
-        generation_status: "COMPLETED",
-        deliverable_status: "USABLE",
-        artifact_extraction_status: "EXTRACTED",
-        artifact_runnability: "UNSUPPORTED",
-        preview_status: "UNAVAILABLE",
-        runtime_health: "NOT_AVAILABLE",
-        product_outcome: "PARTIAL",
-        summary: "A usable artifact was produced, but live preview is unavailable.",
-        recovery_action: "Open Code to use the artifact."
+        status: "Completed",
+        currentNode: "finalization",
+        currentStep: "Finalization",
+        steps: [],
+        productOutcome: {
+          orchestration_status: "COMPLETED",
+          provider_status: "COMPLETED",
+          generation_status: "COMPLETED",
+          deliverable_status: "USABLE",
+          artifact_extraction_status: "EXTRACTED",
+          artifact_runnability: "UNSUPPORTED",
+          preview_status: "UNAVAILABLE",
+          runtime_health: "NOT_AVAILABLE",
+          product_outcome: "PARTIAL",
+          summary: "A usable artifact was produced, but live preview is unavailable.",
+          recovery_action: "Open Code to use the artifact."
+        }
       }
     );
 
@@ -61,6 +67,37 @@ describe("streaming conversation helpers", () => {
     expect(entries[2]).toMatchObject({
       activity: "A usable artifact was produced, but live preview is unavailable.",
       phase: "partial"
+    });
+  });
+
+  it("keeps a restored in-progress card aligned with its workflow phase", () => {
+    const entries = buildConversationEntries(
+      [{ role: "assistant", time: "10:15", content: "Working." }],
+      () => "message-1",
+      {
+        status: "Running",
+        currentNode: "retrieval",
+        currentStep: "Retrieval",
+        steps: [],
+        productOutcome: {
+          orchestration_status: "RUNNING",
+          provider_status: "PENDING",
+          generation_status: "PENDING",
+          deliverable_status: "UNKNOWN",
+          artifact_extraction_status: "UNKNOWN",
+          artifact_runnability: "UNKNOWN",
+          preview_status: "UNKNOWN",
+          runtime_health: "UNKNOWN",
+          product_outcome: "IN_PROGRESS",
+          summary: "Retrieving sources for the requested output.",
+          recovery_action: ""
+        }
+      }
+    );
+
+    expect(entries[0]).toMatchObject({
+      activity: "Retrieving sources for the requested output.",
+      phase: "retrieving"
     });
   });
 

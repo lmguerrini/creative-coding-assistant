@@ -184,13 +184,33 @@ function withFinalEventProductOutcome(
   result: LiveArtifactHydrationResult,
   event: AssistantStreamEvent
 ): LiveArtifactHydrationResult {
-  const productOutcome = readWorkflowMetadata(event)?.product_outcome;
-  if (!productOutcome) {
-    return result;
-  }
+  const workflowMetadata = readWorkflowMetadata(event);
+  const carriedFallbackOutcome =
+    result.snapshot.workflow.productOutcome?.provider_status === "FALLBACK"
+      ? result.snapshot.workflow.productOutcome
+      : null;
+  const productOutcome =
+    workflowMetadata?.product_outcome ??
+    (carriedFallbackOutcome
+      ? {
+          ...carriedFallbackOutcome,
+          orchestration_status: "COMPLETED",
+          generation_status: "FALLBACK",
+          deliverable_status: "PARTIAL",
+          artifact_extraction_status: "EXTRACTED",
+          artifact_runnability: "NOT_AVAILABLE",
+          preview_status: "UNAVAILABLE",
+          runtime_health: "NOT_AVAILABLE",
+          product_outcome: "PARTIAL" as const,
+          summary:
+            "Provider fallback completed with a local draft; live preview is unavailable.",
+          recovery_action:
+            "Retry the request when the provider is available for a generated preview."
+        }
+      : null);
 
   const reconciledProductOutcome =
-    productOutcome.product_outcome === "SUCCESS" && !result.previewAvailable
+    productOutcome?.product_outcome === "SUCCESS" && !result.previewAvailable
       ? {
           ...productOutcome,
           artifact_runnability: "UNSUPPORTED" as const,
@@ -202,6 +222,12 @@ function withFinalEventProductOutcome(
           recovery_action: "Open Code to use the artifact."
         }
       : productOutcome;
+  const completedSteps = new Set([
+    ...(workflowMetadata?.completed_steps ?? []),
+    "finalization"
+  ]);
+  const finalNode =
+    workflowMetadata?.current_step ?? workflowMetadata?.step ?? "finalization";
 
   return {
     ...result,
@@ -209,6 +235,18 @@ function withFinalEventProductOutcome(
       ...result.snapshot,
       workflow: {
         ...result.snapshot.workflow,
+        // A final stream event is the terminal persistence boundary. Keep its
+        // workflow projection alongside the hydrated artifact so a reload does
+        // not revive an earlier planning/generating state.
+        status: "completed",
+        currentNode: finalNode,
+        currentStep:
+          reconciledProductOutcome?.product_outcome === "IN_PROGRESS"
+            ? "Finalization"
+            : reconciledProductOutcome?.summary ?? "Finalization",
+        steps: result.snapshot.workflow.steps.map((step) =>
+          completedSteps.has(step.nodeId) ? { ...step, state: "complete" } : step
+        ),
         productOutcome: reconciledProductOutcome
       }
     }

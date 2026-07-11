@@ -110,6 +110,79 @@ describe("workflow runtime model", () => {
     expect(runtime.error?.suggestedAction).toContain("Open Code");
   });
 
+  it("replaces a stale restored in-progress outcome after workflow completion", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const workflow = {
+      ...snapshot.workflow,
+      currentNode: "finalization" as const,
+      currentStep: "Finalization",
+      status: "Complete",
+      productOutcome: {
+        orchestration_status: "COMPLETED",
+        provider_status: "COMPLETED",
+        generation_status: "COMPLETED",
+        deliverable_status: "USABLE",
+        artifact_extraction_status: "EXTRACTED",
+        artifact_runnability: "RUNNABLE",
+        preview_status: "READY",
+        runtime_health: "HEALTHY",
+        product_outcome: "IN_PROGRESS" as const,
+        summary: "Generation and product validation are in progress.",
+        recovery_action: ""
+      }
+    };
+
+    const runtime = buildWorkflowRuntimeModel(workflow, []);
+
+    expect(runtime.summary).toMatchObject({
+      status: "completed",
+      currentStep: "The workflow completed.",
+      activity: { state: "completed", label: "Success", terminal: true },
+      productOutcome: { product_outcome: "SUCCESS" }
+    });
+  });
+
+  it("settles an in-progress product projection when the final stream event arrives", () => {
+    const workflow = getLocalWorkspaceSnapshot().workflow;
+    const at = "2026-07-11T10:00:00Z";
+    const runtime = buildWorkflowRuntimeModel(workflow, [
+      {
+        event: {
+          event_type: "final",
+          sequence: 1,
+          payload: {
+            workflow: {
+              current_step: "finalization",
+              phase: "completed",
+              status: "completed",
+              product_outcome: {
+                orchestration_status: "COMPLETED",
+                provider_status: "COMPLETED",
+                generation_status: "COMPLETED",
+                deliverable_status: "USABLE",
+                artifact_extraction_status: "EXTRACTED",
+                artifact_runnability: "RUNNABLE",
+                preview_status: "READY",
+                runtime_health: "HEALTHY",
+                product_outcome: "IN_PROGRESS",
+                summary: "Generation and product validation are in progress.",
+                recovery_action: ""
+              }
+            }
+          }
+        },
+        receivedAt: at,
+        receivedAtMs: Date.parse(at)
+      }
+    ]);
+
+    expect(runtime.summary).toMatchObject({
+      status: "completed",
+      activity: { state: "completed", label: "Success", terminal: true },
+      productOutcome: { product_outcome: "SUCCESS" }
+    });
+  });
+
   it("keeps a restored successful outcome when local preview telemetry follows it", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const workflow = {

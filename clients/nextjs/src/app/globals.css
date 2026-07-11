@@ -12253,7 +12253,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 
 .productDashboardContentHeader {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
   align-items: start;
   gap: 16px;
   border-radius: 14px;
@@ -12313,6 +12313,62 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 .productDashboardStatus[data-tone="attention"],
 .productIntelligenceSection[data-tone="attention"] .productIntelligenceHero strong {
   color: var(--coral);
+}
+
+.productIntelligenceHelp {
+  position: relative;
+  z-index: 2;
+  align-self: start;
+}
+
+.productIntelligenceHelp summary {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--muted-strong);
+  background: var(--surface-1);
+  cursor: pointer;
+  list-style: none;
+}
+
+.productIntelligenceHelp summary::-webkit-details-marker {
+  display: none;
+}
+
+.productIntelligenceHelp summary:hover,
+.productIntelligenceHelp[open] summary {
+  border-color: rgba(var(--accent-rgb), 0.38);
+  color: var(--foreground);
+}
+
+.productIntelligenceHelp > div {
+  position: absolute;
+  z-index: 3;
+  top: calc(100% + 8px);
+  right: 0;
+  display: grid;
+  width: min(300px, calc(100vw - 44px));
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--panel-strong);
+  box-shadow: var(--shadow);
+}
+
+.productIntelligenceHelp > div strong {
+  color: var(--foreground);
+  font-size: 12px;
+}
+
+.productIntelligenceHelp > div p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.42;
 }
 
 .productIntelligenceSection {
@@ -12478,6 +12534,11 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 .productIntelligenceInspector {
   overflow-y: auto;
   padding: 0;
+}
+
+.productIntelligenceInspector > .productIntelligenceHelp {
+  justify-self: end;
+  margin: 14px 14px 0;
 }
 
 .productIntelligenceInspector .productIntelligenceSection {

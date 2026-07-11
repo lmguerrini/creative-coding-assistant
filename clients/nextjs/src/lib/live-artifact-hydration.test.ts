@@ -95,6 +95,49 @@ describe("live artifact hydration", () => {
       artifact_runnability: "UNSUPPORTED",
       preview_status: "UNAVAILABLE"
     });
+    expect(result.snapshot.workflow).toMatchObject({
+      status: "completed",
+      currentNode: "finalization",
+      currentStep: "A usable artifact was produced, but live preview is unavailable."
+    });
+    expect(
+      result.snapshot.workflow.steps.find((step) => step.nodeId === "finalization")
+    ).toMatchObject({ state: "complete" });
+  });
+
+  it("settles a provider fallback as partial instead of claiming preview success", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const result = hydrateWorkspaceFromFinalEvent(
+      {
+        ...snapshot,
+        workflow: {
+          ...snapshot.workflow,
+          productOutcome: {
+            orchestration_status: "FALLBACK",
+            provider_status: "FALLBACK",
+            generation_status: "PENDING",
+            deliverable_status: "UNKNOWN",
+            artifact_extraction_status: "UNKNOWN",
+            artifact_runnability: "UNKNOWN",
+            preview_status: "UNKNOWN",
+            runtime_health: "UNKNOWN",
+            product_outcome: "IN_PROGRESS",
+            summary: "A local fallback is being prepared after the provider became unavailable.",
+            recovery_action: ""
+          }
+        }
+      },
+      finalEvent({
+        answer: "Provider fallback completed with a local draft while preserving the workspace session."
+      })
+    );
+
+    expect(result.previewAvailable).toBe(false);
+    expect(result.snapshot.workflow.productOutcome).toMatchObject({
+      provider_status: "FALLBACK",
+      preview_status: "UNAVAILABLE",
+      product_outcome: "PARTIAL"
+    });
   });
 
   it("downgrades a claimed success when hydration cannot prepare a preview", () => {

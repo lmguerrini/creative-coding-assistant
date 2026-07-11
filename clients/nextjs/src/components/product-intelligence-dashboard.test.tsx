@@ -44,6 +44,11 @@ describe("Product Intelligence surfaces", () => {
       .toHaveTextContent("Product Bugs");
     expect(screen.getByRole("heading", { name: "Overview" })).toBeVisible();
 
+    fireEvent.click(screen.getByLabelText("Help with Overview"));
+    expect(screen.getByRole("note")).toHaveTextContent(
+      "Review the metric cards for the current values"
+    );
+
     fireEvent.click(screen.getByRole("button", { name: /Workflow/ }));
     expect(onCategoryChange).toHaveBeenCalledWith("Workflow");
 
@@ -57,5 +62,6 @@ describe("Product Intelligence surfaces", () => {
     expect(screen.getByRole("tabpanel", { name: "Providers inspector" }))
       .toHaveTextContent("Providers detailed product information");
     expect(screen.getByText("Providers value")).toBeVisible();
+    expect(screen.getByLabelText("Help with Providers")).toBeVisible();
   });
 });

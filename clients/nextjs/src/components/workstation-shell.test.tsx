@@ -1133,6 +1133,16 @@ describe("WorkstationShell", () => {
     expect(screen.queryByRole("tab", { name: "Telemetry" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Retrieval" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Artifacts" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Add Inspector tab" }));
+
+    const picker = screen.getByRole("menu", {
+      name: "Available Inspector tabs"
+    });
+    expect(within(picker).getByRole("menuitem", { name: "Settings" })).toBeVisible();
+    expect(
+      within(picker).queryByRole("menuitem", { name: "Product Bugs" })
+    ).not.toBeInTheDocument();
   });
 
   it("shows a compact User Mode fallback when preview is not ready", async () => {

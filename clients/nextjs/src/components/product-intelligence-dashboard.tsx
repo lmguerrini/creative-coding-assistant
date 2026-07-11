@@ -1,5 +1,6 @@
 "use client";
 
+import { CircleHelp } from "lucide-react";
 import {
   getProductIntelligenceSection,
   productIntelligenceCategories,
@@ -56,6 +57,7 @@ export function ProductIntelligenceDashboard({
             <h1>{section.category}</h1>
             <p>{section.detail}</p>
           </div>
+          <ProductIntelligenceHelp section={section} />
           <div className="productDashboardStatus" data-tone={section.tone}>
             {section.summary}
           </div>
@@ -83,10 +85,35 @@ export function ProductIntelligenceInspector({
       id={`${category.toLowerCase().replace(/\s+/g, "-")}-inspector-panel`}
       role="tabpanel"
     >
+      <ProductIntelligenceHelp
+        section={getProductIntelligenceSection(model, category)}
+      />
       <ProductIntelligenceSectionView
         section={getProductIntelligenceSection(model, category)}
       />
     </section>
+  );
+}
+
+export function ProductIntelligenceHelp({
+  section
+}: {
+  section: ProductIntelligenceSection;
+}) {
+  return (
+    <details className="productIntelligenceHelp">
+      <summary aria-label={`Help with ${section.category}`}>
+        <CircleHelp aria-hidden="true" size={15} />
+      </summary>
+      <div role="note">
+        <strong>{section.category}</strong>
+        <p>{section.detail}</p>
+        <p>
+          Review the metric cards for the current values, then use the
+          Dashboard categories or Inspector tabs to change context.
+        </p>
+      </div>
+    </details>
   );
 }
 

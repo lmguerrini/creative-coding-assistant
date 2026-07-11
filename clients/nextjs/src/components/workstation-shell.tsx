@@ -437,7 +437,7 @@ export function WorkstationShell({
     buildConversationEntries(
       initialSnapshot.messages,
       createConversationEntryId,
-      initialSnapshot.workflow.productOutcome
+      initialSnapshot.workflow
     )
   );
   const [composerValue, setComposerValue] = useState("");
@@ -817,7 +817,7 @@ export function WorkstationShell({
             buildConversationEntries(
               restoredSnapshot.messages,
               createConversationEntryId,
-              restoredSnapshot.workflow.productOutcome
+              restoredSnapshot.workflow
             )
           );
           setImageAttachments(restoredImageAttachments);
@@ -1264,14 +1264,28 @@ export function WorkstationShell({
       workstationDashboard
     ]
   );
+  const availableInspectorCategories = useMemo(
+    () =>
+      productIntelligenceCategories.filter(
+        (category) =>
+          workspacePreferences.showDebugPanels || userModeInspectorTabs.has(category)
+      ),
+    [workspacePreferences.showDebugPanels]
+  );
   const visibleInspectorTabs = useMemo(
     () =>
-      inspectorTabs.filter(
-        (tab) =>
-          workspacePreferences.showDebugPanels || userModeInspectorTabs.has(tab)
-      ),
-    [inspectorTabs, workspacePreferences.showDebugPanels]
+      inspectorTabs.filter((tab) => availableInspectorCategories.includes(tab)),
+    [availableInspectorCategories, inspectorTabs]
   );
+  useEffect(() => {
+    if (!visibleInspectorTabs.includes(activeTab)) {
+      return;
+    }
+
+    document
+      .getElementById(`${getInspectorPanelId(activeTab)}-tab`)
+      ?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+  }, [activeTab, layoutState.inspectorWidth, visibleInspectorTabs]);
   const activeTabSummary = getProductIntelligenceSection(
     productIntelligence,
     activeTab
@@ -1320,11 +1334,17 @@ export function WorkstationShell({
   const persistenceStatusLabel =
     persistenceStateLabels[persistenceState] ?? "Local session ready";
   const hasWorkspaceArtifacts = snapshot.artifacts.length > 0;
+  const hasPreviewOutcomeToExplain =
+    workflowRuntime.summary.productOutcome.product_outcome === "PARTIAL" ||
+    workflowRuntime.summary.productOutcome.product_outcome === "FAILURE" ||
+    streamError !== null;
   const shouldRenderPreviewShelf =
     !isFocusMode &&
     (interactiveSnapshot.preview.available ||
-      (!workspacePreferences.showDebugPanels &&
-        (hasWorkspaceArtifacts || isDemoModeOpen)));
+      (interactiveSnapshot.preview.state === "unavailable" &&
+        (hasPreviewOutcomeToExplain ||
+          (!workspacePreferences.showDebugPanels &&
+            (hasWorkspaceArtifacts || isDemoModeOpen)))));
   const activeArtifactDisplayLabel = workspacePreferences.showDebugPanels
     ? activeArtifact.title
     : formatUserArtifactLabel(activeArtifact);
@@ -1833,7 +1853,7 @@ export function WorkstationShell({
       buildConversationEntries(
         clearedSnapshot.messages,
         createConversationEntryId,
-        clearedSnapshot.workflow.productOutcome
+        clearedSnapshot.workflow
       )
     );
     setImageAttachments(
@@ -2625,7 +2645,18 @@ export function WorkstationShell({
       });
     }
 
-    const currentSnapshot = snapshotRef.current;
+    let currentSnapshot = snapshotRef.current;
+
+    if (readPayloadText(streamEvent, "status") === "provider_fallback_selected") {
+      currentSnapshot = {
+        ...currentSnapshot,
+        workflow: {
+          ...currentSnapshot.workflow,
+          productOutcome: createProviderFallbackInProgressOutcome()
+        }
+      };
+      replaceSnapshot(currentSnapshot);
+    }
 
     const workflowNode = workflowNodeFromAssistantStreamEvent(streamEvent);
     if (workflowNode) {
@@ -3571,7 +3602,7 @@ export function WorkstationShell({
                           className="inspectorAddMenu"
                           role="menu"
                         >
-                          {productIntelligenceCategories
+                          {availableInspectorCategories
                             .filter((category) => !inspectorTabs.includes(category))
                             .map((category) => (
                               <button
@@ -3583,7 +3614,7 @@ export function WorkstationShell({
                                 {category}
                               </button>
                             ))}
-                          {productIntelligenceCategories.every((category) =>
+                          {availableInspectorCategories.every((category) =>
                             inspectorTabs.includes(category)
                           ) ? <span>All dashboard categories are open.</span> : null}
                         </div>
@@ -7524,6 +7555,22 @@ function buildPersistenceTimeoutError(operation: "load" | "save") {
     retryLabel: operation === "save" ? "Retry save" : null,
     resetLabel: operation === "load" ? "Clear workspace session" : null
   });
+}
+
+function createProviderFallbackInProgressOutcome() {
+  return {
+    orchestration_status: "FALLBACK",
+    provider_status: "FALLBACK",
+    generation_status: "PENDING",
+    deliverable_status: "UNKNOWN",
+    artifact_extraction_status: "UNKNOWN",
+    artifact_runnability: "UNKNOWN",
+    preview_status: "UNKNOWN",
+    runtime_health: "UNKNOWN",
+    product_outcome: "IN_PROGRESS" as const,
+    summary: "A local fallback is being prepared after the provider became unavailable.",
+    recovery_action: ""
+  };
 }
 
 type WorkflowProgressSummary = {

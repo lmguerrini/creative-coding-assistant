@@ -63,13 +63,16 @@ test.describe("V7.4 workstation resilience", () => {
       "A usable artifact was produced, but live preview is unavailable."
     );
 
-    await page.getByRole("button", { name: "Expand inspector" }).click();
+    const expandInspector = page.getByRole("button", { name: "Expand inspector" });
+    if (await expandInspector.isVisible().catch(() => false)) {
+      await expandInspector.click();
+    }
     await page.getByRole("tab", { name: "Preview" }).click();
     await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
       "PARTIAL"
     );
     await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
-      "Open Code to use the artifact"
+      "Open Code to inspect, copy, or download the component"
     );
     await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
       "React Three Fiber export"

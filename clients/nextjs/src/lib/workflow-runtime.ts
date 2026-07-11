@@ -440,6 +440,8 @@ export function buildWorkflowRuntimeModel(
     steps.find((step) => step.nodeId === latestNode)?.displayLabel ?? workflow.currentStep;
   const productOutcome = deriveProductOutcome({
     metadata: latestMetadata,
+    finalEvent:
+      traceEvents[traceEvents.length - 1]?.event.event_type === "final",
     persistedProductOutcome:
       isTerminalWorkflowStatus(latestStatus) &&
       isTerminalProductOutcome(workflow.productOutcome)
@@ -525,20 +527,25 @@ function readPreviewRuntimeError(event: AssistantStreamEvent): WorkstationError 
 }
 
 function deriveProductOutcome({
+  finalEvent,
   metadata,
   persistedProductOutcome,
   previewRuntimeError,
   workflowStatus
 }: {
+  finalEvent: boolean;
   metadata: ReturnType<typeof readWorkflowMetadata>;
   persistedProductOutcome: AssistantStreamProductOutcome | null;
   previewRuntimeError: WorkstationError | null;
   workflowStatus: string;
 }): AssistantStreamProductOutcome {
-  const outcome =
+  const publishedOutcome =
     metadata?.product_outcome ??
-    persistedProductOutcome ??
-    fallbackProductOutcome(workflowStatus);
+    persistedProductOutcome;
+  const outcome =
+    finalEvent && publishedOutcome?.product_outcome === "IN_PROGRESS"
+      ? fallbackProductOutcome(workflowStatus)
+      : publishedOutcome ?? fallbackProductOutcome(workflowStatus);
   if (!previewRuntimeError) {
     return outcome;
   }
@@ -738,7 +745,14 @@ function buildFallbackWorkflowRuntimeModel(
     ["complete", "active", "skipped"].includes(step.state)
   ).length;
   const total = steps.filter((step) => step.state !== "branch").length;
-  const persistedProductOutcome = workflow.productOutcome ?? null;
+  // A restored terminal workflow must not keep a stale in-progress projection.
+  // Trace-backed runs already apply this rule; the no-trace restoration path
+  // needs the same source of truth for header, preview, and Inspector status.
+  const persistedProductOutcome =
+    isTerminalWorkflowStatus(workflow.status) &&
+    isTerminalProductOutcome(workflow.productOutcome)
+      ? workflow.productOutcome
+      : null;
   const productOutcome = persistedProductOutcome ?? fallbackProductOutcome(workflow.status);
   const activity = deriveWorkflowRuntimeActivity({
     currentNode: workflow.currentNode,
@@ -759,7 +773,7 @@ function buildFallbackWorkflowRuntimeModel(
       activity,
       currentNode: workflow.currentNode,
       currentStep:
-        !persistedProductOutcome || productOutcome.product_outcome === "IN_PROGRESS"
+        productOutcome.product_outcome === "IN_PROGRESS"
           ? workflow.currentStep
           : productOutcome.summary,
       reached,
