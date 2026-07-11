@@ -23,6 +23,7 @@ from creative_coding_assistant.llm.generation import (
     GenerationStreamEvent,
     GenerationTokenUsage,
 )
+from creative_coding_assistant.security import isolate_untrusted_content
 
 
 class OpenAIGenerationProvider(GenerationProvider):
@@ -204,15 +205,36 @@ def _build_openai_payload(
         payload["max_output_tokens"] = max_output_tokens
     if instructions:
         payload["instructions"] = "\n\n".join(instructions)
+    payload.update(
+        _supported_openai_generation_parameters(
+            model=model,
+            requested_temperature=request.request.generation_controls.requested_temperature,
+        )
+    )
     return payload
 
 
+def _supported_openai_generation_parameters(
+    *,
+    model: str,
+    requested_temperature: float,
+) -> dict[str, float]:
+    """Apply sampling only for models with a known compatible Responses surface.
+
+    Newer reasoning models may reject sampling parameters.  Leaving an unknown
+    model untouched is deliberate; the UI must describe that as unsupported,
+    not as an applied setting.
+    """
+
+    normalized_model = model.strip().lower()
+    if normalized_model.startswith(("gpt-4o", "gpt-4.1")):
+        return {"temperature": requested_temperature}
+    return {}
+
+
 def _build_openai_message(message: GenerationMessage) -> dict[str, Any]:
-    role = (
-        "developer"
-        if message.role is GenerationMessageRole.CONTEXT
-        else message.role.value
-    )
+    # Retrieved and remembered material is evidence, not application policy.
+    role = "user" if message.role is GenerationMessageRole.CONTEXT else message.role.value
     text = _format_message_text(message)
     return {
         "type": "message",
@@ -228,9 +250,13 @@ def _build_openai_message(message: GenerationMessage) -> dict[str, Any]:
 
 def _format_message_text(message: GenerationMessage) -> str:
     if message.name is GenerationMessageName.MEMORY:
-        return f"Memory Context:\n{message.content}"
+        return isolate_untrusted_content(
+            f"Memory Context:\n{message.content}", kind="memory"
+        )
     if message.name is GenerationMessageName.RETRIEVAL:
-        return f"Retrieval Context:\n{message.content}"
+        return isolate_untrusted_content(
+            f"Retrieval Context:\n{message.content}", kind="retrieved_document"
+        )
     return message.content
 
 

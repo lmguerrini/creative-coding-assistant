@@ -11,6 +11,9 @@ from creative_coding_assistant.contracts.requests import (
     AssistantRequest,
     AssistantResponse,
     CreativeCodingDomain,
+    CreativityProfile,
+    GenerationControls,
+    PersonalizationContext,
     WorkflowExecutionMode,
 )
 
@@ -20,7 +23,10 @@ __all__ = [
     "AssistantMode",
     "AssistantRequest",
     "AssistantResponse",
+    "CreativityProfile",
     "CreativeCodingDomain",
+    "GenerationControls",
+    "PersonalizationContext",
     "WorkflowExecutionMode",
     "MAX_IMAGE_REFERENCE_BYTES",
     "MAX_IMAGE_REFERENCE_COUNT",

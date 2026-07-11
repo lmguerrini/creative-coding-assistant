@@ -46,8 +46,8 @@ describe("domain experience catalog", () => {
           lastIndexedAt: "2026-07-11T10:00:00Z",
           freshnessStatus: "local_index_timestamp",
           freshnessDetail: "The local timestamp is not upstream freshness.",
-          updateStatus: "manual_sync_only",
-          updateHint: "Use local sync.",
+          updateStatus: "explicit_selected_source_actions",
+          updateHint: "Use explicit selected-source actions.",
           provenanceBoundary: "No source text is returned."
         }
       })

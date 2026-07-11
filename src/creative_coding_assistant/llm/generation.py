@@ -9,6 +9,7 @@ from typing import Protocol, Self
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from creative_coding_assistant.contracts import GenerationControls
 from creative_coding_assistant.orchestration.prompt_templates import (
     RenderedPromptResponse,
 )
@@ -68,6 +69,7 @@ class GenerationRequest(BaseModel):
     route: RouteName
     rendered_prompt: RenderedPromptResponse
     stream: bool = True
+    generation_controls: GenerationControls = Field(default_factory=GenerationControls)
 
     @model_validator(mode="after")
     def validate_route_alignment(self) -> Self:
@@ -217,4 +219,7 @@ def build_generation_request(
         route=route,
         rendered_prompt=rendered_prompt,
         stream=stream,
+        generation_controls=(
+            rendered_prompt.request.prompt_input.request.assistant_request.generation_controls
+        ),
     )

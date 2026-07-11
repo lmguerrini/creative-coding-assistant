@@ -23,6 +23,13 @@ import {
   normalizeStoredArtifactRuntimeBoundary
 } from "./live-artifact-hydration";
 import { isArtifactPreviewable } from "./preview-runtime";
+import {
+  buildGenerationControls,
+  type CreativityProfile,
+  type EvaluationHistoryRecord,
+  type FeedbackSignal,
+  type FontScale
+} from "./product-controls";
 
 export const defaultLocalUserId = "local-user";
 export const defaultLocalSessionId = "local-nextjs-session";
@@ -33,6 +40,14 @@ export type WorkspaceIdentity = {
   userId: string;
   sessionId: string;
   projectId: string;
+};
+
+export type WorkspaceSessionSummary = {
+  sessionId: string;
+  projectId: string;
+  title: string;
+  updatedAt: string | null;
+  artifactCount: number;
 };
 
 export const defaultWorkspaceIdentity: WorkspaceIdentity = {
@@ -63,6 +78,7 @@ export type WorkspaceThemePreset =
 
 export type WorkspaceLayoutState = {
   density: WorkspaceDensity;
+  sidebarCollapsed: boolean;
   inspectorCollapsed: boolean;
   inspectorWidth: number;
   previewHeight: number;
@@ -72,10 +88,17 @@ export type WorkspacePreferences = {
   theme: WorkspaceThemePreset;
   autoOpenPreview: boolean;
   showDebugPanels: boolean;
+  creativity: CreativityProfile;
+  personalizationEnabled: boolean;
+  uiFontSize: FontScale;
+  codeFontSize: FontScale;
+  feedbackSignals: FeedbackSignal[];
+  evaluationHistory: EvaluationHistoryRecord[];
 };
 
 export const defaultWorkspaceLayoutState: WorkspaceLayoutState = {
   density: "cozy",
+  sidebarCollapsed: false,
   inspectorCollapsed: true,
   inspectorWidth: workspaceLayoutBounds.defaultInspectorWidth,
   previewHeight: workspaceLayoutBounds.defaultPreviewHeight
@@ -84,11 +107,17 @@ export const defaultWorkspaceLayoutState: WorkspaceLayoutState = {
 export const defaultWorkspacePreferences: WorkspacePreferences = {
   theme: "codex",
   autoOpenPreview: true,
-  showDebugPanels: true
+  showDebugPanels: true,
+  creativity: "balanced",
+  personalizationEnabled: true,
+  uiFontSize: "medium",
+  codeFontSize: "medium",
+  feedbackSignals: [],
+  evaluationHistory: []
 };
 
 export type WorkspaceSessionRecord = {
-  schemaVersion: 1 | 2 | 3 | 4;
+  schemaVersion: 1 | 2 | 3 | 4 | 5;
   userId: string;
   sessionId: string;
   projectId: string;
@@ -136,6 +165,7 @@ export type WorkspacePersistenceClientOptions = {
   timeoutMs?: number;
   userId?: string;
   sessionId?: string;
+  projectId?: string;
   useProfileIdentity?: boolean;
 };
 
@@ -176,7 +206,7 @@ export function createWorkspacePersistenceClient(
   const identity: WorkspaceIdentity = {
     userId: options.userId ?? profileIdentity.userId,
     sessionId: options.sessionId ?? profileIdentity.sessionId,
-    projectId: profileIdentity.projectId
+    projectId: options.projectId ?? profileIdentity.projectId
   };
   const { projectId, sessionId, userId } = identity;
 
@@ -276,6 +306,95 @@ export function withWorkspaceIdentity(
   };
 }
 
+export function listLocalWorkspaceSessions(
+  userId: string,
+  storage?: Storage | null
+): WorkspaceSessionSummary[] {
+  const resolvedStorage = resolveStorage(storage);
+  if (!resolvedStorage) {
+    return [];
+  }
+  try {
+    const rawIndex = resolvedStorage.getItem(workspaceSessionIndexStorageKey(userId));
+    const parsed: unknown = rawIndex ? JSON.parse(rawIndex) : [];
+    if (!Array.isArray(parsed)) {
+      resolvedStorage.removeItem(workspaceSessionIndexStorageKey(userId));
+      return [];
+    }
+    const records = parsed
+      .map((item) => normalizeSessionSummary(item))
+      .filter((item): item is WorkspaceSessionSummary => item !== null)
+      .filter((summary) =>
+        Boolean(readLocalSession(resolvedStorage, userId, summary.sessionId))
+      )
+      .sort((left, right) => {
+        const rightTime = right.updatedAt ?? "";
+        const leftTime = left.updatedAt ?? "";
+        return rightTime.localeCompare(leftTime) || left.sessionId.localeCompare(right.sessionId);
+      });
+    writeLocalWorkspaceSessionIndex(records, resolvedStorage, userId);
+    return records;
+  } catch {
+    return [];
+  }
+}
+
+export function removeLocalWorkspaceSession(
+  userId: string,
+  sessionId: string,
+  storage?: Storage | null
+): boolean {
+  const resolvedStorage = resolveStorage(storage);
+  if (!resolvedStorage || !sessionId.trim()) {
+    return false;
+  }
+  try {
+    resolvedStorage.removeItem(workspaceSessionStorageKey(userId, sessionId));
+    const remaining = listLocalWorkspaceSessions(userId, resolvedStorage).filter(
+      (summary) => summary.sessionId !== sessionId
+    );
+    writeLocalWorkspaceSessionIndex(remaining, resolvedStorage, userId);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function deletePersistedWorkspaceSession({
+  fetchImpl,
+  identity,
+  storage
+}: {
+  fetchImpl?: typeof fetch;
+  identity: WorkspaceIdentity;
+  storage?: Storage | null;
+}): Promise<"remote" | "local"> {
+  removeLocalWorkspaceSession(
+    identity.userId,
+    identity.sessionId,
+    storage
+  );
+  const resolvedFetch = fetchImpl ?? globalThis.fetch;
+  if (!resolvedFetch) {
+    return "local";
+  }
+  try {
+    const endpoint = new URL(defaultPersistenceEndpoint);
+    endpoint.searchParams.set("userId", identity.userId);
+    endpoint.searchParams.set("sessionId", identity.sessionId);
+    const response = await resolvedFetch(endpoint.toString(), {
+      headers: { Accept: "application/json" },
+      method: "DELETE"
+    });
+    if (response.ok || response.status === 404) {
+      return "remote";
+    }
+  } catch {
+    // The local delete is the safe fallback; a later explicit save cannot revive it.
+  }
+  return "local";
+}
+
 export function createWorkspaceSessionRecord({
   activeArtifactId,
   activeInspectorTab,
@@ -296,7 +415,7 @@ export function createWorkspaceSessionRecord({
   });
 
   return {
-    schemaVersion: 4,
+    schemaVersion: 5,
     userId: snapshot.session.userId,
     sessionId: snapshot.session.sessionId,
     projectId: snapshot.session.projectId,
@@ -505,6 +624,7 @@ export function normalizeWorkspaceLayoutState(
 ): WorkspaceLayoutState {
   return {
     density: layout?.density === "compact" ? "compact" : "cozy",
+    sidebarCollapsed: layout?.sidebarCollapsed ?? defaultWorkspaceLayoutState.sidebarCollapsed,
     inspectorCollapsed:
       layout?.inspectorCollapsed ?? defaultWorkspaceLayoutState.inspectorCollapsed,
     inspectorWidth: clampLayoutValue(
@@ -536,7 +656,22 @@ export function normalizeWorkspacePreferences(
     showDebugPanels:
       typeof preferences?.showDebugPanels === "boolean"
         ? preferences.showDebugPanels
-        : defaultWorkspacePreferences.showDebugPanels
+        : defaultWorkspacePreferences.showDebugPanels,
+    creativity: isCreativityProfile(preferences?.creativity)
+      ? preferences.creativity
+      : defaultWorkspacePreferences.creativity,
+    personalizationEnabled:
+      typeof preferences?.personalizationEnabled === "boolean"
+        ? preferences.personalizationEnabled
+        : defaultWorkspacePreferences.personalizationEnabled,
+    uiFontSize: isFontScale(preferences?.uiFontSize)
+      ? preferences.uiFontSize
+      : defaultWorkspacePreferences.uiFontSize,
+    codeFontSize: isFontScale(preferences?.codeFontSize)
+      ? preferences.codeFontSize
+      : defaultWorkspacePreferences.codeFontSize,
+    feedbackSignals: normalizeFeedbackSignals(preferences?.feedbackSignals),
+    evaluationHistory: normalizeEvaluationHistory(preferences?.evaluationHistory)
   };
 }
 
@@ -551,7 +686,8 @@ export function isWorkspaceSessionRecord(
     (value.schemaVersion === 1 ||
       value.schemaVersion === 2 ||
       value.schemaVersion === 3 ||
-      value.schemaVersion === 4) &&
+      value.schemaVersion === 4 ||
+      value.schemaVersion === 5) &&
     typeof value.userId === "string" &&
     typeof value.sessionId === "string" &&
     typeof value.projectId === "string" &&
@@ -1117,6 +1253,23 @@ function writeLocalSession(
       workspaceSessionStorageKey(record.userId, record.sessionId),
       JSON.stringify(record)
     );
+    const retained = listLocalWorkspaceSessions(record.userId, resolvedStorage).filter(
+      (summary) => summary.sessionId !== record.sessionId
+    );
+    writeLocalWorkspaceSessionIndex(
+      [
+        {
+          sessionId: record.sessionId,
+          projectId: record.projectId,
+          title: record.title,
+          updatedAt: record.updatedAt ?? null,
+          artifactCount: record.artifacts.length
+        },
+        ...retained
+      ],
+      resolvedStorage,
+      record.userId
+    );
     return true;
   } catch {
     return false;
@@ -1125,6 +1278,44 @@ function writeLocalSession(
 
 function workspaceSessionStorageKey(userId: string, sessionId: string) {
   return `cca.workspace.${userId}.${sessionId}`;
+}
+
+function workspaceSessionIndexStorageKey(userId: string) {
+  return `cca.workspace.${userId}.session-index.v1`;
+}
+
+function writeLocalWorkspaceSessionIndex(
+  summaries: WorkspaceSessionSummary[],
+  storage: Storage,
+  userId: string
+) {
+  storage.setItem(
+    workspaceSessionIndexStorageKey(userId),
+    JSON.stringify(summaries.slice(0, 80))
+  );
+}
+
+function normalizeSessionSummary(value: unknown): WorkspaceSessionSummary | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+  if (
+    typeof value.sessionId !== "string" ||
+    typeof value.projectId !== "string" ||
+    typeof value.title !== "string" ||
+    (typeof value.updatedAt !== "string" && value.updatedAt !== null) ||
+    typeof value.artifactCount !== "number" ||
+    value.artifactCount < 0
+  ) {
+    return null;
+  }
+  return {
+    sessionId: value.sessionId,
+    projectId: value.projectId,
+    title: value.title,
+    updatedAt: value.updatedAt,
+    artifactCount: Math.floor(value.artifactCount)
+  };
 }
 
 function resolveStorage(storage: Storage | null | undefined): Storage | null {
@@ -1204,6 +1395,7 @@ function isWorkspaceLayoutState(value: unknown): value is WorkspaceLayoutState {
 
   return (
     (value.density === "cozy" || value.density === "compact") &&
+    (value.sidebarCollapsed === undefined || typeof value.sidebarCollapsed === "boolean") &&
     typeof value.inspectorCollapsed === "boolean" &&
     typeof value.inspectorWidth === "number" &&
     Number.isFinite(value.inspectorWidth) &&
@@ -1220,8 +1412,124 @@ function isWorkspacePreferences(value: unknown): value is WorkspacePreferences {
   return (
     isWorkspaceThemePreset(value.theme) &&
     typeof value.autoOpenPreview === "boolean" &&
-    typeof value.showDebugPanels === "boolean"
+    typeof value.showDebugPanels === "boolean" &&
+    (value.creativity === undefined || isCreativityProfile(value.creativity)) &&
+    (value.personalizationEnabled === undefined ||
+      typeof value.personalizationEnabled === "boolean") &&
+    (value.uiFontSize === undefined || isFontScale(value.uiFontSize)) &&
+    (value.codeFontSize === undefined || isFontScale(value.codeFontSize)) &&
+    (value.feedbackSignals === undefined || Array.isArray(value.feedbackSignals)) &&
+    (value.evaluationHistory === undefined || Array.isArray(value.evaluationHistory))
   );
+}
+
+function isCreativityProfile(value: unknown): value is CreativityProfile {
+  return value === "controlled" || value === "balanced" || value === "exploratory";
+}
+
+function isFontScale(value: unknown): value is FontScale {
+  return value === "small" || value === "medium" || value === "large";
+}
+
+function normalizeFeedbackSignals(value: unknown): FeedbackSignal[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map(normalizeFeedbackSignal)
+    .filter((signal): signal is FeedbackSignal => signal !== null)
+    .slice(-120);
+}
+
+function isFeedbackSignal(value: unknown): value is FeedbackSignal {
+  if (!isRecord(value)) {
+    return false;
+  }
+  return (
+    typeof value.id === "string" &&
+    (value.sentiment === "positive" || value.sentiment === "negative") &&
+    (typeof value.comment === "string" || value.comment === null) &&
+    typeof value.sessionId === "string" &&
+    (typeof value.artifactId === "string" || value.artifactId === null) &&
+    (typeof value.artifactTitle === "string" || value.artifactTitle === null) &&
+    (typeof value.domain === "string" || value.domain === null) &&
+    typeof value.workflowMode === "string" &&
+    isCreativityProfile(value.creativity) &&
+    Array.isArray(value.categories) &&
+    typeof value.createdAt === "string" &&
+    (value.promptExcerpt === undefined || value.promptExcerpt === null || typeof value.promptExcerpt === "string") &&
+    (value.providerName === undefined || value.providerName === null || typeof value.providerName === "string") &&
+    (value.providerModel === undefined || value.providerModel === null || typeof value.providerModel === "string") &&
+    (value.requestedTemperature === undefined || typeof value.requestedTemperature === "number") &&
+    (value.effectiveTemperature === undefined || value.effectiveTemperature === null || typeof value.effectiveTemperature === "number") &&
+    (value.parameterApplication === undefined || value.parameterApplication === "requested_not_confirmed" || value.parameterApplication === "provider_reported") &&
+    (value.productOutcome === undefined || value.productOutcome === null || typeof value.productOutcome === "string")
+  );
+}
+
+function normalizeFeedbackSignal(value: unknown): FeedbackSignal | null {
+  if (!isFeedbackSignal(value)) {
+    return null;
+  }
+  return {
+    ...value,
+    promptExcerpt:
+      typeof value.promptExcerpt === "string" ? value.promptExcerpt : null,
+    providerName: typeof value.providerName === "string" ? value.providerName : null,
+    providerModel: typeof value.providerModel === "string" ? value.providerModel : null,
+    requestedTemperature:
+      typeof value.requestedTemperature === "number"
+        ? value.requestedTemperature
+        : buildGenerationControls(value.creativity).requestedTemperature,
+    effectiveTemperature:
+      typeof value.effectiveTemperature === "number"
+        ? value.effectiveTemperature
+        : null,
+    parameterApplication:
+      value.parameterApplication === "provider_reported"
+        ? "provider_reported"
+        : "requested_not_confirmed",
+    productOutcome:
+      typeof value.productOutcome === "string" ? value.productOutcome : null
+  };
+}
+
+function normalizeEvaluationHistory(value: unknown): EvaluationHistoryRecord[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map(normalizeEvaluationHistoryRecord)
+    .filter((record): record is EvaluationHistoryRecord => record !== null)
+    .slice(-24);
+}
+
+function normalizeEvaluationHistoryRecord(value: unknown): EvaluationHistoryRecord | null {
+  if (
+    !isRecord(value) ||
+    typeof value.id !== "string" ||
+    typeof value.status !== "string" ||
+    typeof value.detail !== "string" ||
+    typeof value.evaluatedAt !== "string"
+  ) {
+    return null;
+  }
+  return {
+    id: value.id,
+    runId: typeof value.runId === "string" ? value.runId : null,
+    datasetId: typeof value.datasetId === "string" ? value.datasetId : null,
+    metrics: Array.isArray(value.metrics)
+      ? value.metrics.filter((metric): metric is string => typeof metric === "string")
+      : [],
+    status: value.status,
+    detail: value.detail,
+    evaluatedAt: value.evaluatedAt,
+    resultRows: typeof value.resultRows === "number" ? value.resultRows : null,
+    metricFailures: typeof value.metricFailures === "number" ? value.metricFailures : null,
+    dryRun: typeof value.dryRun === "boolean" ? value.dryRun : null,
+    providerCallsAllowed:
+      typeof value.providerCallsAllowed === "boolean" ? value.providerCallsAllowed : null
+  };
 }
 
 function clampLayoutValue(

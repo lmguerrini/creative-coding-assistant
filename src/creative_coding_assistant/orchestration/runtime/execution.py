@@ -8,7 +8,11 @@ from creative_coding_assistant.contracts import (
     AssistantRequest,
     WorkflowExecutionMode,
 )
-from creative_coding_assistant.orchestration.routing import RouteDecision, RouteName
+from creative_coding_assistant.orchestration.routing import (
+    RouteCapability,
+    RouteDecision,
+    RouteName,
+)
 
 
 class WorkflowExecutionPlan(BaseModel):
@@ -70,6 +74,7 @@ def _auto_prefers_single_agent(
 ) -> bool:
     return (
         decision.route in {RouteName.EXPLAIN, RouteName.DEBUG}
+        and RouteCapability.OFFICIAL_DOCS not in decision.capabilities
         and not request.attachments
         and len(decision.domains) <= 1
     )

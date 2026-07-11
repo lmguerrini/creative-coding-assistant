@@ -81,6 +81,39 @@ class SQLiteWorkspaceSessionRepository:
             )
         return stamped
 
+    def list_for_user(self, *, user_id: str) -> tuple[WorkspaceSessionRecord, ...]:
+        """List a profile's sessions newest first without crossing user boundaries."""
+
+        self._initialize()
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT payload_json
+                FROM workspace_sessions
+                WHERE user_id = ?
+                ORDER BY updated_at DESC, session_id ASC
+                """,
+                (user_id,),
+            ).fetchall()
+        return tuple(
+            WorkspaceSessionRecord.model_validate_json(str(row["payload_json"]))
+            for row in rows
+        )
+
+    def delete(self, *, user_id: str, session_id: str) -> bool:
+        """Delete one explicitly selected local session record."""
+
+        self._initialize()
+        with self._connect() as connection:
+            result = connection.execute(
+                """
+                DELETE FROM workspace_sessions
+                WHERE user_id = ? AND session_id = ?
+                """,
+                (user_id, session_id),
+            )
+        return result.rowcount > 0
+
     def _initialize(self) -> None:
         self._db_path.parent.mkdir(parents=True, exist_ok=True)
         with self._connect() as connection:

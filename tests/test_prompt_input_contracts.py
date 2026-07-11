@@ -548,7 +548,7 @@ class PromptInputContractsTests(unittest.TestCase):
                     id="image-reference-1",
                     name="palette.png",
                     mimeType="image/png",
-                    sizeBytes=128,
+                    sizeBytes=7,
                     dataUrl="data:image/png;base64,cGFsZXR0ZQ==",
                 ),
             ),
@@ -572,7 +572,7 @@ class PromptInputContractsTests(unittest.TestCase):
                     id="image-reference-1",
                     name="palette.png",
                     mime_type="image/png",
-                    size_bytes=128,
+                    size_bytes=7,
                 ),
             ),
         )
@@ -797,11 +797,15 @@ class PromptInputContractsTests(unittest.TestCase):
         self.assertEqual(prompt_event.payload["code"], "prompt_inputs_prepared")
         prompt_input = prompt_event.payload["prompt_input"]
         self.assertEqual(
-            prompt_input["user_input"]["query"],
-            "Explain the scene setup.",
+            prompt_input["guardrails"]["user_prompt"],
+            "not_emitted",
         )
-        self.assertEqual(len(prompt_input["memory_input"]["recent_turns"]), 0)
-        self.assertEqual(len(prompt_input["retrieval_input"]["chunks"]), 1)
+        self.assertNotIn("Explain the scene setup.", str(prompt_input))
+        self.assertEqual(
+            prompt_input["summary"]["memory"]["recent_turn_count"],
+            0,
+        )
+        self.assertEqual(prompt_input["summary"]["retrieval"]["chunk_count"], 1)
 
 
 def _route_decision() -> RouteDecision:

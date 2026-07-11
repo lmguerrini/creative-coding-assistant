@@ -26,6 +26,8 @@ import {
   Maximize2,
   Minimize2,
   Moon,
+  PanelBottom,
+  PanelLeft,
   PanelRight,
   Play,
   Plus,
@@ -35,6 +37,7 @@ import {
   Settings,
   Sparkles,
   TerminalSquare,
+  WandSparkles,
   X
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -63,18 +66,22 @@ import {
 import {
   createWorkspacePersistenceClient,
   createWorkspaceSessionRecord,
+  deletePersistedWorkspaceSession,
   defaultWorkspacePreferences,
   defaultWorkspaceLayoutState,
   fingerprintWorkspaceSessionRecord,
+  listLocalWorkspaceSessions,
   normalizeWorkspacePreferences,
   normalizeWorkspaceLayoutState,
+  removeLocalWorkspaceSession,
   snapshotFromWorkspaceSessionRecord,
   withWorkspaceIdentity,
   workspaceLayoutBounds,
   type WorkspaceLayoutState,
   type WorkspacePreferences,
   type WorkspacePersistenceClient,
-  type WorkspacePersistenceLoadResult
+  type WorkspacePersistenceLoadResult,
+  type WorkspaceSessionSummary
 } from "@/lib/workspace-persistence";
 import {
   buildArtifactDocument,
@@ -86,6 +93,11 @@ import {
   type HighlightedLine
 } from "@/lib/artifact-inspector";
 import { renameWorkspaceArtifact } from "@/lib/artifact-naming";
+import {
+  removeWorkspaceArtifact,
+  restoreWorkspaceArtifact,
+  type RemovedArtifact
+} from "@/lib/artifact-lifecycle";
 import { buildMultiPreviewComparisonModel } from "@/lib/multi-preview-comparison";
 import { buildProjectBundle } from "@/lib/project-bundle";
 import {
@@ -226,8 +238,7 @@ import {
   fetchDomainExperienceCatalog,
   loadingDomainExperienceCatalog,
   type DomainExperienceCatalog,
-  type DomainExperienceRecord,
-  type KnowledgeBaseInventory
+  type DomainExperienceRecord
 } from "@/lib/domain-experience";
 import {
   buildSessionIntelligenceModel,
@@ -241,6 +252,14 @@ import {
 } from "@/lib/workstation-errors";
 import { buildWorkstationState } from "@/lib/workstation-state";
 import { buildZipArchive, downloadZipArchive } from "@/lib/zip-archive";
+import {
+  buildGenerationControls,
+  createFeedbackSignal,
+  privacyContract,
+  selectPersonalizationContext,
+  type EvaluationHistoryRecord,
+  type FeedbackSentiment
+} from "@/lib/product-controls";
 import { PreviewRendererSurface } from "./preview-renderer-surface";
 import { AudioReactiveMappingSummaryCard } from "./audio-reactive-mapping-summary";
 import { ArtifactRefinementPanel } from "./artifact-refinement-panel";
@@ -254,11 +273,7 @@ import { EvaluationSessionDashboard } from "./evaluation-session-dashboard";
 import { LangSmithTraceDeepDive } from "./langsmith-trace-deep-dive";
 import { MultiPreviewComparisonWorkspace } from "./multi-preview-comparison-workspace";
 import { ProviderObservabilityDeepDive } from "./provider-observability-deep-dive";
-import {
-  KnowledgeBaseStatusSurface,
-  RetrievalInspector,
-  RetrievalRunStatusSurface
-} from "./retrieval-inspector";
+import { RetrievalInspector } from "./retrieval-inspector";
 import { RuntimeConsoleInspector } from "./runtime-console-inspector";
 import { SacredConsistencySummary } from "./sacred-consistency-summary";
 import { SubsystemErrorCallout } from "./subsystem-error-callout";
@@ -340,7 +355,7 @@ type ArtifactActionFeedback = {
 };
 type ApprovalActionExecutor = () => Promise<void> | void;
 type ResizeTarget = "inspector" | "preview";
-type UtilityPanelName = "commands" | "theme" | "kb" | "settings";
+type UtilityPanelName = "commands" | "theme" | "settings";
 type FocusRestoreState = {
   inspectorCollapsed: boolean;
   previewOpen: boolean;
@@ -427,8 +442,11 @@ export function WorkstationShell({
   streamAssistantEvents = streamBackendAssistantEvents,
   persistenceClient = defaultWorkspacePersistenceClient
 }: WorkstationShellProps) {
+  const [activePersistenceClient, setActivePersistenceClient] = useState(
+    () => persistenceClient
+  );
   const workspaceIdentity =
-    persistenceClient.identity ?? initialSnapshot.session;
+    activePersistenceClient.identity ?? initialSnapshot.session;
   const [snapshot, setSnapshot] = useState(() =>
     withWorkspaceIdentity(initialSnapshot, workspaceIdentity)
   );
@@ -524,6 +542,10 @@ export function WorkstationShell({
   );
   const [workspacePreferences, setWorkspacePreferences] =
     useState<WorkspacePreferences>(defaultWorkspacePreferences);
+  const [workspaceSessions, setWorkspaceSessions] = useState<
+    WorkspaceSessionSummary[]
+  >([]);
+  const feedbackIdCounterRef = useRef(0);
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [activeResizeTarget, setActiveResizeTarget] =
     useState<ResizeTarget | null>(null);
@@ -533,6 +555,10 @@ export function WorkstationShell({
   const [copyFeedback, setCopyFeedback] = useState<ArtifactActionFeedback | null>(
     null
   );
+  const [lastRemovedArtifact, setLastRemovedArtifact] =
+    useState<RemovedArtifact | null>(null);
+  const [lastRestoredArtifact, setLastRestoredArtifact] =
+    useState<RemovedArtifact | null>(null);
   const [transferFeedback, setTransferFeedback] =
     useState<ArtifactActionFeedback | null>(null);
   const [artifactTransferError, setArtifactTransferError] =
@@ -588,11 +614,23 @@ export function WorkstationShell({
 
   useEffect(() => {
     document.documentElement.dataset.ccaTheme = workspacePreferences.theme;
+    document.documentElement.dataset.ccaUiFontSize = workspacePreferences.uiFontSize;
+    document.documentElement.dataset.ccaCodeFontSize = workspacePreferences.codeFontSize;
 
     return () => {
       delete document.documentElement.dataset.ccaTheme;
+      delete document.documentElement.dataset.ccaUiFontSize;
+      delete document.documentElement.dataset.ccaCodeFontSize;
     };
-  }, [workspacePreferences.theme]);
+  }, [
+    workspacePreferences.codeFontSize,
+    workspacePreferences.theme,
+    workspacePreferences.uiFontSize
+  ]);
+
+  useEffect(() => {
+    setWorkspaceSessions(listLocalWorkspaceSessions(workspaceIdentity.userId));
+  }, [workspaceIdentity.userId]);
 
   useEffect(() => {
     if (
@@ -795,7 +833,7 @@ export function WorkstationShell({
     async function restoreWorkspaceSession() {
       try {
         const restoredSession = await withPersistenceTimeout<WorkspacePersistenceLoadResult>(
-          persistenceClient.load(),
+          activePersistenceClient.load(),
           {
             error: buildPersistenceTimeoutError("load"),
             record: null,
@@ -838,6 +876,8 @@ export function WorkstationShell({
           setImageUploadError(restoredSnapshot.multimodal.error ?? null);
           setClarification(restoredSnapshot.clarification ?? null);
           setSessionIntelligenceMetadata(null);
+          setLastRemovedArtifact(null);
+          setLastRestoredArtifact(null);
           imageAttachmentCounterRef.current = restoredImageAttachments.length;
           streamingAssistantIdRef.current = null;
           const restoredActiveArtifactId = resolveRestoredArtifactId(
@@ -879,6 +919,7 @@ export function WorkstationShell({
           setPersistenceState(
             restoredSession.source === "local" ? "local" : "restored"
           );
+          setWorkspaceSessions(listLocalWorkspaceSessions(workspaceIdentity.userId));
           return;
         }
 
@@ -899,7 +940,7 @@ export function WorkstationShell({
     return () => {
       isMounted = false;
     };
-  }, [initialSnapshot, persistenceClient, workspaceIdentity]);
+  }, [activePersistenceClient, initialSnapshot, workspaceIdentity]);
 
   const activeArtifact =
     snapshot.artifacts.find((artifact) => artifact.id === activeArtifactId) ??
@@ -1052,6 +1093,8 @@ export function WorkstationShell({
 
     previousPreviewRuntimeSessionKeyRef.current = previewRuntimeSessionKey;
     setPreviewRuntimeLive(null);
+    setLastRemovedArtifact(null);
+    setLastRestoredArtifact(null);
   }, [previewRuntimeSessionKey]);
   const persistenceRecord = useMemo(
     () =>
@@ -1368,6 +1411,20 @@ export function WorkstationShell({
   const persistenceStatusLabel =
     persistenceStateLabels[persistenceState] ?? "Local session ready";
   const hasWorkspaceArtifacts = snapshot.artifacts.length > 0;
+  const visibleWorkspaceSessions = useMemo(() => {
+    const current = {
+      artifactCount: snapshot.artifacts.length,
+      projectId: workspaceIdentity.projectId,
+      sessionId: workspaceIdentity.sessionId,
+      title: snapshot.session.title || "Creative session",
+      updatedAt: snapshot.session.updatedAt ?? null
+    };
+    return workspaceSessions.some(
+      (summary) => summary.sessionId === current.sessionId
+    )
+      ? workspaceSessions
+      : [current, ...workspaceSessions];
+  }, [snapshot, workspaceIdentity, workspaceSessions]);
   const hasPreviewOutcomeToExplain =
     workflowRuntime.summary.productOutcome.product_outcome === "PARTIAL" ||
     workflowRuntime.summary.productOutcome.product_outcome === "FAILURE" ||
@@ -1453,7 +1510,7 @@ export function WorkstationShell({
     lastPersistedFingerprintRef.current = fingerprint;
     setPersistenceState("saving");
     withPersistenceTimeout(
-      persistenceClient.save(persistenceRecord),
+      activePersistenceClient.save(persistenceRecord),
       {
         error: buildPersistenceTimeoutError("save"),
         target: "local"
@@ -1467,6 +1524,7 @@ export function WorkstationShell({
 
         setPersistenceError(result.error);
         setPersistenceState(result.target === "remote" ? "saved" : "local");
+        setWorkspaceSessions(listLocalWorkspaceSessions(workspaceIdentity.userId));
       })
       .catch(() => {
         if (isShellMountedRef.current) {
@@ -1475,7 +1533,12 @@ export function WorkstationShell({
         }
       });
     return undefined;
-  }, [persistenceClient, persistenceRecord, persistenceState]);
+  }, [
+    activePersistenceClient,
+    persistenceRecord,
+    persistenceState,
+    workspaceIdentity.userId
+  ]);
 
   function clearDragState() {
     dragCleanupRef.current?.();
@@ -1535,16 +1598,122 @@ export function WorkstationShell({
     );
   }
 
-  function handleDisplayModeToggle() {
-    updateWorkspacePreferences({
-      showDebugPanels: !workspacePreferences.showDebugPanels
+  function sessionPersistenceClient(sessionId: string) {
+    return createWorkspacePersistenceClient({
+      projectId: workspaceIdentity.projectId,
+      sessionId,
+      useProfileIdentity: false,
+      userId: workspaceIdentity.userId
     });
   }
 
-  function handleDensityToggle() {
-    updateLayout({
-      density: layoutState.density === "compact" ? "cozy" : "compact"
+  function resetSessionState(nextSnapshot: AssistantWorkspaceSnapshot) {
+    const normalizedAttachments = normalizeImageAttachments(
+      nextSnapshot.multimodal.imageAttachments
+    );
+    replaceSnapshot(nextSnapshot);
+    setConversationEntries(
+      buildConversationEntries(
+        nextSnapshot.messages,
+        createConversationEntryId,
+        nextSnapshot.workflow
+      )
+    );
+    setImageAttachments(normalizedAttachments);
+    setImageUploadError(nextSnapshot.multimodal.error ?? null);
+    imageAttachmentCounterRef.current = normalizedAttachments.length;
+    setActiveArtifactId(nextSnapshot.artifacts[0]?.id ?? "");
+    setPreviewArtifactId(getInitialPreviewArtifactId(nextSnapshot));
+    setActiveTab(getInitialActiveTab(nextSnapshot));
+    setIsPreviewOpen(false);
+    setComposerValue("");
+    setStreamEvents(nextSnapshot.debug.events);
+    setWorkflowTraceEvents([]);
+    setWorkflowRunId(0);
+    setStreamError(null);
+    setClarification(null);
+    setPreviewSessionOverride(null);
+    setPreviewRuntimeLive(null);
+  }
+
+  function activateSession(sessionId: string) {
+    if (sessionId === workspaceIdentity.sessionId) {
+      return;
+    }
+    hasLoadedPersistenceRef.current = false;
+    lastPersistedFingerprintRef.current = null;
+    skipNextPersistenceSaveRef.current = true;
+    setPersistenceState("loading");
+    setActivePersistenceClient(sessionPersistenceClient(sessionId));
+  }
+
+  async function handleCreateSession() {
+    const sessionId = `browser-session-${Date.now().toString(36)}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}`;
+    const nextClient = sessionPersistenceClient(sessionId);
+    const nextSnapshot = withWorkspaceIdentity(getInitialWorkspaceSnapshot(), {
+      ...workspaceIdentity,
+      sessionId
     });
+    const titledSnapshot = {
+      ...nextSnapshot,
+      session: {
+        ...nextSnapshot.session,
+        title: "New creative session"
+      }
+    };
+    hasLoadedPersistenceRef.current = false;
+    lastPersistedFingerprintRef.current = null;
+    skipNextPersistenceSaveRef.current = true;
+    resetSessionState(titledSnapshot);
+    setActivePersistenceClient(nextClient);
+    await nextClient.save(
+      createWorkspaceSessionRecord({
+        activeArtifactId: "",
+        activeInspectorTab: "Overview",
+        layout: layoutState,
+        preferences: workspacePreferences,
+        previewArtifactId: "",
+        previewOpen: false,
+        snapshot: titledSnapshot
+      })
+    );
+    setWorkspaceSessions(listLocalWorkspaceSessions(workspaceIdentity.userId));
+  }
+
+  function handleSessionRename(sessionId: string, title: string) {
+    if (sessionId !== workspaceIdentity.sessionId || !title.trim()) {
+      return;
+    }
+    replaceSnapshot({
+      ...snapshot,
+      session: { ...snapshot.session, title: title.trim() }
+    });
+    setWorkspaceSessions(listLocalWorkspaceSessions(workspaceIdentity.userId));
+  }
+
+  async function handleSessionDelete(sessionId: string) {
+    const summary = workspaceSessions.find((item) => item.sessionId === sessionId);
+    if (!summary || !window.confirm(`Delete ${summary.title}? This cannot be undone.`)) {
+      return;
+    }
+    await deletePersistedWorkspaceSession({
+      identity: {
+        projectId: summary.projectId,
+        sessionId: summary.sessionId,
+        userId: workspaceIdentity.userId
+      }
+    });
+    const remaining = listLocalWorkspaceSessions(workspaceIdentity.userId);
+    setWorkspaceSessions(remaining);
+    if (sessionId === workspaceIdentity.sessionId) {
+      if (remaining[0]) {
+        activateSession(remaining[0].sessionId);
+      } else {
+        await handleCreateSession();
+      }
+    }
   }
 
   function toggleUtilityPanel(panelName: UtilityPanelName) {
@@ -1913,6 +2082,8 @@ export function WorkstationShell({
     setSessionIntelligenceMetadata(null);
     setWorkflowTraceEvents([]);
     setCreativeCostRunHistory([]);
+    setLastRemovedArtifact(null);
+    setLastRestoredArtifact(null);
     setPreviewRuntimeLive(null);
     updateLayout({
       inspectorCollapsed: defaultWorkspacePreferences.showDebugPanels
@@ -2462,11 +2633,24 @@ export function WorkstationShell({
     let receivedTerminalStreamError = false;
     let latestWorkflowActivity = initialWorkflowActivity;
     const requestAttachments = toAssistantRequestImageAttachments(imageAttachments);
+    const personalizationContext = selectPersonalizationContext({
+      enabled: workspacePreferences.personalizationEnabled,
+      prompt,
+      signals: workspacePreferences.feedbackSignals
+    });
 
     try {
       const streamRequest: AssistantStreamRequest = {
         conversationId: workspaceIdentity.sessionId,
+        generationControls: {
+          profile: buildGenerationControls(workspacePreferences.creativity).profile
+        },
         mode: "generate",
+        personalizationContext: {
+          categories: personalizationContext.categories,
+          enabled: personalizationContext.enabled,
+          signalCount: personalizationContext.signalCount
+        },
         projectId: workspaceIdentity.projectId,
         query: prompt,
         workflowMode
@@ -3015,6 +3199,157 @@ export function WorkstationShell({
     return renamed.title;
   }
 
+  function handleArtifactDelete(artifact: ArtifactSummary) {
+    if (!window.confirm(`Delete ${artifact.title}? You can undo this while the session is open.`)) {
+      return;
+    }
+    const result = removeWorkspaceArtifact({
+      activeArtifactId,
+      artifactId: artifact.id,
+      previewArtifactId,
+      snapshot
+    });
+    if (!result) {
+      return;
+    }
+    replaceSnapshot(result.snapshot);
+    setActiveArtifactId(result.activeArtifactId);
+    setPreviewArtifactId(result.previewArtifactId);
+    setLastRemovedArtifact(result.removed);
+    setLastRestoredArtifact(null);
+  }
+
+  function handleArtifactUndo() {
+    if (!lastRemovedArtifact) {
+      return;
+    }
+    const restored = restoreWorkspaceArtifact({
+      removed: lastRemovedArtifact,
+      snapshot
+    });
+    replaceSnapshot(restored);
+    setActiveArtifactId(lastRemovedArtifact.artifact.id);
+    if (isArtifactPreviewable(lastRemovedArtifact.artifact)) {
+      setPreviewArtifactId(lastRemovedArtifact.artifact.id);
+    }
+    setLastRestoredArtifact(lastRemovedArtifact);
+    setLastRemovedArtifact(null);
+  }
+
+  function handleArtifactRedo() {
+    if (!lastRestoredArtifact) {
+      return;
+    }
+    const result = removeWorkspaceArtifact({
+      activeArtifactId,
+      artifactId: lastRestoredArtifact.artifact.id,
+      previewArtifactId,
+      snapshot
+    });
+    if (!result) {
+      return;
+    }
+    replaceSnapshot(result.snapshot);
+    setActiveArtifactId(result.activeArtifactId);
+    setPreviewArtifactId(result.previewArtifactId);
+    setLastRemovedArtifact(result.removed);
+    setLastRestoredArtifact(null);
+  }
+
+  function handleOutputFeedback(
+    sentiment: FeedbackSentiment,
+    comment: string | null
+  ) {
+    feedbackIdCounterRef.current += 1;
+    const signal = createFeedbackSignal({
+      artifact: activeArtifact.id === emptyWorkspaceArtifact.id ? null : activeArtifact,
+      comment,
+      creativity: workspacePreferences.creativity,
+      effectiveTemperature: providerTelemetry.configuration.temperature,
+      id: `feedback-${Date.now()}-${feedbackIdCounterRef.current}`,
+      parameterApplication:
+        providerTelemetry.configuration.parameterSource === "provider_reported"
+          ? "provider_reported"
+          : "requested_not_confirmed",
+      productOutcome:
+        snapshot.workflow.productOutcome?.product_outcome ?? null,
+      promptExcerpt: [...conversationEntries]
+        .reverse()
+        .find((entry) => entry.role === "user")?.content ?? null,
+      providerModel: providerTelemetry.provider.model,
+      providerName: providerTelemetry.provider.name,
+      requestedTemperature: buildGenerationControls(
+        workspacePreferences.creativity
+      ).requestedTemperature,
+      sentiment,
+      sessionId: workspaceIdentity.sessionId,
+      workflowMode
+    });
+    updateWorkspacePreferences({
+      feedbackSignals: [...workspacePreferences.feedbackSignals, signal].slice(-120)
+    });
+  }
+
+  async function handleRunEvaluation() {
+    try {
+      const response = await fetch("http://localhost:8000/api/evaluation/run", {
+        body: JSON.stringify({ allowProviderCalls: false, dryRun: true }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST"
+      });
+      const payload: unknown = await response.json();
+      if (!response.ok || typeof payload !== "object" || payload === null) {
+        throw new Error("Evaluation is unavailable for the current local dataset.");
+      }
+      const evaluationRecord = buildEvaluationHistoryRecord(payload);
+      updateWorkspacePreferences({
+        evaluationHistory: [
+          ...workspacePreferences.evaluationHistory,
+          evaluationRecord
+        ].slice(-24)
+      });
+      appendLocalRuntimeEvent({
+        event_type: "eval_update",
+        sequence: localRuntimeSequenceRef.current++,
+        payload: {
+          code: "evaluation_run_completed",
+          message: "Evaluation run completed.",
+          evaluation: payload
+        }
+      });
+    } catch {
+      updateWorkspacePreferences({
+        evaluationHistory: [
+          ...workspacePreferences.evaluationHistory,
+          {
+            id: `evaluation-failed-${Date.now()}`,
+            runId: null,
+            datasetId: null,
+            metrics: [],
+            status: "failed",
+            detail:
+              "Evaluation could not run with the current local dataset. No score was fabricated.",
+            evaluatedAt: new Date().toISOString(),
+            resultRows: null,
+            metricFailures: null,
+            dryRun: true,
+            providerCallsAllowed: false
+          }
+        ].slice(-24)
+      });
+      appendLocalRuntimeEvent({
+        event_type: "eval_update",
+        sequence: localRuntimeSequenceRef.current++,
+        payload: {
+          code: "evaluation_failed",
+          message:
+            "Evaluation could not run with the current local dataset. No score was fabricated.",
+          status: "failed"
+        }
+      });
+    }
+  }
+
   function handleArtifactSelect(artifact: ArtifactSummary) {
     setActiveArtifactId(artifact.id);
     setPreviewContextArtifactId(artifact.id);
@@ -3032,6 +3367,7 @@ export function WorkstationShell({
       data-preview={isPreviewOpen ? "open" : "closed"}
       data-readiness={workstationState.readiness.state}
       data-resizing={activeResizeTarget ?? "idle"}
+      data-sidebar-state={layoutState.sidebarCollapsed ? "collapsed" : "open"}
       data-stream-state={streamState}
       data-theme={workspacePreferences.theme}
       style={workspaceLayoutStyle}
@@ -3066,6 +3402,43 @@ export function WorkstationShell({
         aria-label="Workspace actions"
       >
           <button
+            aria-label="Toggle session sidebar"
+            aria-pressed={!layoutState.sidebarCollapsed}
+            className="iconButton"
+            onClick={() =>
+              updateLayout({ sidebarCollapsed: !layoutState.sidebarCollapsed })
+            }
+            title={
+              layoutState.sidebarCollapsed
+                ? "Expand session sidebar"
+                : "Collapse session sidebar"
+            }
+            type="button"
+          >
+            <PanelLeft size={18} />
+          </button>
+          <button
+            aria-label="Toggle preview shelf"
+            aria-pressed={isPreviewOpen}
+            className="iconButton"
+            disabled={!shouldRenderPreviewShelf}
+            onClick={() => handlePreviewOpenChange(!isPreviewOpen)}
+            title={isPreviewOpen ? "Close preview shelf" : "Open preview shelf"}
+            type="button"
+          >
+            <PanelBottom size={18} />
+          </button>
+          <button
+            aria-label="Toggle inspector"
+            aria-pressed={!isInspectorCollapsed}
+            className="iconButton"
+            onClick={() => handleInspectorCollapsedChange(!isInspectorCollapsed)}
+            title={isInspectorCollapsed ? "Expand inspector" : "Collapse inspector"}
+            type="button"
+          >
+            <PanelRight size={18} />
+          </button>
+          <button
             aria-label="Open Product Intelligence Dashboard"
             aria-pressed={isDashboardOpen}
             className="toolbarToggle"
@@ -3088,63 +3461,6 @@ export function WorkstationShell({
           >
             <Play size={16} />
             <span>Demo Mode</span>
-          </button>
-          <button
-            aria-label="Display mode"
-            aria-pressed={workspacePreferences.showDebugPanels}
-            className="toolbarToggle"
-            onClick={handleDisplayModeToggle}
-            title={
-              workspacePreferences.showDebugPanels
-                ? "Switch to User Mode"
-                : "Switch to Developer Mode"
-            }
-            type="button"
-          >
-            <Braces size={16} />
-            <span>{workspacePreferences.showDebugPanels ? "Developer" : "User"}</span>
-          </button>
-          <div className="utilityControl">
-            <button
-              aria-controls="kb-status-panel"
-              aria-expanded={openUtilityPanel === "kb"}
-              aria-haspopup="dialog"
-              aria-label="Knowledge Base status"
-              className="toolbarToggle"
-              onClick={() => toggleUtilityPanel("kb")}
-              title="Check Knowledge Base and retrieval status"
-              type="button"
-            >
-              <Database size={16} />
-              <span>KB</span>
-            </button>
-            {openUtilityPanel === "kb" ? (
-              <KnowledgeBaseStatusPanel
-                inventory={domainExperience.knowledgeBase}
-                runtime={retrievalRuntime}
-              />
-            ) : null}
-          </div>
-          <button
-            aria-label="Focus mode"
-            aria-pressed={isFocusMode}
-            className="toolbarToggle"
-            onClick={handleFocusModeToggle}
-            title={isFocusMode ? "Exit focus mode" : "Enter focus mode"}
-            type="button"
-          >
-            <span>Focus</span>
-          </button>
-          <button
-            aria-label="Workspace density"
-            aria-pressed={layoutState.density === "compact"}
-            className="toolbarToggle"
-            onClick={handleDensityToggle}
-            title="Toggle workspace density"
-            type="button"
-          >
-            <LayoutGrid size={16} />
-            <span>{layoutState.density === "compact" ? "Compact" : "Cozy"}</span>
           </button>
           <div className="utilityControl">
             <button
@@ -3224,6 +3540,16 @@ export function WorkstationShell({
                 preferences={workspacePreferences}
                 onDensityChange={(density) => updateLayout({ density })}
                 onPreferencesChange={updateWorkspacePreferences}
+                onClearPersonalization={() =>
+                  updateWorkspacePreferences({ feedbackSignals: [] })
+                }
+                onRemovePersonalizationSignal={(signalId) =>
+                  updateWorkspacePreferences({
+                    feedbackSignals: workspacePreferences.feedbackSignals.filter(
+                      (signal) => signal.id !== signalId
+                    )
+                  })
+                }
               />
             ) : null}
           </div>
@@ -3236,9 +3562,23 @@ export function WorkstationShell({
           model={productIntelligence}
           onCategoryChange={setDashboardCategory}
           onClose={() => setIsDashboardOpen(false)}
+          onRunEvaluation={handleRunEvaluation}
+          evaluationHistory={workspacePreferences.evaluationHistory}
         />
       ) : (
       <section className="workspaceLayout" aria-label="Creative workspace">
+        <SessionSidebar
+          activeSessionId={workspaceIdentity.sessionId}
+          collapsed={layoutState.sidebarCollapsed}
+          onCreate={() => void handleCreateSession()}
+          onDelete={(sessionId) => void handleSessionDelete(sessionId)}
+          onRename={handleSessionRename}
+          onSelect={activateSession}
+          onToggle={() =>
+            updateLayout({ sidebarCollapsed: !layoutState.sidebarCollapsed })
+          }
+          sessions={visibleWorkspaceSessions}
+        />
         <div className="mainColumn">
           <section className="sessionPanel" aria-label="Creative session">
             <div className="sessionIntro">
@@ -3419,6 +3759,28 @@ export function WorkstationShell({
                 title="Live stream interrupted"
               />
             ) : null}
+            {hasWorkspaceArtifacts && !isStreaming ? (
+              <OutputFeedbackPanel
+                artifactTitle={activeArtifact.title}
+                onSubmit={handleOutputFeedback}
+              />
+            ) : null}
+            {lastRemovedArtifact ? (
+              <div className="artifactUndoNotice" role="status">
+                <span>{lastRemovedArtifact.artifact.title} was deleted.</span>
+                <button onClick={handleArtifactUndo} type="button">
+                  Undo
+                </button>
+              </div>
+            ) : null}
+            {lastRestoredArtifact ? (
+              <div className="artifactUndoNotice" role="status">
+                <span>{lastRestoredArtifact.artifact.title} was restored.</span>
+                <button onClick={handleArtifactRedo} type="button">
+                  Redo delete
+                </button>
+              </div>
+            ) : null}
 
             {interactiveSnapshot.multimodal.imageAttachments.length > 0 ||
             interactiveSnapshot.multimodal.error ? (
@@ -3506,13 +3868,18 @@ export function WorkstationShell({
                     {composerStateLabel}
                   </span>
                 ) : null}
-                {workspacePreferences.showDebugPanels ? (
-                  <WorkflowExecutionSelector
-                    disabled={isStreaming}
-                    mode={workflowMode}
-                    onChange={setWorkflowMode}
-                  />
-                ) : null}
+                <WorkflowExecutionSelector
+                  disabled={isStreaming}
+                  mode={workflowMode}
+                  onChange={setWorkflowMode}
+                />
+                <CreativityControl
+                  disabled={isStreaming}
+                  onChange={(creativity) =>
+                    updateWorkspacePreferences({ creativity })
+                  }
+                  profile={workspacePreferences.creativity}
+                />
                 <button
                   aria-label="Send prompt"
                   className="sendButton"
@@ -3720,6 +4087,7 @@ export function WorkstationShell({
                     onArtifactCopy={handleArtifactCopy}
                     onArtifactAction={handleArtifactAction}
                     onArtifactRefine={handleArtifactRefine}
+                    onArtifactDelete={handleArtifactDelete}
                     onArtifactRename={handleArtifactRename}
                     onArtifactSelect={handleArtifactSelect}
                     onArtifactTransfer={handleArtifactTransfer}
@@ -4608,6 +4976,7 @@ type InspectorPanelProps = {
   isStreaming: boolean;
   onArtifactCopy: (artifact: ArtifactSummary) => Promise<void>;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
+  onArtifactDelete: (artifact: ArtifactSummary) => void;
   onArtifactRefine: (artifact: ArtifactSummary, instruction: string) => Promise<void>;
   onArtifactRename: (artifact: ArtifactSummary, requestedTitle: string) => string | null;
   onArtifactSelect: (artifact: ArtifactSummary) => void;
@@ -4647,6 +5016,7 @@ function InspectorPanel({
   isStreaming,
   onArtifactCopy,
   onArtifactAction,
+  onArtifactDelete,
   onArtifactRefine,
   onArtifactRename,
   onArtifactSelect,
@@ -4754,6 +5124,7 @@ function InspectorPanel({
         copyFeedback={copyFeedback}
         isStreaming={isStreaming}
         onArtifactAction={onArtifactAction}
+        onArtifactDelete={onArtifactDelete}
         onArtifactRefine={onArtifactRefine}
         onArtifactRename={onArtifactRename}
         onArtifactSelect={onArtifactSelect}
@@ -6150,6 +6521,7 @@ type ArtifactsInspectorProps = {
   copyFeedback: ArtifactActionFeedback | null;
   isStreaming: boolean;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
+  onArtifactDelete: (artifact: ArtifactSummary) => void;
   onArtifactRefine: (artifact: ArtifactSummary, instruction: string) => Promise<void>;
   onArtifactRename: (artifact: ArtifactSummary, requestedTitle: string) => string | null;
   onArtifactSelect: (artifact: ArtifactSummary) => void;
@@ -6169,6 +6541,7 @@ function ArtifactsInspector({
   copyFeedback,
   isStreaming,
   onArtifactAction,
+  onArtifactDelete,
   onArtifactRefine,
   onArtifactRename,
   onArtifactSelect,
@@ -6201,6 +6574,7 @@ function ArtifactsInspector({
         artifacts={artifacts}
         copyFeedback={copyFeedback}
         onArtifactAction={onArtifactAction}
+        onArtifactDelete={onArtifactDelete}
         onArtifactRename={onArtifactRename}
         onArtifactSelect={onArtifactSelect}
         transferFeedback={transferFeedback}
@@ -6330,6 +6704,13 @@ function ArtifactsInspector({
           artifact={activeArtifact}
           onArtifactRename={onArtifactRename}
         />
+        <button
+          className="artifactDeleteButton"
+          onClick={() => onArtifactDelete(activeArtifact)}
+          type="button"
+        >
+          Delete artifact
+        </button>
         {actionMessage ? (
           <p className="artifactActionFeedback" aria-live="polite">
             {actionMessage}
@@ -6358,6 +6739,7 @@ function UserArtifactsInspector({
   artifacts,
   copyFeedback,
   onArtifactAction,
+  onArtifactDelete,
   onArtifactRename,
   onArtifactSelect,
   transferFeedback
@@ -6367,6 +6749,7 @@ function UserArtifactsInspector({
   artifacts: ArtifactSummary[];
   copyFeedback: ArtifactActionFeedback | null;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
+  onArtifactDelete: (artifact: ArtifactSummary) => void;
   onArtifactRename: (artifact: ArtifactSummary, requestedTitle: string) => string | null;
   onArtifactSelect: (artifact: ArtifactSummary) => void;
   transferFeedback: ArtifactActionFeedback | null;
@@ -6430,6 +6813,13 @@ function UserArtifactsInspector({
         artifact={activeArtifact}
         onArtifactRename={onArtifactRename}
       />
+      <button
+        className="artifactDeleteButton"
+        onClick={() => onArtifactDelete(activeArtifact)}
+        type="button"
+      >
+        Delete saved output
+      </button>
       {actionMessage ? (
         <p className="artifactActionFeedback" aria-live="polite">
           {toUserArtifactActionMessage(actionMessage)}
@@ -6481,30 +6871,6 @@ type CommandMenuPanelProps = {
   onWorkspaceClear: () => void;
   showDebugPanels: boolean;
 };
-
-function KnowledgeBaseStatusPanel({
-  inventory,
-  runtime
-}: {
-  inventory: KnowledgeBaseInventory;
-  runtime: RetrievalRuntimeModel;
-}) {
-  return (
-    <section
-      aria-label="Knowledge Base"
-      className="utilityPanel utilityPanel--kb"
-      id="kb-status-panel"
-      role="dialog"
-    >
-      <header className="utilityPanelHeader">
-        <strong>Knowledge Base</strong>
-        <p>Current retrieval outcome and persistent local KB inventory are separate.</p>
-      </header>
-      <RetrievalRunStatusSurface runtime={runtime} />
-      <KnowledgeBaseStatusSurface inventory={inventory} runtime={runtime} />
-    </section>
-  );
-}
 
 function CommandMenuPanel({
   activeTab,
@@ -6658,6 +7024,8 @@ function ThemePresetsPanel({
 
 type WorkspaceSettingsPanelProps = {
   layoutState: WorkspaceLayoutState;
+  onClearPersonalization: () => void;
+  onRemovePersonalizationSignal: (signalId: string) => void;
   onDensityChange: (density: WorkspaceLayoutState["density"]) => void;
   onPreferencesChange: (preferences: Partial<WorkspacePreferences>) => void;
   preferences: WorkspacePreferences;
@@ -6665,6 +7033,8 @@ type WorkspaceSettingsPanelProps = {
 
 function WorkspaceSettingsPanel({
   layoutState,
+  onClearPersonalization,
+  onRemovePersonalizationSignal,
   onDensityChange,
   onPreferencesChange,
   preferences
@@ -6690,6 +7060,24 @@ function WorkspaceSettingsPanel({
           compact
           onSelectTheme={(theme) => onPreferencesChange({ theme })}
         />
+      </div>
+      <div className="settingsSection">
+        <div className="settingsSectionHeader">
+          <strong>Typography</strong>
+          <p>Use the system UI and monospace fonts at a comfortable reading scale.</p>
+        </div>
+        <div className="settingsFontRows">
+          <FontScaleControl
+            label="UI font size"
+            onChange={(uiFontSize) => onPreferencesChange({ uiFontSize })}
+            value={preferences.uiFontSize}
+          />
+          <FontScaleControl
+            label="Code font size"
+            onChange={(codeFontSize) => onPreferencesChange({ codeFontSize })}
+            value={preferences.codeFontSize}
+          />
+        </div>
       </div>
       <div className="settingsSection">
         <div className="settingsSectionHeader">
@@ -6757,8 +7145,349 @@ function WorkspaceSettingsPanel({
           </button>
         </div>
       </div>
+      <div className="settingsSection">
+        <div className="settingsToggle">
+          <div>
+            <strong>Personalization</strong>
+            <p>
+              {preferences.personalizationEnabled
+                ? `${preferences.feedbackSignals.length} explicit local preference signal${preferences.feedbackSignals.length === 1 ? "" : "s"} can be considered when relevant.`
+                : "Stored preference signals are not used for new requests."}
+            </p>
+          </div>
+          <button
+            aria-label="Personalization"
+            aria-pressed={preferences.personalizationEnabled}
+            data-active={preferences.personalizationEnabled}
+            onClick={() =>
+              onPreferencesChange({
+                personalizationEnabled: !preferences.personalizationEnabled
+              })
+            }
+            type="button"
+          >
+            {preferences.personalizationEnabled ? "On" : "Off"}
+          </button>
+        </div>
+        {preferences.feedbackSignals.length > 0 ? (
+          <>
+            <ul aria-label="Stored preference signals" className="storedPreferenceSignals">
+              {[...preferences.feedbackSignals]
+                .reverse()
+                .slice(0, 12)
+                .map((signal) => (
+                  <li key={signal.id}>
+                    <div>
+                      <strong>{signal.sentiment === "positive" ? "Helpful" : "Needs work"}</strong>
+                      <span>
+                        {signal.artifactTitle ?? "Session output"} · {signal.workflowMode} · {signal.creativity}
+                      </span>
+                      <small>
+                        {signal.categories.length > 0
+                          ? `Preference categories: ${signal.categories.join(", ")}.`
+                          : "No reusable preference category was inferred."}
+                        {signal.promptExcerpt ? ` Prompt: ${signal.promptExcerpt}` : ""}
+                        {signal.providerName || signal.providerModel
+                          ? ` Provider: ${[signal.providerName, signal.providerModel].filter(Boolean).join(" / ")}.`
+                          : ""}
+                        {` Creativity request: ${signal.requestedTemperature}; ${signal.parameterApplication === "provider_reported" ? "provider-reported" : "not provider-confirmed"}.`}
+                      </small>
+                    </div>
+                    <button
+                      aria-label={`Remove preference signal for ${signal.artifactTitle ?? "session output"}`}
+                      onClick={() => onRemovePersonalizationSignal(signal.id)}
+                      type="button"
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+            </ul>
+            <button
+              className="settingsSecondaryAction"
+              onClick={onClearPersonalization}
+              type="button"
+            >
+              Clear stored preference signals
+            </button>
+          </>
+        ) : null}
+      </div>
+      <div className="settingsSection privacyContractSection">
+        <div className="settingsSectionHeader">
+          <strong>Privacy and safety</strong>
+          <p>These are product boundaries, not a claim of absolute security.</p>
+        </div>
+        <ul>
+          {privacyContract.map((item) => (
+            <li key={item.label}>
+              <strong>{item.label}</strong>
+              <span>{item.storage}</span>
+              <small>{item.boundary}</small>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
+}
+
+function FontScaleControl({
+  label,
+  onChange,
+  value
+}: {
+  label: string;
+  onChange: (value: WorkspacePreferences["uiFontSize"]) => void;
+  value: WorkspacePreferences["uiFontSize"];
+}) {
+  return (
+    <div className="settingsFontControl" role="group" aria-label={label}>
+      <strong>{label}</strong>
+      <div className="settingsChoiceRow settingsChoiceRow--three">
+        {(["small", "medium", "large"] as const).map((size) => (
+          <button
+            aria-pressed={value === size}
+            data-active={value === size}
+            key={size}
+            onClick={() => onChange(size)}
+            type="button"
+          >
+            {size}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CreativityControl({
+  disabled,
+  onChange,
+  profile
+}: {
+  disabled: boolean;
+  onChange: (profile: WorkspacePreferences["creativity"]) => void;
+  profile: WorkspacePreferences["creativity"];
+}) {
+  const controls = buildGenerationControls(profile);
+  return (
+    <label className="creativityControl" title={controls.detail}>
+      <WandSparkles aria-hidden="true" size={15} />
+      <span>Creativity</span>
+      <select
+        aria-label="Creativity"
+        disabled={disabled}
+        onChange={(event) =>
+          onChange(event.currentTarget.value as WorkspacePreferences["creativity"])
+        }
+        value={profile}
+      >
+        <option value="controlled">Controlled</option>
+        <option value="balanced">Balanced</option>
+        <option value="exploratory">Exploratory</option>
+      </select>
+    </label>
+  );
+}
+
+function OutputFeedbackPanel({
+  artifactTitle,
+  onSubmit
+}: {
+  artifactTitle: string;
+  onSubmit: (sentiment: FeedbackSentiment, comment: string | null) => void;
+}) {
+  const [comment, setComment] = useState("");
+  const [submitted, setSubmitted] = useState<FeedbackSentiment | null>(null);
+
+  function submit(sentiment: FeedbackSentiment) {
+    onSubmit(sentiment, comment);
+    setComment("");
+    setSubmitted(sentiment);
+  }
+
+  return (
+    <section className="outputFeedback" aria-label="Output feedback">
+      <div>
+        <strong>How did {artifactTitle} work for you?</strong>
+        <span>Feedback is stored locally as an explicit preference signal.</span>
+      </div>
+      <label>
+        <span className="srOnly">Optional feedback comment</span>
+        <input
+          onChange={(event) => setComment(event.currentTarget.value)}
+          placeholder="Optional note"
+          value={comment}
+        />
+      </label>
+      <div className="outputFeedbackActions">
+        <button
+          aria-label="Mark output helpful"
+          aria-pressed={submitted === "positive"}
+          onClick={() => submit("positive")}
+          type="button"
+        >
+          Helpful
+        </button>
+        <button
+          aria-label="Mark output not helpful"
+          aria-pressed={submitted === "negative"}
+          onClick={() => submit("negative")}
+          type="button"
+        >
+          Needs work
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function SessionSidebar({
+  activeSessionId,
+  collapsed,
+  onCreate,
+  onDelete,
+  onRename,
+  onSelect,
+  onToggle,
+  sessions
+}: {
+  activeSessionId: string;
+  collapsed: boolean;
+  onCreate: () => void;
+  onDelete: (sessionId: string) => void;
+  onRename: (sessionId: string, title: string) => void;
+  onSelect: (sessionId: string) => void;
+  onToggle: () => void;
+  sessions: WorkspaceSessionSummary[];
+}) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+
+  if (collapsed) {
+    return (
+      <aside className="sessionSidebar sessionSidebar--collapsed" aria-label="Sessions">
+        <button
+          aria-label="Expand session sidebar"
+          className="iconButton"
+          onClick={onToggle}
+          title="Expand session sidebar"
+          type="button"
+        >
+          <PanelLeft size={18} />
+        </button>
+      </aside>
+    );
+  }
+
+  function startRename(session: WorkspaceSessionSummary) {
+    setEditingId(session.sessionId);
+    setTitle(session.title);
+  }
+
+  function submitRename(event: FormEvent<HTMLFormElement>, sessionId: string) {
+    event.preventDefault();
+    onRename(sessionId, title);
+    setEditingId(null);
+  }
+
+  return (
+    <aside className="sessionSidebar" aria-label="Sessions">
+      <header>
+        <div>
+          <span className="eyebrow">Sessions</span>
+          <strong>Creative workspace</strong>
+        </div>
+        <button
+          aria-label="Collapse session sidebar"
+          className="iconButton"
+          onClick={onToggle}
+          title="Collapse session sidebar"
+          type="button"
+        >
+          <PanelLeft size={16} />
+        </button>
+      </header>
+      <button className="newSessionButton" onClick={onCreate} type="button">
+        <Plus size={15} aria-hidden="true" />
+        New session
+      </button>
+      <div className="sessionSidebarList" role="list" aria-label="Saved sessions">
+        {sessions.map((session) => {
+          const active = session.sessionId === activeSessionId;
+          return (
+            <article
+              aria-current={active ? "page" : undefined}
+              className="sessionSidebarItem"
+              data-active={active ? "true" : "false"}
+              key={session.sessionId}
+              role="listitem"
+            >
+              {editingId === session.sessionId ? (
+                <form onSubmit={(event) => submitRename(event, session.sessionId)}>
+                  <input
+                    aria-label="Session name"
+                    autoFocus
+                    onChange={(event) => setTitle(event.currentTarget.value)}
+                    value={title}
+                  />
+                  <button type="submit">Save</button>
+                  <button onClick={() => setEditingId(null)} type="button">
+                    Cancel
+                  </button>
+                </form>
+              ) : (
+                <>
+                  <button
+                    className="sessionSidebarSelect"
+                    onClick={() => onSelect(session.sessionId)}
+                    type="button"
+                  >
+                    <strong>{session.title}</strong>
+                    <span>
+                      {session.artifactCount} artifact{session.artifactCount === 1 ? "" : "s"}
+                    </span>
+                    <small>{formatSessionUpdatedAt(session.updatedAt)}</small>
+                  </button>
+                  {active ? (
+                    <div className="sessionSidebarActions">
+                      <button
+                        aria-label={`Rename ${session.title}`}
+                        onClick={() => startRename(session)}
+                        type="button"
+                      >
+                        Rename
+                      </button>
+                      <button
+                        aria-label={`Delete ${session.title}`}
+                        onClick={() => onDelete(session.sessionId)}
+                        type="button"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ) : null}
+                </>
+              )}
+            </article>
+          );
+        })}
+      </div>
+      <p className="sessionSidebarBoundary">
+        Sessions are isolated by this browser profile. A damaged local record is skipped
+        instead of replacing the current workspace.
+      </p>
+    </aside>
+  );
+}
+
+function formatSessionUpdatedAt(value: string | null) {
+  if (!value) {
+    return "Current session";
+  }
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "Saved locally" : `Updated ${date.toLocaleString()}`;
 }
 
 function ThemePresetPicker({
@@ -8332,6 +9061,38 @@ function readPayloadText(
 ): string | undefined {
   const value = event.payload[key];
   return typeof value === "string" ? value : undefined;
+}
+
+function buildEvaluationHistoryRecord(payload: object): EvaluationHistoryRecord {
+  const record = payload as Record<string, unknown>;
+  const evaluatedAt =
+    typeof record.evaluatedAt === "string"
+      ? record.evaluatedAt
+      : new Date().toISOString();
+  const metrics = Array.isArray(record.metrics)
+    ? record.metrics.filter((metric): metric is string => typeof metric === "string")
+    : [];
+  const runId = typeof record.runId === "string" ? record.runId : null;
+  return {
+    id: runId ?? `evaluation-${evaluatedAt}`,
+    runId,
+    datasetId: typeof record.datasetId === "string" ? record.datasetId : null,
+    metrics,
+    status: typeof record.status === "string" ? record.status : "completed",
+    detail:
+      typeof record.detail === "string"
+        ? record.detail
+        : "Evaluation response recorded without a fabricated score.",
+    evaluatedAt,
+    resultRows: typeof record.resultRows === "number" ? record.resultRows : null,
+    metricFailures:
+      typeof record.metricFailures === "number" ? record.metricFailures : null,
+    dryRun: typeof record.dryRun === "boolean" ? record.dryRun : null,
+    providerCallsAllowed:
+      typeof record.providerCallsAllowed === "boolean"
+        ? record.providerCallsAllowed
+        : null
+  };
 }
 
 function formatMessageTime() {

@@ -129,14 +129,22 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
         self.assertIn("Route: explain", client.last_kwargs["instructions"])
         self.assertEqual(len(client.last_kwargs["input"]), 3)
         self.assertEqual(client.last_kwargs["input"][0]["role"], "user")
-        self.assertEqual(client.last_kwargs["input"][1]["role"], "developer")
-        self.assertEqual(client.last_kwargs["input"][2]["role"], "developer")
+        self.assertEqual(client.last_kwargs["input"][1]["role"], "user")
+        self.assertEqual(client.last_kwargs["input"][2]["role"], "user")
         self.assertIn(
             "Memory Context:",
             client.last_kwargs["input"][1]["content"][0]["text"],
         )
         self.assertIn(
+            "UNTRUSTED MEMORY",
+            client.last_kwargs["input"][1]["content"][0]["text"],
+        )
+        self.assertIn(
             "Retrieval Context:",
+            client.last_kwargs["input"][2]["content"][0]["text"],
+        )
+        self.assertIn(
+            "UNTRUSTED RETRIEVED-DOCUMENT",
             client.last_kwargs["input"][2]["content"][0]["text"],
         )
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from base64 import b64decode
 from collections.abc import Sequence
 from enum import StrEnum
 from typing import Any, Literal
@@ -74,6 +75,40 @@ class WorkflowExecutionMode(StrEnum):
     MULTI_AGENT = "multi_agent"
 
 
+class CreativityProfile(StrEnum):
+    """Bounded, user-facing generation postures."""
+
+    CONTROLLED = "controlled"
+    BALANCED = "balanced"
+    EXPLORATORY = "exploratory"
+
+
+class GenerationControls(BaseModel):
+    """A small portable control surface, not an arbitrary provider parameter form."""
+
+    model_config = ConfigDict(frozen=True, populate_by_name=True)
+
+    profile: CreativityProfile = CreativityProfile.BALANCED
+
+    @property
+    def requested_temperature(self) -> float:
+        return {
+            CreativityProfile.CONTROLLED: 0.35,
+            CreativityProfile.BALANCED: 0.7,
+            CreativityProfile.EXPLORATORY: 1.0,
+        }[self.profile]
+
+
+class PersonalizationContext(BaseModel):
+    """Bounded preference categories selected from explicit local feedback."""
+
+    model_config = ConfigDict(frozen=True, populate_by_name=True)
+
+    enabled: bool = True
+    categories: tuple[str, ...] = Field(default_factory=tuple, max_length=6)
+    signal_count: int = Field(default=0, alias="signalCount", ge=0, le=3)
+
+
 SUPPORTED_IMAGE_REFERENCE_MIME_TYPES = frozenset(
     {"image/png", "image/jpeg", "image/webp", "image/gif"}
 )
@@ -102,14 +137,34 @@ class AssistantImageReference(BaseModel):
             raise ValueError("Unsupported assistant image reference MIME type.")
         return value
 
+    @field_validator("name")
+    @classmethod
+    def validate_safe_filename(cls, value: str) -> str:
+        return _validated_client_filename(value)
+
     @field_validator("data_url")
     @classmethod
     def validate_data_url(cls, value: str | None) -> str | None:
         if value is None:
             return None
-        if not value.startswith("data:image/"):
-            raise ValueError("Assistant image reference data URL must be an image.")
+        if not value.startswith("data:") or ";base64," not in value:
+            raise ValueError("Assistant image reference data URL must be a base64 image.")
         return value
+
+    @model_validator(mode="after")
+    def validate_data_url_matches_metadata(self) -> AssistantImageReference:
+        if self.data_url is None:
+            return self
+        prefix, encoded = self.data_url.split(";base64,", maxsplit=1)
+        if prefix != f"data:{self.mime_type}":
+            raise ValueError("Assistant image reference data URL MIME type must match metadata.")
+        try:
+            payload = b64decode(encoded, validate=True)
+        except ValueError as exc:
+            raise ValueError("Assistant image reference data URL must be valid base64.") from exc
+        if len(payload) != self.size_bytes:
+            raise ValueError("Assistant image reference size must match the uploaded data.")
+        return self
 
 
 class AssistantArtifactRefinement(BaseModel):
@@ -168,6 +223,11 @@ class AssistantArtifactRefinement(BaseModel):
     )
     critique: dict[str, Any] | None = None
 
+    @field_validator("title")
+    @classmethod
+    def validate_safe_artifact_title(cls, value: str) -> str:
+        return _validated_client_filename(value)
+
 
 class AssistantRequest(BaseModel):
     model_config = ConfigDict(
@@ -185,6 +245,14 @@ class AssistantRequest(BaseModel):
     workflow_mode: WorkflowExecutionMode = Field(
         default=WorkflowExecutionMode.AUTO,
         alias="workflowMode",
+    )
+    generation_controls: GenerationControls = Field(
+        default_factory=GenerationControls,
+        alias="generationControls",
+    )
+    personalization_context: PersonalizationContext = Field(
+        default_factory=PersonalizationContext,
+        alias="personalizationContext",
     )
     attachments: tuple[AssistantImageReference, ...] = Field(default_factory=tuple)
     artifact_refinement: AssistantArtifactRefinement | None = Field(
@@ -292,3 +360,18 @@ class AssistantResponse(BaseModel):
 
     answer: str = Field(min_length=1)
     events: tuple[StreamEvent, ...] = Field(default_factory=tuple)
+
+
+def _validated_client_filename(value: str) -> str:
+    """Keep browser-provided file labels out of paths and command-like syntax."""
+
+    normalized = value.strip()
+    if (
+        not normalized
+        or ".." in normalized
+        or "/" in normalized
+        or "\\" in normalized
+        or "\x00" in normalized
+    ):
+        raise ValueError("Attachment and artifact names must be safe file names.")
+    return normalized

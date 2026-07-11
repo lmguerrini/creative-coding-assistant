@@ -28,7 +28,7 @@ describe("workspace persistence client", () => {
     });
 
     expect(record).toMatchObject({
-      schemaVersion: 4,
+      schemaVersion: 5,
       userId: "local-user",
       sessionId: "local-nextjs-session",
       projectId: "local-nextjs-workspace",
@@ -403,6 +403,7 @@ describe("workspace persistence client", () => {
       })
     ).toEqual({
       density: "compact",
+      sidebarCollapsed: false,
       inspectorCollapsed: true,
       inspectorWidth: 560,
       previewHeight: 220
@@ -420,7 +421,13 @@ describe("workspace persistence client", () => {
     ).toEqual({
       theme: "matrix",
       autoOpenPreview: false,
-      showDebugPanels: false
+      showDebugPanels: false,
+      creativity: "balanced",
+      personalizationEnabled: true,
+      uiFontSize: "medium",
+      codeFontSize: "medium",
+      feedbackSignals: [],
+      evaluationHistory: []
     });
     expect(
       normalizeWorkspacePreferences({
@@ -526,7 +533,7 @@ describe("workspace persistence client", () => {
       expect.stringContaining("/api/workspace/session?userId=local-user"),
       expect.objectContaining({ method: "GET" })
     );
-    expect(storage.length).toBe(1);
+    expect(storage.length).toBe(2);
   });
 
   it("saves remotely while keeping a local fallback copy", async () => {
@@ -553,7 +560,7 @@ describe("workspace persistence client", () => {
         headers: expect.objectContaining({ "Content-Type": "application/json" })
       })
     );
-    expect(storage.length).toBe(1);
+    expect(storage.length).toBe(2);
   });
 
   it("falls back to local session storage when the endpoint is unavailable", async () => {

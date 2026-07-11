@@ -217,6 +217,7 @@ import {
   type SymbolicNarrativePlanSummary,
   type WorkflowNodeId
 } from "./assistant-client";
+import type { CreativityProfile } from "./product-controls";
 import type { AssistantRequestImageAttachment } from "./multimodal-attachments";
 import {
   createWorkstationError,
@@ -436,6 +437,14 @@ export type AssistantStreamRequest = {
   domains?: string[];
   mode?: string;
   workflowMode?: WorkflowExecutionMode;
+  generationControls?: {
+    profile: CreativityProfile;
+  };
+  personalizationContext?: {
+    enabled: boolean;
+    categories: string[];
+    signalCount: number;
+  };
   attachments?: AssistantRequestImageAttachment[];
   artifactRefinement?: AssistantArtifactRefinementRequest;
   clarificationResponse?: string;

@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import {
   formatDomainDeliveryKind,
   getDomainExperienceRecord,
@@ -102,14 +105,206 @@ export function KnowledgeBaseInventorySurface({
         ) : null}
       </div>
       {detailed ? (
-        <footer>
-          <p>{inventory.freshnessDetail}</p>
-          <p>{inventory.updateHint}</p>
-          <p>{inventory.provenanceBoundary}</p>
-        </footer>
+        <>
+          <footer>
+            <p>{inventory.freshnessDetail}</p>
+            <p>{inventory.updateHint}</p>
+            <p>{inventory.provenanceBoundary}</p>
+          </footer>
+          <KnowledgeBaseSourceExplorer inventory={inventory} />
+        </>
       ) : null}
     </article>
   );
+}
+
+function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseInventory }) {
+  const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
+  const [operationState, setOperationState] = useState<{
+    detail: string;
+    status: string;
+    sourceChanges: KnowledgeBaseSourceChange[];
+  } | null>(null);
+  const [operationRunning, setOperationRunning] = useState(false);
+
+  function toggleSource(sourceId: string) {
+    setSelectedSourceIds((current) =>
+      current.includes(sourceId)
+        ? current.filter((candidate) => candidate !== sourceId)
+        : [...current, sourceId]
+    );
+  }
+
+  async function runOperation(action: "check" | "validate" | "update" | "rebuild") {
+    if (
+      (action === "update" || action === "rebuild") &&
+      !window.confirm(
+        "Update the selected official sources? If the operation fails, the prior local index will be restored."
+      )
+    ) {
+      return;
+    }
+    setOperationRunning(true);
+    setOperationState({
+      detail: operationDetail(action),
+      status: "running",
+      sourceChanges: []
+    });
+    try {
+      const response = await fetch(getKnowledgeBaseEndpoint(), {
+        body: JSON.stringify({
+          action,
+          confirmed: action === "update" || action === "rebuild",
+          sourceIds: selectedSourceIds
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST"
+      });
+      const payload: unknown = await response.json();
+      const record = asRecord(payload);
+      if (!response.ok || !record) {
+        throw new Error(readText(record?.message) ?? "Knowledge Base operation is unavailable.");
+      }
+      setOperationState({
+        detail: readText(record.detail) ?? "Knowledge Base operation completed.",
+        status: readText(record.status) ?? "completed",
+        sourceChanges: readKnowledgeBaseSourceChanges(record.sourceChanges)
+      });
+    } catch (error) {
+      setOperationState({
+        detail:
+          error instanceof Error
+            ? error.message
+            : "Knowledge Base operation could not be completed.",
+        status: "failed",
+        sourceChanges: []
+      });
+    } finally {
+      setOperationRunning(false);
+    }
+  }
+
+  return (
+    <section aria-label="Official Knowledge Base sources" className="kbSourceExplorer">
+      <header>
+        <div>
+          <strong>Official sources</strong>
+          <p>Registry inventory is separate from the references used in the current run.</p>
+        </div>
+        <div className="kbSourceActions" role="group" aria-label="Knowledge Base update actions">
+          <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("check")} type="button">
+            Check for updates
+          </button>
+          <button disabled={operationRunning} onClick={() => void runOperation("validate")} type="button">
+            Validate index
+          </button>
+          <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("update")} type="button">
+            Update selected
+          </button>
+          <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("rebuild")} type="button">
+            Rebuild selected
+          </button>
+        </div>
+      </header>
+      <p className="kbSourceBoundary">
+        Select sources to check their official content fingerprints. Updating is an explicit, confirmed operation; a failed rebuild restores the prior local index.
+      </p>
+      {operationState ? (
+        <>
+          <p aria-live="polite" className="kbOperationStatus" data-status={operationState.status}>
+            {operationState.detail}
+          </p>
+          {operationState.sourceChanges.length > 0 ? (
+            <ul aria-label="Source change summary" className="kbSourceChangeSummary">
+              {operationState.sourceChanges.map((change) => (
+                <li key={change.sourceId}>
+                  <strong>{formatSourceChangeStatus(change.changeStatus)}</strong>
+                  <span>{change.sourceId}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </>
+      ) : null}
+      <div role="list">
+        {inventory.sources.map((source) => (
+          <article data-indexed={source.indexed ? "true" : "false"} key={source.id} role="listitem">
+            <header>
+              <div>
+                <strong>{source.title}</strong>
+                <span>{source.publisher} · {source.domain} · {source.sourceType}</span>
+              </div>
+              <label className="kbSourceSelect">
+                <input
+                  aria-label={`Select ${source.title} for a Knowledge Base operation`}
+                  checked={selectedSourceIds.includes(source.id)}
+                  onChange={() => toggleSource(source.id)}
+                  type="checkbox"
+                />
+                <span>{source.indexed ? `${source.chunkCount} chunks` : "Not indexed"}</span>
+              </label>
+            </header>
+            <a href={source.url} rel="noreferrer" target="_blank">Open official documentation</a>
+            <dl>
+              <div><dt>Health</dt><dd>{formatSourceHealth(source.health)}</dd></div>
+              <div><dt>Last indexed</dt><dd>{formatIndexedAt(source.lastIndexedAt)}</dd></div>
+              <div><dt>Fingerprint</dt><dd>{source.fingerprint ? source.fingerprint.slice(0, 12) : "Not recorded"}</dd></div>
+              <div><dt>Provenance</dt><dd>{source.provenance}</dd></div>
+            </dl>
+            <p>{source.freshnessLimitation}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function getKnowledgeBaseEndpoint() {
+  return process.env.NEXT_PUBLIC_KNOWLEDGE_BASE_URL ?? "http://localhost:8000/api/knowledge-base";
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function readText(value: unknown) {
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+type KnowledgeBaseSourceChange = {
+  sourceId: string;
+  changeStatus: string;
+};
+
+function readKnowledgeBaseSourceChanges(value: unknown): KnowledgeBaseSourceChange[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((candidate) => {
+    const record = asRecord(candidate);
+    const sourceId = readText(record?.sourceId);
+    const changeStatus = readText(record?.changeStatus);
+    return sourceId && changeStatus ? [{ sourceId, changeStatus }] : [];
+  });
+}
+
+function operationDetail(action: "check" | "validate" | "update" | "rebuild") {
+  switch (action) {
+    case "check":
+      return "Checking the selected official sources without changing the local index.";
+    case "validate":
+      return "Validating the current local index without fetching official sources.";
+    case "update":
+      return "Updating the selected official sources after your confirmation.";
+    case "rebuild":
+      return "Rebuilding the selected official sources after your confirmation.";
+  }
+}
+
+function formatSourceChangeStatus(status: string) {
+  return status.replace(/_/g, " ");
 }
 
 function DomainCapabilityCard({
@@ -205,6 +400,17 @@ function formatIndexedAt(value: string | null) {
   return Number.isNaN(parsed.getTime())
     ? value
     : parsed.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+}
+
+function formatSourceHealth(value: string) {
+  switch (value) {
+    case "locally_indexed":
+      return "Locally indexed";
+    case "indexed_without_timestamp":
+      return "Indexed; timestamp unavailable";
+    default:
+      return "Registered only";
+  }
 }
 
 function formatValidationStatus(status: string) {

@@ -26,6 +26,12 @@ class WorkspaceSessionPersistenceService:
     def save_session(self, record: WorkspaceSessionRecord) -> WorkspaceSessionRecord:
         return self._repository.upsert(record)
 
+    def list_sessions(self, *, user_id: str) -> tuple[WorkspaceSessionRecord, ...]:
+        return self._repository.list_for_user(user_id=user_id)
+
+    def delete_session(self, *, user_id: str, session_id: str) -> bool:
+        return self._repository.delete(user_id=user_id, session_id=session_id)
+
 
 def build_workspace_session_persistence_service(
     settings: Settings | None = None,

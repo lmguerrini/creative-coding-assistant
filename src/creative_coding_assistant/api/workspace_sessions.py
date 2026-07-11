@@ -32,7 +32,7 @@ from creative_coding_assistant.workspace import (
 
 DEFAULT_WORKSPACE_SESSION_PATH = "/api/workspace/session"
 MAX_REQUEST_BYTES = 256 * 1024
-WORKSPACE_SESSION_METHODS = "GET, POST, PUT, OPTIONS"
+WORKSPACE_SESSION_METHODS = "GET, POST, PUT, DELETE, OPTIONS"
 
 
 class WorkspaceSessionApplication:
@@ -94,6 +94,14 @@ class WorkspaceSessionApplication:
             )
 
         if method == "GET":
+            query = parse_qs(str(environ.get("QUERY_STRING", "")))
+            if _first_query_value(query, "list", "").lower() == "true":
+                return self._handle_list(
+                    query,
+                    start_response,
+                    request_id=request_id,
+                    allow_origin=allow_origin,
+                )
             return self._handle_get(
                 environ,
                 start_response,
@@ -109,15 +117,23 @@ class WorkspaceSessionApplication:
                 allow_origin=allow_origin,
             )
 
+        if method == "DELETE":
+            return self._handle_delete(
+                environ,
+                start_response,
+                request_id=request_id,
+                allow_origin=allow_origin,
+            )
+
         return error_response(
             start_response,
             HTTPStatus.METHOD_NOT_ALLOWED,
             error="method_not_allowed",
-            message="Workspace session accepts GET, POST, PUT, and OPTIONS.",
+            message="Workspace session accepts GET, POST, PUT, DELETE, and OPTIONS.",
             request_id=request_id,
             allow_methods=WORKSPACE_SESSION_METHODS,
             allow_origin=allow_origin,
-            details={"allowed_methods": ["GET", "POST", "PUT", "OPTIONS"]},
+            details={"allowed_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]},
             extra_headers=[
                 ("Allow", WORKSPACE_SESSION_METHODS),
                 (
@@ -184,6 +200,107 @@ class WorkspaceSessionApplication:
                     WORKSPACE_SESSION_CONTRACT_HEADER,
                     WORKSPACE_SESSION_CONTRACT_VERSION,
                 )
+            ],
+        )
+
+    def _handle_list(
+        self,
+        query: dict[str, list[str]],
+        start_response: StartResponse,
+        *,
+        request_id: str,
+        allow_origin: str | None,
+    ) -> Iterable[bytes]:
+        user_id = _first_query_value(query, "userId", DEFAULT_LOCAL_USER_ID)
+        try:
+            records = self._service_instance().list_sessions(user_id=user_id)
+        except Exception:
+            return _workspace_unavailable_response(
+                start_response,
+                request_id=request_id,
+                allow_origin=allow_origin,
+            )
+        return json_response(
+            start_response,
+            HTTPStatus.OK,
+            {
+                "sessions": [
+                    {
+                        "sessionId": record.session_id,
+                        "projectId": record.project_id,
+                        "title": record.title,
+                        "updatedAt": record.updated_at.isoformat()
+                        if record.updated_at is not None
+                        else None,
+                        "artifactCount": len(record.artifacts),
+                    }
+                    for record in records
+                ]
+            },
+            request_id=request_id,
+            allow_methods=WORKSPACE_SESSION_METHODS,
+            allow_origin=allow_origin,
+            extra_headers=[
+                (WORKSPACE_SESSION_CONTRACT_HEADER, WORKSPACE_SESSION_CONTRACT_VERSION)
+            ],
+        )
+
+    def _handle_delete(
+        self,
+        environ: dict[str, Any],
+        start_response: StartResponse,
+        *,
+        request_id: str,
+        allow_origin: str | None,
+    ) -> Iterable[bytes]:
+        query = parse_qs(str(environ.get("QUERY_STRING", "")))
+        user_id = _first_query_value(query, "userId", DEFAULT_LOCAL_USER_ID)
+        session_id = _first_query_value(query, "sessionId", "")
+        if not session_id:
+            return error_response(
+                start_response,
+                HTTPStatus.BAD_REQUEST,
+                error="invalid_session",
+                message="A sessionId is required to delete a workspace session.",
+                request_id=request_id,
+                allow_methods=WORKSPACE_SESSION_METHODS,
+                allow_origin=allow_origin,
+                extra_headers=[
+                    (WORKSPACE_SESSION_CONTRACT_HEADER, WORKSPACE_SESSION_CONTRACT_VERSION)
+                ],
+            )
+        try:
+            deleted = self._service_instance().delete_session(
+                user_id=user_id,
+                session_id=session_id,
+            )
+        except Exception:
+            return _workspace_unavailable_response(
+                start_response,
+                request_id=request_id,
+                allow_origin=allow_origin,
+            )
+        if not deleted:
+            return error_response(
+                start_response,
+                HTTPStatus.NOT_FOUND,
+                error="session_not_found",
+                message="Workspace session was not found.",
+                request_id=request_id,
+                allow_methods=WORKSPACE_SESSION_METHODS,
+                allow_origin=allow_origin,
+                extra_headers=[
+                    (WORKSPACE_SESSION_CONTRACT_HEADER, WORKSPACE_SESSION_CONTRACT_VERSION)
+                ],
+            )
+        return empty_response(
+            start_response,
+            HTTPStatus.NO_CONTENT,
+            request_id=request_id,
+            allow_methods=WORKSPACE_SESSION_METHODS,
+            allow_origin=allow_origin,
+            extra_headers=[
+                (WORKSPACE_SESSION_CONTRACT_HEADER, WORKSPACE_SESSION_CONTRACT_VERSION)
             ],
         )
 

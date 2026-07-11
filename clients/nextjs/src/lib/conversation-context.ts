@@ -180,15 +180,16 @@ function readMemoryEvidence(event: AssistantStreamEvent): ContextEvidence {
 
   const request = asRecord(event.payload.request);
   const context = asRecord(event.payload.context);
+  const summary = asRecord(context?.summary);
   const recentTurns = asList(context?.recent_turns);
   const projectMemories = asList(context?.project_memories);
   const runningSummary = asRecord(context?.running_summary);
 
   return {
-    recentTurnCount: recentTurns?.length ?? null,
+    recentTurnCount: asNumber(summary?.recent_turn_count) ?? recentTurns?.length ?? null,
     recentTurnLimit: asNumber(request?.recent_turn_limit),
     runningSummaryCoveredTurnCount: asNumber(runningSummary?.covered_turn_count),
-    projectMemoryCount: projectMemories?.length ?? null,
+    projectMemoryCount: asNumber(summary?.project_memory_count) ?? projectMemories?.length ?? null,
     retrievalChunkCount: null
   };
 }
@@ -214,6 +215,9 @@ function readAssembledContextEvidence(payload: Record<string, unknown>): Context
 
 function readPromptInputEvidence(payload: Record<string, unknown>): ContextEvidence {
   const promptInput = asRecord(payload.prompt_input);
+  const summary = asRecord(promptInput?.summary);
+  const memorySummary = asRecord(summary?.memory);
+  const retrievalSummary = asRecord(summary?.retrieval);
   const memoryInput = asRecord(promptInput?.memory_input);
   const retrievalInput = asRecord(promptInput?.retrieval_input);
   const recentTurns = asList(memoryInput?.recent_turns);
@@ -222,11 +226,14 @@ function readPromptInputEvidence(payload: Record<string, unknown>): ContextEvide
   const retrievalChunks = asList(retrievalInput?.chunks);
 
   return {
-    recentTurnCount: recentTurns?.length ?? null,
+    recentTurnCount:
+      asNumber(memorySummary?.recent_turn_count) ?? recentTurns?.length ?? null,
     recentTurnLimit: null,
     runningSummaryCoveredTurnCount: asNumber(runningSummary?.covered_turn_count),
-    projectMemoryCount: projectMemories?.length ?? null,
-    retrievalChunkCount: retrievalChunks?.length ?? null
+    projectMemoryCount:
+      asNumber(memorySummary?.project_memory_count) ?? projectMemories?.length ?? null,
+    retrievalChunkCount:
+      asNumber(retrievalSummary?.chunk_count) ?? retrievalChunks?.length ?? null
   };
 }
 

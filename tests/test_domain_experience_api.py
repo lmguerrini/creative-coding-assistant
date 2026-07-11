@@ -75,6 +75,8 @@ class DomainExperienceApiTests(unittest.TestCase):
         self.assertIn("registered sources are not the same", knowledge["detail"])
         self.assertEqual(knowledge["freshnessStatus"], "not_reported")
         self.assertIn("freshness is not reported", knowledge["freshnessDetail"])
+        self.assertEqual(knowledge["updateStatus"], "explicit_selected_source_actions")
+        self.assertIn("explicit confirmation", knowledge["updateHint"])
 
     def test_wsgi_endpoint_is_read_only_and_public_safe(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

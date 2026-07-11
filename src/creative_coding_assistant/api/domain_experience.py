@@ -22,6 +22,7 @@ from creative_coding_assistant.knowledge.creative_distillation import (
     build_kb_reality_snapshot,
     inventory_local_chroma_kb,
 )
+from creative_coding_assistant.rag.sources import approved_official_sources
 
 DOMAIN_EXPERIENCE_CONTRACT_VERSION = "domain-experience.v1"
 DOMAIN_EXPERIENCE_CONTRACT_HEADER = "X-CCA-Domain-Experience-Contract-Version"
@@ -191,16 +192,55 @@ def build_domain_experience_payload(
                 else "No local index timestamp is available, so upstream-source "
                 "freshness is not reported."
             ),
-            "updateStatus": "manual_sync_only",
+            "updateStatus": "explicit_selected_source_actions",
             "updateHint": (
-                "Refresh approved official sources with the documented local sync "
-                "command; this UI never starts a sync or sends private workspace data."
+                "Select official sources in the dashboard to check, validate, update, "
+                "or rebuild the local index. Updates require explicit confirmation and "
+                "never send private workspace data."
             ),
             "provenanceBoundary": (
                 "Counts come from registered official-source metadata and the local "
                 "Chroma index only. Retrieved source text, private prompts, and "
                 "memory are not returned here."
             ),
+            "sources": [
+                {
+                    "id": source.source_id,
+                    "title": source.title,
+                    "publisher": source.publisher,
+                    "url": source.url,
+                    "domain": source.domain.value,
+                    "sourceType": source.source_type.value,
+                    "priority": source.priority,
+                    "tags": list(source.tags),
+                    "indexed": indexed_source_counts.get(source.source_id, 0) > 0,
+                    "chunkCount": indexed_source_counts.get(source.source_id, 0),
+                    "lastIndexedAt": (
+                        inventory.source_last_indexed_at.get(source.source_id)
+                        if inventory
+                        else None
+                    ),
+                    "fingerprint": (
+                        inventory.source_content_hashes.get(source.source_id)
+                        if inventory
+                        else None
+                    ),
+                    "health": _source_health(
+                        indexed=indexed_source_counts.get(source.source_id, 0) > 0,
+                        last_indexed_at=(
+                            inventory.source_last_indexed_at.get(source.source_id)
+                            if inventory
+                            else None
+                        ),
+                    ),
+                    "freshnessLimitation": (
+                        "Local index timestamps show when this source was last stored; "
+                        "they do not confirm the current upstream document version."
+                    ),
+                    "provenance": "Approved official-source registry and local Chroma index.",
+                }
+                for source in approved_official_sources()
+            ],
         },
     }
 
@@ -218,6 +258,14 @@ def _knowledge_status(
     if inventory_exists:
         return "empty"
     return "not_initialized"
+
+
+def _source_health(*, indexed: bool, last_indexed_at: str | None) -> str:
+    if not indexed:
+        return "registered_only"
+    if not last_indexed_at:
+        return "indexed_without_timestamp"
+    return "locally_indexed"
 
 
 def _knowledge_detail(

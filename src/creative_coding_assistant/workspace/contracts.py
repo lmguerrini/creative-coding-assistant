@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 DEFAULT_LOCAL_USER_ID = "local-user"
 DEFAULT_LOCAL_SESSION_ID = "local-nextjs-session"
 DEFAULT_LOCAL_PROJECT_ID = "local-nextjs-workspace"
-WORKSPACE_SESSION_SCHEMA_VERSION = 4
+WORKSPACE_SESSION_SCHEMA_VERSION = 5
 
 InspectorTabName = Literal[
     "Overview",
@@ -33,6 +33,8 @@ WorkspaceThemePreset = Literal[
     "zen",
     "blueprint",
 ]
+WorkspaceCreativityProfile = Literal["controlled", "balanced", "exploratory"]
+WorkspaceFontScale = Literal["small", "medium", "large"]
 WorkspacePreviewState = Literal["generating", "ready", "unavailable", "error"]
 
 
@@ -157,9 +159,69 @@ class WorkspaceSessionLayout(BaseModel):
     )
 
     density: WorkspaceDensity = "cozy"
+    sidebar_collapsed: bool = Field(default=False, alias="sidebarCollapsed")
     inspector_collapsed: bool = Field(default=False, alias="inspectorCollapsed")
     inspector_width: int = Field(default=420, alias="inspectorWidth", ge=320, le=560)
     preview_height: int = Field(default=320, alias="previewHeight", ge=160, le=520)
+
+
+class WorkspaceFeedbackSignal(BaseModel):
+    """One explicit local preference signal; it never represents model training."""
+
+    model_config = ConfigDict(
+        frozen=True,
+        populate_by_name=True,
+        str_strip_whitespace=True,
+    )
+
+    id: str = Field(min_length=1)
+    sentiment: Literal["positive", "negative"]
+    comment: str | None = Field(default=None, max_length=500)
+    session_id: str = Field(alias="sessionId", min_length=1)
+    artifact_id: str | None = Field(default=None, alias="artifactId")
+    artifact_title: str | None = Field(default=None, alias="artifactTitle")
+    domain: str | None = None
+    workflow_mode: str = Field(alias="workflowMode", min_length=1)
+    creativity: WorkspaceCreativityProfile
+    categories: tuple[str, ...] = Field(default_factory=tuple, max_length=6)
+    created_at: str = Field(alias="createdAt", min_length=1)
+    prompt_excerpt: str | None = Field(default=None, alias="promptExcerpt", max_length=240)
+    provider_name: str | None = Field(default=None, alias="providerName")
+    provider_model: str | None = Field(default=None, alias="providerModel")
+    requested_temperature: float | None = Field(
+        default=None, alias="requestedTemperature", ge=0, le=2
+    )
+    effective_temperature: float | None = Field(
+        default=None, alias="effectiveTemperature", ge=0, le=2
+    )
+    parameter_application: Literal[
+        "requested_not_confirmed", "provider_reported"
+    ] = Field(default="requested_not_confirmed", alias="parameterApplication")
+    product_outcome: str | None = Field(default=None, alias="productOutcome")
+
+
+class WorkspaceEvaluationHistoryEntry(BaseModel):
+    """A local record of an explicitly requested evaluation attempt."""
+
+    model_config = ConfigDict(
+        frozen=True,
+        populate_by_name=True,
+        str_strip_whitespace=True,
+    )
+
+    id: str = Field(min_length=1)
+    run_id: str | None = Field(default=None, alias="runId")
+    dataset_id: str | None = Field(default=None, alias="datasetId")
+    metrics: tuple[str, ...] = Field(default_factory=tuple, max_length=20)
+    status: str = Field(min_length=1, max_length=80)
+    detail: str = Field(min_length=1, max_length=800)
+    evaluated_at: str = Field(alias="evaluatedAt", min_length=1)
+    result_rows: int | None = Field(default=None, alias="resultRows", ge=0)
+    metric_failures: int | None = Field(default=None, alias="metricFailures", ge=0)
+    dry_run: bool | None = Field(default=None, alias="dryRun")
+    provider_calls_allowed: bool | None = Field(
+        default=None, alias="providerCallsAllowed"
+    )
 
 
 class WorkspaceSessionPreferences(BaseModel):
@@ -174,6 +236,20 @@ class WorkspaceSessionPreferences(BaseModel):
     theme: WorkspaceThemePreset = "aqua"
     auto_open_preview: bool = Field(default=True, alias="autoOpenPreview")
     show_debug_panels: bool = Field(default=True, alias="showDebugPanels")
+    creativity: WorkspaceCreativityProfile = "balanced"
+    personalization_enabled: bool = Field(default=True, alias="personalizationEnabled")
+    ui_font_size: WorkspaceFontScale = Field(default="medium", alias="uiFontSize")
+    code_font_size: WorkspaceFontScale = Field(default="medium", alias="codeFontSize")
+    feedback_signals: tuple[WorkspaceFeedbackSignal, ...] = Field(
+        default_factory=tuple,
+        alias="feedbackSignals",
+        max_length=120,
+    )
+    evaluation_history: tuple[WorkspaceEvaluationHistoryEntry, ...] = Field(
+        default_factory=tuple,
+        alias="evaluationHistory",
+        max_length=24,
+    )
 
 
 class WorkspaceSessionRecord(BaseModel):
@@ -185,7 +261,7 @@ class WorkspaceSessionRecord(BaseModel):
         str_strip_whitespace=True,
     )
 
-    schema_version: Literal[1, 2, 3, 4] = Field(
+    schema_version: Literal[1, 2, 3, 4, 5] = Field(
         default=WORKSPACE_SESSION_SCHEMA_VERSION,
         alias="schemaVersion",
     )

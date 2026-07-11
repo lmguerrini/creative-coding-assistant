@@ -25,10 +25,22 @@ from creative_coding_assistant.api.domain_experience import (
     build_domain_experience_payload,
     create_domain_experience_app,
 )
+from creative_coding_assistant.api.evaluation import (
+    DEFAULT_EVALUATION_PATH,
+    EVALUATION_CONTRACT_VERSION,
+    EvaluationApplication,
+    create_evaluation_app,
+)
 from creative_coding_assistant.api.health import (
     HealthCheckApplication,
     build_health_payload,
     create_health_check_app,
+)
+from creative_coding_assistant.api.knowledge_base import (
+    DEFAULT_KNOWLEDGE_BASE_PATH,
+    KNOWLEDGE_BASE_CONTRACT_VERSION,
+    KnowledgeBaseApplication,
+    create_knowledge_base_app,
 )
 from creative_coding_assistant.api.production import (
     CHROMA_REQUIREMENT,
@@ -77,7 +89,13 @@ __all__ = [
     "DependencyHealthReport",
     "DeploymentReadinessChecklist",
     "DomainExperienceApplication",
+    "DEFAULT_EVALUATION_PATH",
+    "DEFAULT_KNOWLEDGE_BASE_PATH",
+    "EVALUATION_CONTRACT_VERSION",
+    "EvaluationApplication",
     "HealthCheckApplication",
+    "KNOWLEDGE_BASE_CONTRACT_VERSION",
+    "KnowledgeBaseApplication",
     "MountedWsgiApp",
     "ProductionConfigurationReport",
     "ReleaseChecklist",
@@ -91,8 +109,10 @@ __all__ = [
     "WorkspaceSessionApplication",
     "create_backend_dev_app",
     "create_domain_experience_app",
+    "create_evaluation_app",
     "create_assistant_streaming_app",
     "create_health_check_app",
+    "create_knowledge_base_app",
     "create_workspace_session_app",
     "iter_assistant_stream_ndjson",
     "log_api_telemetry_event",

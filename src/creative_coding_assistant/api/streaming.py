@@ -29,12 +29,15 @@ from creative_coding_assistant.contracts import (
     AssistantMode,
     AssistantRequest,
     CreativeCodingDomain,
+    GenerationControls,
+    PersonalizationContext,
     StreamEvent,
     StreamEventType,
     WorkflowExecutionMode,
 )
 from creative_coding_assistant.core.config import Settings, load_settings
 from creative_coding_assistant.orchestration import AssistantService
+from creative_coding_assistant.security import assess_user_request_safety
 
 DEFAULT_STREAM_PATH = "/api/assistant/stream"
 DEFAULT_CONVERSATION_ID = "local-nextjs-session"
@@ -65,6 +68,14 @@ class AssistantStreamRequest(BaseModel):
     workflow_mode: WorkflowExecutionMode = Field(
         default=WorkflowExecutionMode.AUTO,
         alias="workflowMode",
+    )
+    generation_controls: GenerationControls = Field(
+        default_factory=GenerationControls,
+        alias="generationControls",
+    )
+    personalization_context: PersonalizationContext = Field(
+        default_factory=PersonalizationContext,
+        alias="personalizationContext",
     )
     attachments: tuple[AssistantImageReference, ...] = Field(default_factory=tuple)
     artifact_refinement: AssistantArtifactRefinement | None = Field(
@@ -99,6 +110,8 @@ class AssistantStreamRequest(BaseModel):
             domains=self.domains,
             mode=self.mode,
             workflow_mode=self.workflow_mode,
+            generation_controls=self.generation_controls,
+            personalization_context=self.personalization_context,
             attachments=self.attachments,
             artifact_refinement=self.artifact_refinement,
             clarification_response=self.clarification_response,
@@ -219,6 +232,21 @@ class AssistantStreamingApplication:
                 request_id=request_id,
                 allow_methods=STREAM_METHODS,
                 allow_origin=allow_origin,
+                extra_headers=[(STREAM_CONTRACT_HEADER, STREAM_CONTRACT_VERSION)],
+            )
+
+        safety = assess_user_request_safety(request.query)
+        if not safety.allowed:
+            return error_response(
+                start_response,
+                HTTPStatus.BAD_REQUEST,
+                error=safety.code or "unsafe_request",
+                message=safety.message
+                or "This request is outside the supported safety boundary.",
+                request_id=request_id,
+                allow_methods=STREAM_METHODS,
+                allow_origin=allow_origin,
+                recoverable=True,
                 extra_headers=[(STREAM_CONTRACT_HEADER, STREAM_CONTRACT_VERSION)],
             )
 

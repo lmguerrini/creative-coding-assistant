@@ -71,6 +71,13 @@ from creative_coding_assistant.orchestration.workflow_graph import (
     build_assistant_workflow_graph,
     stream_assistant_workflow_events,
 )
+from creative_coding_assistant.security import (
+    assembled_context_summary,
+    memory_context_summary,
+    prompt_input_summary,
+    provider_input_summary,
+    rendered_prompt_summary,
+)
 
 RouteFn = Callable[[AssistantRequest], RouteDecision]
 
@@ -207,7 +214,7 @@ class AssistantService:
         yield builder.memory(
             code="memory_completed",
             message="Memory context prepared.",
-            context=memory_context.model_dump(mode="json"),
+            context=memory_context_summary(memory_context),
         )
         return memory_context
 
@@ -305,7 +312,7 @@ class AssistantService:
         yield builder.context(
             code="context_assembled",
             message="Combined context prepared.",
-            context=assembled_context.model_dump(mode="json"),
+            context=assembled_context_summary(assembled_context),
         )
         return assembled_context
 
@@ -329,7 +336,7 @@ class AssistantService:
         yield builder.prompt_input(
             code="prompt_inputs_prepared",
             message="Prompt inputs prepared.",
-            prompt_input=prompt_inputs.model_dump(mode="json"),
+            prompt_input=prompt_input_summary(prompt_inputs),
         )
         return prompt_inputs
 
@@ -351,7 +358,7 @@ class AssistantService:
         yield builder.prompt_rendered(
             code="prompt_rendered",
             message="Rendered prompt prepared.",
-            rendered_prompt=rendered_prompt.model_dump(mode="json"),
+            rendered_prompt=rendered_prompt_summary(rendered_prompt),
         )
         return rendered_prompt
 
@@ -375,7 +382,7 @@ class AssistantService:
         yield builder.generation_input(
             code="generation_input_prepared",
             message="Provider generation input prepared.",
-            generation_input=generation_input.model_dump(mode="json"),
+            generation_input=provider_input_summary(generation_input),
         )
 
         generation_result = _stream_provider_generation(

@@ -81,6 +81,8 @@ class IndexedKnowledgeBaseInventory(BaseModel):
     collection_counts: dict[str, int] = Field(default_factory=dict)
     source_chunk_counts: dict[str, int] = Field(default_factory=dict)
     domain_chunk_counts: dict[str, int] = Field(default_factory=dict)
+    source_last_indexed_at: dict[str, str] = Field(default_factory=dict)
+    source_content_hashes: dict[str, str] = Field(default_factory=dict)
     fetched_at_min: str | None = None
     fetched_at_max: str | None = None
 
@@ -535,6 +537,8 @@ def inventory_local_chroma_kb(
         collection_counts = _query_collection_counts(connection)
         source_chunk_counts = _query_kb_metadata_counts(connection, "source_id")
         domain_chunk_counts = _query_kb_metadata_counts(connection, "domain")
+        source_last_indexed_at = _query_source_last_indexed_at(connection)
+        source_content_hashes = _query_source_content_hashes(connection)
         fetched_at_min, fetched_at_max = _query_kb_fetched_range(connection)
 
     return IndexedKnowledgeBaseInventory(
@@ -543,6 +547,8 @@ def inventory_local_chroma_kb(
         collection_counts=collection_counts,
         source_chunk_counts=source_chunk_counts,
         domain_chunk_counts=domain_chunk_counts,
+        source_last_indexed_at=source_last_indexed_at,
+        source_content_hashes=source_content_hashes,
         fetched_at_min=fetched_at_min,
         fetched_at_max=fetched_at_max,
     )
@@ -829,6 +835,43 @@ def _query_kb_fetched_range(connection: sqlite3.Connection) -> tuple[str | None,
     if row is None:
         return None, None
     return row[0], row[1]
+
+
+def _query_source_last_indexed_at(connection: sqlite3.Connection) -> dict[str, str]:
+    """Return the newest local index timestamp for each official source."""
+
+    return _query_source_metadata_values(connection, "fetched_at")
+
+
+def _query_source_content_hashes(connection: sqlite3.Connection) -> dict[str, str]:
+    return _query_source_metadata_values(connection, "content_hash")
+
+
+def _query_source_metadata_values(
+    connection: sqlite3.Connection, value_key: str
+) -> dict[str, str]:
+    rows = connection.execute(
+        """
+        select source_metadata.string_value, max(fetched_metadata.string_value)
+        from embedding_metadata source_metadata
+        join embedding_metadata fetched_metadata
+          on fetched_metadata.id = source_metadata.id
+        join embeddings e on e.id = source_metadata.id
+        join segments s on s.id = e.segment_id
+        join collections c on c.id = s.collection
+        where c.name = 'kb_official_docs'
+          and source_metadata.key = 'source_id'
+          and fetched_metadata.key = ?
+        group by source_metadata.string_value
+        order by source_metadata.string_value
+        """,
+        (value_key,),
+    ).fetchall()
+    return {
+        str(source_id): str(indexed_at)
+        for source_id, indexed_at in rows
+        if source_id is not None and indexed_at is not None
+    }
 
 
 def _build_domain_coverage(

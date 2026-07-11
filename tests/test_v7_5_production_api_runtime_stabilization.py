@@ -37,6 +37,9 @@ class V75ProductionApiRuntimeStabilizationTests(unittest.TestCase):
             (
                 "/api/assistant/stream",
                 "/api/workspace/session",
+                "/api/domain-experience",
+                "/api/evaluation/run",
+                "/api/knowledge-base",
                 "/api/health",
                 "/api/health/live",
                 "/api/health/ready",

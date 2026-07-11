@@ -19,11 +19,19 @@ from creative_coding_assistant.api.domain_experience import (
     DEFAULT_DOMAIN_EXPERIENCE_PATH,
     create_domain_experience_app,
 )
+from creative_coding_assistant.api.evaluation import (
+    DEFAULT_EVALUATION_PATH,
+    create_evaluation_app,
+)
 from creative_coding_assistant.api.health import (
     DEFAULT_HEALTH_PATH,
     DEFAULT_LIVENESS_PATH,
     DEFAULT_READINESS_PATH,
     create_health_check_app,
+)
+from creative_coding_assistant.api.knowledge_base import (
+    DEFAULT_KNOWLEDGE_BASE_PATH,
+    create_knowledge_base_app,
 )
 from creative_coding_assistant.api.streaming import (
     DEFAULT_STREAM_PATH,
@@ -40,7 +48,7 @@ WsgiApplication = Callable[[dict[str, Any], StartResponse], Iterable[bytes]]
 
 DEFAULT_DEV_HOST = "127.0.0.1"
 DEFAULT_DEV_PORT = 8000
-DEFAULT_BACKEND_ROUTE_METHODS = "GET, POST, PUT, OPTIONS"
+DEFAULT_BACKEND_ROUTE_METHODS = "GET, POST, PUT, DELETE, OPTIONS"
 
 
 @dataclass(frozen=True)
@@ -114,6 +122,14 @@ def create_backend_dev_app(
             MountedWsgiApp(
                 path=DEFAULT_DOMAIN_EXPERIENCE_PATH,
                 app=create_domain_experience_app(settings_factory=settings_factory),
+            ),
+            MountedWsgiApp(
+                path=DEFAULT_EVALUATION_PATH,
+                app=create_evaluation_app(settings_factory=settings_factory),
+            ),
+            MountedWsgiApp(
+                path=DEFAULT_KNOWLEDGE_BASE_PATH,
+                app=create_knowledge_base_app(settings_factory=settings_factory),
             ),
             MountedWsgiApp(
                 path=DEFAULT_HEALTH_PATH,

@@ -42,6 +42,25 @@ export type KnowledgeBaseInventory = {
   updateStatus: string;
   updateHint: string;
   provenanceBoundary: string;
+  sources: KnowledgeBaseSource[];
+};
+
+export type KnowledgeBaseSource = {
+  id: string;
+  title: string;
+  publisher: string;
+  url: string;
+  domain: string;
+  sourceType: string;
+  priority: number;
+  tags: string[];
+  indexed: boolean;
+  chunkCount: number;
+  lastIndexedAt: string | null;
+  fingerprint: string | null;
+  health: string;
+  freshnessLimitation: string;
+  provenance: string;
 };
 
 export type DomainExperienceCatalog = {
@@ -73,7 +92,8 @@ const defaultKnowledgeBase: KnowledgeBaseInventory = {
   updateStatus: "not_loaded",
   updateHint: "Start the local backend to inspect registered and indexed KB coverage.",
   provenanceBoundary:
-    "This screen does not infer inventory from the current retrieval run."
+    "This screen does not infer inventory from the current retrieval run.",
+  sources: []
 };
 
 export const loadingDomainExperienceCatalog: DomainExperienceCatalog = {
@@ -199,8 +219,64 @@ function normalizeKnowledgeBase(value: unknown): KnowledgeBaseInventory {
     updateStatus: readString(knowledge?.updateStatus) ?? defaultKnowledgeBase.updateStatus,
     updateHint: readString(knowledge?.updateHint) ?? defaultKnowledgeBase.updateHint,
     provenanceBoundary:
-      readString(knowledge?.provenanceBoundary) ?? defaultKnowledgeBase.provenanceBoundary
+      readString(knowledge?.provenanceBoundary) ?? defaultKnowledgeBase.provenanceBoundary,
+    sources: readKnowledgeBaseSources(knowledge?.sources)
   };
+}
+
+function readKnowledgeBaseSources(value: unknown): KnowledgeBaseSource[] {
+  return Array.isArray(value)
+    ? value.map(normalizeKnowledgeBaseSource).filter(isKnowledgeBaseSource)
+    : [];
+}
+
+function normalizeKnowledgeBaseSource(value: unknown): KnowledgeBaseSource | null {
+  const source = asRecord(value);
+  const id = readString(source?.id);
+  const title = readString(source?.title);
+  const publisher = readString(source?.publisher);
+  const url = readString(source?.url);
+  const domain = readString(source?.domain);
+  const sourceType = readString(source?.sourceType);
+  const health = readString(source?.health);
+  const freshnessLimitation = readString(source?.freshnessLimitation);
+  const provenance = readString(source?.provenance);
+  if (
+    !id ||
+    !title ||
+    !publisher ||
+    !url ||
+    !domain ||
+    !sourceType ||
+    !health ||
+    !freshnessLimitation ||
+    !provenance
+  ) {
+    return null;
+  }
+  return {
+    id,
+    title,
+    publisher,
+    url,
+    domain,
+    sourceType,
+    priority: readCount(source?.priority),
+    tags: readStrings(source?.tags),
+    indexed: source?.indexed === true,
+    chunkCount: readCount(source?.chunkCount),
+    lastIndexedAt: readString(source?.lastIndexedAt),
+    fingerprint: readString(source?.fingerprint),
+    health,
+    freshnessLimitation,
+    provenance
+  };
+}
+
+function isKnowledgeBaseSource(
+  value: KnowledgeBaseSource | null
+): value is KnowledgeBaseSource {
+  return value !== null;
 }
 
 function normalizeDomainKnowledge(value: unknown): DomainKnowledgeCoverage {

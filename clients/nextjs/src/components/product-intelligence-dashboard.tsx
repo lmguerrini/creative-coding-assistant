@@ -9,12 +9,15 @@ import {
   type ProductIntelligenceModel,
   type ProductIntelligenceSection
 } from "@/lib/product-intelligence";
+import type { EvaluationHistoryRecord } from "@/lib/product-controls";
 
 type ProductIntelligenceDashboardProps = {
   activeCategory: ProductIntelligenceCategory;
   model: ProductIntelligenceModel;
   onCategoryChange: (category: ProductIntelligenceCategory) => void;
   onClose: () => void;
+  onRunEvaluation?: () => Promise<void>;
+  evaluationHistory?: EvaluationHistoryRecord[];
 };
 
 type DashboardGroupId =
@@ -92,7 +95,9 @@ export function ProductIntelligenceDashboard({
   activeCategory,
   model,
   onCategoryChange,
-  onClose
+  onClose,
+  onRunEvaluation,
+  evaluationHistory = []
 }: ProductIntelligenceDashboardProps) {
   const [activeGroupId, setActiveGroupId] = useState<DashboardGroupId>(() =>
     getDashboardGroup(activeCategory).id
@@ -102,6 +107,19 @@ export function ProductIntelligenceDashboard({
   const primarySection = activeGroup.categories[0]
     ? getProductIntelligenceSection(model, activeGroup.categories[0])
     : null;
+  const [evaluationRunning, setEvaluationRunning] = useState(false);
+
+  async function runEvaluation() {
+    if (!onRunEvaluation || evaluationRunning) {
+      return;
+    }
+    setEvaluationRunning(true);
+    try {
+      await onRunEvaluation();
+    } finally {
+      setEvaluationRunning(false);
+    }
+  }
 
   useEffect(() => {
     if (activeGroupId !== "manual") {
@@ -165,18 +183,30 @@ export function ProductIntelligenceDashboard({
             <ArrowLeft aria-hidden="true" size={16} />
           </button>
         </header>
-        <DashboardGroupView group={activeGroup} model={model} />
+        <DashboardGroupView
+          evaluationRunning={evaluationRunning}
+          group={activeGroup}
+          model={model}
+          onRunEvaluation={onRunEvaluation ? runEvaluation : undefined}
+          evaluationHistory={evaluationHistory}
+        />
       </div>
     </section>
   );
 }
 
 function DashboardGroupView({
+  evaluationRunning,
   group,
-  model
+  model,
+  onRunEvaluation,
+  evaluationHistory
 }: {
+  evaluationRunning: boolean;
   group: DashboardGroup;
   model: ProductIntelligenceModel;
+  onRunEvaluation?: () => Promise<void>;
+  evaluationHistory: EvaluationHistoryRecord[];
 }) {
   if (group.id === "manual") {
     return (
@@ -211,12 +241,64 @@ function DashboardGroupView({
               <strong>{section.summary}</strong>
               <p>{section.detail}</p>
             </header>
+            {category === "Metrics" && onRunEvaluation ? (
+              <>
+                <button
+                  className="evaluationRunButton"
+                  disabled={evaluationRunning}
+                  onClick={() => void onRunEvaluation()}
+                  type="button"
+                >
+                  {evaluationRunning ? "Preparing evaluation…" : "Run Evaluation"}
+                </button>
+                <EvaluationHistory history={evaluationHistory} />
+              </>
+            ) : null}
             <ProductIntelligenceSectionView detailed model={model} section={section} />
           </section>
         );
       })}
     </div>
   );
+}
+
+function EvaluationHistory({ history }: { history: EvaluationHistoryRecord[] }) {
+  if (history.length === 0) {
+    return (
+      <p className="evaluationHistoryEmpty">
+        No explicit evaluation attempt has been stored for this session.
+      </p>
+    );
+  }
+  return (
+    <section aria-label="Evaluation history" className="evaluationHistory">
+      <header>
+        <strong>Evaluation history</strong>
+        <span>{history.length} retained</span>
+      </header>
+      <ul>
+        {[...history].reverse().map((entry) => (
+          <li key={entry.id}>
+            <div>
+              <strong>{entry.status.replace(/_/g, " ")}</strong>
+              <span>{entry.datasetId ?? "Dataset not recorded"}</span>
+              <small>{entry.metrics.length > 0 ? entry.metrics.join(", ") : entry.detail}</small>
+            </div>
+            <time dateTime={entry.evaluatedAt}>
+              {formatHistoryTimestamp(entry.evaluatedAt)}
+            </time>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function formatHistoryTimestamp(value: string) {
+  const timestamp = new Date(value);
+  return Number.isNaN(timestamp.getTime())
+    ? value
+    : timestamp.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
 function getDashboardGroup(category: ProductIntelligenceCategory) {
