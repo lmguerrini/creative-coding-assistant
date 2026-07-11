@@ -18,6 +18,7 @@ import type {
   WorkspaceSessionSummary
 } from "@/lib/workspace-persistence";
 import type { SessionUsageSummary } from "@/lib/session-usage-ledger";
+import { formatUiStatusLabel } from "@/lib/ui-copy";
 import type {
   EvaluationHistoryRecord,
   FeedbackSentiment
@@ -275,7 +276,7 @@ export function ProductIntelligenceDashboard({
           </div>
           {primarySection ? <ProductIntelligenceHelp section={primarySection} /> : null}
           <div className="productDashboardStatus" data-tone={primarySection?.tone ?? "empty"}>
-            {primarySection?.summary ?? "Guide"}
+            {formatUiStatusLabel(primarySection?.summary ?? "Guide")}
           </div>
           <button
             aria-label="Close dashboard"
@@ -355,7 +356,7 @@ function DashboardGroupView({
             <header>
               <div>
                 <span>{category}</span>
-                <strong>{section.summary}</strong>
+                <strong>{formatUiStatusLabel(section.summary)}</strong>
                 <p>{section.detail}</p>
               </div>
               <ProductIntelligenceHelp section={section} />
@@ -826,7 +827,7 @@ function ProductIntelligenceSectionView({
     <div className="productIntelligenceSection" data-tone={section.tone}>
       <article className="productIntelligenceHero">
         <span>{section.category}</span>
-        <strong>{section.summary}</strong>
+        <strong>{formatUiStatusLabel(section.summary)}</strong>
         <p>{section.detail}</p>
       </article>
       <dl className="productIntelligenceMetrics">

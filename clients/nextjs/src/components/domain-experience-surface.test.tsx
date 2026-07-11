@@ -39,7 +39,7 @@ const inventory: KnowledgeBaseInventory = {
 };
 
 describe("KnowledgeBaseInventorySurface", () => {
-  it("shows a selected-source change summary only after an explicit check", async () => {
+  it("selects all official sources before an explicit check", async () => {
     const fetcher = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -55,11 +55,13 @@ describe("KnowledgeBaseInventorySurface", () => {
     const check = screen.getByRole("button", { name: "Check for updates" });
     expect(check).toBeDisabled();
 
-    fireEvent.click(
+    fireEvent.click(screen.getByRole("button", { name: "Select all" }));
+    expect(
       screen.getByRole("checkbox", {
         name: "Select three.js Documentation for a Knowledge Base operation"
       })
-    );
+    ).toBeChecked();
+    expect(screen.getByRole("button", { name: "Clear selection" })).toBeVisible();
     expect(check).toBeEnabled();
     fireEvent.click(check);
 
@@ -67,7 +69,14 @@ describe("KnowledgeBaseInventorySurface", () => {
       .toHaveTextContent("changedthree_docs");
     expect(fetcher).toHaveBeenCalledWith(
       "http://localhost:8000/api/knowledge-base",
-      expect.objectContaining({ method: "POST" })
+      expect.objectContaining({
+        body: JSON.stringify({
+          action: "check",
+          confirmed: false,
+          sourceIds: ["three_docs"]
+        }),
+        method: "POST"
+      })
     );
   });
 });

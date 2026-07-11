@@ -185,6 +185,9 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
     sourceChanges: KnowledgeBaseSourceChange[];
   } | null>(null);
   const [operationRunning, setOperationRunning] = useState(false);
+  const sourceIds = inventory.sources.map((source) => source.id);
+  const areAllSourcesSelected =
+    sourceIds.length > 0 && sourceIds.every((sourceId) => selectedSourceIds.includes(sourceId));
 
   function toggleSource(sourceId: string) {
     setSelectedSourceIds((current) =>
@@ -192,6 +195,10 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
         ? current.filter((candidate) => candidate !== sourceId)
         : [...current, sourceId]
     );
+  }
+
+  function toggleAllSources() {
+    setSelectedSourceIds(areAllSourcesSelected ? [] : sourceIds);
   }
 
   async function runOperation(action: "check" | "validate" | "update" | "rebuild") {
@@ -251,6 +258,14 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
           <p>Registry inventory is separate from the references used in the current run.</p>
         </div>
         <div className="kbSourceActions" role="group" aria-label="Knowledge Base update actions">
+          <button
+            aria-pressed={areAllSourcesSelected}
+            disabled={operationRunning || sourceIds.length === 0}
+            onClick={toggleAllSources}
+            type="button"
+          >
+            {areAllSourcesSelected ? "Clear selection" : "Select all"}
+          </button>
           <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("check")} type="button">
             Check for updates
           </button>
