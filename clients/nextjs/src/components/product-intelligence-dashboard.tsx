@@ -1,14 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, CircleHelp } from "lucide-react";
-import { DomainExperienceSurface } from "./domain-experience-surface";
+import { CircleHelp, X } from "lucide-react";
+import {
+  DomainExperienceSurface,
+  KnowledgeBaseInventorySurface
+} from "./domain-experience-surface";
 import {
   getProductIntelligenceSection,
   type ProductIntelligenceCategory,
   type ProductIntelligenceModel,
   type ProductIntelligenceSection
 } from "@/lib/product-intelligence";
+import type {
+  WorkspaceLayoutState,
+  WorkspacePreferences,
+  WorkspaceSessionSummary
+} from "@/lib/workspace-persistence";
+import type { SessionUsageSummary } from "@/lib/session-usage-ledger";
 import type {
   EvaluationHistoryRecord,
   FeedbackSentiment
@@ -20,6 +29,29 @@ type DashboardFeedback = {
   onSubmit: (sentiment: FeedbackSentiment, comment: string | null) => void;
 };
 
+type DashboardSettingsControls = {
+  isFocusMode: boolean;
+  isPreviewOpen: boolean;
+  layoutState: WorkspaceLayoutState;
+  onDensityChange: (density: WorkspaceLayoutState["density"]) => void;
+  onFocusModeToggle: () => void;
+  onInspectorToggle: () => void;
+  onPreferencesChange: (preferences: Partial<WorkspacePreferences>) => void;
+  onPreviewToggle: () => void;
+  onSidebarToggle: () => void;
+  preferences: WorkspacePreferences;
+};
+
+type DashboardSessionControls = {
+  activeSessionId: string;
+  onCreate: () => void;
+  onDelete: (sessionId: string) => void;
+  onRename: (sessionId: string, title: string) => void;
+  onSelect: (sessionId: string) => void;
+  sessions: WorkspaceSessionSummary[];
+  usage: SessionUsageSummary[];
+};
+
 type ProductIntelligenceDashboardProps = {
   activeCategory: ProductIntelligenceCategory;
   model: ProductIntelligenceModel;
@@ -28,15 +60,25 @@ type ProductIntelligenceDashboardProps = {
   onRunEvaluation?: () => Promise<void>;
   evaluationHistory?: EvaluationHistoryRecord[];
   feedback?: DashboardFeedback;
+  settings?: DashboardSettingsControls;
+  sessions?: DashboardSessionControls;
 };
 
 type DashboardGroupId =
   | "overview"
   | "architecture"
+  | "workflow"
   | "workspace"
+  | "runtime"
+  | "preview"
+  | "artifacts"
+  | "domains"
   | "knowledge"
-  | "ai_memory"
+  | "ai_agents"
+  | "memory"
+  | "sessions"
   | "telemetry"
+  | "evaluation"
   | "manual"
   | "settings";
 
@@ -57,37 +99,85 @@ const dashboardGroups: DashboardGroup[] = [
   },
   {
     id: "architecture",
-    label: "Architecture & Workflow",
-    detail: "Routing, workflow progress, and agent responsibilities.",
-    categories: ["Architecture", "Workflow", "Agents"]
+    label: "Architecture",
+    detail: "How single- and multi-agent routes are assembled.",
+    categories: ["Architecture"]
+  },
+  {
+    id: "workflow",
+    label: "Workflow",
+    detail: "Live progress, transitions, and recovery state.",
+    categories: ["Workflow"]
   },
   {
     id: "workspace",
-    label: "Workspace & Runtime",
-    detail: "Preview, code, artifacts, and runtime health.",
-    categories: ["Runtime", "Preview", "Code", "Artifacts"]
+    label: "Workspace",
+    detail: "Generated source and the active creative document.",
+    categories: ["Code"]
+  },
+  {
+    id: "runtime",
+    label: "Runtime",
+    detail: "Renderer health, diagnostics, and recovery state.",
+    categories: ["Runtime"]
+  },
+  {
+    id: "preview",
+    label: "Preview",
+    detail: "Browser output, renderer route, and ready state.",
+    categories: ["Preview"]
+  },
+  {
+    id: "artifacts",
+    label: "Artifacts",
+    detail: "Every generated deliverable, source excerpt, and session.",
+    categories: ["Artifacts"]
+  },
+  {
+    id: "domains",
+    label: "Domains",
+    detail: "What can run live, export source, or hand off externally.",
+    categories: ["Domains"]
   },
   {
     id: "knowledge",
-    label: "Knowledge & Domains",
-    detail: "Domain contracts, source inventory, and current retrieval.",
-    categories: ["Domains", "Knowledge Base", "Retrieval"]
+    label: "Knowledge Base",
+    detail: "Official sources, index coverage, and freshness controls.",
+    categories: ["Knowledge Base", "Retrieval"]
   },
   {
-    id: "ai_memory",
-    label: "AI, Agents & Memory",
-    detail: "Session context, provider route, and privacy-safe memory detail.",
-    categories: ["Memory", "Sessions", "Providers"]
+    id: "ai_agents",
+    label: "AI & agents",
+    detail: "Provider route, model context, and agent responsibilities.",
+    categories: ["Agents", "Providers"]
+  },
+  {
+    id: "memory",
+    label: "Memory",
+    detail: "Published context counts and privacy-safe session history.",
+    categories: ["Memory"]
+  },
+  {
+    id: "sessions",
+    label: "Sessions",
+    detail: "Manage saved creative sessions and their artifacts.",
+    categories: ["Sessions"]
   },
   {
     id: "telemetry",
-    label: "Telemetry & Evaluation",
-    detail: "Usage, runtime signals, validation, product bugs, and traces.",
-    categories: ["Telemetry", "Metrics", "Validation", "Product Bugs", "LangSmith"]
+    label: "Telemetry",
+    detail: "Usage, token accounting, cost estimates, and runtime signals.",
+    categories: ["Telemetry", "Metrics"]
+  },
+  {
+    id: "evaluation",
+    label: "Evaluation",
+    detail: "Validation, product signals, and observable traces.",
+    categories: ["Validation", "Product Bugs", "LangSmith"]
   },
   {
     id: "manual",
-    label: "Manual",
+    label: "Manual guide",
     detail: "A concise guide to inspecting a creative run.",
     categories: [],
     secondary: true
@@ -108,7 +198,9 @@ export function ProductIntelligenceDashboard({
   onClose,
   onRunEvaluation,
   evaluationHistory = [],
-  feedback
+  feedback,
+  settings,
+  sessions
 }: ProductIntelligenceDashboardProps) {
   const [activeGroupId, setActiveGroupId] = useState<DashboardGroupId>(() =>
     getDashboardGroup(activeCategory).id
@@ -186,12 +278,12 @@ export function ProductIntelligenceDashboard({
             {primarySection?.summary ?? "Guide"}
           </div>
           <button
-            aria-label="Return to workspace"
+            aria-label="Close dashboard"
             onClick={onClose}
-            title="Return to workspace"
+            title="Close dashboard"
             type="button"
           >
-            <ArrowLeft aria-hidden="true" size={16} />
+            <X aria-hidden="true" size={18} />
           </button>
         </header>
         <DashboardGroupView
@@ -201,6 +293,8 @@ export function ProductIntelligenceDashboard({
           onRunEvaluation={onRunEvaluation ? runEvaluation : undefined}
           evaluationHistory={evaluationHistory}
           feedback={feedback}
+          settings={settings}
+          sessions={sessions}
         />
       </div>
     </section>
@@ -213,7 +307,9 @@ function DashboardGroupView({
   model,
   onRunEvaluation,
   evaluationHistory,
-  feedback
+  feedback,
+  settings,
+  sessions
 }: {
   evaluationRunning: boolean;
   group: DashboardGroup;
@@ -221,6 +317,8 @@ function DashboardGroupView({
   onRunEvaluation?: () => Promise<void>;
   evaluationHistory: EvaluationHistoryRecord[];
   feedback?: DashboardFeedback;
+  settings?: DashboardSettingsControls;
+  sessions?: DashboardSessionControls;
 }) {
   if (group.id === "manual") {
     return (
@@ -244,6 +342,10 @@ function DashboardGroupView({
     );
   }
 
+  if (group.id === "settings" && settings) {
+    return <DashboardSettings controls={settings} />;
+  }
+
   return (
     <div className="productDashboardGroup" aria-label={`${group.label} details`}>
       {group.categories.map((category) => {
@@ -251,9 +353,12 @@ function DashboardGroupView({
         return (
           <section className="productDashboardGroupSection" key={category}>
             <header>
-              <span>{category}</span>
-              <strong>{section.summary}</strong>
-              <p>{section.detail}</p>
+              <div>
+                <span>{category}</span>
+                <strong>{section.summary}</strong>
+                <p>{section.detail}</p>
+              </div>
+              <ProductIntelligenceHelp section={section} />
             </header>
             {category === "Metrics" && onRunEvaluation ? (
               <>
@@ -272,7 +377,12 @@ function DashboardGroupView({
           </section>
         );
       })}
-      {group.id === "ai_memory" && feedback ? (
+      {group.id === "architecture" ? <ArchitectureRouteGuide /> : null}
+      {group.id === "knowledge" ? <KnowledgePrinciples /> : null}
+      {group.id === "artifacts" ? <ArtifactRegistry model={model} /> : null}
+      {group.id === "sessions" && sessions ? <SessionRegistry controls={sessions} /> : null}
+      {group.id === "telemetry" && sessions ? <UserUsageOverview usage={sessions.usage} /> : null}
+      {group.id === "ai_agents" && feedback ? (
         <section className="productDashboardGroupSection productDashboardFeedback">
           <header>
             <span>Feedback</span>
@@ -287,6 +397,304 @@ function DashboardGroupView({
       ) : null}
     </div>
   );
+}
+
+function ArchitectureRouteGuide() {
+  const routes = [
+    {
+      title: "Single agent",
+      detail: "One focused path keeps a contained request direct and fast.",
+      nodes: ["Understand", "Plan", "Create", "Review"]
+    },
+    {
+      title: "Multi-agent",
+      detail: "Specialist roles add retrieval and critique when the brief needs it.",
+      nodes: ["Understand", "Research", "Create", "Critique", "Review"]
+    },
+    {
+      title: "Auto",
+      detail: "The route is selected from the request’s scope and evidence needs.",
+      nodes: ["Assess", "Choose route", "Run safely", "Review"]
+    }
+  ];
+
+  return (
+    <section aria-label="Workflow route guide" className="dashboardFeature architectureRouteGuide">
+      <header>
+        <div>
+          <span>Route guide</span>
+          <strong>Three clear ways work can move through the studio</strong>
+          <p>The live Architecture card above reports the route used for the current run.</p>
+        </div>
+      </header>
+      <div className="architectureRouteGrid">
+        {routes.map((route) => (
+          <article key={route.title}>
+            <strong>{route.title}</strong>
+            <p>{route.detail}</p>
+            <ol aria-label={`${route.title} workflow`}>
+              {route.nodes.map((node, index) => (
+                <li key={node}>
+                  <span>{index + 1}</span>
+                  {node}
+                </li>
+              ))}
+            </ol>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function KnowledgePrinciples() {
+  const principles = [
+    ["Composition", "Balance focus, hierarchy, negative space, and framing."],
+    ["Light & colour", "Use contrast, palette rhythm, and legible visual depth."],
+    ["Motion & sound", "Shape timing, repetition, response, and emotional cadence."],
+    ["Interaction", "Make controls discoverable and the response easy to read."],
+    ["Runtime care", "Prefer browser-safe choices and state fallback boundaries clearly."]
+  ];
+
+  return (
+    <section aria-label="Creative design principles" className="dashboardFeature knowledgePrinciples">
+      <header>
+        <div>
+          <span>Creative principles</span>
+          <strong>Visible creative criteria, separate from the source inventory</strong>
+          <p>These are the product’s readable design lenses—not hidden provider reasoning.</p>
+        </div>
+      </header>
+      <ul>
+        {principles.map(([label, detail]) => (
+          <li key={label}>
+            <strong>{label}</strong>
+            <span>{detail}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function ArtifactRegistry({ model }: { model: ProductIntelligenceModel }) {
+  if (model.artifactRegistry.length === 0) {
+    return (
+      <section aria-label="Artifact registry" className="dashboardFeature dashboardEmptyState">
+        <strong>No artifacts in this session yet</strong>
+        <p>Generated source and export handoffs will appear here with their session and code excerpt.</p>
+      </section>
+    );
+  }
+
+  return (
+    <section aria-label="Artifact registry" className="dashboardFeature artifactRegistry">
+      <header>
+        <div>
+          <span>Artifact registry</span>
+          <strong>{model.artifactRegistry.length} saved deliverable{model.artifactRegistry.length === 1 ? "" : "s"}</strong>
+          <p>Every entry names its source session and keeps a readable, bounded source excerpt.</p>
+        </div>
+      </header>
+      <div role="list">
+        {model.artifactRegistry.map((artifact) => (
+          <article key={artifact.id} role="listitem">
+            <header>
+              <div>
+                <span>{artifact.type}</span>
+                <strong>{artifact.title}</strong>
+                <p>{artifact.summary}</p>
+              </div>
+              <span data-status={artifact.status}>{artifact.status}</span>
+            </header>
+            <dl>
+              <div><dt>Session</dt><dd>{model.session.title}</dd></div>
+              <div><dt>Language</dt><dd>{artifact.language}</dd></div>
+              <div><dt>Preview</dt><dd>{artifact.previewEligible ? "Available" : "Not available"}</dd></div>
+            </dl>
+            <details>
+              <summary>View source excerpt</summary>
+              <pre><code>{artifactSnippet(artifact.content)}</code></pre>
+            </details>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function artifactSnippet(content: string | undefined) {
+  if (!content?.trim()) {
+    return "Source was not retained for this artifact.";
+  }
+  const lines = content.trim().split("\n");
+  return `${lines.slice(0, 18).join("\n")}${lines.length > 18 ? "\n…" : ""}`;
+}
+
+function SessionRegistry({ controls }: { controls: DashboardSessionControls }) {
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+
+  function beginRename(session: WorkspaceSessionSummary) {
+    setEditingSessionId(session.sessionId);
+    setTitle(session.title);
+  }
+
+  function saveRename(sessionId: string) {
+    const nextTitle = title.trim();
+    if (nextTitle) {
+      controls.onRename(sessionId, nextTitle);
+    }
+    setEditingSessionId(null);
+    setTitle("");
+  }
+
+  return (
+    <section aria-label="Session registry" className="dashboardFeature sessionRegistry">
+      <header>
+        <div>
+          <span>Session registry</span>
+          <strong>{controls.sessions.length} local creative session{controls.sessions.length === 1 ? "" : "s"}</strong>
+          <p>Sessions are stored for this browser profile. Rename, open, or remove them here.</p>
+        </div>
+        <button onClick={controls.onCreate} type="button">New session</button>
+      </header>
+      <div className="sessionRegistryTable" role="table" aria-label="Saved sessions">
+        <div role="row">
+          <span role="columnheader">Session</span>
+          <span role="columnheader">Artifacts</span>
+          <span role="columnheader">Tokens</span>
+          <span role="columnheader">Last activity</span>
+          <span role="columnheader">Actions</span>
+        </div>
+        {controls.sessions.map((session) => {
+          const isEditing = editingSessionId === session.sessionId;
+          const isActive = session.sessionId === controls.activeSessionId;
+          const usage = controls.usage.find((entry) => entry.sessionId === session.sessionId);
+          return (
+            <div data-active={isActive ? "true" : "false"} key={session.sessionId} role="row">
+              <div role="cell">
+                {isEditing ? (
+                  <form onSubmit={(event) => { event.preventDefault(); saveRename(session.sessionId); }}>
+                    <input aria-label={`Session name for ${session.title}`} autoFocus onChange={(event) => setTitle(event.currentTarget.value)} value={title} />
+                    <button type="submit">Save</button>
+                  </form>
+                ) : (
+                  <button onClick={() => controls.onSelect(session.sessionId)} type="button">
+                    {session.title}{isActive ? " · Current" : ""}
+                  </button>
+                )}
+              </div>
+              <span role="cell">{session.artifactCount}</span>
+              <span role="cell">
+                {usage?.totalTokens != null
+                  ? `${formatCompactUsage(usage.totalTokens)} · ${usage.knownTokenRunCount}/${usage.runCount} runs`
+                  : "Not reported"}
+              </span>
+              <time dateTime={session.updatedAt ?? undefined} role="cell">{formatSessionTimestamp(session.updatedAt)}</time>
+              <div role="cell">
+                <button onClick={() => beginRename(session)} type="button">Rename</button>
+                <button onClick={() => controls.onDelete(session.sessionId)} type="button">Delete</button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function UserUsageOverview({ usage }: { usage: SessionUsageSummary[] }) {
+  const knownTokenSessions = usage.filter((entry) => entry.totalTokens != null);
+  const knownCostSessions = usage.filter((entry) => entry.totalCost != null);
+  const totalTokens = knownTokenSessions.reduce(
+    (total, entry) => total + (entry.totalTokens ?? 0),
+    0
+  );
+  const totalCost = knownCostSessions.reduce(
+    (total, entry) => total + (entry.totalCost ?? 0),
+    0
+  );
+  const runCount = usage.reduce((total, entry) => total + entry.runCount, 0);
+
+  return (
+    <section aria-label="Browser profile usage" className="dashboardFeature userUsageOverview">
+      <header>
+        <div>
+          <span>Browser profile totals</span>
+          <strong>Usage retained across local sessions</strong>
+          <p>Only provider-published token and cost data is counted. Missing provider fields remain visibly unreported.</p>
+        </div>
+      </header>
+      <dl>
+        <div><dt>Sessions</dt><dd>{usage.length}</dd></div>
+        <div><dt>Completed runs</dt><dd>{runCount}</dd></div>
+        <div><dt>Known tokens</dt><dd>{knownTokenSessions.length ? formatCompactUsage(totalTokens) : "Not reported"}</dd></div>
+        <div><dt>Known cost</dt><dd>{knownCostSessions.length ? `$${totalCost.toFixed(4)}` : "Not reported"}</dd></div>
+      </dl>
+    </section>
+  );
+}
+
+function formatSessionTimestamp(value: string | null) {
+  if (!value) return "Not recorded";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+}
+
+function formatCompactUsage(value: number) {
+  return new Intl.NumberFormat(undefined, {
+    notation: "compact",
+    maximumFractionDigits: 1
+  }).format(value);
+}
+
+function DashboardSettings({ controls }: { controls: DashboardSettingsControls }) {
+  const { layoutState, preferences } = controls;
+  const themes: WorkspacePreferences["theme"][] = ["aqua", "codex", "light", "matrix", "terminal", "horizon", "zen", "blueprint"];
+  const scales: WorkspacePreferences["uiFontSize"][] = ["small", "medium", "large"];
+
+  return (
+    <section aria-label="Dashboard settings" className="dashboardSettings">
+      <article>
+        <header><span>Appearance</span><strong>Theme and colour</strong><p>The selected theme controls the accessible text, surface, and accent colours for this saved session.</p></header>
+        <div className="dashboardThemeChoices" role="group" aria-label="Theme options">
+          {themes.map((theme) => (
+            <button aria-pressed={preferences.theme === theme} data-theme={theme} key={theme} onClick={() => controls.onPreferencesChange({ theme })} type="button">{theme}</button>
+          ))}
+        </div>
+      </article>
+      <article>
+        <header><span>Typography</span><strong>Comfortable reading</strong><p>Adjust the application and code scales independently. These settings are restored with this session.</p></header>
+        <div className="dashboardSettingRows">
+          <DashboardScaleControl label="Interface text" onChange={(uiFontSize) => controls.onPreferencesChange({ uiFontSize })} scales={scales} value={preferences.uiFontSize} />
+          <DashboardScaleControl label="Code text" onChange={(codeFontSize) => controls.onPreferencesChange({ codeFontSize })} scales={scales} value={preferences.codeFontSize} />
+        </div>
+      </article>
+      <article>
+        <header><span>Workspace</span><strong>Layout and focus</strong><p>Bring back the compact, focus, preview, and developer controls that are intentionally removed from the top bar.</p></header>
+        <div className="dashboardSettingRows">
+          <DashboardToggle label="Density" onClick={() => controls.onDensityChange(layoutState.density === "cozy" ? "compact" : "cozy")} value={layoutState.density === "cozy" ? "Cozy" : "Compact"} />
+          <DashboardToggle label="Focus" onClick={controls.onFocusModeToggle} value={controls.isFocusMode ? "On" : "Off"} />
+          <DashboardToggle label="Sessions rail" onClick={controls.onSidebarToggle} value={layoutState.sidebarCollapsed ? "Collapsed" : "Open"} />
+          <DashboardToggle label="Inspector" onClick={controls.onInspectorToggle} value={layoutState.inspectorCollapsed ? "Collapsed" : "Open"} />
+          <DashboardToggle label="Preview shelf" onClick={controls.onPreviewToggle} value={controls.isPreviewOpen ? "Open" : "Closed"} />
+          <DashboardToggle label="Display mode" onClick={() => controls.onPreferencesChange({ showDebugPanels: !preferences.showDebugPanels })} value={preferences.showDebugPanels ? "Developer" : "User"} />
+          <DashboardToggle label="Preview behavior" onClick={() => controls.onPreferencesChange({ autoOpenPreview: !preferences.autoOpenPreview })} value={preferences.autoOpenPreview ? "Automatic" : "Manual"} />
+        </div>
+      </article>
+    </section>
+  );
+}
+
+function DashboardScaleControl({ label, onChange, scales, value }: { label: string; onChange: (value: WorkspacePreferences["uiFontSize"]) => void; scales: WorkspacePreferences["uiFontSize"][]; value: WorkspacePreferences["uiFontSize"]; }) {
+  return <div className="dashboardScaleControl"><strong>{label}</strong><div>{scales.map((scale) => <button aria-pressed={value === scale} key={scale} onClick={() => onChange(scale)} type="button">{scale}</button>)}</div></div>;
+}
+
+function DashboardToggle({ label, onClick, value }: { label: string; onClick: () => void; value: string }) {
+  return <button className="dashboardToggle" onClick={onClick} type="button"><span>{label}</span><strong>{value}</strong></button>;
 }
 
 function EvaluationHistory({ history }: { history: EvaluationHistoryRecord[] }) {
@@ -397,6 +805,16 @@ function ProductIntelligenceSectionView({
         activeDomainId={model.activeDomainId}
         catalog={model.domainExperience}
         detailed={detailed}
+        includeKnowledgeBase={false}
+      />
+    );
+  }
+
+  if (section.category === "Knowledge Base") {
+    return (
+      <KnowledgeBaseInventorySurface
+        detailed={detailed}
+        inventory={model.domainExperience.knowledgeBase}
       />
     );
   }

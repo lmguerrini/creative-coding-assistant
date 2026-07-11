@@ -162,6 +162,11 @@ import {
   type CreativeCostRunRecord
 } from "@/lib/creative-cost-intelligence";
 import {
+  readSessionUsageSummaries,
+  recordSessionUsageRun,
+  type SessionUsageSummary
+} from "@/lib/session-usage-ledger";
+import {
   buildTelemetryDashboardModel,
   type TelemetryDashboardModel
 } from "@/lib/telemetry-dashboard";
@@ -407,7 +412,7 @@ const themePresetOptions = [
   {
     value: "aqua",
     label: "Aqua",
-    description: "Current studio default with cool aqua accents.",
+    description: "Teal-aqua studio accents with a cool, luminous contrast.",
     accent: "#4cd7c8",
     surface: "linear-gradient(135deg, rgba(76, 215, 200, 0.24), rgba(124, 167, 255, 0.16))"
   },
@@ -530,6 +535,9 @@ export function WorkstationShell({
   const [creativeCostRunHistory, setCreativeCostRunHistory] = useState<
     CreativeCostRunRecord[]
   >([]);
+  const [sessionUsageSummaries, setSessionUsageSummaries] = useState<
+    SessionUsageSummary[]
+  >([]);
   const [previewRuntimeLive, setPreviewRuntimeLive] =
     useState<RuntimeConsoleLiveSnapshot | null>(null);
   const [persistenceState, setPersistenceState] =
@@ -628,6 +636,7 @@ export function WorkstationShell({
 
   useEffect(() => {
     setWorkspaceSessions(listLocalWorkspaceSessions(workspaceIdentity.userId));
+    setSessionUsageSummaries(readSessionUsageSummaries(workspaceIdentity.userId));
   }, [workspaceIdentity.userId]);
 
   useEffect(() => {
@@ -1170,7 +1179,15 @@ export function WorkstationShell({
         ? currentHistory
         : [...currentHistory, completedRun]
     );
-  }, [providerTelemetry, workflowTraceEvents]);
+    setSessionUsageSummaries(
+      recordSessionUsageRun({
+        run: completedRun,
+        sessionId: workspaceIdentity.sessionId,
+        title: snapshot.session.title || snapshot.workspace.name,
+        userId: workspaceIdentity.userId
+      })
+    );
+  }, [providerTelemetry, snapshot.session.title, snapshot.workspace.name, workflowTraceEvents, workspaceIdentity.sessionId, workspaceIdentity.userId]);
   const retrievalRuntime = useMemo(
     () => buildRetrievalRuntimeModel(interactiveSnapshot.retrieval, workflowTraceEvents),
     [interactiveSnapshot.retrieval, workflowTraceEvents]
@@ -1685,13 +1702,33 @@ export function WorkstationShell({
     setWorkspaceSessions(listLocalWorkspaceSessions(workspaceIdentity.userId));
   }
 
-  function handleSessionRename(sessionId: string, title: string) {
-    if (sessionId !== workspaceIdentity.sessionId || !title.trim()) {
+  async function handleSessionRename(sessionId: string, title: string) {
+    const nextTitle = title.trim();
+    if (!nextTitle) {
       return;
     }
-    replaceSnapshot({
-      ...snapshot,
-      session: { ...snapshot.session, title: title.trim() }
+
+    if (sessionId === workspaceIdentity.sessionId) {
+      replaceSnapshot({
+        ...snapshot,
+        session: { ...snapshot.session, title: nextTitle }
+      });
+      setWorkspaceSessions(listLocalWorkspaceSessions(workspaceIdentity.userId));
+      return;
+    }
+
+    const client = sessionPersistenceClient(sessionId);
+    const loaded = await client.load();
+    if (!loaded.record) {
+      return;
+    }
+    await client.save({
+      ...loaded.record,
+      title: nextTitle,
+      snapshot: {
+        ...loaded.record.snapshot,
+        session: { ...loaded.record.snapshot.session, title: nextTitle }
+      }
     });
     setWorkspaceSessions(listLocalWorkspaceSessions(workspaceIdentity.userId));
   }
@@ -2470,8 +2507,16 @@ export function WorkstationShell({
     const nextOpen = !isDemoModeOpen;
 
     setIsDemoModeOpen(nextOpen);
+    if (nextOpen) {
+      setIsPreviewOpen(false);
+      setIsPreviewFullscreen(false);
+    }
     setOpenUtilityPanel(null);
     setIsAttachmentMenuOpen(false);
+  }
+
+  function handleDemoScenarioSelect(scenario: DemoModeScenario) {
+    setActiveDemoScenarioId(scenario.id);
   }
 
   function handleDemoScenarioLoad(scenario: DemoModeScenario) {
@@ -3519,6 +3564,29 @@ export function WorkstationShell({
                 }
               : undefined
           }
+          sessions={{
+            activeSessionId: workspaceIdentity.sessionId,
+            onCreate: () => void handleCreateSession(),
+            onDelete: (sessionId) => void handleSessionDelete(sessionId),
+            onRename: (sessionId, title) => void handleSessionRename(sessionId, title),
+            onSelect: activateSession,
+            sessions: visibleWorkspaceSessions,
+            usage: sessionUsageSummaries
+          }}
+          settings={{
+            isFocusMode,
+            isPreviewOpen,
+            layoutState,
+            onDensityChange: (density) => updateLayout({ density }),
+            onFocusModeToggle: handleFocusModeToggle,
+            onInspectorToggle: () =>
+              handleInspectorCollapsedChange(!layoutState.inspectorCollapsed),
+            onPreferencesChange: updateWorkspacePreferences,
+            onPreviewToggle: handlePreviewShelfFromControl,
+            onSidebarToggle: () =>
+              updateLayout({ sidebarCollapsed: !layoutState.sidebarCollapsed }),
+            preferences: workspacePreferences
+          }}
         />
       ) : (
       <section className="workspaceLayout" aria-label="Creative workspace">
@@ -3641,9 +3709,9 @@ export function WorkstationShell({
               {isDemoModeOpen ? (
                 <DemoModePanel
                   activeScenario={activeDemoScenario}
-                  isPromptLoaded={composerValue === activeDemoScenario.prompt}
                   scenarios={demoModeScenarios}
                   onLoadScenario={handleDemoScenarioLoad}
+                  onSelectScenario={handleDemoScenarioSelect}
                   showDebugPanels={workspacePreferences.showDebugPanels}
                 />
               ) : null}
@@ -4249,14 +4317,14 @@ function EmptyWorkspaceState({
 
 function DemoModePanel({
   activeScenario,
-  isPromptLoaded,
   onLoadScenario,
+  onSelectScenario,
   scenarios,
   showDebugPanels
 }: {
   activeScenario: DemoModeScenario;
-  isPromptLoaded: boolean;
   onLoadScenario: (scenario: DemoModeScenario) => void;
+  onSelectScenario: (scenario: DemoModeScenario) => void;
   scenarios: readonly DemoModeScenario[];
   showDebugPanels: boolean;
 }) {
@@ -4316,7 +4384,7 @@ function DemoModePanel({
                   (candidate) => candidate.id === item.scenarioId
                 );
                 if (scenario) {
-                  onLoadScenario(scenario);
+                  onSelectScenario(scenario);
                 }
               }}
               type="button"
@@ -4344,7 +4412,7 @@ function DemoModePanel({
                 className="demoScenarioButton"
                 data-active={isActive ? "true" : "false"}
                 key={scenario.id}
-                onClick={() => onLoadScenario(scenario)}
+                onClick={() => onSelectScenario(scenario)}
                 type="button"
               >
                 <span>{getDemoScenarioPublicCategory(scenario)}</span>
@@ -4375,7 +4443,7 @@ function DemoModePanel({
               type="button"
             >
               <Play size={15} aria-hidden="true" />
-              <span>{isPromptLoaded ? "Prompt loaded" : "Load prompt"}</span>
+              <span>Load prompt &amp; run</span>
             </button>
           </header>
 

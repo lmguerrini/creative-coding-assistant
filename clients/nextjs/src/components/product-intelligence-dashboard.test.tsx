@@ -14,6 +14,8 @@ function buildModel(): ProductIntelligenceModel {
   return {
     activeDomainId: null,
     domainExperience: loadingDomainExperienceCatalog,
+    artifactRegistry: [],
+    session: { id: "session-1", title: "Creative workspace" },
     sections: productIntelligenceCategories.map((category) => ({
       category,
       tone: category === "Workflow" ? "active" : "ready",
@@ -30,7 +32,7 @@ function buildModel(): ProductIntelligenceModel {
 }
 
 describe("Product Intelligence surfaces", () => {
-  it("groups Dashboard categories into a concise decision-oriented navigation", () => {
+  it("separates Dashboard categories into focused decision pages", () => {
     const onCategoryChange = vi.fn();
     const onClose = vi.fn();
 
@@ -44,24 +46,26 @@ describe("Product Intelligence surfaces", () => {
     );
 
     expect(screen.getByRole("navigation", { name: "Dashboard categories" }))
-      .toHaveTextContent("Telemetry & Evaluation");
+      .toHaveTextContent("Manual guide");
+    expect(screen.getByRole("navigation", { name: "Dashboard categories" }))
+      .toHaveTextContent("Knowledge Base");
     expect(screen.getByRole("heading", { name: "Overview" })).toBeVisible();
 
-    fireEvent.click(screen.getByLabelText("Help with Overview"));
-    expect(screen.getByRole("note")).toHaveTextContent(
+    fireEvent.click(screen.getAllByLabelText("Help with Overview")[0]!);
+    expect(screen.getAllByRole("note")[0]).toHaveTextContent(
       "Review the metric cards for the current values"
     );
 
     fireEvent.click(
-      screen.getByRole("button", { name: /Architecture & Workflow/ })
+      screen.getByRole("button", { name: /Architecture/ })
     );
     expect(onCategoryChange).toHaveBeenCalledWith("Architecture");
 
-    fireEvent.click(screen.getByRole("button", { name: "Return to workspace" }));
+    fireEvent.click(screen.getByRole("button", { name: "Close dashboard" }));
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it("keeps output feedback in the AI, Agents & Memory Dashboard group", () => {
+  it("keeps output feedback in the AI & agents Dashboard group", () => {
     const onSubmitFeedback = vi.fn();
     const onCategoryChange = vi.fn();
 
@@ -77,11 +81,11 @@ describe("Product Intelligence surfaces", () => {
 
     expect(screen.queryByLabelText("Output feedback")).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /AI, Agents & Memory/ }));
-    expect(onCategoryChange).toHaveBeenCalledWith("Memory");
+    fireEvent.click(screen.getByRole("button", { name: /AI & agents/ }));
+    expect(onCategoryChange).toHaveBeenCalledWith("Agents");
     rerender(
       <ProductIntelligenceDashboard
-        activeCategory="Memory"
+        activeCategory="Agents"
         feedback={{ artifactTitle: "aurora-field.p5.js", onSubmit: onSubmitFeedback }}
         model={buildModel()}
         onCategoryChange={onCategoryChange}

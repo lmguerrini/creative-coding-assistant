@@ -82,6 +82,10 @@ export type CreativeCostSessionSummary = {
   runCount: number;
   generationCount: number;
   refinementCount: number;
+  inputTokens: number | null;
+  outputTokens: number | null;
+  totalTokens: number | null;
+  tokenedRunCount: number;
   artifactCount: number;
   critiqueCount: number;
   reviewCount: number;
@@ -398,6 +402,7 @@ function buildSessionSummary(
   runs: CreativeCostRunRecord[]
 ): CreativeCostSessionSummary {
   const costedRuns = runs.filter((run) => run.cost != null);
+  const tokenedRuns = runs.filter((run) => run.totalTokens != null);
   const currencies = new Set(costedRuns.map((run) => run.currency));
   const hasConsistentCurrency = currencies.size <= 1;
   const totalCost =
@@ -416,6 +421,19 @@ function buildSessionSummary(
       (total, run) => total + run.refinementCount,
       0
     ),
+    inputTokens:
+      tokenedRuns.length > 0
+        ? tokenedRuns.reduce((total, run) => total + (run.inputTokens ?? 0), 0)
+        : null,
+    outputTokens:
+      tokenedRuns.length > 0
+        ? tokenedRuns.reduce((total, run) => total + (run.outputTokens ?? 0), 0)
+        : null,
+    totalTokens:
+      tokenedRuns.length > 0
+        ? tokenedRuns.reduce((total, run) => total + (run.totalTokens ?? 0), 0)
+        : null,
+    tokenedRunCount: tokenedRuns.length,
     artifactCount: runs.reduce((total, run) => total + run.artifactCount, 0),
     critiqueCount: runs.reduce((total, run) => total + run.critiqueCount, 0),
     reviewCount: runs.reduce((total, run) => total + run.reviewCount, 0),

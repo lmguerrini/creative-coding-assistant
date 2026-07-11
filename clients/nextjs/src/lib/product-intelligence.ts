@@ -1,4 +1,4 @@
-import type { AssistantWorkspaceSnapshot } from "./assistant-client";
+import type { ArtifactSummary, AssistantWorkspaceSnapshot } from "./assistant-client";
 import type { ConversationContextModel } from "./conversation-context";
 import {
   getDomainExperienceRecord,
@@ -63,6 +63,11 @@ export type ProductIntelligenceSection = {
 export type ProductIntelligenceModel = {
   activeDomainId: string | null;
   domainExperience: DomainExperienceCatalog;
+  artifactRegistry: ArtifactSummary[];
+  session: {
+    id: string;
+    title: string;
+  };
   sections: ProductIntelligenceSection[];
   summary: {
     activeCount: number;
@@ -357,9 +362,12 @@ export function buildProductIntelligenceModel({
       summary: telemetryDashboard.summary.operatorStatus,
       detail: telemetryDashboard.summary.signalLabel,
       metrics: [
-        metric("Events", String(telemetryDashboard.stream.eventCount)),
-        metric("Errors", String(telemetryDashboard.stream.errorCount)),
-        metric("Coverage", telemetryDashboard.summary.coverageLabel)
+        metric("Run events", String(telemetryDashboard.stream.eventCount)),
+        metric("Session runs", String(telemetryDashboard.creativeCost.session.runCount)),
+        metric("Session tokens", formatTokenCount(telemetryDashboard.creativeCost.session.totalTokens)),
+        metric("Tokens this run", providerTelemetry.summary.tokenLabel),
+        metric("Estimated cost", providerTelemetry.summary.costLabel),
+        metric("Errors", String(telemetryDashboard.stream.errorCount))
       ],
       notes: telemetryDashboard.signals.slice(0, 3).map(
         (signal) => `${signal.label}: ${signal.value} — ${signal.detail}`
@@ -371,9 +379,11 @@ export function buildProductIntelligenceModel({
       summary: telemetryDashboard.summary.runtimeLabel,
       detail: telemetryDashboard.runtime.activity.detail,
       metrics: [
-        metric("First token", providerTelemetry.summary.latencyLabel),
-        metric("Runtime", telemetryDashboard.summary.runtimeLabel),
-        metric("Cost", providerTelemetry.summary.costLabel)
+        metric("Input tokens", formatTokenCount(providerTelemetry.tokenUsage.inputTokens)),
+        metric("Output tokens", formatTokenCount(providerTelemetry.tokenUsage.outputTokens)),
+        metric("Total tokens", formatTokenCount(providerTelemetry.tokenUsage.totalTokens)),
+        metric("Cost", providerTelemetry.summary.costLabel),
+        metric("Run time", telemetryDashboard.summary.runtimeLabel)
       ],
       notes: [providerTelemetry.summary.streamLabel, providerTelemetry.summary.retryLabel]
     }),
@@ -448,6 +458,11 @@ export function buildProductIntelligenceModel({
   return {
     activeDomainId,
     domainExperience,
+    artifactRegistry: snapshot.artifacts,
+    session: {
+      id: snapshot.session.sessionId,
+      title: snapshot.session.title || snapshot.workspace.name
+    },
     sections,
     summary: {
       activeCount: sections.filter((item) => item.tone === "active").length,
@@ -470,6 +485,10 @@ function section(value: ProductIntelligenceSection): ProductIntelligenceSection 
 
 function metric(label: string, value: string): ProductIntelligenceMetric {
   return { label, value };
+}
+
+function formatTokenCount(value: number | null) {
+  return value == null ? "Not reported" : new Intl.NumberFormat().format(value);
 }
 
 function toneForWorkflow(

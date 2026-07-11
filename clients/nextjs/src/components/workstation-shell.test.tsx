@@ -1044,10 +1044,12 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
     expect(screen.queryByRole("region", { name: "Creative workspace" })).not.toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Dashboard categories" }))
-      .toHaveTextContent("Telemetry & Evaluation");
+      .toHaveTextContent("Telemetry");
+    expect(screen.getByRole("navigation", { name: "Dashboard categories" }))
+      .toHaveTextContent("Evaluation");
   });
 
-  it("opens integrated Demo Mode and loads a scenario into the normal composer", () => {
+  it("lets a user inspect a Demo scenario before loading and running its prompt", () => {
     renderShell(getInitialWorkspaceSnapshot());
 
     expect(screen.queryByRole("region", { name: "Demo Mode" })).not.toBeInTheDocument();
@@ -1076,17 +1078,14 @@ describe("WorkstationShell", () => {
       })
     );
 
+    expect(screen.getByRole("region", { name: "Demo Mode" })).toBeVisible();
+    expect(within(demoMode).getAllByText("Physarum drift").length).toBeGreaterThan(1);
+    fireEvent.click(within(demoMode).getByRole("button", { name: /Load prompt & run/ }));
+
     expect(screen.queryByRole("region", { name: "Demo Mode" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
       "Developer"
     );
-    const composer = screen.getByRole("textbox", {
-      name: "Assistant prompt"
-    }) as HTMLTextAreaElement;
-    expect(composer.value).toContain("physarum-drift.p5.js");
-    expect(composer.value).toContain("pointer attraction");
-    expect(demoMode).not.toHaveTextContent(/HoloGenesis/i);
-    expect(demoMode).not.toHaveTextContent(/\bsacred\b/i);
   });
 
   it("keeps the User Mode inspector collapsed and limited to essential tabs", async () => {
@@ -1485,11 +1484,8 @@ describe("WorkstationShell", () => {
       })
     );
 
-    expect(
-      (screen.getByRole("textbox", {
-        name: "Assistant prompt"
-      }) as HTMLTextAreaElement).value
-    ).toContain("physarum-drift.p5.js");
+    expect(screen.getByRole("region", { name: "Demo Mode" })).toBeVisible();
+    expect(within(demoMode).getAllByText("Physarum drift").length).toBeGreaterThan(1);
 
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     fireEvent.click(screen.getByRole("button", { name: "Clear workspace session" }));

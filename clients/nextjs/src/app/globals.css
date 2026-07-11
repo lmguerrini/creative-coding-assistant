@@ -41,6 +41,15 @@ html[data-cca-theme="aqua"] {
   --code-font-size: 12px;
 }
 
+html[data-cca-theme="aqua"] {
+  --teal: #4cd7c8;
+  --blue: #73b7ff;
+  --accent-rgb: 76, 215, 200;
+  --focus-outline: rgba(76, 215, 200, 0.82);
+  --surface-accent: rgba(76, 215, 200, 0.12);
+  --glow-teal: 0 0 0 1px rgba(76, 215, 200, 0.38), 0 0 24px rgba(76, 215, 200, 0.16);
+}
+
 html[data-cca-ui-font-size="small"] { --ui-font-size: 14px; }
 html[data-cca-ui-font-size="medium"] { --ui-font-size: 16px; }
 html[data-cca-ui-font-size="large"] { --ui-font-size: 17px; }
@@ -1491,6 +1500,9 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 .demoModePanel {
   display: grid;
   gap: 14px;
+  max-height: min(760px, calc(100dvh - 210px));
+  overflow: auto;
+  overscroll-behavior: contain;
   padding: 14px;
   border: 1px solid rgba(var(--accent-rgb), 0.26);
   border-radius: 18px;
@@ -13974,6 +13986,496 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   background: var(--surface-2);
 }
 
+/* Dashboard V9.7 follow-up: one decision per page, with scan-friendly cards. */
+.productDashboard {
+  grid-template-columns: minmax(236px, 292px) minmax(0, 1fr);
+}
+
+.productDashboardNav > div {
+  gap: 5px;
+  padding: 10px;
+}
+
+.productDashboardNav button {
+  gap: 5px;
+  padding: 11px 12px;
+  border-radius: 12px;
+}
+
+.productDashboardNav button > span {
+  font-size: 13px;
+  font-weight: 780;
+}
+
+.productDashboardNav button > small {
+  font-size: 11px;
+  line-height: 1.3;
+  white-space: normal;
+}
+
+.productDashboardContentHeader {
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  padding: 24px;
+}
+
+.productDashboardContentHeader p {
+  max-width: 62ch;
+  font-size: 13px;
+}
+
+.productDashboardContentHeader > button {
+  display: grid;
+  width: 38px;
+  min-height: 38px;
+  place-items: center;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.productDashboardGroup {
+  gap: 16px;
+  padding: 16px;
+}
+
+.productDashboardGroupSection,
+.dashboardFeature,
+.dashboardSettings > article {
+  overflow: visible;
+  border-color: rgba(255, 255, 255, 0.13);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.055), transparent 46%),
+    rgba(255, 255, 255, 0.025);
+}
+
+.productDashboardGroupSection > header,
+.dashboardFeature > header,
+.dashboardSettings > article > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
+  padding: 17px 18px;
+}
+
+.productDashboardGroupSection > header > div > span,
+.dashboardFeature > header span,
+.dashboardSettings > article > header span {
+  display: block;
+  color: var(--teal);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.productDashboardGroupSection > header > div > strong,
+.dashboardFeature > header strong,
+.dashboardSettings > article > header strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--foreground);
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.productDashboardGroupSection > header > div > p,
+.dashboardFeature > header p,
+.dashboardSettings > article > header p {
+  margin: 6px 0 0;
+  color: var(--muted-strong);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.productDashboardGroupSection > header .productIntelligenceHelp {
+  margin: 0;
+}
+
+.productDashboardGroupSection > header .productIntelligenceHelp summary {
+  width: 30px;
+  height: 30px;
+}
+
+.productDashboardGroupSection .productIntelligenceSection {
+  padding: 16px 18px 18px;
+}
+
+.productIntelligenceHero {
+  display: none;
+}
+
+.productIntelligenceMetrics {
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 10px;
+}
+
+.productIntelligenceMetrics div {
+  min-height: 76px;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.productIntelligenceMetrics dt {
+  font-size: 10px;
+}
+
+.productIntelligenceMetrics dd {
+  font-size: 15px;
+}
+
+.productIntelligenceNotes {
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.productIntelligenceNotes p {
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.dashboardFeature,
+.dashboardSettings > article {
+  border: 1px solid rgba(255, 255, 255, 0.13);
+}
+
+.architectureRouteGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 18px 18px;
+}
+
+.architectureRouteGrid article {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.architectureRouteGrid article > strong {
+  color: var(--foreground);
+  font-size: 15px;
+}
+
+.architectureRouteGrid article > p {
+  min-height: 38px;
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.architectureRouteGrid ol {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.architectureRouteGrid li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted-strong);
+  font-size: 12px;
+}
+
+.architectureRouteGrid li span {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--accent-ink);
+  background: rgb(var(--accent-rgb));
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.knowledgePrinciples > ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0 18px 18px;
+  list-style: none;
+}
+
+.knowledgePrinciples li {
+  display: grid;
+  gap: 5px;
+  padding: 13px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.knowledgePrinciples li strong { color: var(--foreground); font-size: 13px; }
+.knowledgePrinciples li span { color: var(--muted-strong); font-size: 12px; line-height: 1.4; }
+
+.artifactRegistry > div[role="list"] {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+  padding: 0 18px 18px;
+}
+
+.artifactRegistry article {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.artifactRegistry article > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.artifactRegistry article header div > span,
+.artifactRegistry article header > span {
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.artifactRegistry article header div > strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--foreground);
+  font-size: 15px;
+}
+
+.artifactRegistry article header p {
+  margin: 4px 0 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.artifactRegistry article dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0;
+}
+
+.artifactRegistry article dl div { min-width: 0; }
+.artifactRegistry article dt { color: var(--muted); font-size: 10px; text-transform: uppercase; }
+.artifactRegistry article dd { overflow: hidden; margin: 3px 0 0; color: var(--muted-strong); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+
+.artifactRegistry details {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.artifactRegistry details summary {
+  padding: 9px 10px;
+  color: var(--muted-strong);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.artifactRegistry pre {
+  max-height: 280px;
+  overflow: auto;
+  margin: 0;
+  padding: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.dashboardEmptyState { padding: 18px; }
+.dashboardEmptyState strong { color: var(--foreground); font-size: 16px; }
+.dashboardEmptyState p { margin: 6px 0 0; color: var(--muted-strong); font-size: 13px; }
+
+.userUsageOverview > dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0 18px 18px;
+}
+
+.userUsageOverview dl div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 13px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.userUsageOverview dt { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.userUsageOverview dd { overflow: hidden; margin: 0; color: var(--foreground); font-size: 17px; font-weight: 760; text-overflow: ellipsis; white-space: nowrap; }
+
+.sessionRegistry > header > button,
+.sessionRegistryTable button,
+.dashboardThemeChoices button,
+.dashboardScaleControl button,
+.dashboardToggle {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--muted-strong);
+  background: var(--surface-1);
+  cursor: pointer;
+  font: inherit;
+}
+
+.sessionRegistry > header > button {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.sessionRegistryTable {
+  display: grid;
+  gap: 2px;
+  padding: 0 18px 18px;
+}
+
+.sessionRegistryTable > div {
+  display: grid;
+  grid-template-columns: minmax(170px, 1.4fr) 0.45fr minmax(130px, 0.8fr) minmax(130px, 0.85fr) minmax(140px, 0.9fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px;
+  border-radius: 10px;
+  color: var(--muted-strong);
+  font-size: 12px;
+}
+
+.sessionRegistryTable > div:first-child {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sessionRegistryTable > div:not(:first-child) { background: rgba(255, 255, 255, 0.035); }
+.sessionRegistryTable > div[data-active="true"] { background: rgba(var(--accent-rgb), 0.1); }
+.sessionRegistryTable button { min-height: 30px; padding: 0 8px; font-size: 11px; }
+.sessionRegistryTable div[role="cell"]:last-child { display: flex; flex-wrap: wrap; gap: 6px; }
+.sessionRegistryTable form { display: flex; gap: 6px; }
+.sessionRegistryTable input { min-width: 0; padding: 6px 7px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface-0); }
+
+.dashboardSettings {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+}
+
+.dashboardSettings > article { overflow: hidden; }
+
+.dashboardThemeChoices,
+.dashboardSettingRows {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  padding: 0 18px 18px;
+}
+
+.dashboardThemeChoices button {
+  min-height: 36px;
+  padding: 0 11px;
+  text-transform: capitalize;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.dashboardThemeChoices button[aria-pressed="true"],
+.dashboardScaleControl button[aria-pressed="true"] {
+  border-color: rgba(var(--accent-rgb), 0.5);
+  color: var(--foreground);
+  background: rgba(var(--accent-rgb), 0.12);
+}
+
+.dashboardThemeChoices button[data-theme="aqua"] { box-shadow: inset 0 -2px #4cd7c8; }
+.dashboardThemeChoices button[data-theme="codex"] { box-shadow: inset 0 -2px #339cff; }
+.dashboardThemeChoices button[data-theme="matrix"] { box-shadow: inset 0 -2px #40c977; }
+
+.dashboardScaleControl {
+  display: grid;
+  gap: 8px;
+  min-width: 220px;
+  flex: 1 1 220px;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.dashboardScaleControl > strong { color: var(--foreground); font-size: 13px; }
+.dashboardScaleControl > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.dashboardScaleControl button { min-height: 30px; font-size: 11px; text-transform: capitalize; }
+
+.dashboardToggle {
+  display: grid;
+  min-width: 170px;
+  flex: 1 1 170px;
+  gap: 4px;
+  padding: 12px;
+  text-align: left;
+}
+
+.dashboardToggle span { color: var(--muted); font-size: 11px; }
+.dashboardToggle strong { color: var(--foreground); font-size: 14px; }
+.dashboardToggle:hover,
+.sessionRegistryTable button:hover,
+.dashboardThemeChoices button:hover,
+.dashboardScaleControl button:hover,
+.sessionRegistry > header > button:hover { border-color: rgba(var(--accent-rgb), 0.4); color: var(--foreground); }
+
+.domainExperienceSurface { gap: 18px; }
+.domainExperienceHeader { padding: 18px; }
+.domainExperienceHeader strong { font-size: 20px; }
+.domainExperienceHeader p { font-size: 13px; }
+
+.domainExperienceGroups { display: grid; gap: 18px; }
+.domainExperienceGroups > section { display: grid; gap: 10px; }
+.domainExperienceGroups > section > header { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; }
+.domainExperienceGroups > section > header strong { color: var(--foreground); font-size: 17px; }
+.domainExperienceGroups > section > header p { max-width: 72ch; margin: 4px 0 0; color: var(--muted-strong); font-size: 13px; line-height: 1.42; }
+.domainExperienceGroups > section > header > span { display: grid; min-width: 30px; height: 30px; place-items: center; border-radius: 50%; color: var(--teal); background: rgba(var(--accent-rgb), 0.12); font-size: 12px; font-weight: 850; }
+.domainExperienceGrid { grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); }
+.domainCapabilityCard[data-active="true"] { border-color: rgba(var(--accent-rgb), 0.5); box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.12); }
+.domainCapabilityCard header strong { font-size: 16px; }
+.domainCapabilityCard header p { font-size: 12px; line-height: 1.45; }
+.domainCapabilityMetrics dd { font-size: 12px; }
+.domainCapabilityDetails { border-top: 1px solid var(--section-divider); }
+.domainCapabilityDetails summary { padding: 10px 0 0; color: var(--teal); cursor: pointer; font-size: 12px; font-weight: 750; }
+.domainCapabilityDetails > div { display: grid; gap: 10px; padding: 12px 0 0; }
+
+.kbInventoryLegend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+  margin: 14px 0 0;
+}
+
+.kbInventoryLegend div { padding: 10px; border-radius: 10px; background: rgba(0, 0, 0, 0.1); }
+.kbInventoryLegend dt { color: var(--teal); font-size: 11px; font-weight: 800; }
+.kbInventoryLegend dd { margin: 4px 0 0; color: var(--muted-strong); font-size: 12px; line-height: 1.38; }
+
 @media (max-width: 760px) {
   html,
   body {
@@ -14006,5 +14508,18 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 
   .productDashboard {
     height: auto;
+  }
+
+  .architectureRouteGrid,
+  .userUsageOverview > dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sessionRegistryTable {
+    overflow-x: auto;
+  }
+
+  .sessionRegistryTable > div {
+    min-width: 760px;
   }
 }

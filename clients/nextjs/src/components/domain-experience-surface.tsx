@@ -12,11 +12,13 @@ import {
 export function DomainExperienceSurface({
   activeDomainId,
   catalog,
-  detailed = false
+  detailed = false,
+  includeKnowledgeBase = true
 }: {
   activeDomainId?: string | null;
   catalog: DomainExperienceCatalog;
   detailed?: boolean;
+  includeKnowledgeBase?: boolean;
 }) {
   if (catalog.state === "loading") {
     return (
@@ -43,10 +45,34 @@ export function DomainExperienceSurface({
     : activeDomain
       ? [activeDomain]
       : catalog.domains.filter((record) => record.livePreview).slice(0, 3);
+  const groups = detailed
+    ? [
+        {
+          id: "live",
+          label: "Live in this browser",
+          detail: "Active browser-preview domains. These are the only cards that claim a live in-workspace runtime.",
+          records: records.filter((record) => record.livePreview)
+        },
+        {
+          id: "export",
+          label: "Source export",
+          detail: "Code can be generated or exported; an interactive browser runtime is not claimed.",
+          records: records.filter((record) => record.deliveryKind === "code_export")
+        },
+        {
+          id: "handoff",
+          label: "External-tool handoff",
+          detail: "A documented handoff for the named tool, separate from browser execution.",
+          records: records.filter((record) => record.deliveryKind === "external_handoff")
+        }
+      ].filter((group) => group.records.length > 0)
+    : [];
 
   return (
     <section aria-label="Domain experience" className="domainExperienceSurface">
-      <KnowledgeBaseInventorySurface inventory={catalog.knowledgeBase} detailed={detailed} />
+      {includeKnowledgeBase ? (
+        <KnowledgeBaseInventorySurface inventory={catalog.knowledgeBase} detailed={detailed} />
+      ) : null}
       <header className="domainExperienceHeader">
         <div>
           <span>{detailed ? "Domain registry" : "Domain contract"}</span>
@@ -62,11 +88,37 @@ export function DomainExperienceSurface({
           </p>
         </div>
       </header>
-      <div className={detailed ? "domainExperienceGrid" : "domainExperienceList"} role="list">
-        {records.map((record) => (
-          <DomainCapabilityCard detailed={detailed} key={record.id} record={record} />
-        ))}
-      </div>
+      {detailed ? (
+        <div className="domainExperienceGroups">
+          {groups.map((group) => (
+            <section aria-label={group.label} key={group.id}>
+              <header>
+                <div>
+                  <strong>{group.label}</strong>
+                  <p>{group.detail}</p>
+                </div>
+                <span>{group.records.length}</span>
+              </header>
+              <div className="domainExperienceGrid" role="list">
+                {group.records.map((record) => (
+                  <DomainCapabilityCard
+                    active={record.id === activeDomain?.id}
+                    detailed
+                    key={record.id}
+                    record={record}
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <div className="domainExperienceList" role="list">
+          {records.map((record) => (
+            <DomainCapabilityCard detailed={false} key={record.id} record={record} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -106,6 +158,13 @@ export function KnowledgeBaseInventorySurface({
       </div>
       {detailed ? (
         <>
+          <dl aria-label="Knowledge Base metric guide" className="kbInventoryLegend">
+            <div><dt>Registered</dt><dd>Official sources listed in the product registry.</dd></div>
+            <div><dt>Indexed</dt><dd>Registered sources available in the local search index.</dd></div>
+            <div><dt>Chunks</dt><dd>Searchable passages created from indexed sources.</dd></div>
+            <div><dt>Domains</dt><dd>Creative domains with at least one registered or indexed source.</dd></div>
+            <div><dt>Last indexed</dt><dd>The local index timestamp, not a claim that an upstream site is unchanged.</dd></div>
+          </dl>
           <footer>
             <p>{inventory.freshnessDetail}</p>
             <p>{inventory.updateHint}</p>
@@ -308,9 +367,11 @@ function formatSourceChangeStatus(status: string) {
 }
 
 function DomainCapabilityCard({
+  active = false,
   detailed,
   record
 }: {
+  active?: boolean;
   detailed: boolean;
   record: DomainExperienceRecord;
 }) {
@@ -318,6 +379,7 @@ function DomainCapabilityCard({
     <article
       aria-label={`${record.displayName} capability contract`}
       className="domainCapabilityCard"
+      data-active={active ? "true" : "false"}
       data-delivery={record.deliveryKind}
       role="listitem"
     >
@@ -346,12 +408,15 @@ function DomainCapabilityCard({
         </div>
       </dl>
       {detailed ? (
-        <div className="domainCapabilityDetails">
-          <Detail label="Use for" values={record.intentTriggers} />
-          <Detail label="Runtime" values={record.runtimeRequirements} />
-          <Detail label="Fallback" values={[record.fallback]} />
-          <Detail label="Sources" values={record.knowledgeSourceIds} />
-        </div>
+        <details className="domainCapabilityDetails">
+          <summary>Technical contract</summary>
+          <div>
+            <Detail label="Use for" values={record.intentTriggers} />
+            <Detail label="Runtime" values={record.runtimeRequirements} />
+            <Detail label="Fallback" values={[record.fallback]} />
+            <Detail label="Sources" values={record.knowledgeSourceIds} />
+          </div>
+        </details>
       ) : null}
     </article>
   );
