@@ -26,6 +26,26 @@ describe("artifact naming", () => {
     expect(artifact?.title).toBe("flow-field-particle-system-soft-2.p5.js");
   });
 
+  it("honors an explicit semantic filename when provider output mirrors prompt scaffolding", () => {
+    const [artifact] = assignSemanticArtifactTitles({
+      artifacts: [
+        {
+          ...p5Artifact("exactly-one-executable-tone-named-2.tone.js"),
+          content:
+            "// CCA_VISUAL: cymatics\nconst synth = new Tone.Synth().toDestination();\nTone.Transport.start();",
+          language: "JavaScript + Canvas",
+          rendererId: "surface.canvas",
+          runtime: "canvas"
+        }
+      ],
+      existingTitles: [],
+      prompt:
+        "Create exactly one executable .tone.js artifact named cymatic-chladni.tone.js. Return only the artifact."
+    });
+
+    expect(artifact?.title).toBe("cymatic-chladni.tone.js");
+  });
+
   it("renames a saved artifact and repairs code, preview, and refinement references", () => {
     const baseSnapshot = getLocalWorkspaceSnapshot();
     const source = p5Artifact("aurora-field.p5.js");

@@ -72,18 +72,18 @@ test.describe("V7.4 workstation E2E smoke", () => {
     await installApiMocks(page, "success");
     await expectLoadedWorkstation(page);
 
-    const p5Suggestion =
-      "Create a single .p5.js JavaScript sketch for a flow-field particle system with setup(), draw(), soft trails, and interaction controls. Optimize for browser preview at 60 fps. Use strokeCap(ROUND) for rounded paths. Return only one runnable p5.js artifact.";
-    await page.getByRole("button", { name: p5Suggestion }).click();
+    await page.getByRole("button", { name: "Physarum drift" }).click();
     await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue(
-      p5Suggestion
+      /physarum-drift\.p5\.js/
     );
     await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue(
-      /strokeCap\(ROUND\)/
+      /pointer attraction/
     );
     await page.getByRole("button", { name: "Send prompt" }).click();
 
-    await expectGeneratedPreview(page);
+    await expectGeneratedPreview(page, {
+      artifactTitle: "physarum-drift-2.p5.js"
+    });
     await page.getByRole("tab", { name: "Preview" }).click();
     await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).not.toContainText(
       "No matching live renderer"
@@ -119,6 +119,32 @@ test.describe("V7.4 workstation E2E smoke", () => {
     consoleGate.assertClean();
   });
 
+  test("mounts the Cymatics demo muted with an explicit Tone.js start control", async ({
+    page
+  }) => {
+    const consoleGate = installConsoleGate(page);
+    await installApiMocks(page, "cymatics");
+    await expectLoadedWorkstation(page);
+
+    await submitCreativePrompt(
+      page,
+      "Create exactly one executable .tone.js artifact named cymatic-chladni.tone.js."
+    );
+
+    await expect(page.getByRole("region", { name: "Preview workspace" })).toBeVisible();
+    await page.getByRole("tab", { name: "Preview" }).click();
+    await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
+      "Tone.js audio surface"
+    );
+    const runtime = page.getByRole("group", { name: "Tone.js live runtime" });
+    await expect(runtime).toHaveAttribute("data-runtime-state", "ready");
+    await expect(runtime).toContainText("Audio remains silent until Start audio is selected.");
+    const frame = page.frameLocator('iframe[title="Tone.js preview runtime"]');
+    await expect(frame.locator("canvas")).toBeVisible();
+    await expect(frame.getByRole("button", { name: "Start audio" })).toBeVisible();
+    consoleGate.assertClean();
+  });
+
   test("opens integrated Demo Mode and preloads a curated scenario", async ({
     page
   }) => {
@@ -128,19 +154,17 @@ test.describe("V7.4 workstation E2E smoke", () => {
 
     await page.getByRole("button", { name: "Demo Mode" }).click();
     const demoMode = page.getByRole("region", { name: "Demo Mode" });
+    const demoScenarios = demoMode.getByRole("list", { name: "Demo Mode scenarios" });
     await expect(demoMode).toBeVisible();
     await expect(demoMode).toContainText("Capstone scenarios");
 
-    await demoMode
-      .getByRole("button", { name: /p5\.js Browser Preview Flow Field/ })
+    await demoScenarios
+      .getByRole("button", { name: /Physarum drift/ })
       .click();
 
     await expect(demoMode).toContainText("Prompt loaded");
     await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue(
-      /flow-field particle system/
-    );
-    await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue(
-      /strokeCap\(ROUND\)/
+      /physarum-drift\.p5\.js/
     );
     await expect(demoMode).not.toContainText(/HoloGenesis/i);
     await expect(demoMode).not.toContainText(/\bsacred\b/i);
@@ -156,21 +180,24 @@ test.describe("V7.4 workstation E2E smoke", () => {
 
     await page.getByRole("button", { name: "Demo Mode" }).click();
     const demoMode = page.getByRole("region", { name: "Demo Mode" });
+    const demoScenarios = demoMode.getByRole("list", { name: "Demo Mode scenarios" });
     await expect(demoMode).toBeVisible();
     await expect(page.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
       "data-state",
       "collapsed"
     );
 
-    await expect(demoMode).toContainText("1 flows");
-    await demoMode
-      .getByRole("button", { name: /p5\.js Browser Preview Flow Field/ })
+    await expect(demoMode).toContainText("10 flows");
+    await demoScenarios
+      .getByRole("button", { name: /Physarum drift/ })
       .click();
     await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue(
-      /flow-field particle system/
+      /physarum-drift\.p5\.js/
     );
     await page.getByRole("button", { name: "Send prompt" }).click();
-    await expectGeneratedPreview(page);
+    await expectGeneratedPreview(page, {
+      artifactTitle: "physarum-drift-2.p5.js"
+    });
 
     await expect(demoMode).not.toContainText(/HoloGenesis/i);
     await expect(demoMode).not.toContainText(/\bsacred\b/i);
@@ -187,7 +214,8 @@ test.describe("V7.4 workstation E2E smoke", () => {
     await page.getByRole("button", { name: "Demo Mode" }).click();
     await page
       .getByRole("region", { name: "Demo Mode" })
-      .getByRole("button", { name: /p5\.js Browser Preview Flow Field/ })
+      .getByRole("list", { name: "Demo Mode scenarios" })
+      .getByRole("button", { name: /Physarum drift/ })
       .click();
     await expect(page.getByRole("button", { name: "Display mode" })).toContainText(
       "Developer"

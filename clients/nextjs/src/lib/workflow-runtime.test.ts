@@ -183,6 +183,107 @@ describe("workflow runtime model", () => {
     });
   });
 
+  it("keeps a client-reconciled controlled preview outcome over stale code-only final metadata", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const workflow = {
+      ...snapshot.workflow,
+      currentNode: "finalization" as const,
+      currentStep: "Finalization",
+      status: "Complete",
+      productOutcome: {
+        orchestration_status: "COMPLETED",
+        provider_status: "COMPLETED",
+        generation_status: "COMPLETED",
+        deliverable_status: "USABLE",
+        artifact_extraction_status: "EXTRACTED",
+        artifact_runnability: "RUNNABLE",
+        preview_status: "PREPARED",
+        runtime_health: "PENDING_BROWSER_VALIDATION",
+        product_outcome: "SUCCESS" as const,
+        summary: "The requested artifact is ready for the controlled live preview.",
+        recovery_action: "Open Preview to validate the browser runtime."
+      }
+    };
+    const at = "2026-07-11T10:00:00Z";
+    const runtime = buildWorkflowRuntimeModel(workflow, [
+      {
+        event: {
+          event_type: "final",
+          sequence: 1,
+          payload: {
+            workflow: {
+              current_step: "finalization",
+              phase: "completed",
+              status: "completed",
+              product_outcome: {
+                orchestration_status: "COMPLETED",
+                provider_status: "COMPLETED",
+                generation_status: "COMPLETED",
+                deliverable_status: "USABLE",
+                artifact_extraction_status: "EXTRACTED",
+                artifact_runnability: "UNSUPPORTED",
+                preview_status: "UNAVAILABLE",
+                runtime_health: "NOT_AVAILABLE",
+                product_outcome: "PARTIAL",
+                summary: "A usable artifact was produced, but live preview is unavailable.",
+                recovery_action: "Open Code to use the artifact."
+              }
+            }
+          }
+        },
+        receivedAt: at,
+        receivedAtMs: Date.parse(at)
+      }
+    ]);
+
+    expect(runtime.summary).toMatchObject({
+      status: "completed",
+      activity: { state: "completed", label: "Success", terminal: true },
+      productOutcome: {
+        artifact_runnability: "RUNNABLE",
+        preview_status: "PREPARED",
+        product_outcome: "SUCCESS"
+      }
+    });
+  });
+
+  it("clears a local preview failure after the same runtime reports recovery", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const at = "2026-07-11T10:00:00Z";
+    const runtime = buildWorkflowRuntimeModel(snapshot.workflow, [
+      {
+        event: {
+          event_type: "status",
+          sequence: 1,
+          payload: {
+            code: "preview_runtime_error",
+            message: "Three.js runtime failed: temporary failure.",
+            preview_runtime: { error: "temporary failure" },
+            workflow: { current_step: "finalization", status: "completed" }
+          }
+        },
+        receivedAt: at,
+        receivedAtMs: Date.parse(at)
+      },
+      {
+        event: {
+          event_type: "status",
+          sequence: 2,
+          payload: {
+            code: "preview_runtime_recovered",
+            message: "Three.js runtime running after reload.",
+            workflow: { current_step: "finalization", status: "completed" }
+          }
+        },
+        receivedAt: "2026-07-11T10:00:01Z",
+        receivedAtMs: Date.parse("2026-07-11T10:00:01Z")
+      }
+    ]);
+
+    expect(runtime.error?.type).not.toBe("preview_runtime_failed");
+    expect(runtime.summary.productOutcome.product_outcome).not.toBe("PARTIAL");
+  });
+
   it("keeps a restored successful outcome when local preview telemetry follows it", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const workflow = {

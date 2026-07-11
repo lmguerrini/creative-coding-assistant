@@ -432,7 +432,10 @@ def _phase(
 
 def _symbolic_arc(spec: _ArchetypeSpec, context: _NarrativeContext) -> str:
     subject = _subject_label(context)
-    return f"{spec.arc} Anchor the arc in {subject} without unsupported doctrine."
+    prefix = f"{spec.arc} Anchor the arc in "
+    suffix = " without unsupported doctrine."
+    bounded_subject = _clip(subject, 420 - len(prefix) - len(suffix)).rstrip(".")
+    return f"{prefix}{bounded_subject}{suffix}"
 
 
 def _experiential_goal(context: _NarrativeContext, spec: _ArchetypeSpec) -> str:
@@ -758,6 +761,13 @@ def _has_any(context: _NarrativeContext, values: frozenset[str] | set[str]) -> b
 
 def _normalize(value: str) -> str:
     return " ".join(value.lower().replace("-", " ").split())
+
+
+def _clip(value: str, limit: int) -> str:
+    normalized = " ".join(value.strip().split())
+    if len(normalized) <= limit:
+        return normalized
+    return normalized[: limit - 1].rstrip() + "."
 
 
 def _dedupe(values: list[str]) -> tuple[str, ...]:

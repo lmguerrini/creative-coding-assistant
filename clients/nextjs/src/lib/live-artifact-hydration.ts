@@ -40,6 +40,7 @@ import {
   prepareThreeJavaScriptSource,
   reactThreeFiberBundleRuntimeMessage
 } from "./preview-source-classification";
+import { getToneRuntimeSourceSupportIssue } from "./tone-runtime";
 
 export type LiveArtifactHydrationResult = {
   activeArtifactId: string;
@@ -50,6 +51,7 @@ export type LiveArtifactHydrationResult = {
 };
 
 export type LiveArtifactHydrationOptions = {
+  prompt?: string;
   skipPlainTextArtifact?: boolean;
 };
 
@@ -175,7 +177,7 @@ export function hydrateWorkspaceFromFinalEvent(
   }
 
   return withFinalEventProductOutcome(
-    hydrateWorkspaceFromSources(snapshot, sources),
+    hydrateWorkspaceFromSources(snapshot, sources, { prompt: options.prompt }),
     event
   );
 }
@@ -209,19 +211,11 @@ function withFinalEventProductOutcome(
         }
       : null);
 
-  const reconciledProductOutcome =
-    productOutcome?.product_outcome === "SUCCESS" && !result.previewAvailable
-      ? {
-          ...productOutcome,
-          artifact_runnability: "UNSUPPORTED" as const,
-          preview_status: "UNAVAILABLE" as const,
-          runtime_health: "NOT_AVAILABLE" as const,
-          product_outcome: "PARTIAL" as const,
-          summary:
-            "A usable artifact was produced, but live preview is unavailable.",
-          recovery_action: "Open Code to use the artifact."
-        }
-      : productOutcome;
+  const reconciledProductOutcome = reconcileProductOutcomeForHydratedPreview({
+    hydratedArtifact: result.artifact,
+    productOutcome,
+    previewAvailable: result.previewAvailable
+  });
   const completedSteps = new Set([
     ...(workflowMetadata?.completed_steps ?? []),
     "finalization"
@@ -253,9 +247,61 @@ function withFinalEventProductOutcome(
   };
 }
 
+function reconcileProductOutcomeForHydratedPreview({
+  hydratedArtifact,
+  productOutcome,
+  previewAvailable
+}: {
+  hydratedArtifact: ArtifactSummary | null;
+  productOutcome: AssistantWorkspaceSnapshot["workflow"]["productOutcome"];
+  previewAvailable: boolean;
+}) {
+  if (!productOutcome) {
+    return null;
+  }
+
+  if (productOutcome.product_outcome === "SUCCESS" && !previewAvailable) {
+    return {
+      ...productOutcome,
+      artifact_runnability: "UNSUPPORTED",
+      preview_status: "UNAVAILABLE",
+      runtime_health: "NOT_AVAILABLE",
+      product_outcome: "PARTIAL" as const,
+      summary: "A usable artifact was produced, but live preview is unavailable.",
+      recovery_action: "Open Code to use the artifact."
+    };
+  }
+
+  const hasClientVerifiablePreview =
+    hydratedArtifact !== null &&
+    previewAvailable &&
+    productOutcome.product_outcome === "PARTIAL" &&
+    productOutcome.provider_status !== "FALLBACK" &&
+    productOutcome.deliverable_status === "USABLE" &&
+    (productOutcome.artifact_runnability === "UNSUPPORTED" ||
+      productOutcome.preview_status === "UNAVAILABLE");
+
+  if (!hasClientVerifiablePreview) {
+    return productOutcome;
+  }
+
+  return {
+    ...productOutcome,
+    artifact_extraction_status: "EXTRACTED",
+    artifact_runnability: "RUNNABLE",
+    preview_status: "PREPARED",
+    runtime_health: "PENDING_BROWSER_VALIDATION",
+    product_outcome: "SUCCESS" as const,
+    summary:
+      "The requested artifact is ready for the controlled live preview.",
+    recovery_action: "Open Preview to validate the browser runtime."
+  };
+}
+
 export function hydrateWorkspaceFromArtifactExtractedEvent(
   snapshot: AssistantWorkspaceSnapshot,
-  event: AssistantStreamEvent
+  event: AssistantStreamEvent,
+  options: Pick<LiveArtifactHydrationOptions, "prompt"> = {}
 ): LiveArtifactHydrationResult {
   if (event.event_type !== "artifact_extracted") {
     return {
@@ -270,6 +316,7 @@ export function hydrateWorkspaceFromArtifactExtractedEvent(
   const sources = readStructuredArtifactSources(event.payload);
   return hydrateWorkspaceFromSources(snapshot, sources, {
     artifactHydrationSource: "graph-owned artifact extraction",
+    prompt: options.prompt,
     previewTrigger: "Artifact extraction"
   });
 }
@@ -279,6 +326,7 @@ function hydrateWorkspaceFromSources(
   sources: GeneratedArtifactSource[],
   options: {
     artifactHydrationSource?: string;
+    prompt?: string;
     previewTrigger?: string;
   } = {}
 ): LiveArtifactHydrationResult {
@@ -308,7 +356,7 @@ function hydrateWorkspaceFromSources(
       .filter((inferred) => inferred.semanticNamingEligible)
       .map((inferred) => inferred.id),
     existingTitles: snapshot.artifacts.map((artifact) => artifact.title),
-    prompt: latestWorkspacePrompt(snapshot)
+    prompt: options.prompt?.trim() || latestWorkspacePrompt(snapshot)
   });
   const activeInference =
     inferredArtifacts.find((inferred) => inferred.isDefault) ??
@@ -514,6 +562,18 @@ function sourcesFromAnswer(answer: string | null): GeneratedArtifactSource[] {
     return codeBlocks;
   }
 
+  const bareRuntimeKind = inferRuntimeKind(answer, "", "");
+  if (bareRuntimeKind && appearsToBeBareRuntimeSource(answer)) {
+    return [
+      {
+        content: answer,
+        language: languageForRuntimeKind(bareRuntimeKind),
+        origin: "answer",
+        type: "code"
+      }
+    ];
+  }
+
   return [
     {
       content: answer,
@@ -523,6 +583,23 @@ function sourcesFromAnswer(answer: string | null): GeneratedArtifactSource[] {
       type: "export"
     }
   ];
+}
+
+function appearsToBeBareRuntimeSource(source: string) {
+  return /(?:^|\n)\s*(?:\/\/|const\s+|let\s+|var\s+|function\s+|class\s+|import\s+|export\s+|#version\b|precision\b|void\s+main\b|<svg\b|(?:osc|noise|voronoi|shape|gradient|solid|src)\s*\()/m.test(
+    source
+  );
+}
+
+function languageForRuntimeKind(runtimeKind: CreativeRuntimeKind) {
+  switch (runtimeKind) {
+    case "glsl":
+      return "glsl";
+    case "svg":
+      return "svg";
+    default:
+      return "javascript";
+  }
 }
 
 function parseMarkdownCodeBlocks(answer: string): GeneratedArtifactSource[] {
@@ -610,9 +687,13 @@ function inferGeneratedArtifact(
   const normalizedLanguage = normalizeLanguageToken(source.language ?? "");
   const type = source.type ?? (normalizedLanguage === "markdown" ? "export" : "code");
   const runtimeKind = normalizeRuntimeKind(source.runtime ?? source.rendererId ?? "");
+  const titleHasToneExtension = /\.tone\.(?:js|ts)$/i.test(source.title ?? "");
+  const contentSignalsCymatics = /CCA_VISUAL\s*:\s*cymatics\b/i.test(rawContent);
   const inferredPreviewKind =
     type === "code"
-      ? runtimeKind ??
+      ? titleHasToneExtension || contentSignalsCymatics
+        ? "tone"
+        : runtimeKind ??
         inferRuntimeKind(rawContent, normalizedLanguage, source.title)
       : null;
   const reactThreeFiberSource =
@@ -623,6 +704,8 @@ function inferGeneratedArtifact(
       ? reactThreeFiberBundleRuntimeMessage
       : inferredPreviewKind === "glsl"
         ? getGlslRuntimeSourceSupportIssue(rawContent)
+      : inferredPreviewKind === "tone"
+        ? getToneRuntimeSourceSupportIssue(rawContent)
       : inferredPreviewKind === "p5"
       ? getP5RuntimeSourceSupportIssue(rawContent)
       : inferredPreviewKind === "three"
@@ -700,9 +783,7 @@ function inferGeneratedArtifact(
       source.refinementReason ?? source.critique?.refinementGuidance ?? null,
     refinementPasses: source.refinementPasses ?? [],
     semanticNamingEligible: source.origin === "structured",
-    rendererId: previewKind
-      ? source.rendererId ?? previewRendererIds[previewKind]
-      : null,
+    rendererId: previewKind ? previewRendererIds[previewKind] : null,
     sourceOrder,
     status: source.status ?? "Generated",
     summary: source.summary ?? null,

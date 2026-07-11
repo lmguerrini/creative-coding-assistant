@@ -14,6 +14,22 @@ describe("preview runtime", () => {
     expect(isArtifactPreviewable(snapshot.artifacts[2])).toBe(false);
   });
 
+  it("recovers a bounded shader when a prior classifier left it code-only", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const artifact: ArtifactSummary = {
+      ...snapshot.artifacts[0],
+      actions: ["Open", "Copy", "Download"],
+      content:
+        "// texture is a visual description only\nvoid main() { gl_FragColor = vec4(1.0); }",
+      language: "GLSL",
+      rendererId: null,
+      runtime: null,
+      title: "chladni-light-field.frag"
+    };
+
+    expect(isArtifactPreviewable(artifact)).toBe(true);
+  });
+
   it("derives a generating preview state from the active workflow", () => {
     const snapshot = getLocalWorkspaceSnapshot();
 
@@ -334,8 +350,8 @@ describe("preview runtime", () => {
         }
       })
     ).toMatchObject({
-      state: "generating",
-      status: "Generating",
+      state: "ready",
+      status: "Preview open",
       outputArtifactName: ""
     });
   });

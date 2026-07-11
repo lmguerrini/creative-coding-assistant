@@ -1,28 +1,30 @@
+import {
+  homepagePromptLibrary,
+  rhythmicLineStudyPrompt
+} from "./curated-prompt-library";
+import type { WorkflowExecutionMode } from "./workflow-execution";
+
 export type DemoModeScenario = {
   id: string;
   title: string;
+  concept: string;
+  purpose: string;
   description: string;
   category: string;
   runtime: string;
+  workflowMode: WorkflowExecutionMode;
+  workflow: string;
+  inputRequirement: string;
   prompt: string;
+  expectedArtifact: string;
+  expectedPreview: string;
+  expectedInteraction: string;
+  expectedValidation: string;
+  fallback: string;
   estimatedGenerationTime: string;
-  estimatedTokenUsage: string;
-  workflowType: string;
   providerRequirement: string;
   retrievalRequirement: string;
-  previewAvailability: string;
-  fallbackAvailability: string;
-  expectedOutput: string;
-  complexity: string;
-  recommendedForDemo: string;
-  presentationTime: string;
-  talkingPoint: string;
-  expectedBehavior: string;
-  fallback: string;
-  outputGuidance: string;
-  evidence: string[];
   sourceBoundary: string;
-  validationPath: string;
 };
 
 export type DemoModeRecommendation = {
@@ -32,334 +34,298 @@ export type DemoModeRecommendation = {
   rationale: string;
 };
 
+const [physarumPrompt, kineticPrompt, chladniPrompt, cymaticPrompt] =
+  homepagePromptLibrary;
+
 export const demoModeScenarioCatalog = [
   {
-    id: "three-audio-reactive-visual-system",
-    title: "Three.js Audio-Reactive Visual System",
+    id: "cymatic-chladni-audiovisual",
+    title: "Cymatic Chladni study",
+    concept: cymaticPrompt.concept,
+    purpose: "Open with a memorable audio-visual system that remains safe in a silent room.",
     description:
-      "High-impact 3D browser scene for showing prompt-to-artifact generation, audio boundaries, and visual ambition.",
+      "A deterministic Chladni visualization follows the same compact Tone.js sequence that can be started by the presenter.",
+    category: "Audio-visual browser scene",
+    runtime: cymaticPrompt.runtime,
+    workflowMode: "single_agent",
+    workflow: "Single-agent executable audio artifact",
+    inputRequirement: "No upload is needed; audio stays optional and muted until the presenter chooses Start audio.",
+    prompt: cymaticPrompt.prompt,
+    expectedArtifact: cymaticPrompt.expectedArtifact,
+    expectedPreview:
+      "Muted Chladni visual on load; controlled Tone.js playback after Start audio.",
+    expectedInteraction:
+      "Use Start audio for optional playback, then Stop or Mute. No microphone is requested.",
+    expectedValidation:
+      "Exact source parses to a Tone program, mounts muted, exposes controls, and retains the silent state after reload.",
+    fallback: cymaticPrompt.fallback,
+    estimatedGenerationTime: "Target: 90 seconds for generation and 30 seconds for the muted preview check.",
+    providerRequirement: "Configured provider for a live generation run",
+    retrievalRequirement: "Optional runtime guidance; no microphone or uploaded audio",
+    sourceBoundary:
+      "The visual maps the parsed Tone sequence and tempo; it does not analyze live microphone input or claim scientific measurement."
+  },
+  {
+    id: "physarum-p5-hero",
+    title: "Physarum drift",
+    concept: physarumPrompt.concept,
+    purpose: "Show the quickest path from a clear prompt to a living browser sketch.",
+    description:
+      "A concise particle-trail prompt selected for the controlled p5.js runtime rather than an open-ended simulation claim.",
+    category: "Generative browser sketch",
+    runtime: physarumPrompt.runtime,
+    workflowMode: "single_agent",
+    workflow: "Single-agent runnable-code generation",
+    inputRequirement: "No upload is needed; the pointer is the only live input.",
+    prompt: physarumPrompt.prompt,
+    expectedArtifact: physarumPrompt.expectedArtifact,
+    expectedPreview: "One running p5.js canvas with soft trails and pointer attraction.",
+    expectedInteraction: "Move the pointer to draw the field toward a new local attractor.",
+    expectedValidation:
+      "Exact prompt artifact classification, visible p5 canvas, runtime health, and same-session reload.",
+    fallback: physarumPrompt.fallback,
+    estimatedGenerationTime: "Target: 90 seconds for generation and 30 seconds for the canvas check.",
+    providerRequirement: "Configured provider for a live generation run",
+    retrievalRequirement: "Optional creative-code source grounding",
+    sourceBoundary:
+      "Physarum is a visual inspiration. The sketch is not presented as a biological model."
+  },
+  {
+    id: "kinetic-three-hero",
+    title: "Kinetic orbit sculpture",
+    concept: kineticPrompt.concept,
+    purpose: "Show a spatial, browser-native hero piece with a truthful Three.js route.",
+    description:
+      "A self-contained scene prompt avoids HTML, React, and module assumptions that the bounded runtime cannot execute.",
     category: "3D browser scene",
-    runtime: "Three.js",
-    prompt:
-      "Create a demo-ready Three.js visual: concentric audio-reactive geometry, glow, camera motion, browser-safe audio controls, compact code/artifact direction, validation notes, and fallback. Keep it under 90 code lines or 450 words.",
-    estimatedGenerationTime: "68.8s optimized live smoke",
-    estimatedTokenUsage: "41,518 total / 2,817 output tokens",
-    workflowType: "Single-domain generation with retrieval",
-    providerRequirement: "OpenAI provider configured for live generation",
-    retrievalRequirement: "4 retrieved contexts in optimized smoke",
-    previewAvailability:
-      "Optimized smoke produced artifact events; golden Three.js browser QA remains fallback",
-    fallbackAvailability: "Committed Three.js artifact QA and static launcher",
-    expectedOutput:
-      "Single-file Three.js scene with optional user-gesture audio controls",
-    complexity: "High",
-    recommendedForDemo: "3D visual system",
-    presentationTime: "75-90s",
-    talkingPoint:
-      "Shows visual ambition, browser audio constraints, and conservative fallback handling.",
-    expectedBehavior:
-      "The assistant should produce source-grounded Three.js guidance, artifact direction, runtime constraints, and a fallback plan suitable for the normal preview workflow.",
-    fallback:
-      "Use the committed Three.js golden artifact QA evidence and explain that live audio remains opt-in and browser-controlled.",
-    outputGuidance:
-      "Show geometry, animation mapping, runtime choice, preview route, and the exact boundary between generated code guidance and local browser QA evidence.",
-    evidence: [
-      "demo/golden_artifacts/browser_full_runtime_qa_results.json",
-      "demo/golden_artifacts/qa_manifest.json",
-      "docs/V8_CAPSTONE_EVIDENCE_MATRIX.md"
-    ],
+    runtime: kineticPrompt.runtime,
+    workflowMode: "single_agent",
+    workflow: "Single-agent runnable-code generation",
+    inputRequirement: "No upload is needed; fullscreen is the optional presentation interaction.",
+    prompt: kineticPrompt.prompt,
+    expectedArtifact: kineticPrompt.expectedArtifact,
+    expectedPreview: "One animated Three.js scene with sculpture, lights, and camera motion.",
+    expectedInteraction: "Use fullscreen for the artwork-only view; reload keeps the selected artifact.",
+    expectedValidation:
+      "Exact prompt artifact classification, visible renderer, runtime health, fullscreen, and reload coverage.",
+    fallback: kineticPrompt.fallback,
+    estimatedGenerationTime: "Target: 90 seconds for generation and 45 seconds for fullscreen and reload.",
+    providerRequirement: "Configured provider for a live generation run",
+    retrievalRequirement: "Optional Three.js source grounding",
     sourceBoundary:
-      "Uses registered creative-coding/runtime guidance and local browser QA evidence; does not claim cloud deployment or external DCC execution.",
-    validationPath: "Three.js golden artifact rendered nonblank in local browser QA."
+      "Only the controlled Three.js JavaScript surface is live. React Three Fiber and standalone HTML remain code/export-only."
   },
   {
-    id: "p5-generative-morphogenesis-sketch",
-    title: "p5.js Browser Preview Flow Field",
+    id: "chladni-glsl-hero",
+    title: "Chladni light field",
+    concept: chladniPrompt.concept,
+    purpose: "Show technical depth through a compact, visibly running fragment shader.",
     description:
-      "A bounded p5.js flow-field sketch with rounded paths, soft trails, and interaction controls for the supported browser preview.",
-    category: "2D browser sketch",
-    runtime: "p5.js",
-    prompt:
-      "Create a single .p5.js JavaScript sketch for a flow-field particle system with setup(), draw(), soft trails, and interaction controls. Optimize for browser preview at 60 fps. Use strokeCap(ROUND) for rounded paths. Return only one runnable p5.js artifact.",
-    estimatedGenerationTime: "Configured-provider validation completed",
-    estimatedTokenUsage: "Usage reported by the active provider",
-    workflowType: "Single-domain generation with retrieval",
-    providerRequirement: "OpenAI provider configured for live generation",
-    retrievalRequirement: "Registered p5.js source grounding when available",
-    previewAvailability:
-      "Eligible only through the supported p5.js browser preview contract",
-    fallbackAvailability: "Inspect Code if the browser runtime reports a validation error",
-    expectedOutput:
-      "One runnable p5.js flow-field sketch with soft trails and pointer interaction",
-    complexity: "Bounded",
-    recommendedForDemo: "Browser preview flow field",
-    presentationTime: "45-60s",
-    talkingPoint:
-      "Shows one provider-validated prompt routed to the controlled p5.js browser surface.",
-    expectedBehavior:
-      "The assistant should return one global-mode p5.js artifact with setup(), draw(), supported helpers, and an honest preview outcome.",
-    fallback:
-      "Use Code to inspect the generated artifact and retry with the same bounded p5.js contract if the preview is unavailable.",
-    outputGuidance:
-      "Keep the artifact self-contained, global-mode, and within the documented browser-preview surface.",
-    evidence: [
-      "demo/golden_artifacts/browser_full_runtime_qa_results.json",
-      "demo/golden_demo_dataset.json",
-      "docs/CAPSTONE_EVALUATION_ETHICS.md"
-    ],
+      "A compact shader stays inside the documented WebGL 1 contract and provides a polished silent visual companion to the audio study.",
+    category: "Shader browser scene",
+    runtime: chladniPrompt.runtime,
+    workflowMode: "single_agent",
+    workflow: "Single-agent runnable-code generation",
+    inputRequirement: "No upload is needed; the shader runs from its bounded source alone.",
+    prompt: chladniPrompt.prompt,
+    expectedArtifact: chladniPrompt.expectedArtifact,
+    expectedPreview: "One nonblank animated WebGL fragment field.",
+    expectedInteraction: "Use fullscreen or reload; the shader itself has no hidden external controls.",
+    expectedValidation:
+      "Exact prompt source contract, shader compile/link, nonblank visible frame, runtime health, and reload coverage.",
+    fallback: chladniPrompt.fallback,
+    estimatedGenerationTime: "Target: 90 seconds for generation and 30 seconds for the frame check.",
+    providerRequirement: "Configured provider for a live generation run",
+    retrievalRequirement: "Optional GLSL source grounding",
     sourceBoundary:
-      "The visible demo is restricted to the supported p5.js runtime; unvalidated runtime demos remain unavailable.",
-    validationPath: "Configured-provider artifact review plus local Chromium p5 preview smoke."
+      "This is a bounded WebGL 1 fragment field, not a texture pipeline or display-performance benchmark."
   },
   {
-    id: "glsl-shader-post-processing-visual",
-    title: "GLSL Shader And Post-Processing Visual",
+    id: "retrieval-grounded-design-brief",
+    title: "Source-grounded design brief",
+    concept: "Creative direction tied to retrieved project sources",
+    purpose: "Explain how retrieval supports a creative decision without confusing it with persistent knowledge inventory.",
     description:
-      "Shader-focused flow for proving technical depth, WebGL constraints, and nonblank render evidence.",
-    category: "Shader visual",
-    runtime: "GLSL",
+      "A source-grounded p5.js request makes retrieval evidence, the chosen browser boundary, and the resulting artifact visible in one honest flow.",
+    category: "Retrieval workflow",
+    runtime: "p5.js browser preview with retrieval",
+    workflowMode: "auto",
+    workflow: "Auto-routed retrieval-grounded runnable-code generation",
+    inputRequirement: "No upload is needed; the request draws only on current-run retrieval when available.",
     prompt:
-      "Design a demo-ready GLSL fragment shader or post-processing visual. Include uniforms, resolution/time handling, glow, texture movement, WebGL risks, compact artifact direction, and static fallback. Keep it under 80 shader lines or 400 words.",
-    estimatedGenerationTime: "32.8s optimized live smoke",
-    estimatedTokenUsage: "39,400 total / 2,343 output tokens",
-    workflowType: "Single-domain generation with retrieval",
-    providerRequirement: "OpenAI provider configured for live generation",
-    retrievalRequirement: "5 retrieved contexts in optimized smoke",
-    previewAvailability: "GLSL/WebGL golden artifact compiled and drew nonblank",
-    fallbackAvailability: "Committed GLSL artifact and WebGL QA record",
-    expectedOutput:
-      "Fragment shader or post-processing visual with runtime failure notes",
-    complexity: "Medium-high",
-    recommendedForDemo: "Shader validation",
-    presentationTime: "60-90s",
-    talkingPoint:
-      "Shows direct WebGL validation without claiming display-FPS benchmarking.",
-    expectedBehavior:
-      "The assistant should provide shader structure, runtime tradeoffs, and fallback implementation options with conservative preview claims.",
-    fallback:
-      "Use the committed GLSL golden artifact and WebGL QA evidence if live preview cannot run.",
-    outputGuidance:
-      "Keep the answer grounded in browser shader constraints, nonblank render evidence, and graceful failure handling.",
-    evidence: [
-      "demo/golden_artifacts/browser_full_runtime_qa_results.json",
-      "demo/golden_artifacts/glsl_kaleidoscope_field.frag",
-      "docs/V8_GRAND_ENGINEERING_REVIEW.md"
-    ],
+      "Use current-run retrieval only when sources exist. Return only one global .p5.js artifact named source-grounded-chladni.p5.js with setup() and draw(): a compact Chladni line field with pointer attraction and a source-boundary comment. No imports, HTML, Markdown, or prose.",
+    expectedArtifact: "source-grounded-chladni.p5.js with current-run retrieval evidence",
+    expectedPreview: "One controlled p5.js canvas; retrieval remains visible as evidence rather than an external execution claim.",
+    expectedInteraction: "Move the pointer in the canvas, then open Retrieval in Developer Mode to inspect current-run source grounding.",
+    expectedValidation:
+      "Exact prompt source contract, retrieval diagnostics, visible p5 canvas, runtime health, and a truthful retrieval boundary.",
+    fallback: "Use the visible source boundary and local retrieval status; do not invent citations or retrieval results.",
+    estimatedGenerationTime: "Target: 90 seconds for generation and 30 seconds for retrieval inspection.",
+    providerRequirement: "Configured provider for a live runnable artifact",
+    retrievalRequirement: "Current-run retrieval when sources are available",
     sourceBoundary:
-      "Uses local WebGL QA and static shader checks; does not claim display-FPS benchmarking.",
-    validationPath: "GLSL compiled, linked, drew, and pixel-checked nonblank in local WebGL QA."
+      "Persistent Knowledge Base inventory and request-scoped retrieval are separate product surfaces."
   },
   {
-    id: "hydra-feedback-pattern-demo",
-    title: "Hydra Feedback-Pattern Demo",
+    id: "multi-agent-production-plan",
+    title: "Multi-agent production plan",
+    concept: "A bounded creative plan with explicit specialist roles",
+    purpose: "Demonstrate the visible multi-agent workflow before requesting a final visual artifact.",
     description:
-      "Bounded live-code visual pattern demo for showing validated Hydra support without overstating editor/runtime scope.",
-    category: "Live-code visual pattern",
-    runtime: "Hydra",
+      "The scenario switches the composer to Multi-Agent and makes its roles visible while producing one bounded browser artifact rather than a plan with no deliverable.",
+    category: "Agent workflow",
+    runtime: "p5.js browser preview with multi-agent workflow evidence",
+    workflowMode: "multi_agent",
+    workflow: "Multi-agent runnable-code generation with visible route evidence",
+    inputRequirement: "No upload is needed; the workflow selection is the input under demonstration.",
     prompt:
-      "Create a bounded Hydra feedback-pattern demo for the validated local hydra-synth browser artifact path. Use oscillator layers, modulation, feedback, output routing, runtime assumptions, and GLSL/static fallback. Keep it under 60 Hydra lines or 350 words.",
-    estimatedGenerationTime: "0.4s optimized bounded route; no provider call",
-    estimatedTokenUsage: "N/A; no provider token usage captured",
-    workflowType: "Bounded multi-domain route; artifact QA support only",
-    providerRequirement: "No provider call in optimized smoke; optional for live explanation",
-    retrievalRequirement: "5 retrieved contexts in optimized bounded smoke",
-    previewAvailability:
-      "Validated local hydra-synth browser artifact path only",
-    fallbackAvailability: "Hydra QA record, GLSL guidance, or static artifact evidence",
-    expectedOutput:
-      "Hydra feedback lattice rendered nonblank through local hydra-synth QA",
-    complexity: "High boundary sensitivity",
-    recommendedForDemo: "Feedback-pattern runtime",
-    presentationTime: "30-45s",
-    talkingPoint:
-      "Hydra is supported only through the validated local hydra-synth artifact path.",
-    expectedBehavior:
-      "The assistant should describe a bounded Hydra-compatible chain and clearly explain that support is limited to the validated local hydra-synth artifact path.",
-    fallback:
-      "Use the Hydra golden artifact QA result, or pivot to GLSL guidance if the runtime cannot load.",
-    outputGuidance:
-      "Show runtime load assumptions, nonblank render evidence, and no microphone or full editor claim.",
-    evidence: [
-      "demo/golden_artifacts/hydra_feedback_lattice.js",
-      "demo/golden_artifacts/browser_full_runtime_qa_results.json",
-      "demo/golden_artifacts/README.md"
-    ],
+      "Use the Multi-Agent workflow. Return only one global .p5.js artifact named multi-agent-orbit-study.p5.js with setup() and draw(): a dark orbit study with pointer input and comment naming researcher, creative director, generator, and reviewer. No imports, HTML, Markdown, or prose.",
+    expectedArtifact: "multi-agent-orbit-study.p5.js with visible role-aware route evidence",
+    expectedPreview: "One controlled p5.js canvas after the multi-agent route completes.",
+    expectedInteraction: "Keep Developer Mode visible to inspect the selected execution route and agent roles, then move the pointer in the canvas.",
+    expectedValidation:
+      "Exact prompt workflow mode, route evidence, role comment, visible p5 canvas, and runtime health.",
+    fallback: "Use Single-Agent for the direct line-study artifact if the multi-agent route is unavailable.",
+    estimatedGenerationTime: "Target: 90 seconds for generation and 30 seconds for route inspection.",
+    providerRequirement: "Configured provider for a live multi-agent artifact",
+    retrievalRequirement: "Optional source grounding based on the active request",
     sourceBoundary:
-      "Hydra support is bounded to the validated local hydra-synth browser artifact path.",
-    validationPath: "Hydra golden artifact rendered nonblank through hydra-synth local browser QA."
+      "The plan describes the application's own workflow; it does not execute external creative tools."
   },
   {
-    id: "retrieval-grounded-creative-coding-answer",
-    title: "Retrieval-Grounded Creative Coding Answer",
+    id: "single-agent-line-study",
+    title: "Single-agent line study",
+    concept: rhythmicLineStudyPrompt.concept,
+    purpose: "Contrast a fast, direct generation path with multi-agent planning.",
     description:
-      "Evidence-centered answer path for showing retrieval, source boundaries, and evaluator-safe RAGAs evidence.",
-    category: "RAG answer",
-    runtime: "Assistant workflow",
-    prompt:
-      "Answer a creative-coding runtime question with registered source grounding. In under 350 words, name the retrieved sources, source boundaries, browser validation steps, and retrieval fallback.",
-    estimatedGenerationTime: "19.2s optimized live smoke",
-    estimatedTokenUsage: "38,778 total / 1,286 output tokens",
-    workflowType: "Hybrid retrieval-grounded generation",
-    providerRequirement: "OpenAI provider configured for live answer",
-    retrievalRequirement: "5 retrieved contexts plus redacted/sanitized RAGAs evidence",
-    previewAvailability: "Answer/evidence flow; preview is not required",
-    fallbackAvailability: "Redacted latest-live RAGAs and retrieval smoke evidence",
-    expectedOutput:
-      "Source-grounded creative-coding answer with visible boundaries",
-    complexity: "Medium",
-    recommendedForDemo: "Source-grounded answer",
-    presentationTime: "45-60s",
-    talkingPoint:
-      "Raw private rows stay local while reviewer-safe fixtures carry evaluator evidence.",
-    expectedBehavior:
-      "The assistant should run the normal retrieval-grounded answer path, surface citations/evidence, and keep privacy boundaries clear.",
-    fallback:
-      "Use the redacted latest-live RAGAs results, sanitized RAGAs evidence, and retrieval smoke records if live retrieval is unavailable.",
-    outputGuidance:
-      "Make source grounding visible, avoid unsupported library/runtime claims, and explain what remains to verify locally.",
-    evidence: [
-      "demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl",
-      "demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl",
-      "docs/eval_pipeline.md"
-    ],
+      "A small generative line study makes the selected Single-Agent route easy to explain and compare.",
+    category: "Agent workflow",
+    runtime: rhythmicLineStudyPrompt.runtime,
+    workflowMode: "single_agent",
+    workflow: "Single-agent runnable-code generation",
+    inputRequirement: "No upload is needed; the pointer is the optional canvas interaction.",
+    prompt: rhythmicLineStudyPrompt.prompt,
+    expectedArtifact: rhythmicLineStudyPrompt.expectedArtifact,
+    expectedPreview: "One controlled p5.js line study.",
+    expectedInteraction: "Move the pointer to disturb the line field.",
+    expectedValidation:
+      "Exact prompt route, global-mode source contract, visible p5 canvas, and runtime health.",
+    fallback: rhythmicLineStudyPrompt.fallback,
+    estimatedGenerationTime: "Target: 90 seconds for generation and 30 seconds for the canvas check.",
+    providerRequirement: "Configured provider for a live generation run",
+    retrievalRequirement: "Optional creative-code source grounding",
     sourceBoundary:
-      "Raw private live-session rows are not sent externally; public evidence uses sanitized or redacted fixtures.",
-    validationPath: "Redacted latest-live RAGAs passed with zero skipped rows and zero metric failures."
+      "This is an original prompt pack direction, not a claim about an external artist's implementation."
   },
   {
-    id: "concept-to-visual-translation",
-    title: "Concept-To-Visual Translation",
+    id: "export-handoff-package",
+    title: "Export handoff package",
+    concept: "An inspectable external-tool handoff",
+    purpose: "Show that a strong export is different from a live browser preview.",
     description:
-      "Creative-direction flow for converting abstract language into concrete browser visual decisions.",
-    category: "Creative translation",
-    runtime: "Assistant workflow",
+      "The generated brief can be exported as a package with implementation notes and validation checklist for a supported external handoff.",
+    category: "Export workflow",
+    runtime: "Code/export-only handoff",
+    workflowMode: "auto",
+    workflow: "Artifact generation followed by project-bundle export",
+    inputRequirement: "No upload is needed; export is an explicit local operator action.",
     prompt:
-      "Translate threshold, recursion, and return into a practical browser visual system. Cover geometry, motion, color, runtime, interaction, constraints, and claim boundaries. Avoid spiritual, therapeutic, or authority claims. Keep it under 400 words.",
-    estimatedGenerationTime: "26.3s optimized live smoke",
-    estimatedTokenUsage: "38,919 total / 2,109 output tokens",
-    workflowType: "Single-domain creative translation with retrieval",
-    providerRequirement: "OpenAI provider configured for live generation",
-    retrievalRequirement: "5 retrieved contexts in optimized smoke",
-    previewAvailability:
-      "Generated browser artifact can be inspected when extraction succeeds",
-    fallbackAvailability: "Prompt library, generated artifact QA, and claim-safety explanation",
-    expectedOutput:
-      "Operational visual system guidance with runtime and interaction choices",
-    complexity: "Medium",
-    recommendedForDemo: "Concept translation",
-    presentationTime: "60-90s",
-    talkingPoint:
-      "Demonstrates creative translation while keeping interpretation aesthetic and operational.",
-    expectedBehavior:
-      "The assistant should convert abstract concept language into operational visual design guidance and code-ready structure.",
-    fallback:
-      "Use the prompt library and generated artifact QA evidence to explain the translation path without running a live provider call.",
-    outputGuidance:
-      "Frame the result as concept-to-visual creative direction with implementation notes, not as objective interpretation.",
-    evidence: [
-      "demo/demo_prompt_library.md",
-      "docs/CAPSTONE_EVALUATION_ETHICS.md",
-      "docs/V8_CAPSTONE_EVIDENCE_MATRIX.md"
-    ],
+      "Return only one fenced markdown block named chladni-touchdesigner-handoff.md. Write an audio-visual Chladni TouchDesigner handoff: concept, parameter names, web prototype boundary, implementation notes, validation, and fallback. Do not claim TouchDesigner runs here.",
+    expectedArtifact:
+      "chladni-touchdesigner-handoff.md and an inspectable exported project bundle",
+    expectedPreview: "No internal TouchDesigner live preview; inspect Code and the export package.",
+    expectedInteraction: "Open the artifact, choose export, and inspect the handoff files in the package.",
+    expectedValidation:
+      "Exact prompt artifact, project-bundle contents, explicit code/export-only route, and reload preservation.",
+    fallback: "Use the browser-native Cymatic study instead of implying external execution.",
+    estimatedGenerationTime: "Target: 60 seconds for the brief and 45 seconds for export inspection.",
+    providerRequirement: "Configured provider for a live handoff brief",
+    retrievalRequirement: "Optional external-domain guidance",
     sourceBoundary:
-      "Uses internal creative translation signals as review evidence; it is not treated as objective truth.",
-    validationPath: "Creative translation surfaces are covered by existing frontend tests and evidence documentation."
+      "The application creates an inspectable handoff; it does not install, launch, or execute TouchDesigner."
   },
   {
-    id: "geometry-morphogenesis-visual-system",
-    title: "Geometry And Morphogenesis Visual System",
+    id: "multimodal-reference-study",
+    title: "Reference-guided palette study",
+    concept: "A supplied image reference guides palette and composition without becoming a live texture dependency",
+    purpose: "Show the image-reference workflow while keeping the generated browser artifact self-contained.",
     description:
-      "Multi-runtime generative-system flow for showing geometry, growth rules, and practical preview strategy.",
-    category: "Generative systems",
-    runtime: "p5.js / GLSL",
+      "The presenter attaches a small reference image, then asks for a p5.js palette study that records the image as a creative cue rather than treating it as an executable asset.",
+    category: "Multimodal creative workflow",
+    runtime: "p5.js browser preview with image-reference context",
+    workflowMode: "single_agent",
+    workflow: "Single-agent image-guided runnable-code generation",
+    inputRequirement: "Attach one PNG, JPEG, WebP, or GIF reference image before Send; do not attach private material for a public demo.",
     prompt:
-      "Design a geometry/morphogenesis browser visual system using radial structure, recursive growth, reaction diffusion, branching, flow fields, and particles. Include runtime choice, preview strategy, source boundaries, compact artifact direction, and fallback. Keep it under 450 words.",
-    estimatedGenerationTime: "21.5s optimized live smoke",
-    estimatedTokenUsage: "38,556 total / 1,639 output tokens",
-    workflowType: "Multi-domain generation with retrieval",
-    providerRequirement: "OpenAI provider configured for live generation",
-    retrievalRequirement: "5 retrieved contexts in optimized smoke",
-    previewAvailability: "p5.js and GLSL golden artifacts have browser QA evidence",
-    fallbackAvailability: "p5.js and GLSL QA records plus offline prompts",
-    expectedOutput:
-      "Browser-oriented generative system plan with runtime selection and controls",
-    complexity: "High",
-    recommendedForDemo: "Multi-runtime morphogenesis",
-    presentationTime: "60-90s",
-    talkingPoint:
-      "Shows emergent form through inspectable rules rather than unsupported authority claims.",
-    expectedBehavior:
-      "The assistant should describe a cohesive generative system, choose a practical browser runtime, and keep claims bounded to implementation guidance.",
-    fallback:
-      "Use the p5.js and GLSL golden QA records plus offline prompts if live generation or preview fails.",
-    outputGuidance:
-      "Show how form emerges from rules, how the viewer can inspect parameters, and how to keep performance predictable.",
-    evidence: [
-      "demo/golden_artifacts/browser_full_runtime_qa_results.json",
-      "demo/demo_prompt_library.md",
-      "docs/V8_GRAND_ENGINEERING_REVIEW.md"
-    ],
+      "Using the attached image only as palette and composition guidance, create exactly one global-mode .p5.js artifact named reference-palette-study.p5.js with setup() and draw(). Make a self-contained abstract field with no image loading, external assets, imports, HTML, Markdown, or prose. Return only the artifact.",
+    expectedArtifact: "reference-palette-study.p5.js plus one persisted image-reference record",
+    expectedPreview: "One self-contained p5.js canvas; the source must not fetch or embed the uploaded image.",
+    expectedInteraction: "Attach the reference, inspect the image-reference status, then move the pointer over the generated canvas.",
+    expectedValidation:
+      "Attachment acceptance, request-scoped image metadata, exact prompt source contract, visible p5 canvas, and project-bundle image-reference metadata.",
+    fallback: "Run the same palette-study prompt without an attachment and state that the result is text-guided rather than reference-guided.",
+    estimatedGenerationTime: "Target: 90 seconds for generation and 45 seconds for attachment and canvas inspection.",
+    providerRequirement: "Configured provider that accepts the supplied image reference",
+    retrievalRequirement: "Not required; image-reference context remains separate from retrieval sources",
     sourceBoundary:
-      "Generic geometry/morphogenesis coverage exists in the local knowledge/catalog code; no Jason Webb-specific source claim is made.",
-    validationPath: "p5.js and GLSL golden artifacts have local browser QA evidence."
+      "The attachment is request-scoped creative guidance. The generated preview does not fetch, analyze, or expose the original image as a runtime asset."
   },
   {
-    id: "installation-immersive-scene-planning",
-    title: "Installation And Immersive Scene Planning",
+    id: "failure-recovery-rehearsal",
+    title: "Failure-recovery rehearsal",
+    concept: "An honest provider and offline fallback boundary",
+    purpose: "Show what stays available when a live provider cannot complete a request.",
     description:
-      "Planning and handoff flow for showing local-demo scope, fallback routes, and reviewer-ready project sequencing.",
-    category: "Planning workflow",
-    runtime: "Assistant workflow",
+      "This is a controlled recovery rehearsal: the validation fixture produces the same provider-fallback state that a real unavailable provider would surface, without pretending a fallback is a live preview.",
+    category: "Failure-recovery workflow",
+    runtime: "Controlled provider-fallback and local-draft state",
+    workflowMode: "auto",
+    workflow: "Provider-failure recovery with retry and code-only fallback",
+    inputRequirement: "No upload is needed. Use the controlled failure fixture in validation; never simulate a provider failure in a normal user session.",
     prompt:
-      "Plan a browser-based installation or immersive scene for a gallery demo. Include concept, geometry, audience movement, runtimes, retrieval needs, preview plan, artifact package, evaluation checks, fallback, and handoff boundaries. Keep it under 450 words.",
-    estimatedGenerationTime: "52.2s optimized live smoke",
-    estimatedTokenUsage: "37,699 total / 1,370 output tokens",
-    workflowType: "Planning workflow with retrieval",
-    providerRequirement: "OpenAI provider configured for live planning",
-    retrievalRequirement: "5 retrieved contexts in optimized smoke",
-    previewAvailability: "Preview depends on generated artifact choice",
-    fallbackAvailability:
-      "Integrated Demo Mode, static launcher, offline dataset, and evidence docs",
-    expectedOutput:
-      "Local browser installation plan with demo sequence and handoff boundaries",
-    complexity: "Medium-high",
-    recommendedForDemo: "Installation planning",
-    presentationTime: "45-60s",
-    talkingPoint:
-      "Shows delivery judgment: local browser demo target, not public deployment or external execution.",
-    expectedBehavior:
-      "The assistant should create a bounded project plan with demo sequence, preview strategy, evidence path, and implementation handoff notes.",
-    fallback:
-      "Use the integrated Demo Mode scenario list, external launcher fallback, evidence docs, and offline dataset if any live service fails.",
-    outputGuidance:
-      "Keep the planning answer practical: browser runtimes, reviewer walkthrough, validation evidence, and explicit limits.",
-    evidence: [
-      "demo/final_demo_suite.json",
-      "demo/final_demo_launcher.html",
-      "docs/CAPSTONE_DEMO_SHOWCASE.md"
-    ],
+      "Create a concise fallback-ready design brief for a browser-native generative study. State the preferred supported runtime, one validation step, and a code-only fallback. Do not claim that a preview ran if the provider is unavailable.",
+    expectedArtifact: "A clearly labeled local draft or usable code artifact, depending on the recovery state",
+    expectedPreview: "No live preview is claimed after an unavailable-provider fallback.",
+    expectedInteraction: "Inspect the recovery message, choose Retry when the provider returns, or open Code for the local draft.",
+    expectedValidation:
+      "Controlled provider-failure stream, truthful Partial outcome, retry affordance, no false preview, and session persistence.",
+    fallback: "Keep the local draft visible and retry later; do not relabel it as a provider-generated live artifact.",
+    estimatedGenerationTime: "Target: 30 seconds for the controlled fallback state and 30 seconds for recovery inspection.",
+    providerRequirement: "Controlled failure fixture for validation; a real provider remains optional for the normal brief",
+    retrievalRequirement: "Not required for the fallback assertion",
     sourceBoundary:
-      "Planning guidance only; no public deployment, live venue scan, engineering certification, or external tool execution is claimed.",
-    validationPath: "Demo plan and fallback paths are documented in the final demo suite."
+      "The application distinguishes a provider response, a local draft, and a live renderer. Recovery never upgrades an unavailable preview to Success."
   }
-  ] as const satisfies readonly DemoModeScenario[];
+] as const satisfies readonly DemoModeScenario[];
 
-const eligibleDemoScenarioIds = new Set<DemoModeScenario["id"]>([
-  "p5-generative-morphogenesis-sketch"
-]);
-
-export const demoModeScenarios = demoModeScenarioCatalog.filter((scenario) =>
-  eligibleDemoScenarioIds.has(scenario.id)
-);
+export const demoModeScenarios = demoModeScenarioCatalog;
 
 export const demoModeScenarioCount = demoModeScenarios.length;
 
 export const demoModeRecommendedLiveSequence = [
   {
-    role: "Verified browser preview",
-    scenarioId: "p5-generative-morphogenesis-sketch",
-    title: "p5.js flow field",
-    rationale: "Configured-provider artifact plus Chromium p5 preview validation."
+    role: "Audio-visual opener",
+    scenarioId: "cymatic-chladni-audiovisual",
+    title: "Cymatic Chladni study",
+    rationale: "Silent-by-default visual with optional, explicit Tone.js playback."
+  },
+  {
+    role: "Fast browser artifact",
+    scenarioId: "physarum-p5-hero",
+    title: "Physarum drift",
+    rationale: "A concise global-mode p5.js request with a visible interactive canvas."
+  },
+  {
+    role: "Spatial hero",
+    scenarioId: "kinetic-three-hero",
+    title: "Kinetic orbit sculpture",
+    rationale: "A bounded Three.js scene with fullscreen-ready presentation."
+  },
+  {
+    role: "Technical close-up",
+    scenarioId: "chladni-glsl-hero",
+    title: "Chladni light field",
+    rationale: "A compact shader that makes its WebGL boundary explicit."
   }
 ] as const satisfies readonly DemoModeRecommendation[];
 

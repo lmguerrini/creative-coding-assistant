@@ -19,10 +19,21 @@ describe("preview sandbox runtime", () => {
 
     expect(sandboxDocument).toContain("PI: Math.PI,");
     expect(sandboxDocument).toContain("TAU: Math.PI * 2,");
+    expect(sandboxDocument).toContain("exp: Math.exp,");
+    expect(sandboxDocument).toContain("constrain: function (value, minimum, maximum)");
+    expect(sandboxDocument).toContain("int: function (value)");
     expect(sandboxDocument).toContain("TWO_PI: Math.PI * 2,");
     expect(sandboxDocument).toContain("HALF_PI: Math.PI / 2,");
+    expect(sandboxDocument).toContain("ADD: \"lighter\",");
     expect(sandboxDocument).toContain("ROUND: \"round\",");
+    expect(sandboxDocument).toContain("globals.blendMode = function (mode)");
+    expect(sandboxDocument).toContain("globals.curveVertex = globals.vertex");
+    expect(sandboxDocument).toContain("if (Array.isArray(min)) return min[Math.floor(value * min.length)];");
+    expect(sandboxDocument).toContain("globals.rectMode = function (mode)");
+    expect(sandboxDocument).toContain("globals.red = function (value)");
+    expect(sandboxDocument).toContain("smooth: function () {}");
     expect(sandboxDocument).toContain("globals.strokeCap = function (cap)");
+    expect(sandboxDocument).toContain("globals.strokeJoin = function (join)");
   });
 
   it("keeps the executable Three.js facade aligned with common generated scene APIs", () => {
@@ -34,6 +45,10 @@ describe("preview sandbox runtime", () => {
     expect(sandboxDocument).toContain("function Group() { Object3D.call(this); }");
     expect(sandboxDocument).toContain("const PlaneGeometry = geometry(\"plane\");");
     expect(sandboxDocument).toContain("const HemisphereLight = function () { Object3D.call(this); };");
+    expect(sandboxDocument).toContain("function BufferGeometry()");
+    expect(sandboxDocument).toContain("function Points(geometry, material)");
+    expect(sandboxDocument).toContain("const runSource = Function.apply(null, parameters.concat(runtime.source.source));");
+    expect(sandboxDocument).toContain("Clock.prototype.getDelta = function ()");
     expect(sandboxDocument).toContain("Object3D,");
     expect(sandboxDocument).toContain("shadowMap = { enabled: false, type: null }");
     expect(sandboxDocument).toContain("Color.prototype.clone = function ()");
@@ -352,6 +367,26 @@ describe("preview sandbox runtime", () => {
       ]
     });
     expect(prepared).not.toContain("Transport.start");
+  });
+
+  it("carries the explicit Cymatics marker into a muted visual runtime plan", () => {
+    const source = [
+      "// CCA_VISUAL: cymatics",
+      "const synth = new Tone.Synth().toDestination();",
+      "new Tone.Sequence((time, note) => synth.triggerAttackRelease(note, '8n', time), ['C3', 'G3'], '8n').start(0);",
+      "Tone.Transport.bpm.value = 96;",
+      "Tone.Transport.start();"
+    ].join("\n");
+    const prepared = JSON.parse(preparePreviewExecutableSource(source, "tone"));
+    const sandboxDocument = readFileSync(
+      resolve(process.cwd(), "public/preview-sandbox.html"),
+      "utf8"
+    );
+
+    expect(prepared.visualization).toBe("cymatics");
+    expect(sandboxDocument).toContain('toneProgram.visualization === "cymatics"');
+    expect(sandboxDocument).toContain("function drawCymaticsPreview");
+    expect(sandboxDocument).toContain("Audio remains silent until Start audio is selected.");
   });
 
   it("builds an escaped sandbox document with the selected runtime payload", () => {

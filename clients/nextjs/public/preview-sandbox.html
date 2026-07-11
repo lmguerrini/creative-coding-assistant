@@ -2009,6 +2009,9 @@
 
         const paint = {
           cap: "round",
+          compositeOperation: "source-over",
+          join: "round",
+          rectMode: "corner",
           fill: "#4cd7c8",
           stroke: "#edf3f2",
           useFill: true,
@@ -2023,6 +2026,11 @@
           tertiaryMax: 255
         };
         const globals = {
+          ADD: "lighter",
+          BLEND: "source-over",
+          DARKEST: "darken",
+          DIFFERENCE: "difference",
+          EXCLUSION: "exclusion",
           window,
           document,
           console,
@@ -2031,10 +2039,13 @@
           TAU: Math.PI * 2,
           TWO_PI: Math.PI * 2,
           HALF_PI: Math.PI / 2,
+          LIGHTEST: "lighten",
+          MULTIPLY: "multiply",
           HSB: "HSB",
           HSL: "HSL",
           RGB: "RGB",
           ROUND: "round",
+          SCREEN: "screen",
           SQUARE: "square",
           PROJECT: "butt",
           CLOSE: "CLOSE",
@@ -2043,12 +2054,19 @@
           abs: Math.abs,
           atan2: Math.atan2,
           ceil: Math.ceil,
+          constrain: function (value, minimum, maximum) {
+            const low = Number(minimum) || 0;
+            const high = Number(maximum);
+            return Math.min(Math.max(Number(value) || 0, low), Number.isFinite(high) ? high : low);
+          },
           cos: Math.cos,
           dist: Math.hypot,
+          exp: Math.exp,
           floor: Math.floor,
           frameCount: 0,
           frameRate: function () {},
           height: 0,
+          int: function (value) { return Math.trunc(Number(value) || 0); },
           lerp: function (a, b, amount) { return a + (b - a) * amount; },
           map: function (value, start1, stop1, start2, stop2) {
             return start2 + ((value - start1) / (stop1 - start1 || 1)) * (stop2 - start2);
@@ -2071,10 +2089,12 @@
           pow: Math.pow,
           random: function (min, max) {
             const value = Math.random();
+            if (Array.isArray(min)) return min[Math.floor(value * min.length)];
             if (typeof min !== "number") return value;
             if (typeof max !== "number") return value * min;
             return min + value * (max - min);
           },
+          smooth: function () {},
           sin: Math.sin,
           sqrt: Math.sqrt,
           width: 0,
@@ -2132,6 +2152,14 @@
         globals.color = function () {
           return normalizeP5Color(Array.from(arguments), "#fff");
         };
+        function colorChannel(value, index) {
+          const match = String(value || "").match(/rgba?\(([^)]+)\)/i);
+          if (!match) return 0;
+          return Number(match[1].split(",")[index]) || 0;
+        }
+        globals.red = function (value) { return colorChannel(value, 0); };
+        globals.green = function (value) { return colorChannel(value, 1); };
+        globals.blue = function (value) { return colorChannel(value, 2); };
         globals.background = function () {
           syncDimensions();
           context.save();
@@ -2149,9 +2177,29 @@
         };
         globals.noFill = function () { paint.useFill = false; };
         globals.noStroke = function () { paint.useStroke = false; };
+        globals.rectMode = function (mode) {
+          paint.rectMode = String(mode || "corner").toLowerCase() === "center" ? "center" : "corner";
+        };
+        globals.blendMode = function (mode) {
+          const allowed = {
+            "source-over": "source-over",
+            lighter: "lighter",
+            multiply: "multiply",
+            screen: "screen",
+            darken: "darken",
+            lighten: "lighten",
+            difference: "difference",
+            exclusion: "exclusion"
+          };
+          paint.compositeOperation = allowed[String(mode || "source-over").toLowerCase()] || "source-over";
+        };
         globals.strokeCap = function (cap) {
           const normalized = String(cap || "round").toLowerCase();
           paint.cap = normalized === "square" ? "square" : normalized === "butt" || normalized === "project" ? "butt" : "round";
+        };
+        globals.strokeJoin = function (join) {
+          const normalized = String(join || "round").toLowerCase();
+          paint.join = normalized === "bevel" ? "bevel" : normalized === "miter" ? "miter" : "round";
         };
         globals.strokeWeight = function (weight) { paint.weight = Number(weight) || 1; };
         globals.push = function () { context.save(); };
@@ -2163,7 +2211,9 @@
         function drawShape(drawPath) {
           context.save();
           context.lineCap = paint.cap;
+          context.lineJoin = paint.join;
           context.lineWidth = paint.weight;
+          context.globalCompositeOperation = paint.compositeOperation;
           drawPath();
           if (paint.useFill) {
             context.fillStyle = paint.fill;
@@ -2195,14 +2245,20 @@
         };
         globals.rect = function (x, y, width, height) {
           drawShape(function () {
+            const resolvedWidth = Number(width) || 0;
+            const resolvedHeight = Number(height) || 0;
+            const resolvedX = (Number(x) || 0) - (paint.rectMode === "center" ? resolvedWidth / 2 : 0);
+            const resolvedY = (Number(y) || 0) - (paint.rectMode === "center" ? resolvedHeight / 2 : 0);
             context.beginPath();
-            context.rect(Number(x) || 0, Number(y) || 0, Number(width) || 0, Number(height) || 0);
+            context.rect(resolvedX, resolvedY, resolvedWidth, resolvedHeight);
           });
         };
         globals.line = function (x1, y1, x2, y2) {
           context.save();
           context.lineCap = paint.cap;
+          context.lineJoin = paint.join;
           context.lineWidth = paint.weight;
+          context.globalCompositeOperation = paint.compositeOperation;
           context.strokeStyle = paint.stroke;
           context.beginPath();
           context.moveTo(Number(x1) || 0, Number(y1) || 0);
@@ -2212,6 +2268,7 @@
         };
         globals.point = function (x, y) {
           context.save();
+          context.globalCompositeOperation = paint.compositeOperation;
           context.fillStyle = paint.stroke;
           context.beginPath();
           context.arc(Number(x) || 0, Number(y) || 0, Math.max(1, paint.weight / 2), 0, Math.PI * 2);
@@ -2228,9 +2285,12 @@
           else context.lineTo(Number(x) || 0, Number(y) || 0);
           shapeVertexCount += 1;
         };
+        globals.curveVertex = globals.vertex;
         globals.endShape = function (mode) {
           if (shapeVertexCount === 0) return;
           if (mode === globals.CLOSE || mode === "CLOSE") context.closePath();
+          context.save();
+          context.globalCompositeOperation = paint.compositeOperation;
           if (paint.useFill) {
             context.fillStyle = paint.fill;
             context.fill();
@@ -2238,9 +2298,11 @@
           if (paint.useStroke) {
             context.lineWidth = paint.weight;
             context.lineCap = paint.cap;
+            context.lineJoin = paint.join;
             context.strokeStyle = paint.stroke;
             context.stroke();
           }
+          context.restore();
           shapeVertexCount = 0;
         };
 
@@ -2337,6 +2399,24 @@
           this.material = material || new MeshStandardMaterial();
         }
         Mesh.prototype = Object.create(Object3D.prototype);
+        function BufferGeometry() {
+          Geometry.call(this, "buffer");
+          this.attributes = {};
+        }
+        BufferGeometry.prototype = Object.create(Geometry.prototype);
+        BufferGeometry.prototype.setAttribute = function (name, attribute) {
+          this.attributes[name] = attribute;
+          return this;
+        };
+        function BufferAttribute(array, itemSize) {
+          this.array = array;
+          this.itemSize = itemSize || 1;
+          this.needsUpdate = false;
+        }
+        function Points(geometry, material) { Mesh.call(this, geometry, material); }
+        Points.prototype = Object.create(Mesh.prototype);
+        function LineSegments(geometry, material) { Mesh.call(this, geometry, material); }
+        LineSegments.prototype = Object.create(Mesh.prototype);
         function WebGLRenderer(options) {
           this.domElement = options && options.canvas ? options.canvas : canvas;
           this.context = this.domElement.getContext("2d");
@@ -2412,11 +2492,20 @@
         const DirectionalLight = function () { Object3D.call(this); };
         const HemisphereLight = function () { Object3D.call(this); };
         const PointLight = function () { Object3D.call(this); };
-        const Clock = function () { this.started = performance.now(); };
+        const Clock = function () { this.started = performance.now(); this.last = this.started; };
         Clock.prototype.getElapsedTime = function () { return (performance.now() - this.started) / 1000; };
+        Clock.prototype.getDelta = function () {
+          const now = performance.now();
+          const delta = (now - this.last) / 1000;
+          this.last = now;
+          return delta;
+        };
 
         return {
           AmbientLight,
+          AdditiveBlending: "additive",
+          BufferAttribute,
+          BufferGeometry,
           BoxGeometry,
           Clock,
           Color,
@@ -2435,8 +2524,13 @@
           PerspectiveCamera,
           PCFSoftShadowMap: "pcf-soft",
           PointLight,
+          Points,
+          PointsMaterial: MeshStandardMaterial,
           Scene,
           SphereGeometry,
+          EdgesGeometry: TorusGeometry,
+          LineBasicMaterial: MeshStandardMaterial,
+          LineSegments,
           TorusGeometry,
           TorusKnotGeometry: TorusGeometry,
           WebGLRenderer,
@@ -2463,16 +2557,18 @@
       function startThree() {
         const size = resizeCanvas();
         const THREE = makeThree();
-        new Function("THREE", "window", "document", "requestAnimationFrame", "cancelAnimationFrame", "performance", "width", "height", runtime.source.source)(
-          THREE,
-          window,
-          document,
-          requestAnimationFrame.bind(window),
-          cancelAnimationFrame.bind(window),
-          performance,
-          size.width,
-          size.height
-        );
+        const parameters = ["THREE", "window", "document", "requestAnimationFrame", "cancelAnimationFrame", "performance"];
+        const values = [THREE, window, document, requestAnimationFrame.bind(window), cancelAnimationFrame.bind(window), performance];
+        if (!/\b(?:const|let|var|function|class)\s+width\b/.test(runtime.source.source)) {
+          parameters.push("width");
+          values.push(size.width);
+        }
+        if (!/\b(?:const|let|var|function|class)\s+height\b/.test(runtime.source.source)) {
+          parameters.push("height");
+          values.push(size.height);
+        }
+        const runSource = Function.apply(null, parameters.concat(runtime.source.source));
+        runSource.apply(null, values);
         THREE.runDefaultLoop();
         status("running", "Three.js runtime running", "Executing " + runtime.source.title + " inside a sandboxed Three.js-compatible iframe.");
       }
@@ -2728,7 +2824,7 @@
         toneMuted = false;
         setToneControlsVisible(true);
         updateToneControls(false);
-        drawToneIdle(context);
+        drawTonePreview(context, 0, false);
         status(
           "ready",
           "Tone.js runtime ready",
@@ -2817,7 +2913,7 @@
         updateToneControls(false);
         if (reportStatus && runtime && runtime.kind === "tone") {
           const context = canvas.getContext("2d");
-          if (context) drawToneIdle(context);
+          if (context) drawTonePreview(context, 0, false);
           status(
             "stopped",
             "Tone.js runtime stopped",
@@ -2941,6 +3037,22 @@
           ) {
             return;
           }
+          drawTonePreview(context, time, true);
+          frame(time);
+          toneAnimationFrame = requestAnimationFrame(loop);
+        }
+        toneAnimationFrame = requestAnimationFrame(loop);
+      }
+
+      function drawTonePreview(context, time, isActive) {
+        if (toneProgram && toneProgram.visualization === "cymatics") {
+          drawCymaticsPreview(context, time, isActive);
+          return;
+        }
+        drawToneSpectrum(context, time, isActive);
+      }
+
+      function drawToneSpectrum(context, time, isActive) {
           const size = resizeCanvas();
           context.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
           const gradient = context.createLinearGradient(0, 0, size.width, size.height);
@@ -2953,10 +3065,10 @@
           const barWidth = Math.max(2, (size.width - gap * (bars + 1)) / bars);
           for (let index = 0; index < bars; index += 1) {
             const phase = time * 0.002 + index * 0.67;
-            const energy = toneMuted ? 0.08 : 0.18 + Math.abs(Math.sin(phase)) * 0.68;
+            const energy = !isActive || toneMuted ? 0.08 : 0.18 + Math.abs(Math.sin(phase)) * 0.68;
             const barHeight = Math.max(3, size.height * energy * (0.45 + (index % 7) * 0.06));
             context.fillStyle = index % 3 === 0 ? "#7ca7ff" : "#4cd7c8";
-            context.globalAlpha = toneMuted ? 0.25 : 0.42 + energy * 0.5;
+            context.globalAlpha = !isActive || toneMuted ? 0.25 : 0.42 + energy * 0.5;
             context.fillRect(
               gap + index * (barWidth + gap),
               size.height - barHeight,
@@ -2965,30 +3077,66 @@
             );
           }
           context.globalAlpha = 1;
-          frame(time);
-          toneAnimationFrame = requestAnimationFrame(loop);
+      }
+
+      function drawCymaticsPreview(context, time, isActive) {
+        const size = resizeCanvas();
+        const tempo = Math.max(40, Math.min(220, Number(toneProgram.tempo) || 96));
+        const beat = time * tempo / 60000;
+        const pattern = toneProgram.patterns && toneProgram.patterns[0];
+        const noteCount = pattern && pattern.notes && pattern.notes.length
+          ? pattern.notes.length
+          : 4;
+        const modeX = 2 + (Math.floor(beat * 0.5) % 4);
+        const modeY = 3 + ((noteCount + Math.floor(beat * 0.25)) % 5);
+        const pulse = !isActive || toneMuted
+          ? 0.28
+          : 0.56 + 0.32 * (0.5 + 0.5 * Math.sin(beat * Math.PI * 2));
+        const columns = Math.min(70, Math.max(38, Math.floor(size.width / 11)));
+        const rows = Math.min(52, Math.max(26, Math.floor(size.height / 11)));
+        const cellWidth = size.width / columns;
+        const cellHeight = size.height / rows;
+        const glow = context.createRadialGradient(
+          size.width * 0.5,
+          size.height * 0.5,
+          0,
+          size.width * 0.5,
+          size.height * 0.5,
+          Math.max(size.width, size.height) * 0.7
+        );
+        glow.addColorStop(0, "#0e2d31");
+        glow.addColorStop(0.48, "#07181c");
+        glow.addColorStop(1, "#080b14");
+        context.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
+        context.fillStyle = glow;
+        context.fillRect(0, 0, size.width, size.height);
+        for (let row = 0; row < rows; row += 1) {
+          const y = row / Math.max(1, rows - 1);
+          for (let column = 0; column < columns; column += 1) {
+            const x = column / Math.max(1, columns - 1);
+            const node = Math.abs(
+              Math.cos(modeX * Math.PI * x) * Math.cos(modeY * Math.PI * y) -
+              Math.cos(modeY * Math.PI * x) * Math.cos(modeX * Math.PI * y)
+            );
+            const ridge = Math.exp(-node * (9 + pulse * 5));
+            if (ridge < 0.07) continue;
+            context.globalAlpha = Math.min(0.92, 0.08 + ridge * pulse);
+            context.fillStyle = (column + row + Math.floor(beat)) % 5 === 0
+              ? "#7ca7ff"
+              : "#4cd7c8";
+            context.fillRect(
+              column * cellWidth,
+              row * cellHeight,
+              cellWidth + 1,
+              cellHeight + 1
+            );
+          }
         }
-        toneAnimationFrame = requestAnimationFrame(loop);
+        context.globalAlpha = 1;
       }
 
       function drawToneIdle(context) {
-        const size = resizeCanvas();
-        context.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
-        const gradient = context.createLinearGradient(0, 0, size.width, size.height);
-        gradient.addColorStop(0, "#071313");
-        gradient.addColorStop(1, "#080b14");
-        context.fillStyle = gradient;
-        context.fillRect(0, 0, size.width, size.height);
-        context.strokeStyle = "rgba(76, 215, 200, 0.32)";
-        context.lineWidth = 1;
-        context.beginPath();
-        for (let index = 0; index <= 80; index += 1) {
-          const x = index / 80 * size.width;
-          const y = size.height * 0.5 + Math.sin(index * 0.42) * size.height * 0.055;
-          if (index === 0) context.moveTo(x, y);
-          else context.lineTo(x, y);
-        }
-        context.stroke();
+        drawTonePreview(context, 0, false);
       }
 
       function subdivisionSeconds(subdivision, tempo) {

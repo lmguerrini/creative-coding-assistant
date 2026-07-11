@@ -8,60 +8,103 @@ import {
 } from "./demo-mode";
 
 describe("demo mode scenarios", () => {
-  it("exposes only the currently validated p5 browser-preview prompt", () => {
-    expect(demoModeScenarioCount).toBe(1);
+  it("keeps a curated set of presenter-ready, supported workflows visible", () => {
+    expect(demoModeScenarioCount).toBe(10);
     expect(demoModeScenarios.map((scenario) => scenario.id)).toEqual([
-      "p5-generative-morphogenesis-sketch"
+      "cymatic-chladni-audiovisual",
+      "physarum-p5-hero",
+      "kinetic-three-hero",
+      "chladni-glsl-hero",
+      "retrieval-grounded-design-brief",
+      "multi-agent-production-plan",
+      "single-agent-line-study",
+      "export-handoff-package",
+      "multimodal-reference-study",
+      "failure-recovery-rehearsal"
     ]);
-    expect(demoModeScenarios[0]?.prompt).toContain(
-      "Optimize for browser preview at 60 fps"
-    );
-    expect(demoModeScenarios[0]?.prompt).toContain("strokeCap(ROUND)");
-  });
-
-  it("retains the wider Capstone catalog without presenting unvalidated prompts", () => {
-    expect(demoModeScenarioCatalog).toHaveLength(8);
+    expect(demoModeScenarioCatalog).toHaveLength(10);
     expect(demoModeScenarios).not.toContainEqual(
-      expect.objectContaining({ id: "three-audio-reactive-visual-system" })
-    );
-    expect(demoModeScenarios).not.toContainEqual(
-      expect.objectContaining({ id: "glsl-shader-post-processing-visual" })
-    );
-    expect(demoModeScenarios).not.toContainEqual(
-      expect.objectContaining({ id: "hydra-feedback-pattern-demo" })
+      expect.objectContaining({ runtime: "Hydra" })
     );
   });
 
-  it("keeps the visible scenario presenter-ready and within public naming boundaries", () => {
-    const scenario = getDefaultDemoModeScenario();
-    const appFacingText = [
-      scenario.title,
-      scenario.description,
-      scenario.category,
-      scenario.prompt,
-      scenario.expectedBehavior,
-      scenario.fallback,
-      scenario.outputGuidance,
-      scenario.sourceBoundary,
-      scenario.validationPath,
-      ...scenario.evidence
-    ].join("\n");
-
-    expect(scenario.description).toBeTruthy();
-    expect(scenario.estimatedGenerationTime).toBeTruthy();
-    expect(scenario.expectedOutput).toBeTruthy();
-    expect(scenario.validationPath).toContain("Chromium");
-    expect(appFacingText).not.toMatch(/HoloGenesis/i);
-    expect(appFacingText).not.toMatch(/\bsacred\b/i);
-    expect(appFacingText).not.toMatch(/\bsymbolic\b/i);
+  it("gives every visible scenario its complete demo contract", () => {
+    for (const scenario of demoModeScenarios) {
+      expect(scenario.title).toBeTruthy();
+      expect(scenario.concept).toBeTruthy();
+      expect(scenario.purpose).toBeTruthy();
+      expect(scenario.runtime).toBeTruthy();
+      expect(scenario.workflow).toBeTruthy();
+      expect(scenario.inputRequirement).toBeTruthy();
+      expect(scenario.prompt).toBeTruthy();
+      expect(scenario.expectedArtifact).toBeTruthy();
+      expect(scenario.expectedPreview).toBeTruthy();
+      expect(scenario.expectedInteraction).toBeTruthy();
+      expect(scenario.expectedValidation).toBeTruthy();
+      expect(scenario.fallback).toBeTruthy();
+    }
   });
 
-  it("keeps featured paths limited to the visible scenario", () => {
-    expect(demoModeRecommendedLiveSequence).toEqual([
-      expect.objectContaining({
-        role: "Verified browser preview",
-        scenarioId: "p5-generative-morphogenesis-sketch"
-      })
+  it("keeps the Cymatics opener deterministic and silent until the user opts in", () => {
+    const cymatic = getDefaultDemoModeScenario();
+
+    expect(cymatic.id).toBe("cymatic-chladni-audiovisual");
+    expect(cymatic.workflowMode).toBe("single_agent");
+    expect(cymatic.prompt).toContain("// CCA_VISUAL: cymatics");
+    expect(cymatic.prompt).toContain("Tone.Transport.bpm.value = 96");
+    expect(cymatic.expectedInteraction).toContain("Start audio");
+    expect(cymatic.sourceBoundary).toContain("microphone");
+  });
+
+  it("keeps the featured sequence within the visible, live browser scenarios", () => {
+    expect(demoModeRecommendedLiveSequence.map((item) => item.scenarioId)).toEqual([
+      "cymatic-chladni-audiovisual",
+      "physarum-p5-hero",
+      "kinetic-three-hero",
+      "chladni-glsl-hero"
     ]);
+    expect(
+      demoModeRecommendedLiveSequence.every((item) =>
+        demoModeScenarios.some((scenario) => scenario.id === item.scenarioId)
+      )
+    ).toBe(true);
+  });
+
+  it("makes multimodal input and controlled failure boundaries explicit", () => {
+    const multimodal = demoModeScenarios.find(
+      (scenario) => scenario.id === "multimodal-reference-study"
+    );
+    const recovery = demoModeScenarios.find(
+      (scenario) => scenario.id === "failure-recovery-rehearsal"
+    );
+
+    expect(multimodal?.inputRequirement).toContain("Attach one PNG");
+    expect(multimodal?.expectedPreview).toContain("self-contained p5.js canvas");
+    expect(recovery?.providerRequirement).toContain("Controlled failure fixture");
+    expect(recovery?.expectedPreview).toContain("No live preview");
+  });
+
+  it("keeps workflow prompts inside the bounded planning-summary range", () => {
+    for (const id of [
+      "retrieval-grounded-design-brief",
+      "multi-agent-production-plan",
+      "export-handoff-package"
+    ]) {
+      const scenario = demoModeScenarios.find((item) => item.id === id);
+
+      expect(scenario?.prompt.length).toBeLessThanOrEqual(280);
+    }
+  });
+
+  it("keeps the export case anchored to a named Markdown handoff artifact", () => {
+    const exportHandoff = demoModeScenarios.find(
+      (scenario) => scenario.id === "export-handoff-package"
+    );
+
+    expect(exportHandoff?.prompt).toContain(
+      "chladni-touchdesigner-handoff.md"
+    );
+    expect(exportHandoff?.prompt).toContain("fenced markdown block");
+    expect(exportHandoff?.expectedPreview).toContain("No internal TouchDesigner");
   });
 });

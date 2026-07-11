@@ -49,6 +49,27 @@ const generatedArtifact = {
   ].join("\n")
 };
 
+const cymaticArtifact = {
+  id: "e2e-cymatic-chladni",
+  title: "cymatic-chladni.tone.js",
+  type: "code",
+  language: "javascript + tone.js",
+  domain: "tone_js",
+  runtime: "tone",
+  renderer_id: "surface.tone",
+  preview_eligible: true,
+  preview_target: "browser_sandbox",
+  status: "Generated",
+  summary: "Deterministic Cymatics Tone.js scene with mute-first playback.",
+  content: [
+    "// CCA_VISUAL: cymatics",
+    "const synth = new Tone.FMSynth().toDestination();",
+    "new Tone.Sequence((time, note) => synth.triggerAttackRelease(note, '8n', time), ['C3', 'G3', 'D4', 'A3'], '8n').start(0);",
+    "Tone.Transport.bpm.value = 96;",
+    "Tone.Transport.start();"
+  ].join("\n")
+};
+
 const codeOnlyR3fArtifact = {
   id: "e2e-r3f-study",
   title: "e2e-r3f-study.r3f.tsx",
@@ -71,6 +92,15 @@ const retrievalSource = {
   domain: "p5js",
   score: 0.92,
   excerpt: "createCanvas initializes the sketch drawing surface."
+};
+
+const toneRetrievalSource = {
+  id: "e2e-source-tone-reference",
+  title: "Tone.js Transport reference",
+  url: "https://tonejs.github.io/docs/14.7.77/Transport",
+  domain: "tone_js",
+  score: 0.92,
+  excerpt: "Tone.Transport schedules bounded musical timing after an explicit browser audio start."
 };
 
 function installConsoleGate(page) {
@@ -178,7 +208,10 @@ async function submitCreativePrompt(page, prompt) {
   await page.getByRole("button", { name: "Send prompt" }).click();
 }
 
-async function expectGeneratedPreview(page) {
+async function expectGeneratedPreview(
+  page,
+  { artifactTitle = "e2e-orbit-sketch.p5.js" } = {}
+) {
   await expect(page.getByRole("region", { name: "Preview workspace" })).toBeVisible();
   await expandInspectorIfCollapsed(page);
   await expect(page.getByRole("tab", { name: "Preview" })).toHaveAttribute(
@@ -189,7 +222,7 @@ async function expectGeneratedPreview(page) {
     "P5 sketch surface"
   );
   await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
-    "e2e-orbit-sketch.p5.js"
+    artifactTitle
   );
   const artifactTab = page.getByRole("tab", { name: /^(Artifacts|Saved)$/ });
   await expect(artifactTab).toBeVisible();
@@ -198,7 +231,7 @@ async function expectGeneratedPreview(page) {
     "Visual / p5.js"
   );
   await expect(page.getByRole("tabpanel", { name: /^(Artifacts inspector|Saved outputs inspector)$/ })).toContainText(
-    "e2e-orbit-sketch.p5.js"
+    artifactTitle
   );
   await page.getByRole("tab", { name: "Code" }).click();
   await expect(page.getByRole("tabpanel", { name: "Code inspector" })).toContainText(
@@ -310,6 +343,12 @@ async function fulfillOptions(route) {
 }
 
 function buildAssistantNdjson(scenario) {
+  const artifact = scenario === "cymatics" ? cymaticArtifact : generatedArtifact;
+  const runtime = scenario === "cymatics" ? "tone" : "p5";
+  const rendererId = scenario === "cymatics" ? "surface.tone" : "surface.p5";
+  const domain = scenario === "cymatics" ? "tone_js" : "p5_js";
+  const activeRetrievalSource =
+    scenario === "cymatics" ? toneRetrievalSource : retrievalSource;
   const successfulProductOutcome = {
     orchestration_status: "COMPLETED",
     provider_status: "COMPLETED",
@@ -320,7 +359,7 @@ function buildAssistantNdjson(scenario) {
     preview_status: "READY",
     runtime_health: "PENDING_BROWSER_VALIDATION",
     product_outcome: "SUCCESS",
-    summary: "The requested p5 artifact is ready for browser validation.",
+    summary: `The requested ${runtime} artifact is ready for browser validation.`,
     recovery_action: ""
   };
   const events = [
@@ -334,10 +373,10 @@ function buildAssistantNdjson(scenario) {
       message: "E2E retrieval requested.",
       request: {
         filters: {
-          domains: ["p5_js"]
+          domains: [domain]
         },
         limit: 3,
-        query: "p5 orbit field"
+        query: scenario === "cymatics" ? "Tone.js audio timing" : "p5 orbit field"
       },
       workflow: { current_step: "retrieval" }
     }),
@@ -347,37 +386,37 @@ function buildAssistantNdjson(scenario) {
         chunks: [
           {
             chunk_index: 0,
-            domain: "p5_js",
+            domain,
             domain_match: true,
-            excerpt: retrievalSource.excerpt,
+            excerpt: activeRetrievalSource.excerpt,
             original_score: 0.9,
-            publisher: "p5.js",
+            publisher: scenario === "cymatics" ? "Tone.js" : "p5.js",
             rank: 1,
-            registry_title: retrievalSource.title,
-            resolved_url: retrievalSource.url,
-            score: retrievalSource.score,
+            registry_title: activeRetrievalSource.title,
+            resolved_url: activeRetrievalSource.url,
+            score: activeRetrievalSource.score,
             score_adjustment: 0.02,
             selection_reason: "Selected for E2E retrieval regression coverage.",
             source_health: {
               availability: "available",
               checked_at: new Date(0).toISOString(),
-              domain_owner: "p5.js",
+              domain_owner: scenario === "cymatics" ? "Tone.js" : "p5.js",
               freshness_status: "fresh",
               health_status: "healthy",
               refresh_recommended: false
             },
-            source_id: retrievalSource.id,
+            source_id: activeRetrievalSource.id,
             source_type: "api_reference",
-            source_url: retrievalSource.url,
+            source_url: activeRetrievalSource.url,
             used_in_context: true
           }
         ],
         request: {
           filters: {
-            domains: ["p5_js"]
+            domains: [domain]
           },
           limit: 3,
-          query: "p5 orbit field"
+          query: scenario === "cymatics" ? "Tone.js audio timing" : "p5 orbit field"
         },
         source: "official_kb"
       },
@@ -390,9 +429,9 @@ function buildAssistantNdjson(scenario) {
       status: "creative_plan_prepared",
       creative_plan: {
         outputModality: "visual",
-        generationStrategy: "Generate one deterministic p5 candidate for E2E smoke.",
-        recommendedRuntime: "p5",
-        recommendedRendererId: "surface.p5",
+        generationStrategy: `Generate one deterministic ${runtime} candidate for E2E smoke.`,
+        recommendedRuntime: runtime,
+        recommendedRendererId: rendererId,
         recommendedPreviewTarget: "browser_sandbox",
         recommendedShaderStyle: "glow",
         candidateCount: 1,
@@ -401,8 +440,11 @@ function buildAssistantNdjson(scenario) {
         estimatedTokenCost: 1800,
         exportReadiness: "ready",
         runtimeAvailable: true,
-        runtimeSupportSummary: "p5 browser preview is available.",
-        planSteps: ["Use p5 setup/draw.", "Keep the smoke artifact deterministic."],
+        runtimeSupportSummary: `${runtime} browser preview is available.`,
+        planSteps: [
+          scenario === "cymatics" ? "Keep audio mute-first." : "Use p5 setup/draw.",
+          "Keep the smoke artifact deterministic."
+        ],
         constraints: ["No external assets."],
         evidence: ["E2E mocked stream"]
       },
@@ -411,20 +453,20 @@ function buildAssistantNdjson(scenario) {
     streamEvent("artifact_extracted", 4, {
       message: "E2E artifact extracted.",
       status: "artifact_extracted",
-      artifacts: [generatedArtifact],
+      artifacts: [artifact],
       workflow: { current_step: "artifact_extraction" }
     }),
     streamEvent("preview_artifact", 5, {
-      artifact_id: generatedArtifact.id,
+      artifact_id: artifact.id,
       emitted_at: new Date(0).toISOString(),
       result: {
         completed_at: new Date(1).toISOString(),
-        preview_artifact_id: generatedArtifact.id,
+        preview_artifact_id: artifact.id,
         request: {
           target: "browser_sandbox"
         },
         provenance: {
-          renderer_id: "surface.p5"
+          renderer_id: rendererId
         },
         summary: "E2E preview artifact prepared."
       },
@@ -432,8 +474,8 @@ function buildAssistantNdjson(scenario) {
       workflow: { current_step: "preview_preparation" }
     }),
     streamEvent("final", 6, {
-      answer: "Generated the E2E p5 orbit sketch with preview routing.",
-      artifacts: [generatedArtifact],
+      answer: `Generated the E2E ${runtime} artifact with preview routing.`,
+      artifacts: [artifact],
       workflow: {
         current_step: "finalization",
         phase: "completed",

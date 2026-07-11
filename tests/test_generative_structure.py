@@ -118,6 +118,41 @@ class GenerativeStructureEngineTests(unittest.TestCase):
             blueprint.hitl_questions,
         )
 
+    def test_bounds_seed_module_purpose_for_long_intent_context(self) -> None:
+        stack = _stack("Generate a bounded p5.js threshold visual.")
+        long_intent = stack.intent.model_copy(
+            update={
+                "primary_expression": (
+                    "Define a pointer-led Chladni field with clear visual intent and "
+                    "one runnable browser artifact. "
+                    * 4
+                )[:360]
+            }
+        )
+        blueprint = derive_generative_structure_blueprint(
+            request=stack.request,
+            route_decision=stack.route,
+            creative_translation=stack.prompt_input.creative_translation,
+            creative_intent=long_intent,
+            creative_hierarchy=stack.hierarchy,
+            creative_plan=stack.plan,
+            creative_constraints=stack.constraints,
+            creative_constraint_priorities=stack.prioritization,
+            creative_strategy=stack.strategy,
+            creative_techniques=stack.techniques,
+            runtime_capabilities=stack.runtime_capabilities,
+            creative_tradeoffs=stack.tradeoffs,
+            creative_quality_prediction=stack.quality_prediction,
+            symbolic_narrative=stack.symbolic_narrative,
+            creative_composition=stack.creative_composition,
+            procedural_structure=stack.procedural_structure,
+        )
+
+        seed_module = next(
+            module for module in blueprint.procedural_modules if module.kind == "seed_system"
+        )
+        self.assertLessEqual(len(seed_module.purpose), 360)
+
     def test_integrates_with_prompt_director_reasoning_and_serialization(
         self,
     ) -> None:

@@ -1,0 +1,41 @@
+{
+  "schema_version": "v9.5-demo-dataset.v1",
+  "purpose": "Deterministic rehearsal metadata for V9.5 Demo Mode.",
+  "claim_boundary": "This dataset is an operator rehearsal and fallback contract. It is not a provider response, a retrieval result, or proof that a renderer has run.",
+  "scenario_ids": [
+    "cymatic-chladni-audiovisual",
+    "physarum-p5-hero",
+    "kinetic-three-hero",
+    "chladni-glsl-hero",
+    "retrieval-grounded-design-brief",
+    "multi-agent-production-plan",
+    "single-agent-line-study",
+    "export-handoff-package",
+    "multimodal-reference-study",
+    "failure-recovery-rehearsal"
+  ],
+  "recommended_live_sequence": [
+    "cymatic-chladni-audiovisual",
+    "physarum-p5-hero",
+    "kinetic-three-hero",
+    "chladni-glsl-hero"
+  ],
+  "offline_boundaries": {
+    "provider_failure": "Keep the selected prompt and local draft visible; do not claim a provider response or live preview.",
+    "preview_failure": "Open Code or use an approved prepared artifact; state that the live renderer is unavailable.",
+    "retrieval_unavailable": "Show the request boundary and local retrieval status; do not invent a citation.",
+    "attachment_unavailable": "Run the multimodal study as a text-guided palette study and label the changed input condition."
+  },
+  "duration_budget_seconds": {
+    "cymatic-chladni-audiovisual": 120,
+    "physarum-p5-hero": 120,
+    "kinetic-three-hero": 135,
+    "chladni-glsl-hero": 120,
+    "retrieval-grounded-design-brief": 90,
+    "multi-agent-production-plan": 120,
+    "single-agent-line-study": 120,
+    "export-handoff-package": 105,
+    "multimodal-reference-study": 135,
+    "failure-recovery-rehearsal": 60
+  }
+}

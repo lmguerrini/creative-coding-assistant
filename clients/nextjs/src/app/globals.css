@@ -1871,6 +1871,8 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .emptyWorkspaceSuggestions button {
+  display: grid;
+  gap: 4px;
   width: 100%;
   padding: 14px 16px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1887,6 +1889,27 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
     border-color 180ms ease,
     transform 180ms ease,
     background 180ms ease;
+}
+
+.emptyWorkspaceSuggestions button strong {
+  color: var(--foreground);
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.emptyWorkspaceSuggestions button span {
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.emptyWorkspaceSuggestions button small {
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
 }
 
 .emptyWorkspaceSuggestions button:hover {

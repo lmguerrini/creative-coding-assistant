@@ -1247,6 +1247,139 @@ describe("live artifact hydration", () => {
     });
   });
 
+  it("extracts an unfenced Tone.js response returned as the requested artifact", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        answer: [
+          "// CCA_VISUAL: cymatics",
+          "const synth = new Tone.FMSynth().toDestination();",
+          "new Tone.Sequence((time, note) => synth.triggerAttackRelease(note, '8n', time), ['C3', 'G3', 'D4', 'A3'], '4n').start(0);",
+          "Tone.Transport.bpm.value = 96;",
+          "Tone.Transport.start();"
+        ].join("\\n"),
+        workflow: {
+          phase: "completed",
+          status: "completed",
+          product_outcome: {
+            orchestration_status: "COMPLETED",
+            provider_status: "COMPLETED",
+            generation_status: "COMPLETED",
+            deliverable_status: "USABLE",
+            artifact_extraction_status: "NOT_AVAILABLE",
+            artifact_runnability: "UNSUPPORTED",
+            preview_status: "UNAVAILABLE",
+            runtime_health: "NOT_AVAILABLE",
+            product_outcome: "PARTIAL",
+            summary: "A usable artifact was produced, but live preview is unavailable.",
+            recovery_action: "Open Code to use the artifact."
+          }
+        }
+      })
+    );
+
+    expect(result.artifact).toMatchObject({
+      actions: ["Open", "Preview", "Copy", "Download"],
+      rendererId: "surface.tone",
+      runtime: "tone",
+      title: "generated-audio.tone.js"
+    });
+    expect(result.snapshot.workflow.productOutcome).toMatchObject({
+      artifact_extraction_status: "EXTRACTED",
+      artifact_runnability: "RUNNABLE",
+      preview_status: "PREPARED",
+      product_outcome: "SUCCESS"
+    });
+  });
+
+  it("reconciles stale Canvas metadata when a parsed named Tone artifact is previewable", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const result = hydrateWorkspaceFromFinalEvent(
+      {
+        ...snapshot,
+        messages: [
+          ...snapshot.messages,
+          {
+            role: "user",
+            time: "13:13",
+            content:
+              "Create exactly one executable .tone.js artifact named cymatic-chladni.tone.js. Return only the artifact."
+          }
+        ]
+      },
+      finalEvent({
+        artifacts: [
+          {
+            id: "provider-cymatic",
+            title: "exactly-one-executable-tone-named-2.tone.js",
+            type: "code",
+            language: "JavaScript + Canvas",
+            runtime: "canvas",
+            renderer_id: "surface.canvas",
+            content: [
+              "// CCA_VISUAL: cymatics",
+              "const synth = new Tone.FMSynth().toDestination();",
+              "new Tone.Sequence((time, note) => synth.triggerAttackRelease(note, '8n', time), ['C3', 'G3', 'D4', 'A3'], '4n').start(0);",
+              "Tone.Transport.bpm.value = 96;",
+              "Tone.Transport.start();"
+            ].join("\\n")
+          }
+        ],
+        workflow: {
+          phase: "completed",
+          status: "completed",
+          product_outcome: {
+            orchestration_status: "COMPLETED",
+            provider_status: "COMPLETED",
+            generation_status: "COMPLETED",
+            deliverable_status: "USABLE",
+            artifact_extraction_status: "EXTRACTED",
+            artifact_runnability: "UNSUPPORTED",
+            preview_status: "UNAVAILABLE",
+            runtime_health: "NOT_AVAILABLE",
+            product_outcome: "PARTIAL",
+            summary: "A usable artifact was produced, but live preview is unavailable.",
+            recovery_action: "Open Code to use the artifact."
+          }
+        }
+      })
+    );
+
+    expect(result.artifact).toMatchObject({
+      rendererId: "surface.tone",
+      runtime: "tone",
+      title: "cymatic-chladni.tone.js"
+    });
+    expect(result.previewAvailable).toBe(true);
+    expect(result.snapshot.workflow.productOutcome).toMatchObject({
+      artifact_runnability: "RUNNABLE",
+      preview_status: "PREPARED",
+      runtime_health: "PENDING_BROWSER_VALIDATION",
+      product_outcome: "SUCCESS"
+    });
+  });
+
+  it("keeps a malformed named Tone artifact code-only instead of claiming a preview", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        artifacts: [
+          {
+            id: "invalid-tone",
+            title: "invalid.tone.js",
+            type: "code",
+            language: "JavaScript",
+            content: "const message = 'not a Tone.js program';"
+          }
+        ]
+      })
+    );
+
+    expect(result.previewAvailable).toBe(false);
+    expect(result.artifact?.runtime).toBe(null);
+    expect(result.artifact?.actions).toEqual(["Open", "Copy", "Download"]);
+  });
+
   it("hydrates structured refinement pass history without requiring legacy fields", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const result = hydrateWorkspaceFromFinalEvent(

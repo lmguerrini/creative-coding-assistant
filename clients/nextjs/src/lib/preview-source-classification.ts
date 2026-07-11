@@ -42,13 +42,14 @@ export function getGlslRuntimeSourceSupportIssue(
   if (rawSource.length > 6000) {
     return "The fragment shader is too large for this lightweight runtime.";
   }
-  if (/^\s*#version\b/m.test(rawSource)) {
+  const executableSource = stripCommentsAndStrings(rawSource);
+  if (/^\s*#version\b/m.test(executableSource)) {
     return "GLSL #version declarations cannot run in the controlled WebGL 1 fragment preview.";
   }
-  if (/\b(?:while|sampler2D|samplerCube|texture|texture2D|textureCube|discard)\b/i.test(rawSource)) {
+  if (/\b(?:while|sampler2D|samplerCube|texture|texture2D|textureCube|discard)\b/i.test(executableSource)) {
     return "The fragment shader uses features outside the current bounded runtime subset.";
   }
-  if (!/void\s+(?:main|mainImage)\s*\(/i.test(rawSource)) {
+  if (!/void\s+(?:main|mainImage)\s*\(/i.test(executableSource)) {
     return `The fragment shader needs void main() or mainImage(). ${glslRuntimeContractMessage}`;
   }
   return null;
@@ -59,6 +60,8 @@ const supportedP5GlobalFunctions = new Set([
   "atan2",
   "background",
   "beginShape",
+  "blendMode",
+  "blue",
   "ceil",
   "circle",
   "clear",
@@ -67,12 +70,15 @@ const supportedP5GlobalFunctions = new Set([
   "constrain",
   "cos",
   "createCanvas",
+  "curveVertex",
   "dist",
   "ellipse",
   "endShape",
+  "exp",
   "fill",
   "floor",
   "frameRate",
+  "green",
   "int",
   "lerp",
   "line",
@@ -90,13 +96,17 @@ const supportedP5GlobalFunctions = new Set([
   "push",
   "random",
   "rect",
+  "rectMode",
+  "red",
   "resizeCanvas",
   "rotate",
   "scale",
   "sin",
+  "smooth",
   "sqrt",
   "stroke",
   "strokeCap",
+  "strokeJoin",
   "strokeWeight",
   "translate",
   "vertex"

@@ -77,6 +77,34 @@ describe("Tone.js runtime model", () => {
     expect(prepared).not.toContain("rampTo");
   });
 
+  it("selects the deterministic Cymatics visualization only through an explicit source marker", () => {
+    const source = [
+      "// CCA_VISUAL: cymatics",
+      "const synth = new Tone.FMSynth().toDestination();",
+      "new Tone.Sequence((time, note) => synth.triggerAttackRelease(note, '8n', time), ['C3', 'G3', 'D4', 'A3'], '8n').start(0);",
+      "Tone.Transport.bpm.value = 96;",
+      "Tone.Transport.start();"
+    ].join("\n");
+
+    expect(parseToneRuntimeSource(source)).toMatchObject({
+      ok: true,
+      program: {
+        tempo: 96,
+        visualization: "cymatics"
+      }
+    });
+    expect(
+      JSON.parse(prepareToneRuntimeSource(source)).visualization
+    ).toBe("cymatics");
+    expect(
+      JSON.parse(
+        prepareToneRuntimeSource(
+          "const synth = new Tone.Synth().toDestination(); Tone.Transport.start();"
+        )
+      ).visualization
+    ).toBe("spectrum");
+  });
+
   it("rejects source without a supported audio voice", () => {
     expect(
       parseToneRuntimeSource("Tone.Transport.bpm.value = 90; Tone.Transport.start();")

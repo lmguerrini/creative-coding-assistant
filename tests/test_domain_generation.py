@@ -332,8 +332,8 @@ class DomainGenerationTests(unittest.TestCase):
         decision = route_request(request)
         source = "\n".join(
             [
-                "function setup() { createCanvas(640, 360); }",
-                "function draw() { background(12); circle(width / 2, height / 2, 32); }",
+                "function setup() { createCanvas(640, 360); rectMode(CENTER); smooth(); }",
+                "function draw() { const swatch = color(20, 40, 60); background(12); fill(red(swatch), green(swatch), blue(swatch)); rect(width / 2, height / 2, 32, 18); }",
             ]
         )
 

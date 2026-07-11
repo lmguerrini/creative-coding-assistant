@@ -37,6 +37,8 @@ export type ToneRuntimePattern = {
   subdivision: string;
 };
 
+export type ToneRuntimeVisualization = "spectrum" | "cymatics";
+
 export type ToneRuntimeProgram = {
   version: 1;
   tempo: number;
@@ -44,6 +46,7 @@ export type ToneRuntimeProgram = {
   voices: ToneRuntimeVoice[];
   effects: ToneRuntimeEffect[];
   patterns: ToneRuntimePattern[];
+  visualization: ToneRuntimeVisualization;
 };
 
 export type ToneRuntimeParseResult =
@@ -128,9 +131,19 @@ export function parseToneRuntimeSource(source: string): ToneRuntimeParseResult {
       volumeDb: parseVolume(source),
       voices,
       effects: parseEffects(source),
-      patterns
+      patterns,
+      visualization: parseVisualization(source)
     }
   };
+}
+
+export function getToneRuntimeSourceSupportIssue(source: string) {
+  const result = parseToneRuntimeSource(source);
+  return result.ok ? null : result.message;
+}
+
+function parseVisualization(source: string): ToneRuntimeVisualization {
+  return /CCA_VISUAL\s*:\s*cymatics\b/i.test(source) ? "cymatics" : "spectrum";
 }
 
 export function prepareToneRuntimeSource(source: string) {

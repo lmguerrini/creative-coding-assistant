@@ -109,6 +109,10 @@ describe("artifact comparison", () => {
     });
     const tone = artifact({
       actions: ["Open", "Preview", "Copy"],
+      content: [
+        "const synth = new Tone.Synth().toDestination();",
+        "Tone.Transport.start();"
+      ].join("\n"),
       domain: "tone_js",
       id: "tone",
       previewEligible: true,

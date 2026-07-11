@@ -177,6 +177,72 @@ class WorkflowReviewTests(unittest.TestCase):
         self.assertEqual(result.outcome, WorkflowReviewOutcome.NEEDS_REFINEMENT)
         self.assertEqual(result.reasons, ("missing_runnable_artifact",))
 
+    def test_review_accepts_a_named_markdown_external_handoff_artifact(self) -> None:
+        request = AssistantRequest(
+            query=(
+                "Return only one markdown artifact named "
+                "chladni-touchdesigner-handoff.md for a web "
+                "TouchDesigner handoff."
+            ),
+            domains=(CreativeCodingDomain.TOUCHDESIGNER,),
+            mode=AssistantMode.GENERATE,
+        )
+        route_decision = route_request(request)
+        answer = "\n".join(
+            [
+                "# Chladni handoff",
+                "",
+                "Use a web prototype boundary and validate parameters manually.",
+            ]
+        )
+        artifacts = extract_workflow_artifacts(
+            answer,
+            request=request,
+            route_decision=route_decision,
+        )
+
+        result = review_assistant_answer(
+            request=request,
+            answer=answer,
+            refinement_count=0,
+            artifacts=artifacts,
+            route_decision=route_decision,
+        )
+
+        self.assertEqual(artifacts[0].title, "chladni-touchdesigner-handoff.md")
+        self.assertEqual(artifacts[0].language, "Markdown")
+        self.assertEqual(result.outcome, WorkflowReviewOutcome.PASS)
+        self.assertEqual(result.reasons, ())
+
+    def test_extracts_a_provider_filename_only_markdown_fence_as_the_named_handoff(
+        self,
+    ) -> None:
+        request = AssistantRequest(
+            query=(
+                "Return only one fenced markdown block named "
+                "chladni-touchdesigner-handoff.md for a TouchDesigner handoff."
+            ),
+            domains=(CreativeCodingDomain.TOUCHDESIGNER,),
+            mode=AssistantMode.GENERATE,
+        )
+
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```chladni-touchdesigner-handoff.md",
+                    "# Chladni handoff",
+                    "Use a web prototype boundary.",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=route_request(request),
+        )
+
+        self.assertEqual(artifacts[0].title, "chladni-touchdesigner-handoff.md")
+        self.assertEqual(artifacts[0].language, "Markdown")
+        self.assertFalse(artifacts[0].preview_eligible)
+
 
 if __name__ == "__main__":
     unittest.main()

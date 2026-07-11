@@ -98,7 +98,7 @@ test.describe("V7.4 workstation resilience", () => {
     ]) {
       await submitCreativePrompt(page, prompt);
       await expect(page.getByRole("log", { name: "Conversation" })).toContainText(
-        "Generated the E2E p5 orbit sketch"
+        "Generated the E2E p5 artifact with preview routing"
       );
     }
 

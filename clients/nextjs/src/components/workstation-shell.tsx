@@ -202,6 +202,7 @@ import {
   getDefaultDemoModeScenario,
   type DemoModeScenario
 } from "@/lib/demo-mode";
+import { homepagePromptLibrary } from "@/lib/curated-prompt-library";
 import {
   buildCreativeTimelineModel,
   type CreativeTimelineModel
@@ -434,6 +435,7 @@ export function WorkstationShell({
   const entryIdCounterRef = useRef(0);
   const approvalIdCounterRef = useRef(0);
   const localRuntimeSequenceRef = useRef(1000);
+  const activeRequestPromptRef = useRef("");
   const streamingAssistantIdRef = useRef<string | null>(null);
   const hasPreviewRuntimeEventRef = useRef(false);
   const pendingArtifactRefinementRef = useRef<PendingArtifactRefinement | null>(
@@ -2301,6 +2303,7 @@ export function WorkstationShell({
   function handleDemoScenarioLoad(scenario: DemoModeScenario) {
     setActiveDemoScenarioId(scenario.id);
     setIsDemoModeOpen(true);
+    setWorkflowMode(scenario.workflowMode);
     setActiveTab(userModeDefaultInspectorTab);
     updateLayout({ inspectorCollapsed: true });
     setComposerValue(scenario.prompt);
@@ -2408,6 +2411,7 @@ export function WorkstationShell({
     });
 
     pendingArtifactRefinementRef.current = pendingRefinement;
+    activeRequestPromptRef.current = prompt;
     streamingAssistantIdRef.current = assistantMessageId;
     setConversationEntries((currentMessages) => [
       ...currentMessages,
@@ -2500,8 +2504,18 @@ export function WorkstationShell({
         if (streamEvent.event_type === "final" && !receivedTerminalStreamError) {
           const answer = readPayloadText(streamEvent, "answer");
           streamedAnswer = answer ?? streamedAnswer;
+          const reconciledProductOutcome =
+            snapshotRef.current.workflow.productOutcome;
+          const reconciledActivity =
+            reconciledProductOutcome?.product_outcome === "SUCCESS"
+              ? deriveWorkflowRuntimeActivity({
+                  currentNode: "finalization",
+                  productOutcome: reconciledProductOutcome,
+                  workflowStatus: "completed"
+                })
+              : latestWorkflowActivity;
           const conversationOutcome = formatConversationOutcome(
-            latestWorkflowActivity
+            reconciledActivity
           );
           finalizeStreamingAssistantMessage({
             activity: conversationOutcome.activity,
@@ -2608,6 +2622,7 @@ export function WorkstationShell({
       if (pendingArtifactRefinementRef.current?.requestedAt === pendingRefinement?.requestedAt) {
         pendingArtifactRefinementRef.current = null;
       }
+      activeRequestPromptRef.current = "";
       setIsStreaming(false);
     }
   }
@@ -2706,7 +2721,9 @@ export function WorkstationShell({
 
     if (streamEvent.event_type === "artifact_extracted") {
       const hydration = annotateRefinedHydration(
-        hydrateWorkspaceFromArtifactExtractedEvent(currentSnapshot, streamEvent),
+        hydrateWorkspaceFromArtifactExtractedEvent(currentSnapshot, streamEvent, {
+          prompt: activeRequestPromptRef.current
+        }),
         pendingArtifactRefinementRef.current,
         currentSnapshot
       );
@@ -2782,6 +2799,7 @@ export function WorkstationShell({
     if (streamEvent.event_type === "final") {
       const hydration = annotateRefinedHydration(
         hydrateWorkspaceFromFinalEvent(currentSnapshot, streamEvent, {
+          prompt: activeRequestPromptRef.current,
           skipPlainTextArtifact: hasPreviewRuntimeEventRef.current
         }),
         pendingArtifactRefinementRef.current,
@@ -3826,7 +3844,7 @@ function EmptyWorkspaceState({
   const valueHighlights = [
     {
       title: "Build browser-native visuals",
-      detail: "Create a verified p5.js browser-preview artifact."
+      detail: "Generate bounded p5.js, Three.js, GLSL, or Tone.js artifacts."
     },
     {
       title: "Ground answers in official sources",
@@ -3838,13 +3856,15 @@ function EmptyWorkspaceState({
     },
     {
       title: "Support creative-coding workflows",
-      detail: "Plan sketches, shaders, visual systems, and installations."
+      detail: "Plan, generate, inspect, preview, export, and recover clearly."
     }
   ];
-  const promptSuggestions = [
-    "Create a single .p5.js JavaScript sketch for a flow-field particle system with setup(), draw(), soft trails, and interaction controls. Optimize for browser preview at 60 fps. Use strokeCap(ROUND) for rounded paths. Return only one runnable p5.js artifact."
+  const domainExamples = [
+    "p5.js",
+    "Three.js",
+    "GLSL",
+    "Tone.js"
   ];
-  const domainExamples = ["Verified p5.js browser preview"];
   const workflowExamples = [
     "Describe a visual system",
     "Generate browser-safe code",
@@ -3878,13 +3898,16 @@ function EmptyWorkspaceState({
       </section>
 
       <div className="emptyWorkspaceSuggestions" aria-label="Prompt suggestions">
-        {promptSuggestions.map((prompt) => (
+        {homepagePromptLibrary.map((prompt) => (
           <button
-            key={prompt}
-            onClick={() => onSelectPrompt(prompt)}
+            aria-label={prompt.title}
+            key={prompt.id}
+            onClick={() => onSelectPrompt(prompt.prompt)}
             type="button"
           >
-            {prompt}
+            <strong>{prompt.title}</strong>
+            <span>{prompt.description}</span>
+            <small>{prompt.runtime}</small>
           </button>
         ))}
       </div>
@@ -3936,24 +3959,28 @@ function DemoModePanel({
 }) {
   const scenarioFacts = showDebugPanels
     ? ([
-        ["Capability", activeScenario.recommendedForDemo],
-        ["Technology", activeScenario.runtime],
+        ["Concept", activeScenario.concept],
+        ["Purpose", activeScenario.purpose],
+        ["Runtime", activeScenario.runtime],
+        ["Workflow", activeScenario.workflow],
+        ["Input", activeScenario.inputRequirement],
+        ["Artifact", activeScenario.expectedArtifact],
+        ["Preview", activeScenario.expectedPreview],
+        ["Interaction", activeScenario.expectedInteraction],
+        ["Expected validation", activeScenario.expectedValidation],
+        ["Fallback", activeScenario.fallback],
         ["Generation", activeScenario.estimatedGenerationTime],
-        ["Presenter time", activeScenario.presentationTime],
-        ["Tokens", activeScenario.estimatedTokenUsage],
-        ["Workflow", activeScenario.workflowType],
         ["Provider", activeScenario.providerRequirement],
-        ["Retrieval", activeScenario.retrievalRequirement],
-        ["Preview", activeScenario.previewAvailability],
-        ["Fallback", activeScenario.fallbackAvailability],
-        ["Expected output", activeScenario.expectedOutput],
-        ["Complexity", activeScenario.complexity]
+        ["Retrieval", activeScenario.retrievalRequirement]
       ] as const)
     : ([
-        ["Capability", activeScenario.recommendedForDemo],
+        ["Purpose", activeScenario.purpose],
         ["Runtime", activeScenario.runtime],
-        ["Estimated time", activeScenario.estimatedGenerationTime],
-        ["Expected output", activeScenario.expectedOutput]
+        ["Input", activeScenario.inputRequirement],
+        ["Expected artifact", activeScenario.expectedArtifact],
+        ["Preview", activeScenario.expectedPreview],
+        ["Interaction", activeScenario.expectedInteraction],
+        ["Fallback", activeScenario.fallback]
       ] as const);
 
   return (
@@ -3968,8 +3995,8 @@ function DemoModePanel({
           <span className="eyebrow">Demo Mode</span>
           <strong>Capstone scenarios</strong>
           <p>
-            Curated creative-coding flows with ready prompts and safe fallback
-            paths.
+            Curated creative-coding journeys with explicit runtime, preview, and
+            fallback boundaries.
           </p>
         </div>
         <span className="demoModeCount">{scenarios.length} flows</span>
@@ -3979,6 +4006,7 @@ function DemoModePanel({
         <div className="demoLiveSequence" aria-label="Featured demo paths">
           {demoModeRecommendedLiveSequence.map((item) => (
             <button
+              aria-label={`Featured: ${item.title}`}
               key={`${item.role}-${item.scenarioId}`}
               onClick={() => {
                 const scenario = scenarios.find(
@@ -4020,8 +4048,8 @@ function DemoModePanel({
                 <strong>{scenario.title}</strong>
                 <small>
                   {showDebugPanels
-                    ? `${scenario.category} / ${scenario.recommendedForDemo}`
-                    : scenario.recommendedForDemo}
+                    ? `${scenario.category} / ${scenario.workflow}`
+                    : scenario.purpose}
                 </small>
                 {isActive ? <ChevronDown size={14} aria-hidden="true" /> : null}
               </button>
@@ -4074,22 +4102,26 @@ function DemoModePanel({
           {showDebugPanels ? (
             <dl className="demoScenarioMeta">
               <div>
-                <dt>Expected behavior</dt>
-                <dd>{activeScenario.expectedBehavior}</dd>
+                <dt>Concept</dt>
+                <dd>{activeScenario.concept}</dd>
               </div>
               <div>
-                <dt>Fallback</dt>
-                <dd>{activeScenario.fallback}</dd>
+                <dt>Preview contract</dt>
+                <dd>{activeScenario.expectedPreview}</dd>
               </div>
               <div>
-                <dt>Output guidance</dt>
-                <dd>{activeScenario.outputGuidance}</dd>
+                <dt>Interaction</dt>
+                <dd>{activeScenario.expectedInteraction}</dd>
+              </div>
+              <div>
+                <dt>Input requirement</dt>
+                <dd>{activeScenario.inputRequirement}</dd>
               </div>
             </dl>
           ) : (
             <div className="demoUserEssentials">
               <p>
-                <strong>Validates:</strong> {activeScenario.recommendedForDemo}
+                <strong>Validates:</strong> {activeScenario.expectedValidation}
               </p>
             </div>
           )}
@@ -4102,17 +4134,15 @@ function DemoModePanel({
                   <dd>{activeScenario.sourceBoundary}</dd>
                 </div>
                 <div>
-                  <dt>Validation</dt>
-                  <dd>{activeScenario.validationPath}</dd>
+                  <dt>Expected validation</dt>
+                  <dd>{activeScenario.expectedValidation}</dd>
                 </div>
               </dl>
 
               <div className="demoScenarioEvidence">
-                <span>Evidence</span>
+                <span>Fallback</span>
                 <div>
-                  {activeScenario.evidence.map((item) => (
-                    <code key={item}>{item}</code>
-                  ))}
+                  <code>{activeScenario.fallback}</code>
                 </div>
               </div>
             </>
@@ -4128,22 +4158,19 @@ function getDemoScenarioPublicCategory(scenario: DemoModeScenario) {
     scenario.id,
     scenario.runtime,
     scenario.category,
-    scenario.workflowType,
+    scenario.workflow,
+    scenario.concept,
     scenario.title
   ]
     .join(" ")
     .toLowerCase();
 
-  if (searchable.includes("concept") || searchable.includes("translation")) {
-    return "Concept Translation";
+  if (searchable.includes("tone") || searchable.includes("audio")) {
+    return "Audio-visual";
   }
 
-  if (searchable.includes("installation")) {
-    return "Installation Planning";
-  }
-
-  if (searchable.includes("geometry")) {
-    return "Visual Planning";
+  if (searchable.includes("export") || searchable.includes("handoff")) {
+    return "Export package";
   }
 
   if (searchable.includes("three")) {
@@ -4158,15 +4185,15 @@ function getDemoScenarioPublicCategory(scenario: DemoModeScenario) {
     return "GLSL";
   }
 
-  if (searchable.includes("hydra")) {
-    return "Hydra";
-  }
-
   if (searchable.includes("retrieval") || searchable.includes("rag")) {
     return "Retrieval";
   }
 
-  return "Visual Planning";
+  if (searchable.includes("agent")) {
+    return "Agent workflow";
+  }
+
+  return "Creative workflow";
 }
 
 function formatDemoPromptPreview(prompt: string) {

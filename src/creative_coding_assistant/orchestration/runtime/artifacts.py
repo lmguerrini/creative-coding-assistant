@@ -25,6 +25,7 @@ from creative_coding_assistant.artifacts import (
     ArtifactWorkflowLink,
 )
 from creative_coding_assistant.contracts import AssistantRequest, CreativeCodingDomain
+from creative_coding_assistant.orchestration._metadata_utils import _token_set
 from creative_coding_assistant.orchestration.creative_planning import (
     CreativeExecutionPlan,
 )
@@ -261,11 +262,11 @@ _RUNTIME_LABELS = {
 }
 _P5_GLOBAL_MODE_FUNCTIONS = frozenset(
     {
-        "abs", "atan2", "background", "beginShape", "ceil", "circle", "clear",
-        "color", "colorMode", "constrain", "cos", "createCanvas", "dist", "ellipse", "endShape",
-        "fill", "floor", "frameRate", "int", "lerp", "line", "map", "max", "min", "noise",
+        "abs", "atan2", "background", "beginShape", "blendMode", "blue", "ceil", "circle", "clear",
+        "color", "colorMode", "constrain", "cos", "createCanvas", "curveVertex", "dist", "ellipse", "endShape", "exp",
+        "fill", "floor", "frameRate", "green", "int", "lerp", "line", "map", "max", "min", "noise",
         "noiseDetail", "noFill", "noStroke", "pixelDensity", "point", "pop", "pow", "push", "random",
-        "rect", "resizeCanvas", "rotate", "scale", "sin", "sqrt", "stroke", "strokeCap", "strokeWeight",
+        "rect", "rectMode", "red", "resizeCanvas", "rotate", "scale", "sin", "smooth", "sqrt", "stroke", "strokeCap", "strokeJoin", "strokeWeight",
         "translate", "vertex",
     }
 )
@@ -292,6 +293,16 @@ def extract_workflow_artifacts(
     """Extract code artifacts from generated assistant output."""
 
     blocks = _parse_markdown_code_blocks(answer)
+    if not blocks:
+        markdown_title = _requested_markdown_artifact_title(request)
+        if markdown_title and answer.strip():
+            blocks = (
+                _CodeBlock(
+                    content=answer.strip(),
+                    language="markdown",
+                    title=markdown_title,
+                ),
+            )
     p5_requested = _is_p5_generation_request(request, route_decision)
     artifacts: list[WorkflowArtifact] = []
     for index, block in enumerate(blocks, start=1):
@@ -383,9 +394,18 @@ def _parse_markdown_code_blocks(answer: str) -> tuple[_CodeBlock, ...]:
     return tuple(blocks)
 
 
+def _requested_markdown_artifact_title(request: AssistantRequest) -> str | None:
+    if "markdown" not in _token_set(request.query):
+        return None
+    match = re.search(r"\b([A-Za-z0-9][A-Za-z0-9._-]*\.md)\b", request.query)
+    return _sanitize_filename(match.group(1)) if match else None
+
+
 def _parse_fence_info(info: str) -> dict[str, str | None]:
     tokens = [token for token in info.strip().split() if token]
-    language = _normalize_language(tokens[0] if tokens else "")
+    first_token = tokens[0] if tokens else ""
+    first_token_is_filename = first_token.lower().endswith(".md")
+    language = _normalize_language("" if first_token_is_filename else first_token)
     named_title = next(
         (
             token.split("=", 1)[1]
@@ -394,10 +414,16 @@ def _parse_fence_info(info: str) -> dict[str, str | None]:
         ),
         None,
     )
-    title_token = next((token for token in tokens[1:] if "." in token), None)
+    title_token = first_token if first_token_is_filename else next(
+        (token for token in tokens[1:] if "." in token),
+        None,
+    )
+    title = _sanitize_filename(named_title or title_token or "") or None
+    if not language and title and title.lower().endswith(".md"):
+        language = "markdown"
     return {
         "language": language,
-        "title": _sanitize_filename(named_title or title_token or "") or None,
+        "title": title,
     }
 
 

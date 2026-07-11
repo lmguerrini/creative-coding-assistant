@@ -237,6 +237,15 @@ function snapshotWithTonePreview(): AssistantWorkspaceSnapshot {
     artifacts: [
       {
         ...snapshot.artifacts[0],
+        content: [
+          "const synth = new Tone.Synth({",
+          "  envelope: { attack: 0.03, decay: 0.2, sustain: 0.4, release: 0.7 }",
+          "}).toDestination();",
+          "const delay = new Tone.FeedbackDelay('8n', 0.25).toDestination();",
+          "new Tone.Sequence((time, note) => synth.triggerAttackRelease(note, '8n', time), ['C4', 'E4', 'G4', 'B4'], '8n').start(0);",
+          "Tone.Transport.bpm.value = 104;",
+          "Tone.Transport.start();"
+        ].join("\\n"),
         domain: "tone_js",
         language: "JavaScript + Tone.js",
         rendererId: "surface.tone",
@@ -1044,21 +1053,24 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("button", { name: "Demo Mode" }));
 
     const demoMode = screen.getByRole("region", { name: "Demo Mode" });
+    const demoScenarioList = within(demoMode).getByRole("list", {
+      name: "Demo Mode scenarios"
+    });
     expect(demoMode).toBeVisible();
     expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
       "Developer"
     );
     expect(within(demoMode).getByText("Capstone scenarios")).toBeVisible();
     expect(
-      within(demoMode).getByRole("button", {
-        name: /p5\.js Browser Preview Flow Field/
+      within(demoScenarioList).getByRole("button", {
+        name: /Physarum drift/
       })
     ).toBeVisible();
-    expect(within(demoMode).getByText("1 flows")).toBeVisible();
+    expect(within(demoMode).getByText("10 flows")).toBeVisible();
 
     fireEvent.click(
-      within(demoMode).getByRole("button", {
-        name: /p5\.js Browser Preview Flow Field/
+      within(demoScenarioList).getByRole("button", {
+        name: /Physarum drift/
       })
     );
 
@@ -1066,13 +1078,13 @@ describe("WorkstationShell", () => {
       within(demoMode).getByRole("button", { name: /Prompt loaded/ })
     ).toBeVisible();
     expect(
-      within(demoMode).getByText("Configured-provider validation completed")
+      within(demoMode).getByText("Single-agent runnable-code generation")
     ).toBeVisible();
     expect(
-      within(demoMode).getByText("Usage reported by the active provider")
-    ).toBeVisible();
+      within(demoMode).getAllByText("Expected validation").length
+    ).toBeGreaterThan(0);
     expect(
-      within(demoMode).getAllByText("Browser preview flow field").length
+      within(demoMode).getAllByText("p5.js browser preview").length
     ).toBeGreaterThan(0);
     expect(
       within(demoMode).getByText("Source boundary")
@@ -1085,10 +1097,10 @@ describe("WorkstationShell", () => {
       "User"
     );
     expect(
-      within(demoMode).getByText("Configured-provider validation completed")
+      within(demoMode).getByText("p5.js browser preview")
     ).toBeVisible();
     expect(
-      within(demoMode).queryByText("Usage reported by the active provider")
+      within(demoMode).queryByText("Expected validation")
     ).not.toBeInTheDocument();
     expect(
       within(demoMode).queryByRole("button", { name: /Source grounding/ })
@@ -1096,8 +1108,8 @@ describe("WorkstationShell", () => {
     const composer = screen.getByRole("textbox", {
       name: "Assistant prompt"
     }) as HTMLTextAreaElement;
-    expect(composer.value).toContain("flow-field particle system");
-    expect(composer.value).toContain("strokeCap(ROUND)");
+    expect(composer.value).toContain("physarum-drift.p5.js");
+    expect(composer.value).toContain("pointer attraction");
     expect(demoMode).not.toHaveTextContent(/HoloGenesis/i);
     expect(demoMode).not.toHaveTextContent(/\bsacred\b/i);
   });
@@ -1226,16 +1238,15 @@ describe("WorkstationShell", () => {
     expect(screen.getByText("Ground answers in official sources")).toBeVisible();
     expect(screen.getByText("Preview, refine, and save artifacts")).toBeVisible();
     expect(screen.getByText("Support creative-coding workflows")).toBeVisible();
-    expect(screen.getByText("Verified p5.js browser preview")).toBeVisible();
+    expect(screen.getByText("Tone.js")).toBeVisible();
     expect(screen.getByText("Describe a visual system")).toBeVisible();
     expect(screen.getByText("Generate browser-safe code")).toBeVisible();
     expect(screen.getByText("Ways to work")).toBeVisible();
     expect(screen.getByText("How it works")).toBeVisible();
     const promptSuggestions = screen.getByLabelText("Prompt suggestions");
-    expect(within(promptSuggestions).getAllByRole("button")).toHaveLength(1);
-    expect(
-      screen.queryByRole("button", { name: /Three\.js kinetic sculpture|Hydra feedback/i })
-    ).not.toBeInTheDocument();
+    expect(within(promptSuggestions).getAllByRole("button")).toHaveLength(4);
+    expect(screen.getByRole("button", { name: "Kinetic orbit sculpture" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: /Hydra feedback/i })).not.toBeInTheDocument();
     expect(screen.queryByText("Workflows")).not.toBeInTheDocument();
     expect(screen.queryByText(/aurora/i)).not.toBeInTheDocument();
     expect(screen.queryByText("Session persistence issue")).not.toBeInTheDocument();
@@ -1259,14 +1270,14 @@ describe("WorkstationShell", () => {
       screen.queryByRole("group", { name: "Session intelligence summary" })
     ).not.toBeInTheDocument();
 
-    const p5Suggestion =
-      "Create a single .p5.js JavaScript sketch for a flow-field particle system with setup(), draw(), soft trails, and interaction controls. Optimize for browser preview at 60 fps. Use strokeCap(ROUND) for rounded paths. Return only one runnable p5.js artifact.";
     fireEvent.click(
       screen.getByRole("button", {
-        name: p5Suggestion
+        name: "Physarum drift"
       })
     );
-    expect(screen.getByLabelText("Assistant prompt")).toHaveValue(p5Suggestion);
+    expect(
+      (screen.getByLabelText("Assistant prompt") as HTMLTextAreaElement).value
+    ).toContain("physarum-drift.p5.js");
   });
 
   it("keeps the User Mode composer minimal while preserving prompt controls", () => {
@@ -1490,9 +1501,12 @@ describe("WorkstationShell", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Demo Mode" }));
     const demoMode = screen.getByRole("region", { name: "Demo Mode" });
+    const demoScenarioList = within(demoMode).getByRole("list", {
+      name: "Demo Mode scenarios"
+    });
     fireEvent.click(
-      within(demoMode).getByRole("button", {
-        name: /p5\.js Browser Preview Flow Field/
+      within(demoScenarioList).getByRole("button", {
+        name: /Physarum drift/
       })
     );
 
@@ -1500,7 +1514,7 @@ describe("WorkstationShell", () => {
       (screen.getByRole("textbox", {
         name: "Assistant prompt"
       }) as HTMLTextAreaElement).value
-    ).toContain("flow-field particle system");
+    ).toContain("physarum-drift.p5.js");
 
     fireEvent.click(screen.getByRole("button", { name: "Command menu" }));
     fireEvent.click(screen.getByRole("button", { name: "Clear workspace session" }));

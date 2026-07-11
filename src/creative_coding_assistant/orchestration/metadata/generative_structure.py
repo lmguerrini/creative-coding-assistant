@@ -581,9 +581,10 @@ def _seed_module(
         kind="seed_system",
         label="Seed System",
         source_family=primary.family,
-        purpose=(
+        purpose=_clip(
             "Define deterministic origin values, coordinate frame, and shared "
-            f"state for {_subject_label(context)}."
+            f"state for {_subject_label(context)}.",
+            360,
         ),
         inputs=("user intent", "procedural structure plan"),
         outputs=("seeded coordinate state", "global timing state"),

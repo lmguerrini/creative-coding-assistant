@@ -84,6 +84,37 @@ class SymbolicNarrativePlannerTests(unittest.TestCase):
             narrative.hitl_questions,
         )
 
+    def test_clips_long_symbolic_arc_context_to_its_contract_limit(self) -> None:
+        stack = _stack("Generate a bounded p5.js threshold visual.")
+        long_intent = stack.intent.model_copy(
+            update={
+                "primary_expression": (
+                    "Preserve a layered descent through a luminous threshold with "
+                    "bounded visual change and clear interactive cues. "
+                    * 4
+                )[:360]
+            }
+        )
+
+        narrative = derive_symbolic_narrative_plan(
+            request=stack.request,
+            route_decision=stack.route,
+            creative_translation=stack.prompt_input.creative_translation,
+            creative_intent=long_intent,
+            creative_hierarchy=stack.hierarchy,
+            creative_plan=stack.plan,
+            creative_constraints=stack.constraints,
+            creative_constraint_priorities=stack.prioritization,
+            creative_strategy=stack.strategy,
+            creative_techniques=stack.techniques,
+            runtime_capabilities=stack.runtime_capabilities,
+            creative_tradeoffs=stack.tradeoffs,
+            creative_quality_prediction=stack.quality_prediction,
+        )
+
+        self.assertLessEqual(len(narrative.symbolic_arc), 420)
+        self.assertIn("without unsupported doctrine", narrative.symbolic_arc)
+
     def test_integrates_with_prompt_director_and_reasoning_metadata(self) -> None:
         stack = _stack(
             "Generate a symbolic spiral threshold crossing in p5.js with "

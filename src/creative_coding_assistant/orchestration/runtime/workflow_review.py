@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
 from enum import StrEnum
 
@@ -159,7 +160,7 @@ def _collect_answer_quality_reasons(
         reasons.append("answer_too_short")
 
     requires_deliverable = request_requires_deliverable(request, route_decision)
-    if requires_deliverable:
+    if request_requires_code_block(request, route_decision):
         fence_count = answer.count("```")
         if fence_count == 0:
             reasons.append("missing_code_block")
@@ -193,11 +194,20 @@ def _request_explicitly_asks_for_code(request: AssistantRequest) -> bool:
     return bool(query_tokens.intersection(_CODE_REQUEST_MARKERS))
 
 
+def _request_explicitly_asks_for_markdown_artifact(
+    request: AssistantRequest,
+) -> bool:
+    return bool(
+        "markdown" in _tokens(request.query)
+        and re.search(r"\b[A-Za-z0-9][A-Za-z0-9._-]*\.md\b", request.query)
+    )
+
+
 def request_requires_deliverable(
     request: AssistantRequest,
     route_decision: RouteDecision | None,
 ) -> bool:
-    """Return whether the current request needs a code artifact to pass review.
+    """Return whether the current request needs an artifact to pass review.
 
     Explain-mode requests can discuss a sketch, shader, or component without
     asking the assistant to generate one. Treating those domain words as a
@@ -210,10 +220,23 @@ def request_requires_deliverable(
     ):
         return False
 
-    return _request_explicitly_asks_for_code(request) or request_requires_live_preview(
-        request,
-        route_decision,
+    return (
+        _request_explicitly_asks_for_markdown_artifact(request)
+        or _request_explicitly_asks_for_code(request)
+        or request_requires_live_preview(
+            request,
+            route_decision,
+        )
     )
+
+
+def request_requires_code_block(
+    request: AssistantRequest,
+    route_decision: RouteDecision | None,
+) -> bool:
+    if _request_explicitly_asks_for_markdown_artifact(request):
+        return False
+    return request_requires_deliverable(request, route_decision)
 
 
 def request_requires_live_preview(

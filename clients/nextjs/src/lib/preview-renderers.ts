@@ -23,6 +23,7 @@ import {
   getP5RuntimeSourceSupportIssue,
   getThreeRuntimeSourceSupportIssue
 } from "./preview-source-classification";
+import { parseToneRuntimeSource } from "./tone-runtime";
 
 export type PreviewRendererTone =
   | "active"
@@ -541,6 +542,11 @@ export function matchCreativePreviewRenderer(
     return null;
   }
 
+  const toneContract = matchTonePreviewRenderer(artifact, normalizedTitle);
+  if (toneContract !== undefined) {
+    return toneContract;
+  }
+
   const explicitRenderer = matchExplicitPreviewRenderer(artifact);
 
   if (explicitRenderer !== undefined) {
@@ -607,6 +613,32 @@ function matchSignaledPreviewRenderer(artifact: ArtifactSummary) {
   return null;
 }
 
+function matchTonePreviewRenderer(
+  artifact: ArtifactSummary,
+  normalizedTitle: string
+): CreativePreviewRendererDefinition | null | undefined {
+  const runtime = artifact.runtime?.trim().toLowerCase();
+  const rendererId = artifact.rendererId?.trim().toLowerCase();
+  const hasToneFilename = /\.tone\.(?:js|ts)$/.test(normalizedTitle);
+  const hasCymaticsMarker = /CCA_VISUAL\s*:\s*cymatics\b/i.test(
+    artifact.content ?? ""
+  );
+  const explicitlyTone = runtime === "tone" || rendererId === "surface.tone";
+
+  if (!hasToneFilename && !hasCymaticsMarker && !explicitlyTone) {
+    return undefined;
+  }
+
+  if (!parseToneRuntimeSource(artifact.content ?? "").ok) {
+    return null;
+  }
+
+  return (
+    creativePreviewRendererRegistry.find((renderer) => renderer.kind === "tone") ??
+    null
+  );
+}
+
 function hasUnsupportedBrowserRuntimeSignal(
   artifact: ArtifactSummary,
   normalizedTitle: string
@@ -671,6 +703,10 @@ function validateCreativePreviewRenderer(
 
     if (renderer.kind === "canvas") {
       return getCanvasRuntimeSupportIssue(artifact.content) ? null : renderer;
+    }
+
+    if (renderer.kind === "tone") {
+      return parseToneRuntimeSource(artifact.content ?? "").ok ? renderer : null;
     }
 
     return renderer;

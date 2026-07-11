@@ -79,6 +79,13 @@ export function PreviewRuntimeStage({
       publishIntervalMs: 0
     }).snapshot();
   });
+  // "generating" and "ready" are both runnable states. Treating their
+  // transition as a new lifecycle remounts the iframe just after it reports a
+  // healthy running status (for example, when a restart settles).
+  const runtimeExecutionState =
+    preview.state === "error" || preview.state === "unavailable"
+      ? preview.state
+      : "runnable";
   const overlay = buildPreviewRuntimeOverlayModel({
     kind,
     route,
@@ -222,7 +229,7 @@ export function PreviewRuntimeStage({
     kind,
     preview.active,
     preview.error?.type,
-    preview.state,
+    runtimeExecutionState,
     route.rendererId,
     route.rendererLabel,
     route.supportState,

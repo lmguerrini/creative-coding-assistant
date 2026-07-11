@@ -1,6 +1,7 @@
 import type { ArtifactSummary, AssistantWorkspaceSnapshot } from "./assistant-client";
 
 const genericTitlePattern = /^(?:assistant-response|generated(?:-[a-z0-9]+)*|artifact|output|untitled)(?:-\d+)?(?:\.[a-z0-9]+){1,3}$/i;
+const promptScaffoldTitlePattern = /^(?:exactly|one|executable|runnable|artifact|named|return|only)(?:-[a-z0-9]+){2,}(?:\.[a-z0-9]+){1,3}$/i;
 
 const ignoredPromptTokens = new Set([
   "a",
@@ -53,6 +54,7 @@ export function assignSemanticArtifactTitles({
 }): ArtifactSummary[] {
   const usedTitles = new Set(existingTitles.map((title) => title.toLowerCase()));
   const eligibleIds = eligibleArtifactIds ? new Set(eligibleArtifactIds) : null;
+  const requestedTitle = requestedArtifactTitle(prompt);
 
   return artifacts.map((artifact) => {
     if (eligibleIds && !eligibleIds.has(artifact.id)) {
@@ -60,17 +62,23 @@ export function assignSemanticArtifactTitles({
       return artifact;
     }
 
-    if (!isGenericArtifactTitle(artifact.title)) {
+    if (!isGenericArtifactTitle(artifact.title) && !requestedTitle) {
       usedTitles.add(artifact.title.toLowerCase());
       return artifact;
     }
 
     const semanticPrompt = artifact.creativeTranslation?.creativeIntent ?? prompt;
-    const title = uniqueArtifactTitle({
-      extension: artifactFileExtension(artifact),
-      stem: semanticArtifactStem(semanticPrompt),
-      usedTitles
-    });
+    const title = requestedTitle
+      ? uniqueArtifactTitle({
+          extension: filenameExtension(requestedTitle),
+          stem: requestedTitle,
+          usedTitles
+        })
+      : uniqueArtifactTitle({
+          extension: artifactFileExtension(artifact),
+          stem: semanticArtifactStem(semanticPrompt),
+          usedTitles
+        });
     usedTitles.add(title.toLowerCase());
     return { ...artifact, title };
   });
@@ -134,7 +142,10 @@ export function renameWorkspaceArtifact({
 }
 
 export function isGenericArtifactTitle(title: string) {
-  return genericTitlePattern.test(title.trim());
+  return (
+    genericTitlePattern.test(title.trim()) ||
+    promptScaffoldTitlePattern.test(title.trim())
+  );
 }
 
 function updateArtifactTitleReferences({
@@ -200,6 +211,9 @@ function artifactFileExtension(artifact: ArtifactSummary) {
   const title = artifact.title.toLowerCase();
   const runtime = `${artifact.runtime ?? ""} ${artifact.rendererId ?? ""} ${artifact.domain ?? ""}`.toLowerCase();
 
+  if (title.endsWith(".tone.js") || title.endsWith(".tone.ts")) {
+    return ".tone.js";
+  }
   if (runtime.includes("react_three_fiber") || title.endsWith(".r3f.tsx")) {
     return ".r3f.tsx";
   }
@@ -230,6 +244,18 @@ function artifactFileExtension(artifact: ArtifactSummary) {
 
   const extension = title.match(/(\.[a-z0-9]+)$/)?.[1];
   return extension ?? (artifact.type === "export" ? ".md" : ".txt");
+}
+
+function requestedArtifactTitle(prompt: string) {
+  const match = prompt.match(
+    /\b(?:named|filename|file\s*name|called)\s+[`'”"]?([a-z0-9][a-z0-9_-]*(?:\.[a-z0-9]+){1,3})\b/i
+  );
+  return match?.[1]?.toLowerCase() ?? null;
+}
+
+function filenameExtension(title: string) {
+  const extension = title.match(/(?:\.[a-z0-9]+){1,3}$/i)?.[0];
+  return extension ?? ".txt";
 }
 
 function semanticArtifactStem(prompt: string) {

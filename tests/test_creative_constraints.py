@@ -18,6 +18,7 @@ from creative_coding_assistant.orchestration import (
     derive_creative_assistant_director_brief,
     derive_creative_constraint_solution,
     derive_creative_execution_plan,
+    derive_creative_intent_decomposition,
 )
 
 
@@ -109,6 +110,44 @@ class CreativeConstraintSolverTests(unittest.TestCase):
             ),
             solution.tradeoffs,
         )
+
+    def test_solver_clips_a_long_decomposed_intent_to_its_contract_limit(self) -> None:
+        request = AssistantRequest(
+            query=(
+                "Create a browser-safe p5.js Chladni field with pointer interaction, "
+                "a quiet cyan palette, a leading source-boundary comment, predictable "
+                "60 fps motion, and exactly one runnable artifact. "
+            )
+            * 3,
+            mode=AssistantMode.GENERATE,
+            domain=CreativeCodingDomain.P5_JS,
+        )
+        route = _route(CreativeCodingDomain.P5_JS)
+        prompt_input = _prompt_input(request, route)
+        derived_intent = derive_creative_intent_decomposition(
+            request=request,
+            route_decision=route,
+            creative_translation=prompt_input.creative_translation,
+        )
+        long_intent = derived_intent.model_copy(
+            update={
+                "primary_expression": (
+                    "Preserve a source-grounded Chladni field with pointer-led motion "
+                    "and one browser-safe runnable p5 artifact. "
+                    * 4
+                )[:360]
+            }
+        )
+
+        solution = derive_creative_constraint_solution(
+            request=request,
+            route_decision=route,
+            creative_intent=long_intent,
+            creative_translation=prompt_input.creative_translation,
+        )
+
+        self.assertLessEqual(len(solution.intent_summary), 280)
+        self.assertTrue(solution.intent_summary.endswith("."))
 
     def test_prompt_renderer_includes_constraint_solver_guidance(self) -> None:
         request = AssistantRequest(

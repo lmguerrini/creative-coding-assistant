@@ -39,10 +39,18 @@ describe("p5 preview source classification", () => {
       "function draw() {",
       "  const value = constrain(int(noise(frameCount * 0.01) * 320), 0, 320);",
       "  const orbit = sin(TAU * frameCount * 0.01);",
+      "  const eased = exp(-value * 0.01);",
       "  const active = particles.filter(retainParticle);",
       "  strokeCap(ROUND);",
+      "  strokeJoin(ROUND);",
+      "  blendMode(ADD);",
+      "  rectMode(CENTER);",
+      "  smooth();",
+      "  const swatch = color(20, 40, 60);",
+      "  fill(red(swatch), green(swatch), blue(swatch));",
+      "  beginShape(); curveVertex(value, 90 + orbit); endShape();",
       "  background(8);",
-      "  circle(value, 90 + orbit, active.length * 18);",
+      "  circle(value, 90 + orbit, active.length * 18 * eased);",
       "}"
     ].join("\n");
 
@@ -67,5 +75,10 @@ describe("GLSL preview source classification", () => {
         "#version 300 es\nout vec4 color; void main() { color = vec4(1.0); }"
       )
     ).toContain("#version declarations");
+    expect(
+      getGlslRuntimeSourceSupportIssue(
+        "// texture is not used here\nvoid main() { gl_FragColor = vec4(1.0); }"
+      )
+    ).toBeNull();
   });
 });

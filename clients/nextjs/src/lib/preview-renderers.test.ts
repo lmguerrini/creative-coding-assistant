@@ -147,6 +147,10 @@ describe("preview renderers", () => {
       id: "surface.tone",
       kind: "tone",
       artifact: creativeArtifact({
+        content: [
+          "const synth = new Tone.Synth().toDestination();",
+          "Tone.Transport.start();"
+        ].join("\n"),
         domain: "tone_js",
         runtime: "tone",
         summary: "Tone.js synth sequence with transport and delay.",
@@ -226,6 +230,40 @@ describe("preview renderers", () => {
       });
     }
   );
+
+  it("prefers a valid named Tone.js artifact over conflicting Canvas metadata", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const artifact = creativeArtifact({
+      content: [
+        "// CCA_VISUAL: cymatics",
+        "const canvas = document.createElement('canvas');",
+        "const synth = new Tone.FMSynth().toDestination();",
+        "new Tone.Sequence((time, note) => synth.triggerAttackRelease(note, '8n', time), ['C3', 'G3'], '8n').start(0);",
+        "Tone.Transport.bpm.value = 96;",
+        "Tone.Transport.start();"
+      ].join("\n"),
+      language: "JavaScript + Canvas",
+      rendererId: "surface.canvas",
+      runtime: "canvas",
+      title: "cymatic-chladni.tone.js"
+    });
+
+    expect(matchCreativePreviewRenderer(artifact)).toMatchObject({
+      id: "surface.tone",
+      kind: "tone"
+    });
+    expect(
+      buildPreviewRendererRoute({
+        artifacts: [artifact],
+        preview: creativePreviewSummary(artifact, snapshot.preview),
+        previewArtifactId: artifact.id
+      })
+    ).toMatchObject({
+      rendererId: "surface.tone",
+      supportState: "supported",
+      surfaceKind: "tone"
+    });
+  });
 
   it("keeps unsupported WebGPU code out of live renderer matching", () => {
     const snapshot = getLocalWorkspaceSnapshot();

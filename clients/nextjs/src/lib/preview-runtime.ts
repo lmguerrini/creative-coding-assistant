@@ -20,6 +20,7 @@ import {
   getP5RuntimeSourceSupportIssue,
   getThreeRuntimeSourceSupportIssue
 } from "./preview-source-classification";
+import { getToneRuntimeSourceSupportIssue } from "./tone-runtime";
 import type { WorkflowRuntimeTraceEvent } from "./workflow-runtime";
 
 type BuildPreviewRuntimeSummaryInput = {
@@ -192,33 +193,17 @@ export function buildPreviewRuntimeSummary({
 }
 
 export function isArtifactPreviewable(artifact: ArtifactSummary): boolean {
-  if (!artifact.actions.includes("Preview") && artifact.type !== "preview") {
-    return false;
-  }
-
   const source = artifact.content?.trim();
-  if (!source) {
-    return true;
-  }
-
   const title = artifact.title.toLowerCase();
   const isP5Artifact =
     artifact.runtime === "p5" ||
     artifact.rendererId === "surface.p5" ||
     title.endsWith(".p5.js") ||
     title.endsWith(".p5.ts");
-  if (isP5Artifact && getP5RuntimeSourceSupportIssue(source)) {
-    return false;
-  }
-
   const isGlslArtifact =
     artifact.runtime === "glsl" ||
     artifact.rendererId === "surface.glsl" ||
     /\.(?:glsl|frag|fs)$/i.test(title);
-  if (isGlslArtifact && getGlslRuntimeSourceSupportIssue(source)) {
-    return false;
-  }
-
   const isThreeArtifact =
     artifact.runtime === "three" ||
     artifact.rendererId === "surface.three" ||
@@ -226,7 +211,47 @@ export function isArtifactPreviewable(artifact: ArtifactSummary): boolean {
     title.endsWith(".three.ts") ||
     title.endsWith(".r3f.tsx");
 
-  return !(isThreeArtifact && getThreeRuntimeSourceSupportIssue(source));
+  const isToneArtifact =
+    artifact.runtime === "tone" ||
+    artifact.rendererId === "surface.tone" ||
+    title.endsWith(".tone.js") ||
+    title.endsWith(".tone.ts");
+  const hasKnownRuntimeSignal =
+    isP5Artifact ||
+    isGlslArtifact ||
+    isThreeArtifact ||
+    isToneArtifact ||
+    ["hydra", "gsap", "svg", "canvas"].includes(artifact.runtime ?? "") ||
+    ["surface.hydra", "surface.gsap", "surface.svg", "surface.canvas"].includes(
+      artifact.rendererId ?? ""
+    ) ||
+    /\.(?:hydra|gsap|canvas)\.(?:js|ts)$|\.svg$/i.test(title);
+
+  if (
+    !artifact.actions.includes("Preview") &&
+    artifact.type !== "preview" &&
+    !hasKnownRuntimeSignal
+  ) {
+    return false;
+  }
+
+  if (!source) {
+    return true;
+  }
+
+  if (isP5Artifact && getP5RuntimeSourceSupportIssue(source)) {
+    return false;
+  }
+
+  if (isGlslArtifact && getGlslRuntimeSourceSupportIssue(source)) {
+    return false;
+  }
+
+  if (isThreeArtifact && getThreeRuntimeSourceSupportIssue(source)) {
+    return false;
+  }
+
+  return !(isToneArtifact && getToneRuntimeSourceSupportIssue(source));
 }
 
 function resolvePreviewRuntimeState({
@@ -254,10 +279,13 @@ function resolvePreviewRuntimeState({
 
   if (
     activeSessionOverride?.mode === "restarting" ||
-    activeSessionOverride?.mode === "reloading" ||
-    activeSessionOverride?.mode === "settled"
+    activeSessionOverride?.mode === "reloading"
   ) {
     return "generating";
+  }
+
+  if (activeSessionOverride?.mode === "settled") {
+    return "ready";
   }
 
   if (activeSessionOverride?.mode === "cleared") {

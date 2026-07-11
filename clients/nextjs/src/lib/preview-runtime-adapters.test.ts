@@ -65,6 +65,12 @@ describe("preview runtime adapters", () => {
     };
     const toneArtifact = {
       ...snapshot.artifacts[0],
+      content: [
+        "const synth = new Tone.Synth().toDestination();",
+        "new Tone.Sequence((time, note) => synth.triggerAttackRelease(note, '8n', time), ['C4', 'E4', 'G4', 'B4'], '8n').start(0);",
+        "Tone.Transport.bpm.value = 104;",
+        "Tone.Transport.start();"
+      ].join("\\n"),
       domain: "tone_js",
       runtime: "tone",
       summary: "Tone.js synth sequence with transport and delay.",

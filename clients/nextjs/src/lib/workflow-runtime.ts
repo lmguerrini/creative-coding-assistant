@@ -213,7 +213,11 @@ export function buildWorkflowRuntimeModel(
   const explicitTransitionKeys = new Set<string>();
 
   for (const traceEvent of traceEvents) {
-    previewRuntimeError ??= readPreviewRuntimeError(traceEvent.event);
+    if (isPreviewRuntimeRecovered(traceEvent.event)) {
+      previewRuntimeError = null;
+    } else {
+      previewRuntimeError ??= readPreviewRuntimeError(traceEvent.event);
+    }
     const workflowMetadata = readWorkflowMetadata(traceEvent.event);
     const nodeId =
       workflowMetadata?.step ??
@@ -497,6 +501,10 @@ export function buildWorkflowRuntimeModel(
   };
 }
 
+function isPreviewRuntimeRecovered(event: AssistantStreamEvent) {
+  return event.event_type === "status" && event.payload.code === "preview_runtime_recovered";
+}
+
 function readPreviewRuntimeError(event: AssistantStreamEvent): WorkstationError | null {
   if (event.event_type !== "status" || event.payload.code !== "preview_runtime_error") {
     return null;
@@ -539,9 +547,12 @@ function deriveProductOutcome({
   previewRuntimeError: WorkstationError | null;
   workflowStatus: string;
 }): AssistantStreamProductOutcome {
-  const publishedOutcome =
-    metadata?.product_outcome ??
-    persistedProductOutcome;
+  const publishedOutcome = shouldPreferClientReconciledOutcome({
+    metadataOutcome: metadata?.product_outcome ?? null,
+    persistedProductOutcome
+  })
+    ? persistedProductOutcome
+    : metadata?.product_outcome ?? persistedProductOutcome;
   const outcome =
     finalEvent && publishedOutcome?.product_outcome === "IN_PROGRESS"
       ? fallbackProductOutcome(workflowStatus)
@@ -559,6 +570,22 @@ function deriveProductOutcome({
     recovery_action:
       "Open Code to use the artifact, then reload or regenerate the preview."
   };
+}
+
+function shouldPreferClientReconciledOutcome({
+  metadataOutcome,
+  persistedProductOutcome
+}: {
+  metadataOutcome: AssistantStreamProductOutcome | null;
+  persistedProductOutcome: AssistantStreamProductOutcome | null;
+}) {
+  return Boolean(
+    persistedProductOutcome?.product_outcome === "SUCCESS" &&
+      ["PREPARED", "READY"].includes(persistedProductOutcome.preview_status) &&
+      metadataOutcome?.product_outcome === "PARTIAL" &&
+      (metadataOutcome.artifact_runnability === "UNSUPPORTED" ||
+        metadataOutcome.preview_status === "UNAVAILABLE")
+  );
 }
 
 function fallbackProductOutcome(workflowStatus: string): AssistantStreamProductOutcome {

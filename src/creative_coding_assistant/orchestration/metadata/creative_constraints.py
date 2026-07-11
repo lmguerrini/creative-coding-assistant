@@ -257,11 +257,14 @@ def _intent_summary(
     creative_intent: CreativeIntentDecomposition | None,
     creative_translation: CreativeTranslation | None,
 ) -> str:
+    candidate: str
     if creative_intent is not None:
-        return creative_intent.primary_expression
-    if creative_translation is not None:
-        return creative_translation.creative_intent
-    return _compact(request.query)[:280]
+        candidate = creative_intent.primary_expression
+    elif creative_translation is not None:
+        candidate = creative_translation.creative_intent
+    else:
+        candidate = request.query
+    return _clip(candidate, 280)
 
 
 def _output_goal(
