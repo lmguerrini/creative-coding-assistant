@@ -79,4 +79,35 @@ describe("KnowledgeBaseInventorySurface", () => {
       })
     );
   });
+
+  it("removes unavailable sources from the update selection after checking", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        status: "review_ready_with_unavailable_sources",
+        detail: "The source could not be reached and was removed from the update selection.",
+        sourceChanges: [
+          {
+            sourceId: "three_docs",
+            changeStatus: "unavailable",
+            detail: "The official source could not be reached."
+          }
+        ]
+      })
+    });
+    vi.stubGlobal("fetch", fetcher);
+
+    render(<KnowledgeBaseInventorySurface detailed inventory={inventory} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Select all" }));
+    fireEvent.click(screen.getByRole("button", { name: "Check for updates" }));
+
+    expect(await screen.findByText("The official source could not be reached.")).toBeVisible();
+    expect(
+      screen.getByRole("checkbox", {
+        name: "Select three.js Documentation for a Knowledge Base operation"
+      })
+    ).not.toBeChecked();
+    expect(screen.getByRole("button", { name: "Check for updates" })).toBeDisabled();
+  });
 });

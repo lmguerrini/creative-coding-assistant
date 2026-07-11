@@ -12660,7 +12660,8 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .kbSourceChangeSummary strong,
-.kbSourceChangeSummary span {
+.kbSourceChangeSummary span,
+.kbSourceChangeSummary small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -12675,6 +12676,13 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 .kbSourceChangeSummary span {
   color: var(--muted);
   font-size: 0.7rem;
+}
+
+.kbSourceChangeSummary small {
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.35;
+  white-space: normal;
 }
 
 .kbSourceExplorer > div[role="list"] {

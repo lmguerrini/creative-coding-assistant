@@ -231,10 +231,23 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
       if (!response.ok || !record) {
         throw new Error(readText(record?.message) ?? "Knowledge Base operation is unavailable.");
       }
+      const sourceChanges = readKnowledgeBaseSourceChanges(record.sourceChanges);
+      if (action === "check") {
+        const unavailableSourceIds = new Set(
+          sourceChanges
+            .filter((change) => change.changeStatus === "unavailable")
+            .map((change) => change.sourceId)
+        );
+        if (unavailableSourceIds.size > 0) {
+          setSelectedSourceIds((current) =>
+            current.filter((sourceId) => !unavailableSourceIds.has(sourceId))
+          );
+        }
+      }
       setOperationState({
         detail: readText(record.detail) ?? "Knowledge Base operation completed.",
         status: readText(record.status) ?? "completed",
-        sourceChanges: readKnowledgeBaseSourceChanges(record.sourceChanges)
+        sourceChanges
       });
     } catch (error) {
       setOperationState({
@@ -294,6 +307,7 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
                 <li key={change.sourceId}>
                   <strong>{formatSourceChangeStatus(change.changeStatus)}</strong>
                   <span>{change.sourceId}</span>
+                  {change.detail ? <small>{change.detail}</small> : null}
                 </li>
               ))}
             </ul>
@@ -350,6 +364,7 @@ function readText(value: unknown) {
 type KnowledgeBaseSourceChange = {
   sourceId: string;
   changeStatus: string;
+  detail?: string;
 };
 
 function readKnowledgeBaseSourceChanges(value: unknown): KnowledgeBaseSourceChange[] {
@@ -360,7 +375,8 @@ function readKnowledgeBaseSourceChanges(value: unknown): KnowledgeBaseSourceChan
     const record = asRecord(candidate);
     const sourceId = readText(record?.sourceId);
     const changeStatus = readText(record?.changeStatus);
-    return sourceId && changeStatus ? [{ sourceId, changeStatus }] : [];
+    const detail = readText(record?.detail);
+    return sourceId && changeStatus ? [{ sourceId, changeStatus, ...(detail ? { detail } : {}) }] : [];
   });
 }
 

@@ -7,13 +7,18 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from creative_coding_assistant.api.domain_experience import (
     build_domain_experience_payload,
 )
-from creative_coding_assistant.api.knowledge_base import KnowledgeBaseApplication
+from creative_coding_assistant.api.knowledge_base import (
+    KnowledgeBaseApplication,
+    _check_official_sources,
+)
 from creative_coding_assistant.core import Settings
 from creative_coding_assistant.rag.sources import approved_official_sources
+from creative_coding_assistant.rag.sync import TransportResponse
 
 
 class V97KnowledgeBaseApiTests(unittest.TestCase):
@@ -62,6 +67,51 @@ class V97KnowledgeBaseApiTests(unittest.TestCase):
         self.assertEqual(calls, [])
         self.assertEqual(response["sourceChanges"][0]["changeStatus"], "new")
         self.assertIn("Official source content was checked", response["detail"])
+
+    def test_check_reports_unavailable_sources_without_failing_the_selected_batch(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            settings = Settings(
+                _env_file=None,
+                chroma_persist_dir=Path(temporary_directory) / "chroma",
+            )
+            app = KnowledgeBaseApplication(
+                settings_factory=lambda: settings,
+                source_check_fn=lambda source_ids, _local_fingerprints: [
+                    {"sourceId": source_ids[0], "changeStatus": "changed"},
+                    {
+                        "sourceId": source_ids[1],
+                        "changeStatus": "unavailable",
+                        "detail": "The official source could not be reached.",
+                    },
+                ],
+            )
+            headers: dict[str, object] = {}
+            response = _call(
+                app,
+                {
+                    "action": "check",
+                    "sourceIds": ["three_docs", "three_manual"],
+                },
+                headers,
+            )
+
+        self.assertEqual(headers["status"], "200 OK")
+        self.assertEqual(response["status"], "review_ready_with_unavailable_sources")
+        self.assertEqual(response["unavailableSourceIds"], ["three_manual"])
+        self.assertIn("could not be reached", response["detail"])
+
+    def test_check_continues_after_an_individual_official_source_fetch_failure(self) -> None:
+        with patch(
+            "creative_coding_assistant.api.knowledge_base.UrllibSourceTransport",
+            return_value=_PartiallyUnavailableTransport(),
+        ):
+            changes = _check_official_sources(("three_docs", "three_manual"), {})
+
+        self.assertEqual(changes[0]["changeStatus"], "new")
+        self.assertEqual(changes[1]["changeStatus"], "unavailable")
+        self.assertIn("could not be reached", str(changes[1]["detail"]))
 
     def test_check_requires_source_selection_before_network_activity(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -162,3 +212,15 @@ def _capture_response(target: dict[str, object]):
         target["headers"] = headers
 
     return start_response
+
+
+class _PartiallyUnavailableTransport:
+    def fetch(self, url: str) -> TransportResponse:
+        if url == "https://threejs.org/docs/":
+            return TransportResponse(
+                resolved_url=url,
+                status_code=200,
+                content_type="text/html",
+                content="<html><body>Three.js documentation</body></html>",
+            )
+        raise RuntimeError("Official source is temporarily unavailable.")

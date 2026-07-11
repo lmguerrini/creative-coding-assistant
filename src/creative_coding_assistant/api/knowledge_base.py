@@ -5,11 +5,13 @@ from __future__ import annotations
 import shutil
 import tempfile
 from collections.abc import Callable, Iterable, Sequence
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from http import HTTPStatus
 from pathlib import Path
 from typing import Any, Literal
 
+from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from creative_coding_assistant.api.contracts import (
@@ -41,6 +43,7 @@ KNOWLEDGE_BASE_CONTRACT_HEADER = "X-CCA-Knowledge-Base-Contract-Version"
 DEFAULT_KNOWLEDGE_BASE_PATH = "/api/knowledge-base"
 KNOWLEDGE_BASE_METHODS = "GET, POST, OPTIONS"
 MAX_KNOWLEDGE_BASE_REQUEST_BYTES = 32 * 1024
+MAX_CONCURRENT_SOURCE_CHECKS = 6
 
 
 class KnowledgeBaseOperationRequest(BaseModel):
@@ -195,13 +198,15 @@ class KnowledgeBaseApplication:
                 )
             payload = {
                 "action": "check",
-                "status": "review_ready",
-                "detail": (
-                    "Official source content was checked after your request. Review the "
-                    "change summary before updating the local index."
-                ),
+                "status": _source_check_status(source_changes),
+                "detail": _source_check_detail(source_changes),
                 "sourceIds": list(request.source_ids),
                 "sourceChanges": source_changes,
+                "unavailableSourceIds": [
+                    str(change["sourceId"])
+                    for change in source_changes
+                    if change["changeStatus"] == "unavailable"
+                ],
                 "cancellation": "Check completed before an update or rebuild started.",
                 "inventory": inventory,
             }
@@ -289,18 +294,17 @@ def _check_official_sources(
 ) -> list[dict[str, object]]:
     """Fetch selected approved sources for a review-only content fingerprint."""
 
-    fetcher = OfficialSourceFetcher(transport=UrllibSourceTransport())
     normalizer = OfficialSourceNormalizer()
     checked_at = datetime.now(tz=UTC)
-    changes: list[dict[str, object]] = []
-    for source_id in source_ids:
-        fetched = fetcher.fetch(
-            OfficialSourceSyncRequest(source_id=source_id, requested_at=checked_at)
-        )
-        normalized = normalizer.normalize(fetched)
-        local_fingerprint = local_fingerprints.get(source_id)
-        changes.append(
-            {
+
+    def check_source(source_id: str) -> dict[str, object]:
+        try:
+            fetched = OfficialSourceFetcher(transport=UrllibSourceTransport()).fetch(
+                OfficialSourceSyncRequest(source_id=source_id, requested_at=checked_at)
+            )
+            normalized = normalizer.normalize(fetched)
+            local_fingerprint = local_fingerprints.get(source_id)
+            return {
                 "sourceId": source_id,
                 "fetchedAt": checked_at.isoformat(),
                 "fingerprint": normalized.content_hash,
@@ -312,8 +316,50 @@ def _check_official_sources(
                 ),
                 "resolvedUrl": normalized.resolved_url,
             }
+        except Exception as exc:
+            logger.warning(
+                "Official KB check was unavailable for source '{}': {}",
+                source_id,
+                type(exc).__name__,
+            )
+            return {
+                "sourceId": source_id,
+                "fetchedAt": checked_at.isoformat(),
+                "changeStatus": "unavailable",
+                "detail": (
+                    "The official source could not be reached. Retry later; the local "
+                    "index was not changed."
+                ),
+            }
+
+    worker_count = min(MAX_CONCURRENT_SOURCE_CHECKS, len(source_ids))
+    with ThreadPoolExecutor(max_workers=worker_count) as executor:
+        return list(executor.map(check_source, source_ids))
+
+
+def _source_check_status(source_changes: Sequence[dict[str, object]]) -> str:
+    return (
+        "review_ready_with_unavailable_sources"
+        if any(change["changeStatus"] == "unavailable" for change in source_changes)
+        else "review_ready"
+    )
+
+
+def _source_check_detail(source_changes: Sequence[dict[str, object]]) -> str:
+    unavailable_count = sum(
+        1 for change in source_changes if change["changeStatus"] == "unavailable"
+    )
+    checked_count = len(source_changes) - unavailable_count
+    if unavailable_count:
+        return (
+            f"{checked_count} official source{'s' if checked_count != 1 else ''} "
+            f"were checked. {unavailable_count} could not be reached, so they were "
+            "removed from the update selection. The local index was not changed."
         )
-    return changes
+    return (
+        "Official source content was checked after your request. Review the change "
+        "summary before updating the local index."
+    )
 
 
 def _validation_payload(

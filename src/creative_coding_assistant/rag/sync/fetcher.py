@@ -38,6 +38,8 @@ class SourceTransport(Protocol):
 class UrllibSourceTransport:
     """Simple HTTP transport kept behind a narrow local interface."""
 
+    DEFAULT_TIMEOUT_SECONDS = 10.0
+
     _REQUEST_HEADERS = {
         "User-Agent": (
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -51,10 +53,15 @@ class UrllibSourceTransport:
         "Accept-Language": "en-US,en;q=0.9",
     }
 
+    def __init__(self, *, timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS) -> None:
+        if timeout_seconds <= 0:
+            raise ValueError("Official source fetch timeout must be positive.")
+        self._timeout_seconds = timeout_seconds
+
     def fetch(self, url: str) -> TransportResponse:
         try:
             request = Request(url, headers=self._REQUEST_HEADERS)
-            with urlopen(request) as response:  # noqa: S310
+            with urlopen(request, timeout=self._timeout_seconds) as response:  # noqa: S310
                 charset = response.headers.get_content_charset() or "utf-8"
                 content = response.read().decode(charset, errors="replace")
                 return TransportResponse(
