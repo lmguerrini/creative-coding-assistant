@@ -35,24 +35,21 @@ export function WorkflowExecutionSelector({
   onChange: (mode: WorkflowExecutionMode) => void;
 }) {
   return (
-    <fieldset aria-label="Workflow selector" className="workflowExecutionSelector">
-      <legend>Workflow</legend>
-      <div>
+    <label className="workflowExecutionSelector" title="Choose the bounded route for this request.">
+      <span>Workflow</span>
+      <select
+        aria-label="Workflow"
+        disabled={disabled}
+        onChange={(event) => onChange(event.currentTarget.value as WorkflowExecutionMode)}
+        value={mode}
+      >
         {modeOptions.map((option) => (
-          <label key={option.value} title={option.detail}>
-            <input
-              checked={mode === option.value}
-              disabled={disabled}
-              name="workflow-execution-mode"
-              onChange={() => onChange(option.value)}
-              type="radio"
-              value={option.value}
-            />
-            <span>{option.label}</span>
-          </label>
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
         ))}
-      </div>
-    </fieldset>
+      </select>
+    </label>
   );
 }
 

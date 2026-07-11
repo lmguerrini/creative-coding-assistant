@@ -1025,9 +1025,11 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("button", { name: "Focus mode" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Display mode" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Workspace density" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Command menu" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Command menu" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Theme" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Settings" })).toBeVisible();
+    expect(screen.getByRole("combobox", { name: "Workflow" })).toHaveValue("auto");
+    expect(screen.queryByText("Type a prompt to begin")).not.toBeInTheDocument();
   });
 
   it("opens the full Product Intelligence Dashboard from the workspace", () => {
@@ -1336,11 +1338,12 @@ describe("WorkstationShell", () => {
   it("opens the top-right utility panels one at a time", () => {
     renderShell();
 
-    fireEvent.click(screen.getByRole("button", { name: "Command menu" }));
-    expect(screen.getByRole("dialog", { name: "Quick actions" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    expect(screen.getByRole("dialog", { name: "Workspace settings" })).toBeVisible();
+    expect(screen.getByRole("group", { name: "Quick actions" })).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "Theme" }));
-    expect(screen.queryByRole("dialog", { name: "Quick actions" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Workspace settings" })).not.toBeInTheDocument();
     expect(screen.getByRole("dialog", { name: "Theme presets" })).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
@@ -1432,7 +1435,7 @@ describe("WorkstationShell", () => {
     expect(summary).not.toBeNull();
     fireEvent.click(summary as HTMLElement);
 
-    fireEvent.click(screen.getByRole("button", { name: "Command menu" }));
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     fireEvent.click(screen.getByRole("button", { name: "Clear workspace session" }));
 
     expect(confirmSpy).not.toHaveBeenCalled();
@@ -1444,7 +1447,6 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("button", { name: "Keep session" }));
     expect(screen.getByLabelText("Operator checkpoint")).toHaveTextContent("Rejected");
 
-    fireEvent.click(screen.getByRole("button", { name: "Command menu" }));
     fireEvent.click(screen.getByRole("button", { name: "Clear workspace session" }));
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Clear workspace" }));
@@ -1489,7 +1491,7 @@ describe("WorkstationShell", () => {
       }) as HTMLTextAreaElement).value
     ).toContain("physarum-drift.p5.js");
 
-    fireEvent.click(screen.getByRole("button", { name: "Command menu" }));
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     fireEvent.click(screen.getByRole("button", { name: "Clear workspace session" }));
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Clear workspace" }));
@@ -1865,10 +1867,10 @@ describe("WorkstationShell", () => {
     );
   });
 
-  it("uses the command menu to open focused inspector views", () => {
+  it("uses Settings quick actions to open focused inspector views", () => {
     renderShell();
 
-    fireEvent.click(screen.getByRole("button", { name: "Command menu" }));
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     fireEvent.click(screen.getByRole("button", { name: /Code Open generated code/ }));
 
     expect(screen.getByRole("tab", { name: "Code" })).toHaveAttribute(
@@ -1876,7 +1878,7 @@ describe("WorkstationShell", () => {
       "true"
     );
     expect(screen.getByRole("tabpanel", { name: "Code inspector" })).toBeVisible();
-    expect(screen.queryByRole("dialog", { name: "Quick actions" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Workspace settings" })).not.toBeInTheDocument();
   });
 
   it("streams backend events into the conversation and workflow state", async () => {

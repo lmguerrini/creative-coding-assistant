@@ -9,7 +9,16 @@ import {
   type ProductIntelligenceModel,
   type ProductIntelligenceSection
 } from "@/lib/product-intelligence";
-import type { EvaluationHistoryRecord } from "@/lib/product-controls";
+import type {
+  EvaluationHistoryRecord,
+  FeedbackSentiment
+} from "@/lib/product-controls";
+import { OutputFeedbackPanel } from "./output-feedback-panel";
+
+type DashboardFeedback = {
+  artifactTitle: string;
+  onSubmit: (sentiment: FeedbackSentiment, comment: string | null) => void;
+};
 
 type ProductIntelligenceDashboardProps = {
   activeCategory: ProductIntelligenceCategory;
@@ -18,6 +27,7 @@ type ProductIntelligenceDashboardProps = {
   onClose: () => void;
   onRunEvaluation?: () => Promise<void>;
   evaluationHistory?: EvaluationHistoryRecord[];
+  feedback?: DashboardFeedback;
 };
 
 type DashboardGroupId =
@@ -97,7 +107,8 @@ export function ProductIntelligenceDashboard({
   onCategoryChange,
   onClose,
   onRunEvaluation,
-  evaluationHistory = []
+  evaluationHistory = [],
+  feedback
 }: ProductIntelligenceDashboardProps) {
   const [activeGroupId, setActiveGroupId] = useState<DashboardGroupId>(() =>
     getDashboardGroup(activeCategory).id
@@ -189,6 +200,7 @@ export function ProductIntelligenceDashboard({
           model={model}
           onRunEvaluation={onRunEvaluation ? runEvaluation : undefined}
           evaluationHistory={evaluationHistory}
+          feedback={feedback}
         />
       </div>
     </section>
@@ -200,13 +212,15 @@ function DashboardGroupView({
   group,
   model,
   onRunEvaluation,
-  evaluationHistory
+  evaluationHistory,
+  feedback
 }: {
   evaluationRunning: boolean;
   group: DashboardGroup;
   model: ProductIntelligenceModel;
   onRunEvaluation?: () => Promise<void>;
   evaluationHistory: EvaluationHistoryRecord[];
+  feedback?: DashboardFeedback;
 }) {
   if (group.id === "manual") {
     return (
@@ -258,6 +272,19 @@ function DashboardGroupView({
           </section>
         );
       })}
+      {group.id === "ai_memory" && feedback ? (
+        <section className="productDashboardGroupSection productDashboardFeedback">
+          <header>
+            <span>Feedback</span>
+            <strong>Shape future creative requests</strong>
+            <p>Explicit feedback stays in this local workspace profile.</p>
+          </header>
+          <OutputFeedbackPanel
+            artifactTitle={feedback.artifactTitle}
+            onSubmit={feedback.onSubmit}
+          />
+        </section>
+      ) : null}
     </div>
   );
 }

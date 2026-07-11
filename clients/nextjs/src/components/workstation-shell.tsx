@@ -25,7 +25,7 @@ import {
   LayoutGrid,
   Maximize2,
   Minimize2,
-  Moon,
+  Paintbrush,
   PanelBottom,
   PanelLeft,
   PanelRight,
@@ -189,7 +189,6 @@ import {
 } from "@/lib/multimodal-attachments";
 import {
   buildConversationEntries,
-  getComposerStatusLabel,
   getConversationPhaseBadge,
   getConversationPhasePlaceholder,
   toPersistedConversation,
@@ -355,7 +354,7 @@ type ArtifactActionFeedback = {
 };
 type ApprovalActionExecutor = () => Promise<void> | void;
 type ResizeTarget = "inspector" | "preview";
-type UtilityPanelName = "commands" | "theme" | "settings";
+type UtilityPanelName = "theme" | "settings";
 type FocusRestoreState = {
   inspectorCollapsed: boolean;
   previewOpen: boolean;
@@ -1401,13 +1400,6 @@ export function WorkstationShell({
     streamState === "streaming" || streamState === "executing"
       ? workflowRuntime.summary.activity
       : null;
-  const composerStateLabel = getComposerStatusLabel({
-    activityLabel: activeWorkflowActivity?.label,
-    isReady: isComposerReady,
-    isStreaming,
-    phase: liveAssistantEntry?.phase ?? null,
-    streamError
-  });
   const persistenceStatusLabel =
     persistenceStateLabels[persistenceState] ?? "Local session ready";
   const hasWorkspaceArtifacts = snapshot.artifacts.length > 0;
@@ -3439,17 +3431,6 @@ export function WorkstationShell({
             <PanelRight size={18} />
           </button>
           <button
-            aria-label="Open Product Intelligence Dashboard"
-            aria-pressed={isDashboardOpen}
-            className="toolbarToggle"
-            onClick={() => openDashboard()}
-            title="Open Product Intelligence Dashboard"
-            type="button"
-          >
-            <LayoutDashboard size={16} />
-            <span>Dashboard</span>
-          </button>
-          <button
             aria-controls="demo-mode-panel"
             aria-expanded={isDemoModeOpen}
             aria-label="Demo Mode"
@@ -3462,42 +3443,16 @@ export function WorkstationShell({
             <Play size={16} />
             <span>Demo Mode</span>
           </button>
-          <div className="utilityControl">
-            <button
-              aria-controls="command-menu-panel"
-              aria-expanded={openUtilityPanel === "commands"}
-              aria-haspopup="dialog"
-              aria-label="Command menu"
-              className="iconButton"
-              onClick={() => toggleUtilityPanel("commands")}
-              title="Open quick actions"
-              type="button"
-            >
-              <Command size={18} />
-            </button>
-            {openUtilityPanel === "commands" ? (
-              <CommandMenuPanel
-                activeTab={activeTab}
-                hasBlockingApproval={Boolean(blockingApprovalRequest)}
-                isFocusMode={isFocusMode}
-                isPreviewAvailable={interactiveSnapshot.preview.available}
-                isPreviewOpen={isPreviewOpen}
-                onFocusModeToggle={() => {
-                  handleFocusModeToggle();
-                  setOpenUtilityPanel(null);
-                }}
-                onOpenTab={revealInspectorTab}
-                onPreviewToggle={handlePreviewShelfFromControl}
-                showDebugPanels={workspacePreferences.showDebugPanels}
-                onWorkspaceClear={() =>
-                  requestOperatorApproval({
-                    actionId: "workspace_clear",
-                    execute: clearWorkspaceSession
-                  })
-                }
-              />
-            ) : null}
-          </div>
+          <button
+            aria-label="Open Product Intelligence Dashboard"
+            aria-pressed={isDashboardOpen}
+            className="iconButton"
+            onClick={() => openDashboard()}
+            title="Open Product Intelligence Dashboard"
+            type="button"
+          >
+            <LayoutDashboard size={18} />
+          </button>
           <div className="utilityControl">
             <button
               aria-controls="theme-presets-panel"
@@ -3509,7 +3464,7 @@ export function WorkstationShell({
               title="Open theme presets"
               type="button"
             >
-              <Moon size={17} />
+              <Paintbrush size={17} />
             </button>
             {openUtilityPanel === "theme" ? (
               <ThemePresetsPanel
@@ -3536,13 +3491,20 @@ export function WorkstationShell({
             </button>
             {openUtilityPanel === "settings" ? (
               <WorkspaceSettingsPanel
+                activeTab={activeTab}
+                hasBlockingApproval={Boolean(blockingApprovalRequest)}
+                isFocusMode={isFocusMode}
+                isPreviewAvailable={interactiveSnapshot.preview.available}
+                isPreviewOpen={isPreviewOpen}
                 layoutState={layoutState}
-                preferences={workspacePreferences}
-                onDensityChange={(density) => updateLayout({ density })}
-                onPreferencesChange={updateWorkspacePreferences}
                 onClearPersonalization={() =>
                   updateWorkspacePreferences({ feedbackSignals: [] })
                 }
+                onDensityChange={(density) => updateLayout({ density })}
+                onFocusModeToggle={handleFocusModeToggle}
+                onOpenTab={revealInspectorTab}
+                onPreferencesChange={updateWorkspacePreferences}
+                onPreviewToggle={handlePreviewShelfFromControl}
                 onRemovePersonalizationSignal={(signalId) =>
                   updateWorkspacePreferences({
                     feedbackSignals: workspacePreferences.feedbackSignals.filter(
@@ -3550,6 +3512,14 @@ export function WorkstationShell({
                     )
                   })
                 }
+                onWorkspaceClear={() =>
+                  requestOperatorApproval({
+                    actionId: "workspace_clear",
+                    execute: clearWorkspaceSession
+                  })
+                }
+                preferences={workspacePreferences}
+                showDebugPanels={workspacePreferences.showDebugPanels}
               />
             ) : null}
           </div>
@@ -3564,6 +3534,14 @@ export function WorkstationShell({
           onClose={() => setIsDashboardOpen(false)}
           onRunEvaluation={handleRunEvaluation}
           evaluationHistory={workspacePreferences.evaluationHistory}
+          feedback={
+            hasWorkspaceArtifacts && !isStreaming
+              ? {
+                  artifactTitle: activeArtifact.title,
+                  onSubmit: handleOutputFeedback
+                }
+              : undefined
+          }
         />
       ) : (
       <section className="workspaceLayout" aria-label="Creative workspace">
@@ -3759,12 +3737,6 @@ export function WorkstationShell({
                 title="Live stream interrupted"
               />
             ) : null}
-            {hasWorkspaceArtifacts && !isStreaming ? (
-              <OutputFeedbackPanel
-                artifactTitle={activeArtifact.title}
-                onSubmit={handleOutputFeedback}
-              />
-            ) : null}
             {lastRemovedArtifact ? (
               <div className="artifactUndoNotice" role="status">
                 <span>{lastRemovedArtifact.artifact.title} was deleted.</span>
@@ -3863,11 +3835,6 @@ export function WorkstationShell({
                 />
               </div>
               <div className="composerActions">
-                {workspacePreferences.showDebugPanels ? (
-                  <span className="composerState" aria-live="polite">
-                    {composerStateLabel}
-                  </span>
-                ) : null}
                 <WorkflowExecutionSelector
                   disabled={isStreaming}
                   mode={workflowMode}
@@ -6859,7 +6826,7 @@ function UserArtifactActionRow({
   );
 }
 
-type CommandMenuPanelProps = {
+type WorkspaceQuickActionsProps = {
   activeTab: ProductIntelligenceCategory;
   hasBlockingApproval: boolean;
   isFocusMode: boolean;
@@ -6872,7 +6839,7 @@ type CommandMenuPanelProps = {
   showDebugPanels: boolean;
 };
 
-function CommandMenuPanel({
+function WorkspaceQuickActions({
   activeTab,
   hasBlockingApproval,
   isFocusMode,
@@ -6883,19 +6850,9 @@ function CommandMenuPanel({
   onPreviewToggle,
   onWorkspaceClear,
   showDebugPanels
-}: CommandMenuPanelProps) {
+}: WorkspaceQuickActionsProps) {
   return (
-    <section
-      aria-label="Quick actions"
-      className="utilityPanel utilityPanel--menu"
-      id="command-menu-panel"
-      role="dialog"
-    >
-      <header className="utilityPanelHeader">
-        <strong>Quick actions</strong>
-        <p>Jump to the next workspace surface without changing the current flow.</p>
-      </header>
-      <div className="commandMenuGrid">
+    <div aria-label="Quick actions" className="commandMenuGrid" role="group">
         {showDebugPanels ? (
           <button
             data-active={activeTab === "Overview"}
@@ -6994,8 +6951,7 @@ function CommandMenuPanel({
               : "Reset the local creative session to the starter snapshot."}
           </span>
         </button>
-      </div>
-    </section>
+    </div>
   );
 }
 
@@ -7022,7 +6978,7 @@ function ThemePresetsPanel({
   );
 }
 
-type WorkspaceSettingsPanelProps = {
+type WorkspaceSettingsPanelProps = WorkspaceQuickActionsProps & {
   layoutState: WorkspaceLayoutState;
   onClearPersonalization: () => void;
   onRemovePersonalizationSignal: (signalId: string) => void;
@@ -7032,12 +6988,22 @@ type WorkspaceSettingsPanelProps = {
 };
 
 function WorkspaceSettingsPanel({
+  activeTab,
+  hasBlockingApproval,
+  isFocusMode,
+  isPreviewAvailable,
+  isPreviewOpen,
   layoutState,
   onClearPersonalization,
   onRemovePersonalizationSignal,
   onDensityChange,
+  onFocusModeToggle,
+  onOpenTab,
   onPreferencesChange,
-  preferences
+  onPreviewToggle,
+  onWorkspaceClear,
+  preferences,
+  showDebugPanels
 }: WorkspaceSettingsPanelProps) {
   return (
     <section
@@ -7102,6 +7068,24 @@ function WorkspaceSettingsPanel({
             Compact
           </button>
         </div>
+      </div>
+      <div className="settingsSection">
+        <div className="settingsSectionHeader">
+          <strong>Quick actions</strong>
+          <p>Open workspace surfaces and session controls without crowding the top bar.</p>
+        </div>
+        <WorkspaceQuickActions
+          activeTab={activeTab}
+          hasBlockingApproval={hasBlockingApproval}
+          isFocusMode={isFocusMode}
+          isPreviewAvailable={isPreviewAvailable}
+          isPreviewOpen={isPreviewOpen}
+          onFocusModeToggle={onFocusModeToggle}
+          onOpenTab={onOpenTab}
+          onPreviewToggle={onPreviewToggle}
+          onWorkspaceClear={onWorkspaceClear}
+          showDebugPanels={showDebugPanels}
+        />
       </div>
       <div className="settingsSection">
         <div className="settingsToggle">
@@ -7288,58 +7272,6 @@ function CreativityControl({
         <option value="exploratory">Exploratory</option>
       </select>
     </label>
-  );
-}
-
-function OutputFeedbackPanel({
-  artifactTitle,
-  onSubmit
-}: {
-  artifactTitle: string;
-  onSubmit: (sentiment: FeedbackSentiment, comment: string | null) => void;
-}) {
-  const [comment, setComment] = useState("");
-  const [submitted, setSubmitted] = useState<FeedbackSentiment | null>(null);
-
-  function submit(sentiment: FeedbackSentiment) {
-    onSubmit(sentiment, comment);
-    setComment("");
-    setSubmitted(sentiment);
-  }
-
-  return (
-    <section className="outputFeedback" aria-label="Output feedback">
-      <div>
-        <strong>How did {artifactTitle} work for you?</strong>
-        <span>Feedback is stored locally as an explicit preference signal.</span>
-      </div>
-      <label>
-        <span className="srOnly">Optional feedback comment</span>
-        <input
-          onChange={(event) => setComment(event.currentTarget.value)}
-          placeholder="Optional note"
-          value={comment}
-        />
-      </label>
-      <div className="outputFeedbackActions">
-        <button
-          aria-label="Mark output helpful"
-          aria-pressed={submitted === "positive"}
-          onClick={() => submit("positive")}
-          type="button"
-        >
-          Helpful
-        </button>
-        <button
-          aria-label="Mark output not helpful"
-          aria-pressed={submitted === "negative"}
-          onClick={() => submit("negative")}
-          type="button"
-        >
-          Needs work
-        </button>
-      </div>
-    </section>
   );
 }
 

@@ -61,6 +61,39 @@ describe("Product Intelligence surfaces", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
+  it("keeps output feedback in the AI, Agents & Memory Dashboard group", () => {
+    const onSubmitFeedback = vi.fn();
+    const onCategoryChange = vi.fn();
+
+    const { rerender } = render(
+      <ProductIntelligenceDashboard
+        activeCategory="Overview"
+        feedback={{ artifactTitle: "aurora-field.p5.js", onSubmit: onSubmitFeedback }}
+        model={buildModel()}
+        onCategoryChange={onCategoryChange}
+        onClose={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByLabelText("Output feedback")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /AI, Agents & Memory/ }));
+    expect(onCategoryChange).toHaveBeenCalledWith("Memory");
+    rerender(
+      <ProductIntelligenceDashboard
+        activeCategory="Memory"
+        feedback={{ artifactTitle: "aurora-field.p5.js", onSubmit: onSubmitFeedback }}
+        model={buildModel()}
+        onCategoryChange={onCategoryChange}
+        onClose={vi.fn()}
+      />
+    );
+
+    expect(screen.getByLabelText("Output feedback")).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Mark output helpful" }));
+    expect(onSubmitFeedback).toHaveBeenCalledWith("positive", "");
+  });
+
   it("uses the same model for a compact Inspector category", () => {
     render(<ProductIntelligenceInspector category="Providers" model={buildModel()} />);
 

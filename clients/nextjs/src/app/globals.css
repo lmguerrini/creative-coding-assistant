@@ -2565,96 +2565,33 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   opacity: 0.68;
 }
 
-.composerState {
-  position: absolute;
-  right: 58px;
-  bottom: 13px;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  pointer-events: none;
-}
-
-.composer[data-mode="user"] .composerState {
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-.composer[data-ready="true"] .composerState {
-  color: var(--teal);
-}
-
-.workstation[data-stream-state="streaming"] .composerState {
-  color: var(--teal);
-}
-
-.workstation[data-stream-state="fallback"] .composerState {
-  color: var(--amber);
-}
-
 .workflowExecutionSelector {
-  display: flex;
+  display: inline-flex;
   min-width: 0;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
   margin: 8px 116px 0 42px;
-  padding: 0;
-  border: 0;
-}
-
-.workflowExecutionSelector legend {
-  flex: 0 0 auto;
   color: var(--muted);
-  font-size: 9px;
-  font-weight: 850;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.workflowExecutionSelector > div {
-  display: flex;
-  min-width: 0;
-  gap: 5px;
-}
-
-.workflowExecutionSelector label {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 7px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 999px;
-  color: var(--muted-strong);
-  cursor: pointer;
   font-size: 10px;
   font-weight: 760;
-  line-height: 1.1;
   white-space: nowrap;
 }
 
-.workflowExecutionSelector input {
-  width: 11px;
-  height: 11px;
-  margin: 0;
-  accent-color: var(--teal);
+.workflowExecutionSelector > span {
+  color: var(--muted);
 }
 
-.workflowExecutionSelector label:has(input:checked) {
-  border-color: rgba(var(--accent-rgb), 0.36);
-  background: rgba(var(--accent-rgb), 0.1);
+.workflowExecutionSelector select {
+  min-width: 0;
+  max-width: 126px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-1);
   color: var(--foreground);
-}
-
-.workflowExecutionSelector label:has(input:disabled) {
-  cursor: default;
-  opacity: 0.62;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 720;
+  padding: 5px 20px 5px 7px;
 }
 
 .previewZone {
@@ -13270,15 +13207,9 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   gap: 8px;
 }
 
-.composerState {
-  position: static;
-  flex: 0 0 auto;
-  padding: 0 2px;
-}
-
 .workflowExecutionSelector {
-  flex: 1 1 auto;
-  margin: 0;
+  flex: 0 0 auto;
+  margin: 0 0 0 auto;
 }
 
 .sendButton {
@@ -13389,6 +13320,10 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   border-color: rgba(var(--accent-rgb), 0.48);
   background: rgba(var(--accent-rgb), 0.13);
   color: var(--foreground);
+}
+
+.productDashboardFeedback .outputFeedback {
+  margin: 0 14px 14px;
 }
 
 .artifactDeleteButton,
@@ -13547,12 +13482,8 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
     flex-wrap: wrap;
   }
 
-  .composerState {
-    order: 2;
-  }
-
   .workflowExecutionSelector {
-    min-width: min(100%, 220px);
+    min-width: 0;
   }
 
   .sendButton {
