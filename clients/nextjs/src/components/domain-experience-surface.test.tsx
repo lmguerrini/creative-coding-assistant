@@ -66,7 +66,7 @@ describe("KnowledgeBaseInventorySurface", () => {
     fireEvent.click(check);
 
     expect(await screen.findByRole("list", { name: "Source change summary" }))
-      .toHaveTextContent("changedthree_docs");
+      .toHaveTextContent("changedthree.js Documentationthree_docs");
     expect(fetcher).toHaveBeenCalledWith(
       "http://localhost:8000/api/knowledge-base",
       expect.objectContaining({
@@ -109,5 +109,39 @@ describe("KnowledgeBaseInventorySurface", () => {
       })
     ).not.toBeChecked();
     expect(screen.getByRole("button", { name: "Check for updates" })).toBeDisabled();
+  });
+
+  it("shows animated, accessible progress while checking selected sources", async () => {
+    let resolveFetch: (value: unknown) => void = () => undefined;
+    const fetcher = vi.fn().mockImplementation(
+      () => new Promise((resolve) => {
+        resolveFetch = resolve;
+      })
+    );
+    vi.stubGlobal("fetch", fetcher);
+
+    render(<KnowledgeBaseInventorySurface detailed inventory={inventory} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Select all" }));
+    fireEvent.click(screen.getByRole("button", { name: "Check for updates" }));
+
+    expect(screen.getByRole("button", { name: "Checking selected official sources" }))
+      .toHaveTextContent("Checking sources");
+    expect(screen.getByText("Checking 1 selected official source without changing the local index."))
+      .toBeVisible();
+    expect(screen.getByRole("region", { name: "Official Knowledge Base sources" }))
+      .toHaveAttribute("aria-busy", "true");
+
+    resolveFetch({
+      ok: true,
+      json: async () => ({
+        status: "review_ready",
+        detail: "The source check is ready for review.",
+        sourceChanges: [{ sourceId: "three_docs", changeStatus: "new" }]
+      })
+    });
+
+    expect(await screen.findByText("The source check is ready for review.")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Check for updates" })).toBeEnabled();
   });
 });

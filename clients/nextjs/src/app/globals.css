@@ -39,6 +39,7 @@ html[data-cca-theme="aqua"] {
   --scrollbar-thumb: #4a4a4f;
   --ui-font-size: 15px;
   --code-font-size: 12px;
+  --button-radius: 10px;
 }
 
 html[data-cca-theme="aqua"] {
@@ -556,6 +557,11 @@ select {
 
 button {
   border: 0;
+  border-radius: var(--button-radius);
+}
+
+button:not(:disabled) {
+  cursor: pointer;
 }
 
 button:disabled {
@@ -12632,8 +12638,51 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .kbSourceActions button {
+  align-items: center;
+  display: inline-flex;
+  min-height: 30px;
+  gap: 0.38rem;
   font-size: 0.72rem;
   padding: 0.36rem 0.52rem;
+}
+
+.kbActionSpinner,
+.kbOperationSpinner {
+  display: inline-block;
+  flex: 0 0 auto;
+  border: 2px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: kb-source-spin 720ms linear infinite;
+}
+
+.kbActionSpinner {
+  width: 0.76rem;
+  height: 0.76rem;
+}
+
+.kbOperationSpinner {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+@keyframes kb-source-spin {
+  to { transform: rotate(360deg); }
+}
+
+.kbOperationStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.kbOperationStatus[data-status="running"] {
+  min-height: 34px;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--teal) 32%, var(--line));
+  border-radius: 10px;
+  color: var(--muted-strong);
+  background: color-mix(in srgb, var(--panel) 74%, var(--teal));
 }
 
 .kbOperationStatus[data-status="failed"] {
@@ -12642,8 +12691,9 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 
 .kbSourceChangeSummary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 0.45rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-auto-rows: minmax(112px, auto);
+  gap: 0.6rem;
   margin: 0.65rem 0 0;
   padding: 0;
   list-style: none;
@@ -12651,34 +12701,98 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 
 .kbSourceChangeSummary li {
   display: grid;
-  gap: 0.1rem;
+  align-content: start;
+  gap: 0.32rem;
   min-width: 0;
-  padding: 0.45rem 0.55rem;
+  min-height: 112px;
+  padding: 0.7rem;
   border: 1px solid var(--line);
-  border-radius: 0.45rem;
-  background: color-mix(in srgb, var(--panel) 88%, var(--teal));
+  border-radius: 12px;
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.1), transparent 58%),
+    color-mix(in srgb, var(--panel) 92%, var(--teal));
 }
 
+.kbSourceChangeSummary li[data-status="new"] {
+  border-color: color-mix(in srgb, var(--green) 50%, var(--line));
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--green) 13%, transparent), transparent 58%),
+    color-mix(in srgb, var(--panel) 92%, var(--green));
+}
+
+.kbSourceChangeSummary li[data-status="unchanged"] {
+  background: color-mix(in srgb, var(--panel) 96%, var(--muted));
+}
+
+.kbSourceChangeSummary li[data-status="changed"] { border-color: color-mix(in srgb, var(--amber) 54%, var(--line)); }
+.kbSourceChangeSummary li[data-status="unavailable"] { border-color: color-mix(in srgb, var(--coral) 54%, var(--line)); }
+
 .kbSourceChangeSummary strong,
-.kbSourceChangeSummary span,
+.kbSourceChangeSummary .kbSourceChangeTitle,
+.kbSourceChangeSummary .kbSourceChangeId,
 .kbSourceChangeSummary small {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.kbSourceChangeBadge {
+  width: fit-content;
+  padding: 0.18rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--teal) 44%, var(--line));
+  border-radius: 999px;
+  color: var(--teal);
+  background: color-mix(in srgb, var(--teal) 10%, transparent);
+  font-size: 0.64rem;
+  font-weight: 820;
+  letter-spacing: 0.045em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.kbSourceChangeSummary li[data-status="new"] .kbSourceChangeBadge {
+  border-color: color-mix(in srgb, var(--green) 60%, var(--line));
+  color: var(--green);
+  background: color-mix(in srgb, var(--green) 10%, transparent);
+}
+
+.kbSourceChangeSummary li[data-status="unchanged"] .kbSourceChangeBadge {
+  border-color: color-mix(in srgb, var(--muted) 58%, var(--line));
+  color: var(--muted-strong);
+  background: color-mix(in srgb, var(--muted) 9%, transparent);
+}
+
+.kbSourceChangeSummary li[data-status="changed"] .kbSourceChangeBadge {
+  border-color: color-mix(in srgb, var(--amber) 60%, var(--line));
+  color: var(--amber);
+  background: color-mix(in srgb, var(--amber) 12%, transparent);
+}
+
+.kbSourceChangeSummary li[data-status="unavailable"] .kbSourceChangeBadge {
+  border-color: color-mix(in srgb, var(--coral) 60%, var(--line));
+  color: var(--coral);
+  background: color-mix(in srgb, var(--coral) 10%, transparent);
+}
+
+.kbSourceChangeTitle {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 0.78rem;
+  font-weight: 720;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.kbSourceChangeId {
+  color: var(--muted);
+  font-size: 0.66rem;
+  line-height: 1.25;
   white-space: nowrap;
 }
 
-.kbSourceChangeSummary strong {
-  color: var(--foreground);
-  font-size: 0.72rem;
-  text-transform: capitalize;
-}
-
-.kbSourceChangeSummary span {
-  color: var(--muted);
-  font-size: 0.7rem;
-}
-
 .kbSourceChangeSummary small {
+  margin-top: auto;
   color: var(--muted);
   font-size: 0.68rem;
   line-height: 1.35;

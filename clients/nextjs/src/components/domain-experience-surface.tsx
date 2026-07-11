@@ -184,8 +184,10 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
     status: string;
     sourceChanges: KnowledgeBaseSourceChange[];
   } | null>(null);
-  const [operationRunning, setOperationRunning] = useState(false);
+  const [runningAction, setRunningAction] = useState<KnowledgeBaseAction | null>(null);
   const sourceIds = inventory.sources.map((source) => source.id);
+  const sourceTitleById = new Map(inventory.sources.map((source) => [source.id, source.title]));
+  const operationRunning = runningAction !== null;
   const areAllSourcesSelected =
     sourceIds.length > 0 && sourceIds.every((sourceId) => selectedSourceIds.includes(sourceId));
 
@@ -201,7 +203,7 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
     setSelectedSourceIds(areAllSourcesSelected ? [] : sourceIds);
   }
 
-  async function runOperation(action: "check" | "validate" | "update" | "rebuild") {
+  async function runOperation(action: KnowledgeBaseAction) {
     if (
       (action === "update" || action === "rebuild") &&
       !window.confirm(
@@ -210,9 +212,9 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
     ) {
       return;
     }
-    setOperationRunning(true);
+    setRunningAction(action);
     setOperationState({
-      detail: operationDetail(action),
+      detail: operationDetail(action, selectedSourceIds.length),
       status: "running",
       sourceChanges: []
     });
@@ -259,12 +261,17 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
         sourceChanges: []
       });
     } finally {
-      setOperationRunning(false);
+      setRunningAction(null);
     }
   }
 
   return (
-    <section aria-label="Official Knowledge Base sources" className="kbSourceExplorer">
+    <section
+      aria-busy={operationRunning}
+      aria-label="Official Knowledge Base sources"
+      className="kbSourceExplorer"
+      data-running={operationRunning ? "true" : "false"}
+    >
       <header>
         <div>
           <strong>Official sources</strong>
@@ -279,8 +286,15 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
           >
             {areAllSourcesSelected ? "Clear selection" : "Select all"}
           </button>
-          <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("check")} type="button">
-            Check for updates
+          <button
+            aria-label={runningAction === "check" ? "Checking selected official sources" : undefined}
+            disabled={operationRunning || selectedSourceIds.length === 0}
+            onClick={() => void runOperation("check")}
+            type="button"
+          >
+            {runningAction === "check" ? (
+              <><span aria-hidden="true" className="kbActionSpinner" />Checking sources</>
+            ) : "Check for updates"}
           </button>
           <button disabled={operationRunning} onClick={() => void runOperation("validate")} type="button">
             Validate index
@@ -299,14 +313,16 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
       {operationState ? (
         <>
           <p aria-live="polite" className="kbOperationStatus" data-status={operationState.status}>
+            {operationState.status === "running" ? <span aria-hidden="true" className="kbOperationSpinner" /> : null}
             {operationState.detail}
           </p>
           {operationState.sourceChanges.length > 0 ? (
             <ul aria-label="Source change summary" className="kbSourceChangeSummary">
               {operationState.sourceChanges.map((change) => (
-                <li key={change.sourceId}>
-                  <strong>{formatSourceChangeStatus(change.changeStatus)}</strong>
-                  <span>{change.sourceId}</span>
+                <li data-status={change.changeStatus} key={change.sourceId}>
+                  <strong className="kbSourceChangeBadge">{formatSourceChangeStatus(change.changeStatus)}</strong>
+                  <span className="kbSourceChangeTitle">{sourceTitleById.get(change.sourceId) ?? change.sourceId}</span>
+                  <span className="kbSourceChangeId">{change.sourceId}</span>
                   {change.detail ? <small>{change.detail}</small> : null}
                 </li>
               ))}
@@ -367,6 +383,8 @@ type KnowledgeBaseSourceChange = {
   detail?: string;
 };
 
+type KnowledgeBaseAction = "check" | "validate" | "update" | "rebuild";
+
 function readKnowledgeBaseSourceChanges(value: unknown): KnowledgeBaseSourceChange[] {
   if (!Array.isArray(value)) {
     return [];
@@ -380,10 +398,10 @@ function readKnowledgeBaseSourceChanges(value: unknown): KnowledgeBaseSourceChan
   });
 }
 
-function operationDetail(action: "check" | "validate" | "update" | "rebuild") {
+function operationDetail(action: KnowledgeBaseAction, selectedSourceCount: number) {
   switch (action) {
     case "check":
-      return "Checking the selected official sources without changing the local index.";
+      return `Checking ${selectedSourceCount} selected official ${selectedSourceCount === 1 ? "source" : "sources"} without changing the local index.`;
     case "validate":
       return "Validating the current local index without fetching official sources.";
     case "update":
