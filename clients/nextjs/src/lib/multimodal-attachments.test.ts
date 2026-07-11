@@ -110,7 +110,8 @@ describe("multimodal attachments", () => {
     ).toMatchObject({
       state: "ready",
       status: "1 image reference",
-      detail: "palette.webp will be sent with the next request."
+      detail:
+        "palette.webp will be sent with the next request as image-reference metadata. The current provider path does not perform pixel analysis or visual-reference extraction."
     });
   });
 });

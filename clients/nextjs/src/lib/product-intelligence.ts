@@ -1,5 +1,9 @@
 import type { AssistantWorkspaceSnapshot } from "./assistant-client";
 import type { ConversationContextModel } from "./conversation-context";
+import {
+  getDomainExperienceRecord,
+  type DomainExperienceCatalog
+} from "./domain-experience";
 import type { ProviderTelemetryModel } from "./provider-telemetry";
 import type { RetrievalRuntimeModel } from "./retrieval-runtime";
 import type { RuntimeConsoleModel } from "./runtime-console";
@@ -19,6 +23,7 @@ export const productIntelligenceCategories = [
   "Preview",
   "Code",
   "Artifacts",
+  "Domains",
   "Retrieval",
   "Knowledge Base",
   "Memory",
@@ -56,6 +61,8 @@ export type ProductIntelligenceSection = {
 };
 
 export type ProductIntelligenceModel = {
+  activeDomainId: string | null;
+  domainExperience: DomainExperienceCatalog;
   sections: ProductIntelligenceSection[];
   summary: {
     activeCount: number;
@@ -65,7 +72,9 @@ export type ProductIntelligenceModel = {
 };
 
 type BuildProductIntelligenceInput = {
+  activeArtifactId?: string | null;
   conversationContext: ConversationContextModel;
+  domainExperience: DomainExperienceCatalog;
   providerTelemetry: ProviderTelemetryModel;
   retrievalRuntime: RetrievalRuntimeModel;
   runtimeConsole: RuntimeConsoleModel;
@@ -84,7 +93,9 @@ type BuildProductIntelligenceInput = {
  * not infer provider, workflow, or runtime state.
  */
 export function buildProductIntelligenceModel({
+  activeArtifactId = null,
   conversationContext,
+  domainExperience,
   providerTelemetry,
   retrievalRuntime,
   runtimeConsole,
@@ -96,10 +107,16 @@ export function buildProductIntelligenceModel({
   workflowRuntime,
   workstationDashboard
 }: BuildProductIntelligenceInput): ProductIntelligenceModel {
-  const activeArtifact = snapshot.artifacts[0] ?? null;
+  const activeArtifact =
+    snapshot.artifacts.find((artifact) => artifact.id === activeArtifactId) ??
+    snapshot.artifacts[0] ??
+    null;
+  const activeDomainId = activeArtifact?.domain ?? null;
+  const activeDomain = getDomainExperienceRecord(domainExperience, activeDomainId);
   const workflowTone = toneForWorkflow(workflowRuntime.summary.activity.state);
   const previewTone = toneForPreview(snapshot.preview.state, snapshot.preview.available);
   const retrievalTone = toneForRetrieval(retrievalRuntime.summary.state);
+  const knowledgeBaseTone = toneForKnowledgeBase(domainExperience.knowledgeBase.status);
   const providerTone = toneForProvider(providerTelemetry.status);
   const runtimeTone = toneForRuntime(runtimeConsole.health.signal);
   const validationAttention = workstationDashboard.summary.errorCount > 0;
@@ -242,6 +259,32 @@ export function buildProductIntelligenceModel({
       ]
     }),
     section({
+      category: "Domains",
+      tone:
+        domainExperience.state === "unavailable"
+          ? "attention"
+          : domainExperience.state === "loading"
+            ? "empty"
+            : "ready",
+      summary: activeDomain
+        ? `${activeDomain.displayName} / ${formatDomainDelivery(activeDomain.deliveryKind)}`
+        : `${domainExperience.domains.length} registered domain contracts`,
+      detail: activeDomain
+        ? activeDomain.publicClaimBoundary
+        : "Domain contracts distinguish browser preview, code/export, and external-tool handoff.",
+      metrics: [
+        metric("Live preview", String(domainExperience.domains.filter((domain) => domain.livePreview).length)),
+        metric("Code/export", String(domainExperience.domains.filter((domain) => domain.deliveryKind === "code_export").length)),
+        metric("External handoff", String(domainExperience.domains.filter((domain) => domain.deliveryKind === "external_handoff").length))
+      ],
+      notes: activeDomain
+        ? [
+            `Fallback: ${activeDomain.fallback}`,
+            `Knowledge: ${activeDomain.knowledge.indexedSourceCount}/${activeDomain.knowledge.registeredSourceCount} sources indexed.`
+          ]
+        : ["Choose an artifact or open the Dashboard to inspect the complete registry."]
+    }),
+    section({
       category: "Retrieval",
       tone: retrievalTone,
       summary: retrievalRuntime.summary.status,
@@ -255,17 +298,18 @@ export function buildProductIntelligenceModel({
     }),
     section({
       category: "Knowledge Base",
-      tone: retrievalTone,
-      summary: retrievalRuntime.summary.coverageLabel,
-      detail: retrievalRuntime.summary.coverageDetail,
+      tone: knowledgeBaseTone,
+      summary: domainExperience.knowledgeBase.status.replace(/_/g, " "),
+      detail: domainExperience.knowledgeBase.detail,
       metrics: [
-        metric("Domains", String(retrievalRuntime.summary.domainCount)),
-        metric("Freshness", retrievalRuntime.summary.freshnessLabel),
-        metric("Provider", retrievalRuntime.summary.providerLabel)
+        metric("Registered", String(domainExperience.knowledgeBase.registeredSourceCount)),
+        metric("Indexed", String(domainExperience.knowledgeBase.indexedSourceCount)),
+        metric("Chunks", String(domainExperience.knowledgeBase.indexedChunkCount))
       ],
-      notes: retrievalRuntime.summary.domainLabels.length
-        ? [`Current domains: ${retrievalRuntime.summary.domainLabels.join(", ")}`]
-        : ["Knowledge-base coverage is shown when a retrieval request is available."]
+      notes: [
+        domainExperience.knowledgeBase.updateHint,
+        domainExperience.knowledgeBase.provenanceBoundary
+      ]
     }),
     section({
       category: "Memory",
@@ -402,6 +446,8 @@ export function buildProductIntelligenceModel({
   ];
 
   return {
+    activeDomainId,
+    domainExperience,
     sections,
     summary: {
       activeCount: sections.filter((item) => item.tone === "active").length,
@@ -449,6 +495,21 @@ function toneForRetrieval(
   if (state === "error") return "attention";
   if (state === "pending") return "active";
   return state === "available" ? "ready" : "empty";
+}
+
+function toneForKnowledgeBase(
+  status: DomainExperienceCatalog["knowledgeBase"]["status"]
+): ProductIntelligenceTone {
+  if (status === "unavailable") return "attention";
+  return status === "available" ? "ready" : "empty";
+}
+
+function formatDomainDelivery(
+  deliveryKind: DomainExperienceCatalog["domains"][number]["deliveryKind"]
+) {
+  if (deliveryKind === "browser_preview") return "Live browser preview";
+  if (deliveryKind === "external_handoff") return "External handoff";
+  return "Code/export";
 }
 
 function toneForProvider(

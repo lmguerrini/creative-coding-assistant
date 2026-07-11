@@ -129,20 +129,14 @@ class CreativeTranslationTests(unittest.TestCase):
 
         self.assertIsNotNone(translation.reference_fusion)
         assert translation.reference_fusion is not None
-        self.assertIn("warm palette bias", translation.color_material_direction)
-        self.assertTrue(
-            any(
-                "grid-based spatial layout" in item
-                for item in translation.structure_direction
-            )
+        self.assertEqual(translation.reference_fusion.palette_direction, ())
+        self.assertEqual(translation.reference_fusion.composition, ())
+        self.assertEqual(translation.reference_fusion.motion_implications, ())
+        self.assertNotIn("warm palette bias", translation.color_material_direction)
+        self.assertFalse(
+            any("grid-based spatial layout" in item for item in translation.structure_direction)
         )
-        self.assertIn("slow drifting motion", translation.movement_language)
-        self.assertIsNotNone(translation.shader_presets)
-        assert translation.shader_presets is not None
-        self.assertEqual(
-            tuple(preset.value for preset in translation.shader_presets.presets),
-            ("glass / crystal", "glow"),
-        )
+        self.assertNotIn("slow drifting motion", translation.movement_language)
         self.assertIn(
             "Preserve reference fusion:",
             " ".join(translation.refinement_targets),
@@ -153,7 +147,7 @@ class CreativeTranslationTests(unittest.TestCase):
         self.assertTrue(
             any(line.startswith("Reference fusion summary:") for line in lines)
         )
-        self.assertTrue(any("Do not identify people" in line for line in lines))
+        self.assertTrue(any("metadata-only" in line for line in lines))
 
     def test_derives_shader_presets_from_translation_metadata(self) -> None:
         translation = derive_creative_translation(
@@ -218,7 +212,7 @@ class CreativeTranslationTests(unittest.TestCase):
         self.assertEqual(refined.symbolic_references, ("mandala",))
         self.assertEqual(
             refined.movement_language,
-            ("drift", "slow drifting motion", "pulse"),
+            ("drift", "pulse"),
         )
         self.assertEqual(
             refined.runtime_recommendations,

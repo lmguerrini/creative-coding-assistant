@@ -8,6 +8,7 @@ from creative_coding_assistant.contracts import (
     AssistantRequest,
     CreativeCodingDomain,
     StreamEventType,
+    WorkflowExecutionMode,
 )
 from creative_coding_assistant.memory import ConversationRole, ProjectMemoryKind
 from creative_coding_assistant.orchestration import (
@@ -581,6 +582,10 @@ class PromptInputContractsTests(unittest.TestCase):
             response.creative_translation.reference_fusion.source_count,
             1,
         )
+        self.assertNotIn(
+            "data:image/png;base64,cGFsZXR0ZQ==",
+            response.user_input.model_dump_json(),
+        )
 
     def test_prompt_input_builder_preserves_multi_domain_selection(self) -> None:
         builder = StructuredPromptInputBuilder()
@@ -760,6 +765,7 @@ class PromptInputContractsTests(unittest.TestCase):
             project_id="project-1",
             domain=CreativeCodingDomain.THREE_JS,
             mode=AssistantMode.EXPLAIN,
+            workflow_mode=WorkflowExecutionMode.MULTI_AGENT,
         )
 
         events = tuple(service.stream(request))

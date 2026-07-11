@@ -2251,6 +2251,13 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   text-transform: uppercase;
 }
 
+.imageReferenceBoundary {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
 .composer {
   position: relative;
   display: block;
@@ -2337,6 +2344,28 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   cursor: pointer;
   font-size: 12px;
   font-weight: 760;
+}
+
+.attachmentMenuItem:not(.attachmentMenuItem--unsupported) {
+  display: grid;
+  gap: 2px;
+  align-content: center;
+}
+
+.attachmentMenuItem small {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 560;
+  line-height: 1.35;
+}
+
+.attachmentMenuItem--unsupported {
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  margin-top: 3px;
+  color: var(--muted);
+  cursor: default;
 }
 
 .attachmentMenuItem:hover {
@@ -12133,6 +12162,194 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
     grid-template-columns: 38px minmax(0, 1fr);
     gap: 10px;
     padding: 0 10px;
+  }
+}
+
+/* V9.4 keeps persistent KB inventory and request-scoped retrieval visibly distinct. */
+.domainExperienceSurface {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+  padding: 14px;
+}
+
+.domainExperienceHeader,
+.kbInventorySurface,
+.domainCapabilityCard {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+
+.domainExperienceHeader,
+.kbInventorySurface,
+.domainCapabilityCard {
+  padding: 13px;
+}
+
+.domainExperienceHeader span,
+.kbInventorySurface header span,
+.domainCapabilityCard header span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 720;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.domainExperienceHeader strong,
+.kbInventorySurface header strong,
+.domainCapabilityCard header strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.domainExperienceHeader p,
+.kbInventorySurface header p,
+.domainCapabilityCard header p,
+.kbInventorySurface footer p {
+  margin: 5px 0 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.kbInventorySurface[data-state="available"] {
+  border-color: color-mix(in srgb, var(--green) 42%, var(--line));
+}
+
+.kbInventorySurface[data-state="empty"],
+.kbInventorySurface[data-state="not_initialized"] {
+  border-color: color-mix(in srgb, var(--warning) 40%, var(--line));
+}
+
+.kbInventoryMetrics,
+.domainCapabilityMetrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+  gap: 7px;
+  margin-top: 11px;
+}
+
+.kbInventoryMetrics > span,
+.domainCapabilityMetrics > div {
+  min-width: 0;
+  padding: 8px;
+  border-radius: 9px;
+  background: var(--panel-muted);
+}
+
+.kbInventoryMetrics small,
+.domainCapabilityMetrics dt {
+  display: block;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 0.03em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.kbInventoryMetrics strong,
+.domainCapabilityMetrics dd {
+  display: block;
+  overflow: hidden;
+  margin: 4px 0 0;
+  color: var(--foreground);
+  font-size: 11px;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kbInventorySurface footer {
+  display: grid;
+  gap: 3px;
+  margin-top: 10px;
+}
+
+.domainExperienceGrid,
+.domainExperienceList {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+}
+
+.domainExperienceGrid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.domainCapabilityCard[data-delivery="browser_preview"] {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.domainCapabilityCard[data-delivery="external_handoff"] {
+  border-color: color-mix(in srgb, var(--warning) 38%, var(--line));
+}
+
+.domainCapabilityCard header {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.domainCapabilityCard header > div {
+  min-width: 0;
+}
+
+.domainDeliveryBadge {
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 99px;
+  color: var(--muted-strong) !important;
+  font-size: 9px !important;
+}
+
+.domainCapabilityDetails {
+  display: grid;
+  gap: 9px;
+  margin-top: 11px;
+}
+
+.domainCapabilityDetails > div {
+  min-width: 0;
+}
+
+.domainCapabilityDetails strong {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.domainCapabilityDetails ul {
+  display: grid;
+  gap: 3px;
+  margin: 4px 0 0;
+  padding-left: 16px;
+  color: var(--muted-strong);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+@media (max-width: 540px) {
+  .domainExperienceSurface {
+    padding: 10px;
+  }
+
+  .domainExperienceGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .kbInventoryMetrics,
+  .domainCapabilityMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

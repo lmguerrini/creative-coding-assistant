@@ -10,6 +10,7 @@ import { buildPreviewRuntimeSource } from "./preview-runtime-adapters";
 import { buildRetrievalRuntimeModel } from "./retrieval-runtime";
 import { buildWorkflowRuntimeModel } from "./workflow-runtime";
 import { createWorkspaceSessionRecord } from "./workspace-persistence";
+import type { DomainExperienceRecord } from "./domain-experience";
 
 const textDecoder = new TextDecoder();
 
@@ -111,9 +112,53 @@ describe("project bundle export", () => {
       }
     ]);
   });
+
+  it("adds inspectable handoff packages for TouchDesigner, Unreal, Blender, and Houdini", () => {
+    const snapshot = createSnapshotWithImageReference();
+    const externalArtifacts = externalHandoffContracts.map((contract, index) => ({
+      ...snapshot.artifacts[0],
+      domain: contract.id,
+      id: `external-${contract.id}`,
+      summary: `${contract.displayName} handoff with implementation and validation notes.`,
+      title: `${contract.id}-handoff.md`
+    }));
+    const externalSnapshot = {
+      ...snapshot,
+      artifacts: externalArtifacts
+    };
+    const bundle = buildBundle(externalSnapshot, externalHandoffContracts);
+
+    expect(bundle.manifest.handoffs).toMatchObject({
+      count: 4,
+      items: externalHandoffContracts.map((contract) =>
+        expect.objectContaining({
+          artifactTitle: `${contract.id}-handoff.md`,
+          displayName: contract.displayName
+        })
+      )
+    });
+    for (const contract of externalHandoffContracts) {
+      expect(bundle.files.map((file) => file.path)).toEqual(
+        expect.arrayContaining([
+          `handoff/${contract.id}/creative-brief.md`,
+          `handoff/${contract.id}/system-specification.json`,
+          `handoff/${contract.id}/parameter-schema.json`,
+          `handoff/${contract.id}/implementation-notes.md`,
+          `handoff/${contract.id}/validation-checklist.md`,
+          `handoff/${contract.id}/handoff-boundaries.md`
+        ])
+      );
+    }
+    expect(textDecoder.decode(readFile(bundle, "README.md").bytes)).toContain(
+      "not internal live previews"
+    );
+  });
 });
 
-function buildBundle(snapshot: AssistantWorkspaceSnapshot) {
+function buildBundle(
+  snapshot: AssistantWorkspaceSnapshot,
+  domainContracts: DomainExperienceRecord[] = []
+) {
   const previewRoute = buildPreviewRendererRoute({
     artifacts: snapshot.artifacts,
     preview: snapshot.preview,
@@ -126,6 +171,7 @@ function buildBundle(snapshot: AssistantWorkspaceSnapshot) {
       latestRequest: null,
       pendingCount: 0
     },
+    domainContracts,
     exportedAt: "2026-05-26T10:00:00.000Z",
     persistenceRecord: createWorkspaceSessionRecord({
       activeArtifactId: snapshot.artifacts[0]?.id ?? "",
@@ -149,6 +195,41 @@ function buildBundle(snapshot: AssistantWorkspaceSnapshot) {
     snapshot,
     workflowRuntime: buildWorkflowRuntimeModel(snapshot.workflow, [])
   });
+}
+
+const externalHandoffContracts: DomainExperienceRecord[] = [
+  createExternalHandoffContract("touchdesigner", "TouchDesigner"),
+  createExternalHandoffContract("unreal", "Unreal Engine"),
+  createExternalHandoffContract("blender_geometry_nodes", "Blender Geometry Nodes"),
+  createExternalHandoffContract("houdini", "Houdini")
+];
+
+function createExternalHandoffContract(
+  id: string,
+  displayName: string
+): DomainExperienceRecord {
+  return {
+  id,
+  displayName,
+  aliases: [id],
+  intentTriggers: ["node network", "parameters", "external workflow"],
+  knowledgeSourceIds: [`${id}_official_guide`],
+  workflowCompatibility: ["retrieve", "generate", "export", "external_handoff"],
+  artifactTypes: ["external-tool handoff package"],
+  filenameExtensions: [".md", ".json"],
+  deliveryKind: "external_handoff",
+  livePreview: false,
+  runtimeRequirements: [`Use an installed ${displayName} runtime.`],
+  validationStatus: "handoff_package",
+  fallback: `Use the exported brief in ${displayName}.`,
+  publicClaimBoundary: `${displayName} is an external-tool handoff, not a live preview.`,
+  demoEligible: false,
+  knowledge: {
+    registeredSourceCount: 1,
+    indexedSourceCount: 1,
+    indexedChunkCount: 14
+  }
+  };
 }
 
 function createSnapshotWithImageReference(

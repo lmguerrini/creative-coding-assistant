@@ -8,6 +8,7 @@ from creative_coding_assistant.contracts import (
     AssistantRequest,
     CreativeCodingDomain,
     StreamEventType,
+    WorkflowExecutionMode,
 )
 from creative_coding_assistant.llm.generation import (
     GeneratedOutput,
@@ -176,7 +177,8 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         )
         self.assertNotIn("data:image/png", user_section.content)
         self.assertIn("- Reference fusion summary:", system_section.content)
-        self.assertIn("- Reference palette direction:", system_section.content)
+        self.assertNotIn("- Reference palette direction:", system_section.content)
+        self.assertIn("metadata-only", system_section.content)
         self.assertIn("Do not identify people", system_section.content)
 
     def test_jinja_prompt_renderer_includes_selected_artifact_refinement_context(
@@ -954,6 +956,7 @@ class PromptTemplateFoundationTests(unittest.TestCase):
             project_id="project-1",
             domain=CreativeCodingDomain.THREE_JS,
             mode=AssistantMode.EXPLAIN,
+            workflow_mode=WorkflowExecutionMode.MULTI_AGENT,
         )
 
         events = tuple(service.stream(request))

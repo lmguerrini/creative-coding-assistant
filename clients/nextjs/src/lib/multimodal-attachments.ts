@@ -107,7 +107,10 @@ export function buildMultimodalSummary({
         "image reference",
         "image references"
       )}`,
-      detail: `${formatAttachmentNames(imageAttachments)} will be sent with the next request.`,
+      detail:
+        `${formatAttachmentNames(imageAttachments)} will be sent with the next ` +
+        "request as image-reference metadata. The current provider path does not " +
+        "perform pixel analysis or visual-reference extraction.",
       imageAttachments,
       error: null
     };
@@ -119,7 +122,7 @@ export function buildMultimodalSummary({
     status: "No image references",
     detail:
       baseMultimodal.detail ||
-      "Attach image references to ground the next creative coding request visually.",
+      "Attach image references as metadata for the next request; pixel analysis and audio upload are not supported in this product path.",
     imageAttachments: [],
     error: null
   };

@@ -19,6 +19,12 @@ from creative_coding_assistant.api.dev_server import (
     create_backend_dev_app,
     run_backend_dev_server,
 )
+from creative_coding_assistant.api.domain_experience import (
+    DOMAIN_EXPERIENCE_CONTRACT_VERSION,
+    DomainExperienceApplication,
+    build_domain_experience_payload,
+    create_domain_experience_app,
+)
 from creative_coding_assistant.api.health import (
     HealthCheckApplication,
     build_health_payload,
@@ -57,6 +63,7 @@ __all__ = [
     "CHROMA_REQUIREMENT",
     "CONFIGURATION_MIGRATIONS",
     "ERROR_CONTRACT_VERSION",
+    "DOMAIN_EXPERIENCE_CONTRACT_VERSION",
     "HEALTH_CONTRACT_VERSION",
     "STREAM_CONTRACT_VERSION",
     "V7_5_ROADMAP_ITEMS",
@@ -69,6 +76,7 @@ __all__ = [
     "CorsPolicyReport",
     "DependencyHealthReport",
     "DeploymentReadinessChecklist",
+    "DomainExperienceApplication",
     "HealthCheckApplication",
     "MountedWsgiApp",
     "ProductionConfigurationReport",
@@ -76,11 +84,13 @@ __all__ = [
     "build_api_telemetry_event",
     "build_cors_policy_report",
     "build_dependency_health_report",
+    "build_domain_experience_payload",
     "build_deployment_readiness_checklist",
     "build_health_payload",
     "build_release_checklist",
     "WorkspaceSessionApplication",
     "create_backend_dev_app",
+    "create_domain_experience_app",
     "create_assistant_streaming_app",
     "create_health_check_app",
     "create_workspace_session_app",

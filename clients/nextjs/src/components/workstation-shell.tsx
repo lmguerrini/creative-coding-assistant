@@ -222,6 +222,12 @@ import {
   type ProductIntelligenceModel
 } from "@/lib/product-intelligence";
 import {
+  fetchDomainExperienceCatalog,
+  loadingDomainExperienceCatalog,
+  type DomainExperienceCatalog,
+  type KnowledgeBaseInventory
+} from "@/lib/domain-experience";
+import {
   buildSessionIntelligenceModel,
   readSessionIntelligenceMetadata,
   type SessionIntelligenceMetadataInput,
@@ -300,6 +306,7 @@ const inspectorTabIcons = {
   Runtime: Command,
   Preview: Play,
   Code: Braces,
+  Domains: Boxes,
   "Knowledge Base": Database,
   Memory: Database,
   Sessions: LayoutGrid,
@@ -358,6 +365,7 @@ const userModeInspectorTabs = new Set<ProductIntelligenceCategory>([
   "Preview",
   "Code",
   "Artifacts",
+  "Domains",
   "Settings"
 ]);
 const userModeDefaultInspectorTab: ProductIntelligenceCategory = "Preview";
@@ -452,6 +460,9 @@ export function WorkstationShell({
   );
   const [imageUploadError, setImageUploadError] = useState<WorkstationError | null>(
     initialSnapshot.multimodal.error ?? null
+  );
+  const [domainExperience, setDomainExperience] = useState<DomainExperienceCatalog>(
+    loadingDomainExperienceCatalog
   );
   const [activeTab, setActiveTab] = useState<ProductIntelligenceCategory>(
     getInitialActiveTab(initialSnapshot)
@@ -1089,6 +1100,19 @@ export function WorkstationShell({
     [workflowTraceEvents]
   );
   useEffect(() => {
+    let current = true;
+
+    void fetchDomainExperienceCatalog().then((catalog) => {
+      if (current) {
+        setDomainExperience(catalog);
+      }
+    });
+
+    return () => {
+      current = false;
+    };
+  }, []);
+  useEffect(() => {
     const completedRun = buildCreativeCostRunRecord({
       providerTelemetry,
       traceEvents: workflowTraceEvents
@@ -1238,7 +1262,9 @@ export function WorkstationShell({
   const productIntelligence = useMemo(
     () =>
       buildProductIntelligenceModel({
+        activeArtifactId,
         conversationContext,
+        domainExperience,
         providerTelemetry,
         retrievalRuntime,
         runtimeConsole,
@@ -1251,7 +1277,9 @@ export function WorkstationShell({
         workstationDashboard
       }),
     [
+      activeArtifactId,
       conversationContext,
+      domainExperience,
       interactiveSnapshot,
       providerTelemetry,
       retrievalRuntime,
@@ -2872,6 +2900,7 @@ export function WorkstationShell({
           ? (() => {
               const bundle = buildProjectBundle({
                 approvalSummary,
+                domainContracts: domainExperience.domains,
                 persistenceRecord,
                 previewController,
                 previewRoute: previewRendererRoute,
@@ -3062,7 +3091,10 @@ export function WorkstationShell({
               <span>KB</span>
             </button>
             {openUtilityPanel === "kb" ? (
-              <KnowledgeBaseStatusPanel runtime={retrievalRuntime} />
+              <KnowledgeBaseStatusPanel
+                inventory={domainExperience.knowledgeBase}
+                runtime={retrievalRuntime}
+              />
             ) : null}
           </div>
           <button
@@ -3411,8 +3443,21 @@ export function WorkstationShell({
                           onChange={(event) => void handleImageUploadChange(event)}
                           type="file"
                         />
-                        <span>Upload image</span>
+                        <span>Upload image reference</span>
+                        <small>Metadata only; pixel analysis is not available in this path.</small>
                       </label>
+                      <span
+                        aria-disabled="true"
+                        className="attachmentMenuItem attachmentMenuItem--unsupported"
+                        role="menuitem"
+                      >
+                        <strong>Audio input</strong>
+                        <small>
+                          Audio upload and audio analysis are not supported. Bounded
+                          Tone.js playback requires a compatible source artifact and an
+                          explicit start action.
+                        </small>
+                      </span>
                     </div>
                   ) : null}
                 </div>
@@ -3764,6 +3809,11 @@ function ImageReferenceShelf({
           ))}
         </div>
       ) : null}
+      <p className="imageReferenceBoundary">
+        Image files are retained for this session and exported with the project bundle
+        when available. Audio upload and audio analysis are not supported in this
+        workspace.
+      </p>
     </section>
   );
 }
@@ -4606,6 +4656,7 @@ function InspectorPanel({
   if (activeTab === "Retrieval") {
     return (
       <RetrievalInspector
+        inventory={productIntelligence.domainExperience.knowledgeBase}
         runtime={retrievalRuntime}
         showDebugPanels={showDebugPanels}
       />
@@ -6320,8 +6371,10 @@ type CommandMenuPanelProps = {
 };
 
 function KnowledgeBaseStatusPanel({
+  inventory,
   runtime
 }: {
+  inventory: KnowledgeBaseInventory;
   runtime: RetrievalRuntimeModel;
 }) {
   return (
@@ -6333,10 +6386,10 @@ function KnowledgeBaseStatusPanel({
     >
       <header className="utilityPanelHeader">
         <strong>Knowledge Base</strong>
-        <p>Current retrieval state and reported local KB coverage.</p>
+        <p>Current retrieval outcome and persistent local KB inventory are separate.</p>
       </header>
       <RetrievalRunStatusSurface runtime={runtime} />
-      <KnowledgeBaseStatusSurface runtime={runtime} />
+      <KnowledgeBaseStatusSurface inventory={inventory} runtime={runtime} />
     </section>
   );
 }

@@ -1816,8 +1816,13 @@ describe("WorkstationShell", () => {
     );
     expect(
       within(kbDialog).getByRole("group", { name: "Knowledge Base status" })
-    ).toHaveTextContent("No retrieved context for this run");
-    expect(kbDialog).toHaveTextContent("Not reported in this session");
+    ).toHaveTextContent("Inventory unavailable");
+    expect(kbDialog).toHaveTextContent(
+      "Knowledge Base inventory has not been loaded from the local backend."
+    );
+    expect(kbDialog).toHaveTextContent(
+      "This screen does not infer inventory from the current retrieval run."
+    );
     expect(
       within(kbDialog).getByRole("button", { name: "Refresh official KB" })
     ).toBeDisabled();
@@ -1830,19 +1835,18 @@ describe("WorkstationShell", () => {
     expect(screen.queryByRole("tab", { name: "Retrieval" })).not.toBeInTheDocument();
   });
 
-  it("reports observed KB coverage from the current retrieval session", () => {
+  it("keeps persistent KB inventory distinct from observed retrieval coverage", () => {
     renderUserShell();
 
     fireEvent.click(screen.getByRole("button", { name: "Knowledge Base status" }));
 
     const kbDialog = screen.getByRole("dialog", { name: "Knowledge Base" });
     expect(kbDialog).toHaveTextContent("Retrieved context available");
-    expect(kbDialog).toHaveTextContent("2 sources observed");
-    expect(kbDialog).toHaveTextContent("2 retrieved domains");
-    expect(kbDialog).toHaveTextContent("280 indexed chunks");
-    expect(kbDialog).toHaveTextContent("2/2 observed sources available");
-    expect(kbDialog).toHaveTextContent("Local/personal docs");
-    expect(kbDialog).toHaveTextContent("Not connected to this UI");
+    expect(kbDialog).toHaveTextContent("2 retrieved sources");
+    expect(kbDialog).toHaveTextContent("3 retrieved chunks");
+    expect(kbDialog).toHaveTextContent("Inventory unavailable");
+    expect(kbDialog).toHaveTextContent("0 approved sources");
+    expect(kbDialog).toHaveTextContent("0 indexed chunks");
   });
 
   it("labels ignored sources and unused chunks without losing global rank", () => {
@@ -2660,7 +2664,7 @@ describe("WorkstationShell", () => {
     });
   });
 
-  it("uploads image references and sends them with the next backend request", async () => {
+  it("uploads image references with an explicit metadata-only boundary", async () => {
     const backendStream = vi.fn(() =>
       streamEvents([
         {
@@ -2676,6 +2680,10 @@ describe("WorkstationShell", () => {
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Add attachment" }));
+    expect(screen.getByRole("menuitem", { name: /Audio input/ })).toHaveAttribute(
+      "aria-disabled",
+      "true"
+    );
     const uploadInput = screen.getByLabelText("Upload image attachment");
     const imageFile = new File(["palette-bytes"], "palette.png", {
       type: "image/png"
@@ -2693,6 +2701,7 @@ describe("WorkstationShell", () => {
     });
     expect(within(imageShelf).getByText("1 image reference")).toBeVisible();
     expect(within(imageShelf).getByText("palette.png")).toBeVisible();
+    expect(within(imageShelf).getByText(/does not perform pixel analysis/i)).toBeVisible();
     fireEvent.click(screen.getByRole("tab", { name: "Overview" }));
     expect(
       within(screen.getByRole("group", { name: "Image references summary" })).getByText(

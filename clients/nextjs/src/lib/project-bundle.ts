@@ -14,6 +14,7 @@ import type { PreviewRendererRoute } from "./preview-renderers";
 import type { RetrievalRuntimeModel } from "./retrieval-runtime";
 import type { WorkflowRuntimeModel } from "./workflow-runtime";
 import type { WorkspaceSessionRecord } from "./workspace-persistence";
+import type { DomainExperienceRecord } from "./domain-experience";
 
 export type ProjectBundleFileKind =
   | "artifact"
@@ -22,7 +23,8 @@ export type ProjectBundleFileKind =
   | "preview"
   | "readme"
   | "runtime"
-  | "session";
+  | "session"
+  | "handoff";
 
 export type ProjectBundleFile = {
   path: string;
@@ -56,6 +58,14 @@ export type ProjectBundleFileManifest = {
   kind: ProjectBundleFileKind;
   mimeType: string;
   sizeBytes: number;
+};
+
+export type ProjectBundleExternalHandoffManifest = {
+  domain: string;
+  displayName: string;
+  artifactTitle: string;
+  files: string[];
+  boundary: string;
 };
 
 export type ProjectBundleManifest = {
@@ -112,6 +122,10 @@ export type ProjectBundleManifest = {
     activeTitle: string | null;
     exportPath: string;
   };
+  handoffs: {
+    count: number;
+    items: ProjectBundleExternalHandoffManifest[];
+  };
   readmePath: string;
   sessionPath: string;
   fileCount: number;
@@ -134,6 +148,7 @@ export type ProjectBundleBuildInput = {
   previewController: PreviewControllerModel;
   previewRuntimeSource: PreviewRuntimeSource;
   approvalSummary: HitlApprovalSummary;
+  domainContracts?: DomainExperienceRecord[];
   exportedAt?: string;
 };
 
@@ -141,6 +156,11 @@ type ImageBundleResult = {
   items: ProjectBundleImageManifest[];
   files: ProjectBundleFile[];
   warnings: string[];
+};
+
+type ExternalHandoffBundleResult = {
+  items: ProjectBundleExternalHandoffManifest[];
+  files: ProjectBundleFile[];
 };
 
 type ProjectBundleManifestSummary = Omit<
@@ -160,6 +180,7 @@ const multimodalPath = "multimodal/image-references.json";
 
 export function buildProjectBundle({
   approvalSummary,
+  domainContracts = [],
   exportedAt = new Date().toISOString(),
   persistenceRecord,
   previewController,
@@ -212,6 +233,12 @@ export function buildProjectBundle({
   const imageBundle = buildImageBundle(snapshot.multimodal.imageAttachments, usedPaths);
   warnings.push(...imageBundle.warnings);
   bundleFiles.push(...imageBundle.files);
+  const handoffBundle = buildExternalHandoffBundle({
+    artifacts: snapshot.artifacts,
+    domainContracts,
+    usedPaths
+  });
+  bundleFiles.push(...handoffBundle.files);
 
   const sessionPayload = {
     schemaVersion: persistenceRecord.schemaVersion,
@@ -350,6 +377,10 @@ export function buildProjectBundle({
       activeTitle: approvalSummary.activeRequest?.title ?? null,
       exportPath: approvalPath
     },
+    handoffs: {
+      count: handoffBundle.items.length,
+      items: handoffBundle.items
+    },
     readmePath,
     sessionPath,
     warnings
@@ -442,6 +473,21 @@ function buildProjectBundleReadme({
     );
   }
 
+  if (manifest.handoffs.count > 0) {
+    lines.push("");
+    lines.push("## External Tool Handoffs");
+    lines.push(
+      "These packages continue in the named external tool; they are not internal live previews."
+    );
+    for (const handoff of manifest.handoffs.items) {
+      lines.push(`- ${handoff.displayName}: ${handoff.artifactTitle}`);
+      lines.push(`  - Boundary: ${handoff.boundary}`);
+      for (const file of handoff.files) {
+        lines.push(`  - ${file}`);
+      }
+    }
+  }
+
   if (manifest.warnings.length > 0) {
     lines.push("");
     lines.push("## Warnings");
@@ -502,6 +548,176 @@ function buildImageBundle(
   }
 
   return { items, files, warnings };
+}
+
+function buildExternalHandoffBundle({
+  artifacts,
+  domainContracts,
+  usedPaths
+}: {
+  artifacts: ArtifactSummary[];
+  domainContracts: DomainExperienceRecord[];
+  usedPaths: Set<string>;
+}): ExternalHandoffBundleResult {
+  const contractsByDomain = new Map(
+    domainContracts.map((contract) => [contract.id, contract])
+  );
+  const files: ProjectBundleFile[] = [];
+  const items: ProjectBundleExternalHandoffManifest[] = [];
+
+  for (const artifact of artifacts) {
+    const contract = artifact.domain
+      ? contractsByDomain.get(artifact.domain) ?? null
+      : null;
+    if (!contract || contract.deliveryKind !== "external_handoff") {
+      continue;
+    }
+
+    const directory = `handoff/${sanitizeBundleSegment(contract.id) || "external-domain"}`;
+    const paths = {
+      brief: createUniqueBundlePath(`${directory}/creative-brief.md`, usedPaths),
+      specification: createUniqueBundlePath(
+        `${directory}/system-specification.json`,
+        usedPaths
+      ),
+      parameters: createUniqueBundlePath(`${directory}/parameter-schema.json`, usedPaths),
+      notes: createUniqueBundlePath(`${directory}/implementation-notes.md`, usedPaths),
+      checklist: createUniqueBundlePath(`${directory}/validation-checklist.md`, usedPaths),
+      boundaries: createUniqueBundlePath(`${directory}/handoff-boundaries.md`, usedPaths)
+    };
+    files.push(
+      createTextBundleFile({
+        content: buildExternalHandoffBrief({ artifact, contract }),
+        kind: "handoff",
+        mimeType: "text/markdown;charset=utf-8",
+        path: paths.brief
+      }),
+      createJsonBundleFile({
+        content: {
+          artifact: {
+            language: artifact.language,
+            title: artifact.title,
+            type: artifact.type
+          },
+          artifactTypes: contract.artifactTypes,
+          domain: contract.displayName,
+          expectedExtensions: contract.filenameExtensions,
+          workflowCompatibility: contract.workflowCompatibility
+        },
+        kind: "handoff",
+        path: paths.specification
+      }),
+      createJsonBundleFile({
+        content: {
+          parameters: contract.intentTriggers.map((trigger) => ({
+            name: sanitizeBundleSegment(trigger).replace(/-/g, "_") || "creative_parameter",
+            purpose: `External-tool parameter informed by the ${trigger} intent.`,
+            value: "Set in the external tool",
+            required: false
+          })),
+          schemaVersion: 1
+        },
+        kind: "handoff",
+        path: paths.parameters
+      }),
+      createTextBundleFile({
+        content: buildExternalImplementationNotes({ artifact, contract }),
+        kind: "handoff",
+        mimeType: "text/markdown;charset=utf-8",
+        path: paths.notes
+      }),
+      createTextBundleFile({
+        content: buildExternalValidationChecklist(contract),
+        kind: "handoff",
+        mimeType: "text/markdown;charset=utf-8",
+        path: paths.checklist
+      }),
+      createTextBundleFile({
+        content: buildExternalHandoffBoundary(contract),
+        kind: "handoff",
+        mimeType: "text/markdown;charset=utf-8",
+        path: paths.boundaries
+      })
+    );
+    items.push({
+      domain: contract.id,
+      displayName: contract.displayName,
+      artifactTitle: artifact.title,
+      files: Object.values(paths),
+      boundary: contract.publicClaimBoundary
+    });
+  }
+
+  return { items, files };
+}
+
+function buildExternalHandoffBrief({
+  artifact,
+  contract
+}: {
+  artifact: ArtifactSummary;
+  contract: DomainExperienceRecord;
+}) {
+  return [
+    `# ${contract.displayName} Creative Handoff`,
+    "",
+    "## Creative brief",
+    artifact.summary,
+    "",
+    "## Source artifact",
+    `- Title: ${artifact.title}`,
+    `- Language: ${artifact.language}`,
+    `- Expected extensions: ${contract.filenameExtensions.join(", ")}`,
+    "",
+    "## Intended workflow",
+    ...contract.workflowCompatibility.map((step) => `- ${step}`),
+    "",
+    "## Runtime assumptions",
+    ...contract.runtimeRequirements.map((requirement) => `- ${requirement}`)
+  ].join("\n");
+}
+
+function buildExternalImplementationNotes({
+  artifact,
+  contract
+}: {
+  artifact: ArtifactSummary;
+  contract: DomainExperienceRecord;
+}) {
+  return [
+    "# Implementation Notes",
+    "",
+    `Use ${artifact.title} as the source reference for the ${contract.displayName} handoff.`,
+    "",
+    "- Translate the exported source and parameter schema inside the external tool.",
+    "- Keep the generated artifact attached to the external project for provenance.",
+    "- Record changes made after import in the external project rather than claiming the workstation executed them.",
+    "- Review the validation checklist before presenting the external result."
+  ].join("\n");
+}
+
+function buildExternalValidationChecklist(contract: DomainExperienceRecord) {
+  return [
+    "# External Validation Checklist",
+    "",
+    `- [ ] Open the package in a licensed or installed ${contract.displayName} environment.`,
+    "- [ ] Map the parameter schema to the external project controls.",
+    "- [ ] Confirm source import, project save, and target runtime assumptions.",
+    "- [ ] Render or play the result in the external tool.",
+    "- [ ] Record any unsupported feature and use the documented fallback.",
+    "- [ ] Do not describe this external output as an internal workstation preview."
+  ].join("\n");
+}
+
+function buildExternalHandoffBoundary(contract: DomainExperienceRecord) {
+  return [
+    "# Handoff Boundaries",
+    "",
+    contract.publicClaimBoundary,
+    "",
+    "## Fallback",
+    contract.fallback
+  ].join("\n");
 }
 
 function buildProjectBundleFileName(projectId: string) {

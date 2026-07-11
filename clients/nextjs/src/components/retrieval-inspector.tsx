@@ -1,4 +1,5 @@
 import type { RetrievalRuntimeModel } from "@/lib/retrieval-runtime";
+import type { KnowledgeBaseInventory } from "@/lib/domain-experience";
 import { buildRetrievalQualityModel } from "@/lib/retrieval-quality";
 import { buildRetrievalSourceExplorerModel } from "@/lib/retrieval-source-explorer";
 import { KbSourceHealthDashboard } from "./kb-source-health-dashboard";
@@ -7,9 +8,11 @@ import { RetrievalSourceExplorer } from "./retrieval-source-explorer";
 import { SubsystemErrorCallout } from "./subsystem-error-callout";
 
 export function RetrievalInspector({
+  inventory,
   runtime,
   showDebugPanels = true
 }: {
+  inventory?: KnowledgeBaseInventory;
   runtime: RetrievalRuntimeModel;
   showDebugPanels?: boolean;
 }) {
@@ -26,7 +29,11 @@ export function RetrievalInspector({
         role="tabpanel"
       >
         <RetrievalRunStatusSurface runtime={runtime} />
-        <KnowledgeBaseStatusSurface runtime={runtime} showSourceHealth />
+        <KnowledgeBaseStatusSurface
+          inventory={inventory}
+          runtime={runtime}
+          showSourceHealth
+        />
       </section>
     );
   }
@@ -178,9 +185,11 @@ export function RetrievalRunStatusSurface({
 }
 
 export function KnowledgeBaseStatusSurface({
+  inventory,
   runtime,
   showSourceHealth = false
 }: {
+  inventory?: KnowledgeBaseInventory;
   runtime: RetrievalRuntimeModel;
   showSourceHealth?: boolean;
 }) {
@@ -196,46 +205,54 @@ export function KnowledgeBaseStatusSurface({
       <header>
         <div>
           <span>Knowledge Base status</span>
-          <strong>{explorer.health.statusLabel}</strong>
-          <p>{buildKnowledgeBaseStatusDetail(runtime)}</p>
+          <strong>{inventory ? formatInventoryStatus(inventory.status) : explorer.health.statusLabel}</strong>
+          <p>{buildKnowledgeBaseStatusDetail(inventory)}</p>
         </div>
       </header>
       <div className="kbStatusMetrics" aria-label="Knowledge Base metrics" role="list">
         <KbStatusMetric
-          label="Indexed sources"
+          label="Registered sources"
           value={
-            explorer.health.sourceCount > 0
-              ? `${explorer.health.sourceCount} sources observed`
-              : "Not reported in this session"
+            inventory
+              ? `${inventory.registeredSourceCount} approved sources`
+              : "Loading persistent inventory"
           }
         />
         <KbStatusMetric
-          label="Indexed domains"
+          label="Registered domains"
           value={
-            runtime.summary.domainCount > 0
-              ? `${runtime.summary.domainCount} retrieved domains`
-              : "No domain metrics for this run"
+            inventory
+              ? `${inventory.registeredDomainCount} registered domains`
+              : "Loading persistent inventory"
           }
         />
         <KbStatusMetric
           label="Indexed chunks"
-          value={explorer.health.indexedChunkLabel}
-        />
-        <KbStatusMetric
-          label="Last sync/fetch"
-          value={explorer.health.latestSyncAttemptLabel}
-        />
-        <KbStatusMetric
-          label="Official docs coverage"
           value={
-            explorer.health.availableSourceCount > 0
-              ? `${explorer.health.availableSourceCount}/${explorer.health.sourceCount} observed sources available`
-              : "Coverage not reported in this session"
+            inventory
+              ? `${inventory.indexedChunkCount} indexed chunks`
+              : "Loading persistent inventory"
           }
         />
         <KbStatusMetric
-          label="Local/personal docs"
-          value="Not connected to this UI"
+          label="Indexed sources"
+          value={
+            inventory
+              ? `${inventory.indexedSourceCount} locally indexed sources`
+              : "Loading persistent inventory"
+          }
+        />
+        <KbStatusMetric
+          label="Last sync/fetch"
+          value={
+            inventory?.lastIndexedAt
+              ? inventory.lastIndexedAt
+              : "Not reported by the local index"
+          }
+        />
+        <KbStatusMetric
+          label="Update status"
+          value={inventory?.updateStatus ?? "Inventory not loaded"}
         />
       </div>
       <div className="kbStatusActions" aria-label="Knowledge Base actions">
@@ -244,15 +261,18 @@ export function KnowledgeBaseStatusSurface({
         </a>
         <button
           disabled
-          title="Run the documented backend sync command; UI refresh is future scope."
+          title={
+            inventory?.updateHint ??
+            "Run the documented backend sync command; UI refresh is future scope."
+          }
           type="button"
         >
           Refresh official KB
         </button>
       </div>
       <p className="kbStatusGuidance">
-        KB refresh is not executed from this UI. Use the documented local sync
-        command before the demo if official docs need to be refreshed.
+        {inventory?.provenanceBoundary ??
+          "KB inventory is loading separately from current-run retrieval."}
       </p>
       {showSourceHealth ? <KbSourceHealthDashboard model={explorer.health} /> : null}
     </article>
@@ -315,18 +335,23 @@ function buildRunRetrievalStatusCopy(runtime: RetrievalRuntimeModel) {
   };
 }
 
-function buildKnowledgeBaseStatusDetail(runtime: RetrievalRuntimeModel) {
-  if (runtime.summary.sourceCount > 0) {
-    return `${runtime.summary.sourceCount} retrieved sources and ${runtime.summary.chunkCount} chunks are visible from the current session.`;
+function buildKnowledgeBaseStatusDetail(inventory?: KnowledgeBaseInventory) {
+  if (!inventory) {
+    return "Persistent inventory is loading separately from the current retrieval run.";
   }
 
-  if (runtime.summary.state === "empty") {
-    return "No retrieved context for this run; persistent KB inventory is not exposed by this UI without a retrieval result.";
-  }
+  return inventory.detail;
+}
 
-  if (runtime.summary.state === "unavailable" || runtime.summary.state === "error") {
-    return "KB availability could not be confirmed from the current workflow.";
+function formatInventoryStatus(status: KnowledgeBaseInventory["status"]) {
+  switch (status) {
+    case "available":
+      return "Indexed inventory available";
+    case "empty":
+      return "Index is empty";
+    case "not_initialized":
+      return "Index not initialized";
+    default:
+      return "Inventory unavailable";
   }
-
-  return "KB inventory is setup-ready, but this workflow has not surfaced indexed-source metrics.";
 }

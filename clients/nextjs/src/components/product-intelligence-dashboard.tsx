@@ -1,6 +1,7 @@
 "use client";
 
 import { CircleHelp } from "lucide-react";
+import { DomainExperienceSurface } from "./domain-experience-surface";
 import {
   getProductIntelligenceSection,
   productIntelligenceCategories,
@@ -65,7 +66,7 @@ export function ProductIntelligenceDashboard({
             Return to workspace
           </button>
         </header>
-        <ProductIntelligenceSectionView detailed section={section} />
+        <ProductIntelligenceSectionView detailed model={model} section={section} />
       </div>
     </section>
   );
@@ -89,6 +90,7 @@ export function ProductIntelligenceInspector({
         section={getProductIntelligenceSection(model, category)}
       />
       <ProductIntelligenceSectionView
+        model={model}
         section={getProductIntelligenceSection(model, category)}
       />
     </section>
@@ -119,11 +121,23 @@ export function ProductIntelligenceHelp({
 
 function ProductIntelligenceSectionView({
   detailed = false,
+  model,
   section
 }: {
   detailed?: boolean;
+  model: ProductIntelligenceModel;
   section: ProductIntelligenceSection;
 }) {
+  if (section.category === "Domains") {
+    return (
+      <DomainExperienceSurface
+        activeDomainId={model.activeDomainId}
+        catalog={model.domainExperience}
+        detailed={detailed}
+      />
+    );
+  }
+
   const notes = detailed ? section.notes : section.notes.slice(0, 2);
   const metrics = detailed ? section.metrics : section.metrics.slice(0, 3);
 

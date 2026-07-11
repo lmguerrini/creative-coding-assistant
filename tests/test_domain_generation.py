@@ -539,11 +539,11 @@ class DomainGenerationTests(unittest.TestCase):
         self.assertEqual(artifacts[0].creative_translation, translation)
         self.assertEqual(
             artifacts[0].creative_translation.geometric_references,
-            ("spiral", "rectilinear grid"),
+            ("spiral",),
         )
         self.assertEqual(
             artifacts[0].creative_translation.movement_language,
-            ("drift", "slow drifting motion"),
+            ("drift",),
         )
         self.assertIsNotNone(artifacts[0].creative_translation.sacred_geometry)
         assert artifacts[0].creative_translation.sacred_geometry is not None
@@ -556,7 +556,7 @@ class DomainGenerationTests(unittest.TestCase):
         assert shader_presets is not None
         self.assertEqual(
             [preset.value for preset in shader_presets.presets],
-            ["glow", "glass / crystal"],
+            ["glow"],
         )
         self.assertIsNotNone(artifacts[0].creative_translation.visual_style)
         visual_style = artifacts[0].creative_translation.visual_style
@@ -586,7 +586,7 @@ class DomainGenerationTests(unittest.TestCase):
             preview_results[0].details["artifact"]["creative_translation"][
                 "shader_presets"
             ]["presets"],
-            ["glow", "glass / crystal"],
+            ["glow"],
         )
         self.assertEqual(
             preview_results[0].details["artifact"]["creative_translation"][
@@ -600,11 +600,11 @@ class DomainGenerationTests(unittest.TestCase):
             ]["source_count"],
             1,
         )
-        self.assertIn(
-            "warm palette bias",
+        self.assertEqual(
             preview_results[0].details["artifact"]["creative_translation"][
                 "reference_fusion"
             ]["palette_direction"],
+            [],
         )
 
     def test_artifacts_preserve_audio_reactive_mapping_metadata(self) -> None:

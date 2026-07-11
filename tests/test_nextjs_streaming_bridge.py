@@ -365,6 +365,7 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
             [
                 "/api/assistant/stream",
                 "/api/workspace/session",
+                "/api/domain-experience",
                 "/api/health",
                 "/api/health/live",
                 "/api/health/ready",

@@ -11,7 +11,7 @@ class ReferenceFusionTests(unittest.TestCase):
     def test_returns_none_without_references(self) -> None:
         self.assertIsNone(derive_reference_fusion_guidance(()))
 
-    def test_derives_single_reference_guidance_from_metadata(self) -> None:
+    def test_preserves_single_reference_metadata_without_visual_inference(self) -> None:
         guidance = derive_reference_fusion_guidance(
             (
                 _Image(
@@ -25,18 +25,17 @@ class ReferenceFusionTests(unittest.TestCase):
         self.assertIsNotNone(guidance)
         assert guidance is not None
         self.assertEqual(guidance.source_count, 1)
-        self.assertIn("warm palette bias", guidance.palette_direction)
-        self.assertIn("neon accent contrast", guidance.palette_direction)
-        self.assertIn("grid-based spatial layout", guidance.composition)
-        self.assertIn("glasslike refraction cues", guidance.texture_material_cues)
-        self.assertIn("slow drifting motion", guidance.motion_implications)
+        self.assertEqual(guidance.palette_direction, ())
+        self.assertEqual(guidance.composition, ())
+        self.assertEqual(guidance.texture_material_cues, ())
+        self.assertEqual(guidance.motion_implications, ())
         self.assertTrue(
             any(
-                "Do not identify people" in item for item in guidance.safety_constraints
+                "metadata-only" in item for item in guidance.safety_constraints
             )
         )
 
-    def test_merges_multiple_references_without_copy_claims(self) -> None:
+    def test_merges_multiple_references_without_filename_based_visual_claims(self) -> None:
         guidance = derive_reference_fusion_guidance(
             (
                 _Image("cool-spiral-shadow-reference.webp", "image/webp", 256),
@@ -46,11 +45,9 @@ class ReferenceFusionTests(unittest.TestCase):
 
         assert guidance is not None
         self.assertEqual(guidance.source_count, 2)
-        self.assertIn("cool blue palette", guidance.palette_direction)
-        self.assertIn("amber highlights", guidance.palette_direction)
-        self.assertIn("spiral structure", guidance.geometric_structure)
-        self.assertIn("lattice structure", guidance.geometric_structure)
-        self.assertIn("pulsing temporal behavior", guidance.motion_implications)
+        self.assertEqual(guidance.palette_direction, ())
+        self.assertEqual(guidance.geometric_structure, ())
+        self.assertEqual(guidance.motion_implications, ())
         self.assertTrue(
             any("exact copying" in item for item in guidance.safety_constraints)
         )
@@ -58,22 +55,19 @@ class ReferenceFusionTests(unittest.TestCase):
         lines = reference_fusion_prompt_lines(guidance)
 
         self.assertIn("Reference fusion sources: 2", lines)
-        self.assertTrue(any(line.startswith("Reference palette") for line in lines))
+        self.assertFalse(any(line.startswith("Reference palette") for line in lines))
         self.assertTrue(any(line.startswith("Reference safety") for line in lines))
 
-    def test_person_like_reference_uses_only_non_identifying_layout_cues(self) -> None:
+    def test_person_like_filename_does_not_trigger_visual_or_identity_inference(self) -> None:
         guidance = derive_reference_fusion_guidance(
             (_Image("portrait-face-central-soft.png", "image/png", 128),)
         )
 
         assert guidance is not None
-        self.assertIn(
-            "central subject framing without identity assumptions",
-            guidance.composition,
-        )
+        self.assertEqual(guidance.composition, ())
         self.assertTrue(
             any(
-                "non-identifying layout cues" in item
+                "Do not identify people" in item
                 for item in guidance.safety_constraints
             )
         )

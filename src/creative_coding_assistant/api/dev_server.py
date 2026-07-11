@@ -15,6 +15,10 @@ from creative_coding_assistant.api.contracts import (
     request_id_from_environ,
 )
 from creative_coding_assistant.api.cors import resolve_cors_allow_origin
+from creative_coding_assistant.api.domain_experience import (
+    DEFAULT_DOMAIN_EXPERIENCE_PATH,
+    create_domain_experience_app,
+)
 from creative_coding_assistant.api.health import (
     DEFAULT_HEALTH_PATH,
     DEFAULT_LIVENESS_PATH,
@@ -106,6 +110,10 @@ def create_backend_dev_app(
                 path=DEFAULT_WORKSPACE_SESSION_PATH,
                 app=workspace_app
                 or create_workspace_session_app(settings_factory=settings_factory),
+            ),
+            MountedWsgiApp(
+                path=DEFAULT_DOMAIN_EXPERIENCE_PATH,
+                app=create_domain_experience_app(settings_factory=settings_factory),
             ),
             MountedWsgiApp(
                 path=DEFAULT_HEALTH_PATH,

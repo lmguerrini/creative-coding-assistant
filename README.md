@@ -37,7 +37,8 @@ Creative Coding Assistant helps users design and reason about p5.js, Three.js,
 GLSL, Hydra, audio-reactive sketches, generative systems, and installation
 planning. The product is not a generic chatbot. It is a reviewable creative
 coding workflow surface with explicit source boundaries, fallback paths, and
-local-first demo evidence.
+local-first demo evidence. The active domain and knowledge-base contract is
+documented in [`docs/DOMAIN_EXPERIENCE.md`](docs/DOMAIN_EXPERIENCE.md).
 
 The current release-candidate work focuses on a reliable local Capstone demo:
 an integrated Demo Mode, generated golden artifacts, browser QA records,
@@ -62,13 +63,16 @@ Creative Coding Assistant makes those boundaries visible.
 
 Creative Coding:
 - p5.js, Three.js, GLSL, Hydra, Web Audio, and browser-runtime guidance.
-- Generated golden artifacts for p5.js, Three.js, GLSL, and Hydra.
+- Current in-product browser preview contracts for p5.js, Three.js, and GLSL;
+  other domains state their code/export or external-handoff boundary.
 - Runtime-specific fallback language for unsupported or unavailable previews.
 
 Retrieval:
 - Local Chroma-backed creative-coding knowledge base.
 - Registered-source retrieval for p5.js, Three.js, Web Audio, GLSL, and demo
   evidence.
+- A separate Dashboard inventory for registered versus locally indexed sources;
+  it is never inferred from a single retrieval run.
 - Redacted and sanitized evaluation fixtures that avoid sending raw private
   live-session data to external evaluators.
 

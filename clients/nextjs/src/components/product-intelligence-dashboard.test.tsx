@@ -4,6 +4,7 @@ import {
   productIntelligenceCategories,
   type ProductIntelligenceModel
 } from "@/lib/product-intelligence";
+import { loadingDomainExperienceCatalog } from "@/lib/domain-experience";
 import {
   ProductIntelligenceDashboard,
   ProductIntelligenceInspector
@@ -11,6 +12,8 @@ import {
 
 function buildModel(): ProductIntelligenceModel {
   return {
+    activeDomainId: null,
+    domainExperience: loadingDomainExperienceCatalog,
     sections: productIntelligenceCategories.map((category) => ({
       category,
       tone: category === "Workflow" ? "active" : "ready",
