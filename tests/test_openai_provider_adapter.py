@@ -363,6 +363,15 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
             105,
         )
         self.assertEqual(
+            final_event.payload["telemetry"]["pricing"],
+            {
+                "currency": "USD",
+                "input_usd_per_million_tokens": 0.25,
+                "output_usd_per_million_tokens": 2.0,
+                "source": "static_model_reference",
+            },
+        )
+        self.assertEqual(
             final_event.payload["telemetry"]["execution"]["streaming_status"],
             "completed",
         )

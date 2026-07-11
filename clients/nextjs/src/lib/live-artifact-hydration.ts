@@ -609,7 +609,10 @@ function parseMarkdownCodeBlocks(answer: string): GeneratedArtifactSource[] {
 
   while ((match = fencePattern.exec(answer)) !== null) {
     const info = parseFenceInfo(match[1] ?? "");
-    const content = trimCodeBlock(match[2] ?? "");
+    const content = stripLeadingArtifactFileName(
+      trimCodeBlock(match[2] ?? ""),
+      info.title
+    );
     if (!content.trim()) {
       continue;
     }
@@ -628,18 +631,46 @@ function parseMarkdownCodeBlocks(answer: string): GeneratedArtifactSource[] {
 
 function parseFenceInfo(info: string) {
   const tokens = info.trim().split(/\s+/).filter(Boolean);
-  const language = normalizeLanguageToken(tokens[0] ?? "");
-  const titleToken = tokens.find(
-    (token, index) => index > 0 && token.includes(".")
-  );
+  const firstTokenIsMarkdownFile = /\.md$/i.test(tokens[0] ?? "");
+  const languageToken = firstTokenIsMarkdownFile
+    ? ""
+    : normalizeLanguageToken(tokens[0] ?? "");
+  const titleToken =
+    tokens.find((token, index) => index > 0 && token.includes(".")) ??
+    (languageToken || !tokens[0]?.includes(".") ? undefined : tokens[0]);
   const namedTitle = tokens
     .map((token) => token.match(/^(?:file|filename|name)=(.+)$/i)?.[1])
     .find((value): value is string => Boolean(value));
 
+  const title = sanitizeFileName(namedTitle ?? titleToken ?? "") || undefined;
+
   return {
-    language: language || undefined,
-    title: sanitizeFileName(namedTitle ?? titleToken ?? "") || undefined
+    language: languageToken || inferLanguageFromFileName(title) || undefined,
+    title
   };
+}
+
+function stripLeadingArtifactFileName(content: string, title: string | undefined) {
+  if (!title) {
+    return content;
+  }
+
+  const [firstLine, ...remainingLines] = content.split("\n");
+  const normalizedFirstLine = firstLine
+    .trim()
+    .replace(/^(?:file|filename|name)\s*[:=]\s*/i, "")
+    .replace(/^['"`]+|['"`]+$/g, "");
+
+  return normalizedFirstLine === title ? remainingLines.join("\n").replace(/^\n/, "") : content;
+}
+
+function inferLanguageFromFileName(fileName: string | undefined) {
+  if (!fileName) {
+    return "";
+  }
+
+  const extension = fileName.split(".").at(-1)?.toLowerCase();
+  return extension === "md" ? "markdown" : extension === "json" ? "json" : "";
 }
 
 function inferGeneratedArtifacts(

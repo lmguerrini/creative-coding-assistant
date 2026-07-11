@@ -795,6 +795,32 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
       constructor(value) {
         this.value = value == null ? 0xffffff : value;
       }
+      setHSL(h, s, l) {
+        const hue = ((Number(h) % 1) + 1) % 1;
+        const saturation = Math.max(0, Math.min(1, Number(s) || 0));
+        const lightness = Math.max(0, Math.min(1, Number(l) || 0));
+        const chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
+        const sector = hue * 6;
+        const match = chroma * (1 - Math.abs((sector % 2) - 1));
+        const [red, green, blue] =
+          sector < 1
+            ? [chroma, match, 0]
+            : sector < 2
+              ? [match, chroma, 0]
+              : sector < 3
+                ? [0, chroma, match]
+                : sector < 4
+                  ? [0, match, chroma]
+                  : sector < 5
+                    ? [match, 0, chroma]
+                    : [chroma, 0, match];
+        const offset = lightness - chroma / 2;
+        this.value =
+          (Math.round((red + offset) * 255) << 16) |
+          (Math.round((green + offset) * 255) << 8) |
+          Math.round((blue + offset) * 255);
+        return this;
+      }
       toStyle() {
         if (typeof this.value === "string") return this.value;
         const value = Number(this.value) || 0xffffff;

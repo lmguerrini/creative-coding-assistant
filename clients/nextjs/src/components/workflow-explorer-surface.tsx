@@ -17,8 +17,8 @@ export function WorkflowExplorerSurface({ model }: WorkflowExplorerSurfaceProps)
     >
       <header className="workflowExplorerHeader">
         <div>
-          <span>Metadata groups</span>
-          <strong>Workflow explorer</strong>
+          <span>Execution path</span>
+          <strong>Live workflow route</strong>
           <p>
             {`${model.summary.availableMetadataGroupCount}/${model.summary.metadataGroupCount} metadata groups available`}
           </p>

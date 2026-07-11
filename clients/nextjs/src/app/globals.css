@@ -37,13 +37,13 @@ html[data-cca-theme="aqua"] {
   --code-surface: #151515;
   --scrollbar-track: #1a1a1a;
   --scrollbar-thumb: #4a4a4f;
-  --ui-font-size: 14px;
+  --ui-font-size: 15px;
   --code-font-size: 12px;
 }
 
-html[data-cca-ui-font-size="small"] { --ui-font-size: 13px; }
-html[data-cca-ui-font-size="medium"] { --ui-font-size: 15px; }
-html[data-cca-ui-font-size="large"] { --ui-font-size: 16px; }
+html[data-cca-ui-font-size="small"] { --ui-font-size: 14px; }
+html[data-cca-ui-font-size="medium"] { --ui-font-size: 16px; }
+html[data-cca-ui-font-size="large"] { --ui-font-size: 17px; }
 html[data-cca-code-font-size="small"] { --code-font-size: 11px; }
 html[data-cca-code-font-size="medium"] { --code-font-size: 13px; }
 html[data-cca-code-font-size="large"] { --code-font-size: 15px; }
@@ -2418,7 +2418,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .composerAttach {
-  position: static;
+  position: relative;
   flex: 0 0 auto;
 }
 
@@ -11802,7 +11802,14 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
     padding-right: calc(var(--inspector-rail-width) + 16px);
   }
 
-  .workstation[data-sidebar-state="collapsed"] .workspaceLayout,
+  .workstation[data-sidebar-state="collapsed"] .workspaceLayout {
+    grid-template-columns:
+      48px
+      minmax(0, 1fr)
+      10px
+      minmax(var(--inspector-rail-width), var(--inspector-width));
+  }
+
   .workstation[data-sidebar-state="collapsed"][data-inspector-state="collapsed"] .workspaceLayout {
     grid-template-columns: 48px minmax(0, 1fr);
   }
@@ -11848,20 +11855,20 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 
 .sessionSidebar > header .eyebrow {
   margin-bottom: 4px;
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .sessionSidebar > header strong {
   display: block;
   color: var(--foreground);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.3;
 }
 
 .sessionSidebar .iconButton {
-  width: 31px;
-  height: 31px;
-  border-radius: 9px;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
 }
 
 .newSessionButton {
@@ -11875,7 +11882,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   background: rgba(var(--accent-rgb), 0.1);
   color: var(--foreground);
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 780;
 }
 
@@ -11921,9 +11928,9 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   white-space: nowrap;
 }
 
-.sessionSidebarSelect strong { color: var(--foreground); font-size: 11px; }
-.sessionSidebarSelect span { color: var(--muted-strong); font-size: 10px; }
-.sessionSidebarSelect small { color: var(--muted); font-size: 9px; }
+.sessionSidebarSelect strong { color: var(--foreground); font-size: 12px; }
+.sessionSidebarSelect span { color: var(--muted-strong); font-size: 11px; }
+.sessionSidebarSelect small { color: var(--muted); font-size: 10px; }
 
 .sessionSidebarActions,
 .sessionSidebarItem form {
@@ -11940,7 +11947,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   background: rgba(255, 255, 255, 0.04);
   color: var(--muted-strong);
   cursor: pointer;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 720;
 }
 
@@ -11952,14 +11959,14 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   border-radius: 6px;
   background: var(--surface-1);
   color: var(--foreground);
-  font-size: 10px;
+  font-size: 11px;
   padding: 4px 6px;
 }
 
 .sessionSidebarBoundary {
   margin: 0;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1.4;
 }
 
@@ -12140,6 +12147,56 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   .inspector[data-state="collapsed"] .inspectorRail span {
     writing-mode: initial;
     transform: none;
+  }
+}
+
+/* Desktop rails keep their columns at every desktop width; only phones stack them. */
+@media (min-width: 761px) and (max-width: 1180px) {
+  .workspaceLayout {
+    grid-template-columns:
+      minmax(196px, 252px)
+      minmax(0, 1fr)
+      10px
+      minmax(var(--inspector-rail-width), var(--inspector-width));
+    grid-auto-flow: initial;
+  }
+
+  .workstation[data-sidebar-state="collapsed"] .workspaceLayout {
+    grid-template-columns:
+      48px
+      minmax(0, 1fr)
+      10px
+      minmax(var(--inspector-rail-width), var(--inspector-width));
+  }
+
+  .workstation[data-sidebar-state="collapsed"][data-inspector-state="collapsed"] .workspaceLayout,
+  .workstation[data-inspector-state="collapsed"] .workspaceLayout {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .workstation[data-inspector-state="collapsed"]:not([data-sidebar-state="collapsed"]) .workspaceLayout {
+    grid-template-columns: minmax(196px, 252px) minmax(0, 1fr);
+  }
+
+  .inspectorResizeHandle { display: block; }
+
+  .mainColumn,
+  .inspector {
+    grid-column: auto;
+    max-height: calc(100vh - 84px);
+  }
+
+  .mainColumn {
+    grid-row: auto;
+    padding-right: 0;
+  }
+
+  .inspector {
+    position: static;
+    inset: auto;
+    grid-row: auto;
+    width: auto;
+    max-width: none;
   }
 }
 
@@ -13111,7 +13168,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 .inspectorAddMenu {
   position: absolute;
   z-index: 12;
-  top: calc(100% + 7px);
+  bottom: calc(100% + 7px);
   right: 0;
   display: grid;
   width: min(250px, 72vw);
@@ -13179,9 +13236,38 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   display: none;
 }
 
+/* The Inspector is a concise live companion; full detail lives in Dashboard. */
+.workflowPanel > .workflowIssueStack,
+.workflowPanel > .workflowProgress,
+.workflowPanel > .workflowSummaryGrid,
+.workflowPanel > .conversationContextInspector,
+.workflowPanel > .workflowProvenanceCard,
+.workflowPanel > .v3InspectorPanelsSurface,
+.workflowPanel > .telemetryLifecycleCard,
+.workflowPanel > .workflowTimelineExplorer,
+.workflowPanel > .workflowGraph,
+.workflowPanel > .workflowTraceCard {
+  display: none;
+}
+
+.workflowPanel > .workflowExecutionInspector { order: 0; }
+.workflowPanel > .creativeTimelineSurface { order: 1; }
+.workflowPanel > .workflowExplorerSurface { order: 2; }
+
+.runtimeConsolePanel [aria-label="Semantic runtime outcome"],
+.runtimeConsolePanel .runtimeConsoleHealth,
+.runtimeConsolePanel [aria-label="Runtime reload history"],
+.runtimeConsolePanel [aria-label="Runtime event history"],
+.runtimeConsoleHero > small {
+  display: none;
+}
+
+.previewInspectorPanel:not(.previewInspectorPanel--user) .previewInspectorHero,
+.previewInspectorPanel:not(.previewInspectorPanel--user) [aria-label="Preview source metadata"] {
+  display: none;
+}
+
 /* Overview keeps live status, actions, and the selected output; deep diagnostics move to the Dashboard. */
-.overviewPanel .miniWorkflow,
-.overviewPanel .workflowMiniTransitions,
 .overviewPanel .overviewSessionIntelligenceTile,
 .overviewPanel .overviewTelemetryTile,
 .overviewPanel .overviewTile[aria-label="Retrieval summary"],
@@ -13211,6 +13297,99 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   flex: 0 0 auto;
   margin: 0 0 0 auto;
 }
+
+.modelAvailabilityControl {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.modelAvailabilityControl > summary {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted-strong);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 760;
+  list-style: none;
+  white-space: nowrap;
+}
+
+.modelAvailabilityControl > summary::-webkit-details-marker { display: none; }
+
+.modelAvailabilityControl > summary::after {
+  content: "⌄";
+  margin-left: 6px;
+  color: var(--teal);
+}
+
+.modelAvailabilityControl[open] > summary {
+  border-color: rgba(var(--accent-rgb), 0.34);
+  color: var(--foreground);
+}
+
+.modelAvailabilityControl > summary[aria-disabled="true"] {
+  pointer-events: none;
+  opacity: 0.52;
+}
+
+.modelAvailabilityMenu {
+  position: absolute;
+  z-index: 22;
+  right: 0;
+  bottom: calc(100% + 8px);
+  display: grid;
+  width: 230px;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--panel-strong);
+  box-shadow: var(--shadow);
+}
+
+.modelAvailabilityGroup {
+  padding: 8px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.modelAvailabilityGroup summary,
+.modelAvailabilityMenu small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.modelAvailabilityGroup summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.modelAvailabilityGroup summary::-webkit-details-marker { display: none; }
+
+.modelAvailabilityGroup summary::after {
+  content: "⌄";
+  float: right;
+  color: var(--teal);
+}
+
+.modelAvailabilityGroup[open] summary::after { content: "⌃"; }
+
+.modelAvailabilityMenu p {
+  margin: 6px 0 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.modelAvailabilityMenu p strong { color: var(--foreground); }
+.modelAvailabilityMenu p small { display: block; margin-top: 2px; color: var(--teal); }
 
 .sendButton {
   position: static;

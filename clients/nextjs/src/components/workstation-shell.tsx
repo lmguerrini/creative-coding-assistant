@@ -26,7 +26,6 @@ import {
   Maximize2,
   Minimize2,
   Paintbrush,
-  PanelBottom,
   PanelLeft,
   PanelRight,
   Play,
@@ -236,8 +235,7 @@ import {
 import {
   fetchDomainExperienceCatalog,
   loadingDomainExperienceCatalog,
-  type DomainExperienceCatalog,
-  type DomainExperienceRecord
+  type DomainExperienceCatalog
 } from "@/lib/domain-experience";
 import {
   buildSessionIntelligenceModel,
@@ -285,6 +283,7 @@ import {
 import { WorkflowExplorerSurface } from "./workflow-explorer-surface";
 import { WorkflowTimelineExplorer } from "./workflow-timeline-explorer";
 import {
+  ModelAvailabilityControl,
   WorkflowExecutionInspector,
   WorkflowExecutionSelector
 } from "./workflow-execution-inspector";
@@ -1460,6 +1459,18 @@ export function WorkstationShell({
   const visibleSessionStatusDetail = workspacePreferences.showDebugPanels
     ? sessionStatusDetail
     : userSessionStatus.detail;
+  const isPristineSession =
+    streamState === "idle" &&
+    !streamError &&
+    !isDemoModeOpen &&
+    !hasWorkspaceArtifacts &&
+    conversationEntries.length === 0;
+  const displayedSessionStatusLabel = isPristineSession
+    ? "Ready"
+    : visibleSessionStatusLabel;
+  const displayedSessionStatusDetail = isPristineSession
+    ? "Start a prompt"
+    : visibleSessionStatusDetail;
   const workspaceLayoutStyle = useMemo(
     () =>
       ({
@@ -2464,15 +2475,18 @@ export function WorkstationShell({
   }
 
   function handleDemoScenarioLoad(scenario: DemoModeScenario) {
+    if (isStreaming) {
+      return;
+    }
+
     setActiveDemoScenarioId(scenario.id);
     setIsDemoModeOpen(false);
     setWorkflowMode(scenario.workflowMode);
-    setComposerValue(scenario.prompt);
     setOpenUtilityPanel(null);
     setIsAttachmentMenuOpen(false);
-
-    window.requestAnimationFrame(() => {
-      composerTextareaRef.current?.focus({ preventScroll: true });
+    void submitAssistantRequest({
+      prompt: scenario.prompt,
+      workflowModeOverride: scenario.workflowMode
     });
   }
 
@@ -2557,11 +2571,13 @@ export function WorkstationShell({
   async function submitAssistantRequest({
     artifactRefinement,
     clarificationResponse,
-    prompt
+    prompt,
+    workflowModeOverride
   }: {
     artifactRefinement?: AssistantArtifactRefinementRequest;
     clarificationResponse?: string;
     prompt: string;
+    workflowModeOverride?: WorkflowExecutionMode;
   }) {
     const timestamp = formatMessageTime();
     const userMessageId = createConversationEntryId();
@@ -2645,7 +2661,7 @@ export function WorkstationShell({
         },
         projectId: workspaceIdentity.projectId,
         query: prompt,
-        workflowMode
+        workflowMode: workflowModeOverride ?? workflowMode
       };
 
       if (clarificationResponse) {
@@ -3381,11 +3397,9 @@ export function WorkstationShell({
           data-activity={activeWorkflowActivity?.state}
           data-state={streamState}
         >
-          <span>{visibleSessionStatusLabel}</span>
-          <strong>{visibleSessionStatusDetail}</strong>
-          {workspacePreferences.showDebugPanels ? (
-            <small>{formatSessionTelemetryLabel(providerTelemetry)}</small>
-          ) : null}
+          <span>{displayedSessionStatusLabel}</span>
+          <strong>{displayedSessionStatusDetail}</strong>
+          <small>{formatSessionTelemetryLabel(providerTelemetry)}</small>
         </div>
 
         <div
@@ -3393,43 +3407,6 @@ export function WorkstationShell({
         className="topbarActions"
         aria-label="Workspace actions"
       >
-          <button
-            aria-label="Toggle session sidebar"
-            aria-pressed={!layoutState.sidebarCollapsed}
-            className="iconButton"
-            onClick={() =>
-              updateLayout({ sidebarCollapsed: !layoutState.sidebarCollapsed })
-            }
-            title={
-              layoutState.sidebarCollapsed
-                ? "Expand session sidebar"
-                : "Collapse session sidebar"
-            }
-            type="button"
-          >
-            <PanelLeft size={18} />
-          </button>
-          <button
-            aria-label="Toggle preview shelf"
-            aria-pressed={isPreviewOpen}
-            className="iconButton"
-            disabled={!shouldRenderPreviewShelf}
-            onClick={() => handlePreviewOpenChange(!isPreviewOpen)}
-            title={isPreviewOpen ? "Close preview shelf" : "Open preview shelf"}
-            type="button"
-          >
-            <PanelBottom size={18} />
-          </button>
-          <button
-            aria-label="Toggle inspector"
-            aria-pressed={!isInspectorCollapsed}
-            className="iconButton"
-            onClick={() => handleInspectorCollapsedChange(!isInspectorCollapsed)}
-            title={isInspectorCollapsed ? "Expand inspector" : "Collapse inspector"}
-            type="button"
-          >
-            <PanelRight size={18} />
-          </button>
           <button
             aria-controls="demo-mode-panel"
             aria-expanded={isDemoModeOpen}
@@ -3681,10 +3658,7 @@ export function WorkstationShell({
               role="log"
             >
               {conversationEntries.length === 0 && !isStreaming && !isDemoModeOpen ? (
-                <EmptyWorkspaceState
-                  domains={domainExperience.domains}
-                  onSelectPrompt={handleEmptyStatePromptSelect}
-                />
+                <EmptyWorkspaceState onSelectPrompt={handleEmptyStatePromptSelect} />
               ) : null}
               {conversationEntries.map((message, index) => {
                 const displayContent = getConversationDisplayContent(
@@ -3777,6 +3751,15 @@ export function WorkstationShell({
               onSubmit={handleComposerSubmit}
             >
               <div className="composerInputFrame">
+                <textarea
+                  aria-label="Assistant prompt"
+                  onChange={(event) => setComposerValue(event.currentTarget.value)}
+                  placeholder="Describe the art, sound, or interactive experience you want to create."
+                  ref={composerTextareaRef}
+                  value={composerValue}
+                />
+              </div>
+              <div className="composerActions">
                 <div className="composerAttach" ref={attachmentMenuRef}>
                   <button
                     aria-controls="composer-attachment-menu"
@@ -3826,20 +3809,12 @@ export function WorkstationShell({
                     </div>
                   ) : null}
                 </div>
-                <textarea
-                  aria-label="Assistant prompt"
-                  onChange={(event) => setComposerValue(event.currentTarget.value)}
-                  placeholder="Ask for a denser particle field, a softer palette, or a preview pass."
-                  ref={composerTextareaRef}
-                  value={composerValue}
-                />
-              </div>
-              <div className="composerActions">
                 <WorkflowExecutionSelector
                   disabled={isStreaming}
                   mode={workflowMode}
                   onChange={setWorkflowMode}
                 />
+                <ModelAvailabilityControl disabled={isStreaming} />
                 <CreativityControl
                   disabled={isStreaming}
                   onChange={(creativity) =>
@@ -4004,42 +3979,43 @@ export function WorkstationShell({
                         </div>
                       );
                     })}
-                    <div className="inspectorTabAdd">
-                      <button
-                        aria-expanded={isInspectorAddMenuOpen}
-                        aria-haspopup="menu"
-                        aria-label="Add Inspector tab"
-                        className="inspectorAddButton"
-                        disabled={!hasAvailableInspectorTabs}
-                        onClick={() =>
-                          setIsInspectorAddMenuOpen((isOpen) => !isOpen)
-                        }
-                        title="Add Inspector tab"
-                        type="button"
-                      >
-                        <Plus size={15} aria-hidden="true" />
-                      </button>
-                      {isInspectorAddMenuOpen && hasAvailableInspectorTabs ? (
-                        <div
-                          aria-label="Available Inspector tabs"
-                          className="inspectorAddMenu"
-                          role="menu"
+                    {hasAvailableInspectorTabs ? (
+                      <div className="inspectorTabAdd">
+                        <button
+                          aria-expanded={isInspectorAddMenuOpen}
+                          aria-haspopup="menu"
+                          aria-label="Add Inspector tab"
+                          className="inspectorAddButton"
+                          onClick={() =>
+                            setIsInspectorAddMenuOpen((isOpen) => !isOpen)
+                          }
+                          title="Add Inspector tab"
+                          type="button"
                         >
-                          {availableInspectorCategories
-                            .filter((category) => !inspectorTabs.includes(category))
-                            .map((category) => (
-                              <button
-                                key={category}
-                                onClick={() => revealInspectorTab(category)}
-                                role="menuitem"
-                                type="button"
-                              >
-                                {category}
-                              </button>
-                            ))}
-                        </div>
-                      ) : null}
-                    </div>
+                          <Plus size={15} aria-hidden="true" />
+                        </button>
+                        {isInspectorAddMenuOpen ? (
+                          <div
+                            aria-label="Available Inspector tabs"
+                            className="inspectorAddMenu"
+                            role="menu"
+                          >
+                            {availableInspectorCategories
+                              .filter((category) => !inspectorTabs.includes(category))
+                              .map((category) => (
+                                <button
+                                  key={category}
+                                  onClick={() => revealInspectorTab(category)}
+                                  role="menuitem"
+                                  type="button"
+                                >
+                                  {category}
+                                </button>
+                              ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </div>
 
                   <InspectorPanel
@@ -4075,6 +4051,7 @@ export function WorkstationShell({
                     transferFeedback={transferFeedback}
                     workflowExplorer={workflowExplorer}
                     workflowExecution={workflowExecution}
+                    workflowMode={workflowMode}
                     creativeTimeline={creativeTimeline}
                     conversationContext={conversationContext}
                     v3InspectorPanels={v3InspectorPanels}
@@ -4195,10 +4172,8 @@ function ImageReferenceShelf({
 }
 
 function EmptyWorkspaceState({
-  domains,
   onSelectPrompt
 }: {
-  domains: DomainExperienceRecord[];
   onSelectPrompt: (prompt: string) => void;
 }) {
   const valueHighlights = [
@@ -4219,14 +4194,6 @@ function EmptyWorkspaceState({
       detail: "Plan, generate, inspect, preview, export, and recover clearly."
     }
   ];
-  const domainCards = getHomepageDomainCards(domains);
-  const workflowExamples = [
-    "Describe a visual system",
-    "Generate browser-safe code",
-    "Preview and refine",
-    "Save or export artifacts"
-  ];
-
   return (
     <article
       aria-label="Empty creative workspace"
@@ -4235,7 +4202,7 @@ function EmptyWorkspaceState({
     >
       <header className="emptyWorkspaceHero">
         <span className="eyebrow">New creative session</span>
-        <strong>Describe the visual system you want to build.</strong>
+        <strong>Describe the art you want to create.</strong>
         <p>
           Start with an idea, medium, constraint, or reference. Creative Coding
           Assistant turns it into grounded guidance, generated code, previewable
@@ -4267,41 +4234,6 @@ function EmptyWorkspaceState({
         ))}
       </div>
 
-      <div className="emptyWorkspaceGrid">
-        <section aria-label="Supported creative domains" className="homepageDomains">
-          <header>
-            <span>Domains</span>
-            <small>What can run here, export, or hand off.</small>
-          </header>
-          <div className="homepageDomainGroups">
-            {domainCards.map((group) => (
-              <section key={group.label}>
-                <span>{group.label}</span>
-                <div>
-                  {group.domains.map((domain) => (
-                    <article data-kind={domain.kind} key={domain.name}>
-                      <div>
-                        <strong>{domain.name}</strong>
-                        <small>{domain.status}</small>
-                      </div>
-                      <p>{domain.detail}</p>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        </section>
-        <section aria-label="Ways to work">
-          <span>Ways to work</span>
-          <div>
-            {workflowExamples.map((workflow) => (
-              <small key={workflow}>{workflow}</small>
-            ))}
-          </div>
-        </section>
-      </div>
-
       <details className="emptyWorkspaceLearnMore">
         <summary>How it works</summary>
         <p>
@@ -4313,57 +4245,6 @@ function EmptyWorkspaceState({
       </details>
     </article>
   );
-}
-
-function getHomepageDomainCards(domains: DomainExperienceRecord[]) {
-  const fallback = [
-    { id: "p5", displayName: "p5.js", deliveryKind: "browser_preview", livePreview: true },
-    { id: "three", displayName: "Three.js", deliveryKind: "browser_preview", livePreview: true },
-    { id: "glsl", displayName: "GLSL", deliveryKind: "browser_preview", livePreview: true },
-    { id: "tone", displayName: "Tone.js", deliveryKind: "browser_preview", livePreview: true },
-    { id: "hydra", displayName: "Hydra", deliveryKind: "code_export", livePreview: false }
-  ] as const;
-  const records = domains.length > 0 ? domains : fallback;
-  const isAudio = (record: { id: string; displayName: string }) =>
-    `${record.id} ${record.displayName}`.toLowerCase().includes("tone") ||
-    `${record.id} ${record.displayName}`.toLowerCase().includes("audio");
-  const toCard = (
-    record: (typeof records)[number],
-    kind: string,
-    status: string,
-    detail: string
-  ) => {
-    const isHydra = `${record.id} ${record.displayName}`.toLowerCase().includes("hydra");
-
-    return {
-      name: record.displayName,
-      kind,
-      status: isHydra ? "Code / export only" : status,
-      detail: isHydra
-        ? "Initial scope is source export and native-tool handoff; interactive browser mode is not available yet."
-        : detail
-    };
-  };
-  const browser = records
-    .filter((record) => record.deliveryKind === "browser_preview" && record.livePreview && !isAudio(record))
-    .map((record) => toCard(record, "live", "Live browser preview", "Bounded visual runtime in this workspace."));
-  const audio = records
-    .filter((record) => record.deliveryKind === "browser_preview" && record.livePreview && isAudio(record))
-    .map((record) => toCard(record, "audio", "Browser audio", "Preview is browser-safe; sound stays user-started."));
-  const exports = records
-    .filter((record) => record.deliveryKind === "code_export" || (record.deliveryKind === "browser_preview" && !record.livePreview))
-    .map((record) => toCard(record, "export", "Code / export", "Source is available without an in-workspace live claim."));
-  const handoffs = records
-    .filter((record) => record.deliveryKind === "external_handoff")
-    .slice(0, 4)
-    .map((record) => toCard(record, "handoff", "External handoff", "A design and implementation handoff for its native tool."));
-
-  return [
-    { label: "Live browser", domains: browser },
-    { label: "Audio in browser", domains: audio },
-    { label: "Code & export", domains: exports },
-    { label: "External tools", domains: handoffs }
-  ].filter((group) => group.domains.length > 0);
 }
 
 function DemoModePanel({
@@ -4965,6 +4846,7 @@ type InspectorPanelProps = {
   transferFeedback: ArtifactActionFeedback | null;
   workflowExplorer: WorkflowExplorerModel;
   workflowExecution: WorkflowExecutionModel;
+  workflowMode: WorkflowExecutionMode;
   creativeTimeline: CreativeTimelineModel;
   conversationContext: ConversationContextModel;
   v3InspectorPanels: V3InspectorPanelsModel;
@@ -5005,6 +4887,7 @@ function InspectorPanel({
   transferFeedback,
   workflowExplorer,
   workflowExecution,
+  workflowMode,
   creativeTimeline,
   conversationContext,
   v3InspectorPanels,
@@ -5118,6 +5001,7 @@ function InspectorPanel({
       activeArtifact={activeArtifact}
       retrieval={retrievalRuntime}
       runtime={workflowRuntime}
+      workflowMode={workflowMode}
       sessionIntelligence={sessionIntelligence}
       workstationDashboard={workstationDashboard}
       telemetry={providerTelemetry}
@@ -5135,6 +5019,7 @@ function OverviewInspector({
   onClarificationOptionSelect,
   retrieval,
   runtime,
+  workflowMode,
   sessionIntelligence,
   workstationDashboard,
   telemetry,
@@ -5146,6 +5031,7 @@ function OverviewInspector({
   onClarificationOptionSelect: (option: string) => Promise<void>;
   retrieval: RetrievalRuntimeModel;
   runtime: WorkflowRuntimeModel;
+  workflowMode: WorkflowExecutionMode;
   sessionIntelligence: SessionIntelligenceModel;
   workstationDashboard: WorkstationDashboardModel;
   telemetry: ProviderTelemetryModel;
@@ -5172,8 +5058,9 @@ function OverviewInspector({
           <header>
             <div>
               <span>Workflow</span>
-              <strong>{runtime.summary.activity.label}</strong>
-              <p>{runtime.summary.activity.detail}</p>
+              <strong>{formatWorkflowModeLabel(workflowMode)}</strong>
+              <p>{runtime.summary.activity.label}</p>
+              <small>{runtime.summary.activity.detail}</small>
             </div>
             <span
               className="liveDot"
@@ -7338,7 +7225,7 @@ function SessionSidebar({
           title="Collapse session sidebar"
           type="button"
         >
-          <PanelLeft size={16} />
+          <PanelLeft size={18} />
         </button>
       </header>
       <button className="newSessionButton" onClick={onCreate} type="button">
@@ -8683,10 +8570,18 @@ function resolveClarificationNumericAnswer(
 
 function formatSessionTelemetryLabel(telemetry: ProviderTelemetryModel) {
   if (telemetry.status === "idle") {
-    return "Telemetry pending";
+    return "Tokens and estimated cost pending";
   }
 
-  return `${telemetry.summary.providerLabel} / ${telemetry.summary.tokenLabel}`;
+  return `${telemetry.summary.tokenLabel} / ${telemetry.summary.costLabel}`;
+}
+
+function formatWorkflowModeLabel(mode: WorkflowExecutionMode) {
+  return mode === "single_agent"
+    ? "Single Agent workflow"
+    : mode === "multi_agent"
+      ? "Multi Agent workflow"
+      : "Auto workflow";
 }
 
 function formatUserModeSessionStatus({

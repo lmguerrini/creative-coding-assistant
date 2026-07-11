@@ -563,6 +563,28 @@ describe("live artifact hydration", () => {
     expect(result.artifact?.content).not.toContain("```markdown");
   });
 
+  it("removes a duplicated Markdown handoff filename from the rendered document", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        answer: [
+          "```chladni-touchdesigner-handoff.md",
+          "chladni-touchdesigner-handoff.md",
+          "# Chladni TouchDesigner Handoff",
+          "",
+          "Use this as an external-tool brief.",
+          "```"
+        ].join("\n")
+      })
+    );
+
+    expect(result.artifact).toMatchObject({
+      title: "chladni-touchdesigner-handoff.md",
+      type: "export"
+    });
+    expect(result.artifact?.content).toMatch(/^# Chladni TouchDesigner Handoff/);
+  });
+
   it("keeps a constrained p5 sketch eligible when streamed as an artifact", () => {
     const result = hydrateWorkspaceFromFinalEvent(
       getLocalWorkspaceSnapshot(),

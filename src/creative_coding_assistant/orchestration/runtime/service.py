@@ -737,6 +737,12 @@ def _generated_output_telemetry(
             mode="json",
             exclude_none=True,
         )
+    pricing = _static_provider_pricing(
+        provider=output.provider,
+        model=output.model,
+    )
+    if pricing is not None:
+        telemetry["pricing"] = pricing
     telemetry["finish_reason"] = output.finish_reason.value
     return telemetry or None
 
@@ -796,6 +802,38 @@ def _provider_telemetry(
         if value
     }
     return metadata or None
+
+
+def _static_provider_pricing(
+    *,
+    provider: str | None,
+    model: str | None,
+) -> dict[str, object] | None:
+    """Return a local, reviewed price reference for supported configured models.
+
+    This never queries a provider, changes routing, or enforces a budget.  Unknown
+    models intentionally remain unpriced so the client can state that boundary.
+    Rates are standard text-token rates per one million tokens.
+    """
+
+    if (provider or "").strip().lower() != "openai" or not model:
+        return None
+
+    normalized_model = model.strip().lower()
+    rates = (
+        ("gpt-5-mini", 0.25, 2.00),
+        ("gpt-5-nano", 0.05, 0.40),
+        ("gpt-5", 1.25, 10.00),
+    )
+    for prefix, input_rate, output_rate in rates:
+        if normalized_model.startswith(prefix):
+            return {
+                "currency": "USD",
+                "input_usd_per_million_tokens": input_rate,
+                "output_usd_per_million_tokens": output_rate,
+                "source": "static_model_reference",
+            }
+    return None
 
 
 def _assistant_trace_inputs(request: AssistantRequest) -> dict[str, object]:

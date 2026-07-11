@@ -53,6 +53,34 @@ export function WorkflowExecutionSelector({
   );
 }
 
+/**
+ * A compact availability disclosure. This is intentionally informational: model
+ * routing stays server-owned and no credential or provider setting is exposed
+ * in the browser.
+ */
+export function ModelAvailabilityControl({ disabled = false }: { disabled?: boolean }) {
+  return (
+    <details className="modelAvailabilityControl">
+      <summary aria-label="AI models" aria-disabled={disabled ? "true" : undefined}>
+        AI models
+      </summary>
+      <div aria-label="AI model availability" className="modelAvailabilityMenu">
+        <details className="modelAvailabilityGroup">
+          <summary>Local</summary>
+          <p>No local models are available in this workspace.</p>
+        </details>
+        <details className="modelAvailabilityGroup">
+          <summary>Cloud</summary>
+          <p>
+            <strong>OpenAI</strong>
+            <small>Configured server-side</small>
+          </p>
+        </details>
+      </div>
+    </details>
+  );
+}
+
 export function WorkflowExecutionInspector({
   execution
 }: {
