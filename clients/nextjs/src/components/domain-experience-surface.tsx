@@ -452,19 +452,19 @@ function KnowledgeBaseSourceExplorer({
           <strong>Official sources</strong>
           <p>Registry inventory is separate from the references used in the current run.</p>
         </div>
+        <div className="kbSmartUpdateActions" role="group" aria-label="Knowledge Base Smart Update action">
+          <button
+            aria-label={smartUpdateRunning ? "Smart Update in progress" : undefined}
+            className="kbSmartUpdateButton"
+            disabled={operationRunning || sourceIds.length === 0}
+            onClick={() => void runSmartUpdate()}
+            type="button"
+          >
+            {smartUpdateRunning ? <><span aria-hidden="true" className="kbActionSpinner" />Smart Update running</> : "Smart Update"}
+          </button>
+          <span>Checks, updates changed reachable sources, rebuilds, then validates after one confirmation.</span>
+        </div>
       </header>
-      <div className="kbSmartUpdateActions" role="group" aria-label="Knowledge Base Smart Update action">
-        <button
-          aria-label={smartUpdateRunning ? "Smart Update in progress" : undefined}
-          className="kbSmartUpdateButton"
-          disabled={operationRunning || sourceIds.length === 0}
-          onClick={() => void runSmartUpdate()}
-          type="button"
-        >
-          {smartUpdateRunning ? <><span aria-hidden="true" className="kbActionSpinner" />Smart Update running</> : "Smart Update"}
-        </button>
-        <span>Checks, updates changed reachable sources, rebuilds, then validates after one confirmation.</span>
-      </div>
       <div className="kbSourceActions" role="group" aria-label="Advanced Knowledge Base update actions">
         <button
           aria-pressed={areAllSourcesSelected}

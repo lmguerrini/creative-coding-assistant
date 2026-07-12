@@ -12648,7 +12648,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   justify-content: flex-end;
   gap: 0.55rem;
   width: min(100%, 440px);
-  margin: 0.65rem 0 0 auto;
+  margin: 0 0 0 auto;
   padding: 0.45rem 0.55rem;
   border: 1px solid color-mix(in srgb, var(--teal) 28%, var(--line));
   border-radius: 12px;
@@ -13108,6 +13108,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 
   .kbSmartUpdateActions {
     justify-content: flex-end;
+    margin-top: 0.65rem;
   }
 
   .kbSmartUpdateStatus ol {
