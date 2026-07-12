@@ -14796,6 +14796,191 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   font-weight: 850;
 }
 
+.architectureExecutionFacts,
+.workflowLiveSummary,
+.telemetryRunFacts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  padding: 0 18px 12px;
+}
+
+.telemetryRunFacts {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.architectureExecutionFacts > div,
+.workflowLiveSummary > div,
+.telemetryRunFacts > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.architectureExecutionFacts span,
+.workflowLiveSummary span,
+.telemetryRunFacts span,
+.architectureRoleRail > span,
+.workflowTransitionRail span,
+.aiAgentRoute span,
+.aiAgentSplit header span,
+.telemetrySignalGrid span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 820;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.architectureExecutionFacts strong,
+.workflowLiveSummary strong,
+.telemetryRunFacts strong {
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.architectureRoleRail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  padding: 0 18px 18px;
+}
+
+.architectureRoleRail > strong,
+.aiAgentRoleChips span {
+  padding: 5px 8px;
+  border: 1px solid rgba(var(--accent-rgb), 0.25);
+  border-radius: 999px;
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.09);
+  font-size: 11px;
+  font-weight: 720;
+}
+
+.workflowLiveMap[data-state="failed"] { border-color: color-mix(in srgb, var(--coral) 48%, var(--line)); }
+.workflowLiveMap[data-state="completed"] { border-color: color-mix(in srgb, var(--green) 42%, var(--line)); }
+
+.workflowLivePath {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+  gap: 9px;
+  margin: 0;
+  padding: 0 18px 12px;
+  list-style: none;
+}
+
+.workflowLivePath li {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 9px;
+  min-width: 0;
+  min-height: 82px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: rgba(0, 0, 0, 0.11);
+}
+
+.workflowLivePath li > span {
+  width: 9px;
+  height: 9px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.workflowLivePath li[data-state="complete"] > span { background: var(--green); }
+.workflowLivePath li[data-state="active"] > span { background: var(--teal); box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.13); }
+.workflowLivePath li[data-state="failed"] > span { background: var(--coral); }
+.workflowLivePath li[data-state="branch"] > span { background: var(--accent); }
+
+.workflowLivePath strong { display: block; color: var(--foreground); font-size: 13px; line-height: 1.25; }
+.workflowLivePath p { display: -webkit-box; margin: 4px 0 0; overflow: hidden; color: var(--muted-strong); font-size: 11px; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.workflowLivePath small { color: var(--teal); font-size: 10px; font-weight: 760; white-space: nowrap; }
+
+.workflowTransitionRail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0 18px 18px;
+  list-style: none;
+}
+
+.workflowTransitionRail li {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 11px;
+  border-left: 2px solid var(--teal);
+  border-radius: 0 10px 10px 0;
+  background: rgba(var(--accent-rgb), 0.055);
+}
+.workflowTransitionRail li[data-kind="failure"] { border-left-color: var(--coral); }
+.workflowTransitionRail strong { overflow: hidden; color: var(--foreground); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.workflowTransitionRail small { color: var(--muted-strong); font-size: 10px; line-height: 1.35; }
+
+.knowledgeEmptyState {
+  display: grid;
+  gap: 5px;
+  margin: 0 18px 18px;
+  padding: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 13px;
+  color: var(--muted-strong);
+}
+.knowledgeEmptyState span { color: var(--foreground); font-size: 13px; font-weight: 740; }
+.knowledgeEmptyState p { margin: 0; font-size: 12px; line-height: 1.4; }
+
+.aiAgentRoute,
+.aiAgentSplit,
+.telemetrySignalGrid {
+  display: grid;
+  gap: 10px;
+  padding: 0 18px 12px;
+}
+
+.aiAgentRoute { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.aiAgentRoute article,
+.aiAgentSplit > section,
+.telemetrySignalGrid article {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: rgba(0, 0, 0, 0.11);
+}
+.aiAgentRoute strong { display: block; margin-top: 6px; overflow: hidden; color: var(--foreground); font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
+.aiAgentRoute p,
+.aiAgentSplit p { display: -webkit-box; margin: 6px 0 0; overflow: hidden; color: var(--muted-strong); font-size: 12px; line-height: 1.42; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+
+.aiAgentSplit { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding-bottom: 18px; }
+.aiAgentSplit > section { display: grid; gap: 11px; }
+.aiAgentSplit header { display: grid; gap: 5px; }
+.aiAgentSplit header strong { color: var(--foreground); font-size: 14px; }
+.aiAgentRoleChips { display: flex; flex-wrap: wrap; gap: 7px; }
+.aiAgentSplit dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin: 0; }
+.aiAgentSplit dl div { min-width: 0; padding: 8px; border-radius: 9px; background: rgba(255, 255, 255, 0.035); }
+.aiAgentSplit dt { overflow: hidden; color: var(--muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.aiAgentSplit dd { margin: 4px 0 0; overflow: hidden; color: var(--foreground); font-size: 12px; font-weight: 720; text-overflow: ellipsis; white-space: nowrap; }
+
+.telemetrySignalGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.telemetrySignalGrid article { display: grid; gap: 6px; min-height: 118px; }
+.telemetrySignalGrid article[data-tone="good"] { border-color: color-mix(in srgb, var(--green) 36%, var(--line)); }
+.telemetrySignalGrid article[data-tone="warning"],
+.telemetrySignalGrid article[data-tone="danger"] { border-color: color-mix(in srgb, var(--coral) 40%, var(--line)); }
+.telemetrySignalGrid strong { overflow: hidden; color: var(--foreground); font-size: 16px; text-overflow: ellipsis; white-space: nowrap; }
+.telemetrySignalGrid p { margin: 0; color: var(--muted-strong); font-size: 11px; line-height: 1.38; }
+
 .knowledgePrinciples > ul {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
@@ -15119,7 +15304,13 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   .architectureRouteGrid,
   .dashboardSignalBoardGrid,
   .dashboardEvidenceCues,
-  .userUsageOverview > dl {
+  .userUsageOverview > dl,
+  .architectureExecutionFacts,
+  .workflowLiveSummary,
+  .workflowTransitionRail,
+  .aiAgentRoute,
+  .aiAgentSplit,
+  .telemetrySignalGrid {
     grid-template-columns: minmax(0, 1fr);
   }
 

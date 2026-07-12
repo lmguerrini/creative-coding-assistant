@@ -36,7 +36,7 @@ describe("Product Intelligence surfaces", () => {
     const onCategoryChange = vi.fn();
     const onClose = vi.fn();
 
-    render(
+    const { rerender } = render(
       <ProductIntelligenceDashboard
         activeCategory="Overview"
         model={buildModel()}
@@ -64,6 +64,20 @@ describe("Product Intelligence surfaces", () => {
       screen.getByRole("button", { name: /Architecture/ })
     );
     expect(onCategoryChange).toHaveBeenCalledWith("Architecture");
+
+    fireEvent.click(screen.getByRole("button", { name: "Knowledge Base" }));
+    expect(onCategoryChange).toHaveBeenCalledWith("Knowledge Base");
+    rerender(
+      <ProductIntelligenceDashboard
+        activeCategory="Knowledge Base"
+        model={buildModel()}
+        onCategoryChange={onCategoryChange}
+        onClose={onClose}
+      />
+    );
+    expect(screen.getByText("Technical knowledge")).toBeVisible();
+    expect(screen.getAllByText("Creative Knowledge Base")[0]).toBeVisible();
+    expect(screen.getByText("Published request, source, chunk, quality, and freshness signals for this run.")).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "Close dashboard" }));
     expect(onClose).toHaveBeenCalledOnce();

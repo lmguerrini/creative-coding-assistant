@@ -280,7 +280,6 @@ export function ProductIntelligenceDashboard({
           <div>
             <span>Advanced Dashboard</span>
             <h1>{activeGroup.label}</h1>
-            <p>{activeGroup.detail}</p>
           </div>
           {primarySection ? <ProductIntelligenceHelp section={primarySection} /> : null}
           <div className="productDashboardStatus" data-tone={primarySection?.tone ?? "empty"}>
@@ -355,11 +354,11 @@ function DashboardGroupView({
         <article>
           <header>
             <div>
-              <span>Keep boundaries honest</span>
-              <strong>Live preview, code/export, and external-tool handoff are distinct outcomes.</strong>
-              <p>Use the Domain and Knowledge sections to confirm what is available in this browser workspace.</p>
+              <span>Read knowledge in order</span>
+              <strong>Technical Knowledge → Creative Knowledge Base → Retrieval.</strong>
+              <p>Official sources establish the local index; published artifact guidance records creative direction; Retrieval reports the current run’s selected evidence and boundaries.</p>
             </div>
-            <DashboardPanelHelp detail="The Dashboard distinguishes what can run now in the browser from source that can be exported or handed to another application." label="Delivery boundaries" />
+            <DashboardPanelHelp detail="Technical Knowledge is the official-source inventory. Creative Knowledge Base is explicit, published creative guidance attached to an artifact. Retrieval is the current-run evidence path. None of these surfaces expose private provider reasoning." label="Knowledge flow" />
           </header>
         </article>
       </section>
@@ -368,6 +367,10 @@ function DashboardGroupView({
 
   if (group.id === "settings" && settings) {
     return <DashboardSettings controls={settings} />;
+  }
+
+  if (group.id === "knowledge") {
+    return <KnowledgeDashboardView model={model} />;
   }
 
   return (
@@ -404,10 +407,12 @@ function DashboardGroupView({
           </section>
         );
       })}
-      {group.id === "architecture" ? <ArchitectureRouteGuide /> : null}
-      {group.id === "knowledge" ? <KnowledgePrinciples /> : null}
+      {group.id === "architecture" ? <ArchitectureRouteGuide model={model} /> : null}
+      {group.id === "workflow" ? <WorkflowLiveMap model={model} /> : null}
+      {group.id === "ai_agents" ? <AiAgentSystemMap model={model} /> : null}
       {group.id === "artifacts" ? <ArtifactRegistry model={model} /> : null}
       {group.id === "sessions" && sessions ? <SessionRegistry controls={sessions} /> : null}
+      {group.id === "telemetry" ? <TelemetryObservatory model={model} /> : null}
       {group.id === "telemetry" && sessions ? <UserUsageOverview usage={sessions.usage} /> : null}
       {group.id === "ai_agents" && feedback ? (
         <section className="productDashboardGroupSection productDashboardFeedback">
@@ -500,7 +505,8 @@ function DashboardSignalBoard({
   );
 }
 
-function ArchitectureRouteGuide() {
+function ArchitectureRouteGuide({ model }: { model: ProductIntelligenceModel }) {
+  const execution = model.details?.workflowExecution;
   const routes = [
     {
       title: "Single agent",
@@ -525,7 +531,9 @@ function ArchitectureRouteGuide() {
         <div>
           <span>Route guide</span>
           <strong>Three clear ways work can move through the studio</strong>
-          <p>The live Architecture card above reports the route used for the current run.</p>
+          <p>{execution?.state === "available"
+            ? `This run published the ${formatRoute(execution.resolvedMode)} route.`
+            : "The live Architecture card above reports the route used for the current run."}</p>
         </div>
         <DashboardPanelHelp
           detail="These route diagrams explain the product’s published execution shapes. The active route is reported from the current run, not guessed from the request."
@@ -548,42 +556,263 @@ function ArchitectureRouteGuide() {
           </article>
         ))}
       </div>
+      <div className="architectureExecutionFacts" aria-label="Published execution decision">
+        <div>
+          <span>Requested route</span>
+          <strong>{formatRoute(execution?.requestedMode)}</strong>
+        </div>
+        <div>
+          <span>Resolved route</span>
+          <strong>{execution?.resolvedMode ? formatRoute(execution.resolvedMode) : "Not published"}</strong>
+        </div>
+        <div>
+          <span>Research</span>
+          <strong>{execution?.researcherRequired == null ? "Not published" : execution.researcherRequired ? "Required" : "Skipped"}</strong>
+        </div>
+        <div>
+          <span>Refinement limit</span>
+          <strong>{execution?.maxRefinementLoops == null ? "Not published" : execution.maxRefinementLoops}</strong>
+        </div>
+      </div>
+      {execution?.agentRoles.length ? (
+        <div className="architectureRoleRail" aria-label="Published agent responsibilities">
+          <span>Published responsibilities</span>
+          {execution.agentRoles.map((role) => <strong key={role}>{role}</strong>)}
+        </div>
+      ) : null}
     </section>
   );
 }
 
-function KnowledgePrinciples() {
-  const principles = [
-    ["Composition", "Balance focus, hierarchy, negative space, and framing."],
-    ["Light & colour", "Use contrast, palette rhythm, and legible visual depth."],
-    ["Motion & sound", "Shape timing, repetition, response, and emotional cadence."],
-    ["Interaction", "Make controls discoverable and the response easy to read."],
-    ["Runtime care", "Prefer browser-safe choices and state fallback boundaries clearly."]
-  ];
+function KnowledgeDashboardView({ model }: { model: ProductIntelligenceModel }) {
+  const knowledge = getProductIntelligenceSection(model, "Knowledge Base");
+  const retrieval = getProductIntelligenceSection(model, "Retrieval");
 
   return (
-    <section aria-label="Creative design principles" className="dashboardFeature knowledgePrinciples">
+    <div className="productDashboardGroup knowledgeDashboardView" aria-label="Knowledge details">
+      <section className="productDashboardGroupSection">
+        <header>
+          <div>
+            <span>Technical knowledge</span>
+            <strong>Official source inventory and local index</strong>
+            <p>Registered documentation, freshness checks, update controls, and local search coverage.</p>
+          </div>
+          <ProductIntelligenceHelp section={knowledge} />
+        </header>
+        <ProductIntelligenceSectionView detailed model={model} section={knowledge} />
+      </section>
+      <CreativeKnowledgePanel model={model} />
+      <section className="productDashboardGroupSection">
+        <header>
+          <div>
+            <span>Retrieval</span>
+            <strong>{formatUiStatusLabel(retrieval.summary)}</strong>
+            <p>Published request, source, chunk, quality, and freshness signals for this run.</p>
+          </div>
+          <ProductIntelligenceHelp section={retrieval} />
+        </header>
+        <ProductIntelligenceSectionView detailed model={model} section={retrieval} />
+      </section>
+    </div>
+  );
+}
+
+function CreativeKnowledgePanel({ model }: { model: ProductIntelligenceModel }) {
+  const translation = model.artifactRegistry[0]?.creativeTranslation ?? null;
+  const groups = translation
+    ? [
+        { label: "Intent", values: [translation.creativeIntent] },
+        { label: "Style", values: translation.visualStyle?.styles ?? [] },
+        { label: "Atmosphere", values: [...translation.moodAtmosphere, ...translation.colorMaterialDirection] },
+        { label: "Structure", values: [...translation.structureDirection, ...translation.geometricReferences] },
+        { label: "Motion", values: translation.movementLanguage },
+        { label: "Runtime", values: translation.runtimeRecommendations }
+      ].filter((group) => group.values.length > 0)
+    : [];
+
+  return (
+    <section aria-label="Creative Knowledge Base" className="dashboardFeature knowledgePrinciples">
       <header>
         <div>
-          <span>Creative principles</span>
-          <strong>Visible creative criteria, separate from the source inventory</strong>
-          <p>These are the product’s readable design lenses—not hidden provider reasoning.</p>
+          <span>Creative Knowledge Base</span>
+          <strong>{translation ? "Published direction for the selected artifact" : "Creative direction is recorded with each generated artifact"}</strong>
+          <p>{translation
+            ? "These are the structured, user-facing creative directions retained with the artifact."
+            : "Generate an artifact to inspect its published intent, aesthetic direction, structure, motion, and runtime recommendations."}</p>
         </div>
         <DashboardPanelHelp
-          detail="These are concise creative review lenses used to describe visual, audio, interaction, and runtime qualities. They do not imply a hidden scoring system."
-          label="Creative design principles"
+          detail="Creative knowledge is artifact metadata that is explicitly published for inspection. It is separate from the official technical-source inventory and does not expose private model reasoning."
+          label="Creative Knowledge Base"
         />
       </header>
-      <ul>
-        {principles.map(([label, detail]) => (
-          <li key={label}>
-            <strong>{label}</strong>
-            <span>{detail}</span>
-          </li>
-        ))}
-      </ul>
+      {groups.length ? (
+        <ul>
+          {groups.map((group) => (
+            <li key={group.label}>
+              <strong>{group.label}</strong>
+              <span>{group.values.slice(0, 4).join(" · ")}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="knowledgeEmptyState">
+          <span>Awaiting published artifact metadata</span>
+          <p>Legacy or not-yet-generated artifacts do not provide structured creative guidance.</p>
+        </div>
+      )}
     </section>
   );
+}
+
+function WorkflowLiveMap({ model }: { model: ProductIntelligenceModel }) {
+  const runtime = model.details?.workflowRuntime;
+  const execution = model.details?.workflowExecution;
+  if (!runtime) {
+    return null;
+  }
+
+  const visibleSteps = runtime.steps.filter((step) => step.state !== "queued");
+  const steps = (visibleSteps.length ? visibleSteps : runtime.steps).slice(0, 12);
+  const transitions = runtime.transitions.slice(-6);
+
+  return (
+    <section aria-label="Live workflow map" className="dashboardFeature workflowLiveMap" data-state={runtime.summary.activity.state}>
+      <header>
+        <div>
+          <span>Execution path</span>
+          <strong>{formatUiStatusLabel(runtime.summary.activity.label)}</strong>
+          <p>{runtime.summary.activity.detail}</p>
+        </div>
+        <DashboardPanelHelp
+          detail="This map follows workflow events published by the current run. Nodes and timings appear only after the runtime emitted them; queued nodes are not shown as completed work."
+          label="Live workflow map"
+        />
+      </header>
+      <div className="workflowLiveSummary">
+        <div><span>Route</span><strong>{formatRoute(execution?.resolvedMode ?? execution?.requestedMode)}</strong></div>
+        <div><span>Reached</span><strong>{runtime.summary.reached}/{runtime.summary.total}</strong></div>
+        <div><span>Runtime</span><strong>{formatDashboardDuration(runtime.summary.totalRuntimeMs)}</strong></div>
+        <div><span>Retries</span><strong>{runtime.summary.retryCount}</strong></div>
+      </div>
+      <ol className="workflowLivePath" aria-label="Published workflow nodes">
+        {steps.map((step) => (
+          <li data-state={step.state} key={step.nodeId}>
+            <span aria-hidden="true" />
+            <div>
+              <strong>{step.displayLabel}</strong>
+              <p>{step.lastEventDetail ?? step.detail}</p>
+            </div>
+            <small>{step.durationMs == null ? formatUiStatusLabel(step.state) : formatDashboardDuration(step.durationMs)}</small>
+          </li>
+        ))}
+      </ol>
+      {transitions.length ? (
+        <ul aria-label="Recent workflow transitions" className="workflowTransitionRail">
+          {transitions.map((transition) => (
+            <li key={`${transition.sequence}-${transition.fromNodeId}-${transition.toNodeId}`} data-kind={transition.kind}>
+              <span>{transition.label}</span>
+              <strong>{transition.fromNodeId} → {transition.toNodeId}</strong>
+              {transition.reason ? <small>{transition.reason}</small> : null}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
+  );
+}
+
+function AiAgentSystemMap({ model }: { model: ProductIntelligenceModel }) {
+  const details = model.details;
+  if (!details) {
+    return null;
+  }
+  const { conversationContext, providerTelemetry, workflowExecution } = details;
+  const roles = workflowExecution.agentRoles;
+
+  return (
+    <section aria-label="AI and agent system map" className="dashboardFeature aiAgentSystemMap">
+      <header>
+        <div>
+          <span>AI system map</span>
+          <strong>{providerTelemetry.summary.providerLabel} · {providerTelemetry.summary.modelLabel}</strong>
+          <p>Provider, execution route, and published context counts remain separate so each boundary is easy to inspect.</p>
+        </div>
+        <DashboardPanelHelp
+          detail="This panel reports the provider identity and telemetry emitted for the run, the selected execution route, and context counts. It deliberately does not display prompts, private memory, or model chain-of-thought."
+          label="AI system map"
+        />
+      </header>
+      <div className="aiAgentRoute" aria-label="Execution and provider route">
+        <article><span>Provider</span><strong>{providerTelemetry.summary.providerLabel}</strong><p>{providerTelemetry.summary.generationModeLabel}</p></article>
+        <article><span>Model</span><strong>{providerTelemetry.summary.modelLabel}</strong><p>{providerTelemetry.summary.streamingStatusLabel}</p></article>
+        <article><span>Route</span><strong>{formatRoute(workflowExecution.resolvedMode ?? workflowExecution.requestedMode)}</strong><p>{workflowExecution.rationale}</p></article>
+      </div>
+      <div className="aiAgentSplit">
+        <section>
+          <header><span>Responsibilities</span><strong>{roles.length ? `${roles.length} published role${roles.length === 1 ? "" : "s"}` : "No role list published"}</strong></header>
+          {roles.length ? <div className="aiAgentRoleChips">{roles.map((role) => <span key={role}>{role}</span>)}</div> : <p>Run a request to inspect the responsibilities selected for that route.</p>}
+        </section>
+        <section>
+          <header><span>Context boundary</span><strong>{conversationContext.source === "stream" ? "Published context counts" : "No context counts published"}</strong></header>
+          <dl>
+            {conversationContext.diagnostics.slice(0, 4).map((diagnostic) => <div key={diagnostic.id}><dt>{diagnostic.label}</dt><dd>{diagnostic.value}</dd></div>)}
+          </dl>
+        </section>
+      </div>
+    </section>
+  );
+}
+
+function TelemetryObservatory({ model }: { model: ProductIntelligenceModel }) {
+  const telemetry = model.details?.telemetryDashboard;
+  if (!telemetry) {
+    return null;
+  }
+  const signals = telemetry.signals.slice(0, 6);
+
+  return (
+    <section aria-label="Telemetry observatory" className="dashboardFeature telemetryObservatory" data-state={telemetry.status}>
+      <header>
+        <div>
+          <span>Run observatory</span>
+          <strong>{telemetry.summary.operatorStatus}</strong>
+          <p>{telemetry.summary.signalLabel}</p>
+        </div>
+        <DashboardPanelHelp
+          detail="The observatory groups published stream, workflow, preview, retrieval, evaluation, and observability signals. Unreported provider usage and cost values stay visibly unavailable."
+          label="Telemetry observatory"
+        />
+      </header>
+      <div className="telemetrySignalGrid">
+        {signals.map((signal) => (
+          <article data-tone={signal.tone} key={signal.id}>
+            <span>{signal.label}</span>
+            <strong>{signal.value}</strong>
+            <p>{signal.detail}</p>
+          </article>
+        ))}
+      </div>
+      <div className="telemetryRunFacts" aria-label="Run measurement facts">
+        <div><span>Events</span><strong>{telemetry.stream.eventCount}</strong></div>
+        <div><span>Errors</span><strong>{telemetry.stream.errorCount}</strong></div>
+        <div><span>Tokens</span><strong>{telemetry.provider.summary.tokenLabel}</strong></div>
+        <div><span>Est. cost</span><strong>{telemetry.provider.summary.costLabel}</strong></div>
+        <div><span>Runtime</span><strong>{telemetry.summary.runtimeLabel}</strong></div>
+      </div>
+    </section>
+  );
+}
+
+function formatRoute(route: "auto" | "single_agent" | "multi_agent" | null | undefined) {
+  if (route === "single_agent") return "Single agent";
+  if (route === "multi_agent") return "Multi-agent";
+  return "Auto";
+}
+
+function formatDashboardDuration(value: number | null) {
+  if (value == null) return "Timing pending";
+  if (value < 1_000) return `${value} ms`;
+  return `${(value / 1_000).toFixed(value >= 10_000 ? 0 : 1)} s`;
 }
 
 function ArtifactRegistry({ model }: { model: ProductIntelligenceModel }) {

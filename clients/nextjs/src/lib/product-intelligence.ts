@@ -74,6 +74,24 @@ export type ProductIntelligenceModel = {
     attentionCount: number;
     readyCount: number;
   };
+  /**
+   * Published source models for richer Dashboard views. These are deliberately
+   * presentation data only: the Dashboard must not infer hidden provider
+   * reasoning or manufacture runtime state from them.
+   */
+  details?: {
+    conversationContext: ConversationContextModel;
+    providerTelemetry: ProviderTelemetryModel;
+    retrievalRuntime: RetrievalRuntimeModel;
+    runtimeConsole: RuntimeConsoleModel;
+    sessionIntelligence: SessionIntelligenceModel;
+    snapshot: AssistantWorkspaceSnapshot;
+    telemetryDashboard: TelemetryDashboardModel;
+    v3InspectorPanels: V3InspectorPanelsModel;
+    workflowExecution: WorkflowExecutionModel;
+    workflowRuntime: WorkflowRuntimeModel;
+    workstationDashboard: WorkstationDashboardModel;
+  };
 };
 
 type BuildProductIntelligenceInput = {
@@ -468,6 +486,19 @@ export function buildProductIntelligenceModel({
       activeCount: sections.filter((item) => item.tone === "active").length,
       attentionCount: sections.filter((item) => item.tone === "attention").length,
       readyCount: sections.filter((item) => item.tone === "ready").length
+    },
+    details: {
+      conversationContext,
+      providerTelemetry,
+      retrievalRuntime,
+      runtimeConsole,
+      sessionIntelligence,
+      snapshot,
+      telemetryDashboard,
+      v3InspectorPanels,
+      workflowExecution,
+      workflowRuntime,
+      workstationDashboard
     }
   };
 }
