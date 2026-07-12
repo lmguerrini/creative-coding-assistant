@@ -106,7 +106,7 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
                         "id": "image-reference-1",
                         "name": "palette.png",
                         "mimeType": "image/png",
-                        "sizeBytes": 128,
+                        "sizeBytes": 7,
                         "dataUrl": "data:image/png;base64,cGFsZXR0ZQ==",
                     }
                 ],
@@ -180,7 +180,7 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
                             "id": f"image-reference-{index}",
                             "name": f"palette-{index}.png",
                             "mimeType": "image/png",
-                            "sizeBytes": 128,
+                            "sizeBytes": 7,
                             "dataUrl": "data:image/png;base64,cGFsZXR0ZQ==",
                         }
                         for index in range(5)
@@ -366,6 +366,8 @@ class NextjsStreamingBridgeTests(unittest.TestCase):
                 "/api/assistant/stream",
                 "/api/workspace/session",
                 "/api/domain-experience",
+                "/api/evaluation/run",
+                "/api/knowledge-base",
                 "/api/health",
                 "/api/health/live",
                 "/api/health/ready",

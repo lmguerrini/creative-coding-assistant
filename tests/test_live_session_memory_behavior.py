@@ -107,12 +107,11 @@ class LiveSessionMemoryBehaviorTests(unittest.TestCase):
                 if event.event_type is StreamEventType.MEMORY
                 and event.payload.get("code") == "memory_completed"
             )
-            recent_turns = memory_event.payload["context"]["recent_turns"]
-            self.assertEqual(len(recent_turns), 2)
-            self.assertEqual(recent_turns[0]["content"], first_request.query)
+            memory_summary = memory_event.payload["context"]["summary"]
+            self.assertEqual(memory_summary["recent_turn_count"], 2)
             self.assertEqual(
-                recent_turns[1]["content"],
-                "Use a basic cube scene with requestAnimationFrame rotation.",
+                memory_event.payload["context"]["guardrails"]["memory_content"],
+                "not_emitted",
             )
 
             prompt_input_event = next(
@@ -121,12 +120,16 @@ class LiveSessionMemoryBehaviorTests(unittest.TestCase):
                 if event.event_type is StreamEventType.PROMPT_INPUT
             )
             self.assertEqual(
-                len(
-                    prompt_input_event.payload["prompt_input"]["memory_input"][
-                        "recent_turns"
-                    ]
-                ),
+                prompt_input_event.payload["prompt_input"]["summary"]["memory"][
+                    "recent_turn_count"
+                ],
                 2,
+            )
+            self.assertEqual(
+                prompt_input_event.payload["prompt_input"]["guardrails"][
+                    "memory_content"
+                ],
+                "not_emitted",
             )
 
             captured_request = service._generation_provider.requests[1]

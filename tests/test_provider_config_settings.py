@@ -53,6 +53,7 @@ class ProviderConfigSettingsTests(unittest.TestCase):
         )
         self.assertEqual(settings.openai_model, "gpt-5-mini")
         self.assertEqual(settings.openai_max_output_tokens, 4000)
+        self.assertEqual(settings.openai_timeout_seconds, 90)
         self.assertFalse(settings.has_openai_api_key)
         self.assertIsNone(settings.get_openai_api_key())
 
@@ -61,6 +62,7 @@ class ProviderConfigSettingsTests(unittest.TestCase):
             CCA_DEFAULT_GENERATION_PROVIDER="openai",
             CCA_OPENAI_MAX_OUTPUT_TOKENS="900",
             CCA_OPENAI_MODEL="gpt-5",
+            CCA_OPENAI_TIMEOUT_SECONDS="45",
             OPENAI_API_KEY="sk-test-secret",
         ):
             settings = load_settings()
@@ -71,6 +73,7 @@ class ProviderConfigSettingsTests(unittest.TestCase):
         )
         self.assertEqual(settings.openai_model, "gpt-5")
         self.assertEqual(settings.openai_max_output_tokens, 900)
+        self.assertEqual(settings.openai_timeout_seconds, 45)
         self.assertTrue(settings.has_openai_api_key)
         self.assertEqual(settings.get_openai_api_key(), "sk-test-secret")
         self.assertNotIn("sk-test-secret", repr(settings.openai_api_key))

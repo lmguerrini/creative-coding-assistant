@@ -131,7 +131,7 @@ class CoreBackendServiceTests(unittest.TestCase):
                     id="image-reference-1",
                     name="palette.png",
                     mimeType="image/png",
-                    sizeBytes=128,
+                    sizeBytes=7,
                     dataUrl="data:image/png;base64,cGFsZXR0ZQ==",
                 ),
             ),

@@ -179,7 +179,14 @@ def _build_openai_client(
     resolved_api_key = api_key or resolved_settings.get_openai_api_key()
     if not resolved_api_key:
         raise RuntimeError("OPENAI_API_KEY is not set.")
-    return OpenAI(api_key=resolved_api_key)
+    # Live creative requests are deliberately single-attempt.  The caller owns
+    # any reviewed retry decision, so provider SDK retries cannot multiply cost
+    # or make the published retry telemetry untruthful.
+    return OpenAI(
+        api_key=resolved_api_key,
+        max_retries=0,
+        timeout=resolved_settings.openai_timeout_seconds,
+    )
 
 
 def _build_openai_payload(

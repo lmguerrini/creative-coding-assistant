@@ -36,7 +36,7 @@ class CreativeConstraintSolverTests(unittest.TestCase):
                     id="ref-1",
                     name="palette.png",
                     mimeType="image/png",
-                    sizeBytes=128,
+                    sizeBytes=3,
                     dataUrl="data:image/png;base64,AAAA",
                 ),
             ),
@@ -75,7 +75,7 @@ class CreativeConstraintSolverTests(unittest.TestCase):
         )
         self.assertTrue(creative_constraint_solution_prompt_lines(solution))
 
-    def test_solver_flags_code_only_runtime_and_hitl_advisory(self) -> None:
+    def test_solver_recognizes_the_bounded_tone_runtime(self) -> None:
         request = AssistantRequest(
             query="Generate a Tone.js generative rhythm sketch.",
             mode=AssistantMode.GENERATE,
@@ -96,20 +96,13 @@ class CreativeConstraintSolverTests(unittest.TestCase):
             creative_plan=plan,
         )
 
-        self.assertEqual(solution.runtime_fit, "code_only")
-        self.assertTrue(solution.hitl_advisable)
-        self.assertIn("live preview runtime", solution.hitl_reason or "")
-        self.assertIn(
+        self.assertEqual(solution.runtime_fit, "supported")
+        self.assertFalse(solution.hitl_advisable)
+        self.assertNotIn(
             "Requested scope does not map to current live preview support.",
             solution.conflicts,
         )
-        self.assertTrue(
-            any(
-                item.source_axis == "intent" and item.target_axis == "runtime"
-                for item in solution.tradeoffs
-            ),
-            solution.tradeoffs,
-        )
+        self.assertTrue(solution.tradeoffs)
 
     def test_solver_clips_a_long_decomposed_intent_to_its_contract_limit(self) -> None:
         request = AssistantRequest(
@@ -220,14 +213,11 @@ class CreativeConstraintSolverTests(unittest.TestCase):
             creative_constraints=solution,
         )
 
-        self.assertIn(
-            "Do not claim live preview readiness for this output.",
+        self.assertTrue(
+            any("Tone.js muted browser preview" in item for item in director.planning_focus),
             director.planning_focus,
         )
-        self.assertEqual(
-            director.next_actions,
-            ("Requested scope has no current live preview runtime support.",),
-        )
+        self.assertTrue(director.next_actions)
         self.assertTrue(
             any("Constraint solver" in item for item in director.evidence),
             director.evidence,

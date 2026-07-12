@@ -536,6 +536,23 @@ describe("workspace persistence client", () => {
     expect(storage.length).toBe(2);
   });
 
+  it("treats an expected first-run remote probe as an empty session", async () => {
+    const storage = new MemoryStorage();
+    const fetchImpl = vi.fn(async () => new Response(null, { status: 204 }));
+    const client = createWorkspacePersistenceClient({ fetchImpl, storage });
+
+    await expect(client.load()).resolves.toEqual({
+      error: null,
+      record: null,
+      source: "none"
+    });
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      expect.stringContaining("missingSession=empty"),
+      expect.objectContaining({ method: "GET" })
+    );
+  });
+
   it("saves remotely while keeping a local fallback copy", async () => {
     const storage = new MemoryStorage();
     const record = createWorkspaceSessionRecord({

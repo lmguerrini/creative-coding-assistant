@@ -54,7 +54,7 @@ class CreativeTradeoffExplorerTests(unittest.TestCase):
         self.assertTrue(profile.technical_costs)
         self.assertTrue(creative_tradeoff_prompt_lines(profile))
 
-    def test_explorer_surfaces_hitl_for_runtime_ambiguity(self) -> None:
+    def test_explorer_does_not_raise_hitl_for_bounded_tone_preview(self) -> None:
         request = AssistantRequest(
             query="Generate a Tone.js rhythm pulse.",
             mode=AssistantMode.GENERATE,
@@ -65,9 +65,9 @@ class CreativeTradeoffExplorerTests(unittest.TestCase):
 
         profile = derive_creative_tradeoff_profile(**context)
 
-        self.assertTrue(profile.hitl_advisable)
-        self.assertIn("live preview runtime", profile.hitl_reason or "")
-        self.assertTrue(
+        self.assertFalse(profile.hitl_advisable)
+        self.assertIsNone(profile.hitl_reason)
+        self.assertFalse(
             any(item.hitl_recommended for item in profile.primary_tradeoffs),
             profile.primary_tradeoffs,
         )

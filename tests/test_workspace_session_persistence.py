@@ -211,6 +211,25 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
         self.assertEqual(status_headers["status"], "404 Not Found")
         self.assertEqual(json.loads(body)["error"], "session_not_found")
 
+    def test_wsgi_endpoint_returns_empty_result_for_expected_first_run_probe(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            app = _app_for_temp_db(Path(temp_dir))
+            status_headers: dict[str, object] = {}
+
+            body = b"".join(
+                app(
+                    {
+                        "PATH_INFO": "/api/workspace/session",
+                        "QUERY_STRING": "missingSession=empty",
+                        "REQUEST_METHOD": "GET",
+                    },
+                    _capture_start_response(status_headers),
+                )
+            )
+
+        self.assertEqual(status_headers["status"], "204 No Content")
+        self.assertEqual(body, b"")
+
     def test_wsgi_endpoint_rejects_invalid_session_payload(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             app = _app_for_temp_db(Path(temp_dir))

@@ -21,6 +21,7 @@ describe("preview sandbox runtime", () => {
     expect(sandboxDocument).toContain("TAU: Math.PI * 2,");
     expect(sandboxDocument).toContain("exp: Math.exp,");
     expect(sandboxDocument).toContain("constrain: function (value, minimum, maximum)");
+    expect(sandboxDocument).toContain("degrees: function (radians) { return (Number(radians) || 0) * 180 / Math.PI; },");
     expect(sandboxDocument).toContain("int: function (value)");
     expect(sandboxDocument).toContain("TWO_PI: Math.PI * 2,");
     expect(sandboxDocument).toContain("HALF_PI: Math.PI / 2,");
@@ -52,6 +53,7 @@ describe("preview sandbox runtime", () => {
     expect(sandboxDocument).toContain("Object3D,");
     expect(sandboxDocument).toContain("shadowMap = { enabled: false, type: null }");
     expect(sandboxDocument).toContain("Color.prototype.clone = function ()");
+    expect(sandboxDocument).toContain("copy: function (vector) { vector = vector || {}; return this.set(vector.x, vector.y, vector.z); }");
   });
 
   it("prepares TypeScript-flavored p5 source for browser execution", () => {

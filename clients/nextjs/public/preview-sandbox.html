@@ -2060,6 +2060,7 @@
             return Math.min(Math.max(Number(value) || 0, low), Number.isFinite(high) ? high : low);
           },
           cos: Math.cos,
+          degrees: function (radians) { return (Number(radians) || 0) * 180 / Math.PI; },
           dist: Math.hypot,
           exp: Math.exp,
           floor: Math.floor,
@@ -2390,7 +2391,13 @@
         };
         function Object3D() {
           this.children = [];
-          this.position = { x: 0, y: 0, z: 0, set: function (x, y, z) { this.x = x || 0; this.y = y || 0; this.z = z || 0; } };
+          this.position = {
+            x: 0,
+            y: 0,
+            z: 0,
+            set: function (x, y, z) { this.x = x || 0; this.y = y || 0; this.z = z || 0; return this; },
+            copy: function (vector) { vector = vector || {}; return this.set(vector.x, vector.y, vector.z); }
+          };
           this.rotation = { x: 0, y: 0, z: 0 };
           this.scale = { x: 1, y: 1, z: 1, set: function (x, y, z) { this.x = x || 1; this.y = y || x || 1; this.z = z || x || 1; } };
         }

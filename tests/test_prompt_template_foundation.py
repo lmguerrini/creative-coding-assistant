@@ -132,7 +132,7 @@ class PromptTemplateFoundationTests(unittest.TestCase):
                     id="image-reference-1",
                     name="warm-neon-grid-glass.png",
                     mimeType="image/png",
-                    sizeBytes=128,
+                    sizeBytes=7,
                     dataUrl="data:image/png;base64,cGFsZXR0ZQ==",
                 ),
             ),
@@ -171,7 +171,7 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         self.assertIn(
             (
                 "- warm-neon-grid-glass.png "
-                "(image/png, 128 bytes, id: image-reference-1)"
+                "(image/png, 7 bytes, id: image-reference-1)"
             ),
             user_section.content,
         )

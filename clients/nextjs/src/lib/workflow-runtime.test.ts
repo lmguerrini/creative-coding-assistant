@@ -331,6 +331,50 @@ describe("workflow runtime model", () => {
     });
   });
 
+  it("normalizes a persisted Success status before local preview telemetry arrives", () => {
+    const snapshot = getLocalWorkspaceSnapshot();
+    const workflow = {
+      ...snapshot.workflow,
+      currentNode: "finalization" as const,
+      currentStep: "Finalization",
+      status: "Success",
+      productOutcome: {
+        orchestration_status: "COMPLETED",
+        provider_status: "COMPLETED",
+        generation_status: "COMPLETED",
+        deliverable_status: "USABLE",
+        artifact_extraction_status: "EXTRACTED",
+        artifact_runnability: "RUNNABLE",
+        preview_status: "PREPARED",
+        runtime_health: "PENDING_BROWSER_VALIDATION",
+        product_outcome: "SUCCESS" as const,
+        summary: "The requested deliverable is ready.",
+        recovery_action: ""
+      }
+    };
+
+    const runtime = buildWorkflowRuntimeModel(workflow, [
+      {
+        event: {
+          event_type: "status",
+          sequence: 1,
+          payload: {
+            code: "preview_runtime_running",
+            message: "p5 runtime is running."
+          }
+        },
+        receivedAt: "2026-07-12T18:25:00Z",
+        receivedAtMs: Date.parse("2026-07-12T18:25:00Z")
+      }
+    ]);
+
+    expect(runtime.summary).toMatchObject({
+      status: "completed",
+      activity: { state: "completed", label: "Success", terminal: true },
+      productOutcome: { product_outcome: "SUCCESS" }
+    });
+  });
+
   it("maps every user-facing live stage from the workflow node contract", () => {
     const stages = [
       ["planning", "Planning"],

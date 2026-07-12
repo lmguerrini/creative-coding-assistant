@@ -48,6 +48,7 @@ test.describe("V9.7 Phase 3 product exploration", () => {
     page
   }) => {
     const consoleGate = installConsoleGate(page);
+    await installApiMocks(page, "success");
 
     await page.goto("/");
     await expectLoadedWorkstation(page);

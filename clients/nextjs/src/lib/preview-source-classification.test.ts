@@ -56,6 +56,19 @@ describe("p5 preview source classification", () => {
 
     expect(getP5RuntimeSourceSupportIssue(source)).toBeNull();
   });
+
+  it("accepts the standard degrees helper used to derive a p5 hue", () => {
+    const source = [
+      "function setup() { createCanvas(320, 180); colorMode(HSL, 360, 100, 100); }",
+      "function draw() {",
+      "  const hue = degrees(noise(frameCount * 0.01) * TWO_PI) % 360;",
+      "  background(hue, 48, 12);",
+      "  circle(width / 2, height / 2, 40);",
+      "}"
+    ].join("\n");
+
+    expect(getP5RuntimeSourceSupportIssue(source)).toBeNull();
+  });
 });
 
 describe("GLSL preview source classification", () => {

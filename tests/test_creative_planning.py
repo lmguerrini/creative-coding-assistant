@@ -32,7 +32,7 @@ class CreativePlanningTests(unittest.TestCase):
                     id="ref-1",
                     name="palette.png",
                     mimeType="image/png",
-                    sizeBytes=128,
+                    sizeBytes=3,
                     dataUrl="data:image/png;base64,AAAA",
                 ),
             ),

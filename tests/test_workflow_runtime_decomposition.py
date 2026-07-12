@@ -148,6 +148,7 @@ class WorkflowRuntimeDecompositionTests(unittest.TestCase):
             edge_specs_by_source["prompt_input"].targets,
             {
                 "planning": "planning",
+                "prompt_rendering": "prompt_rendering",
                 "finalization": "finalization",
                 "failure": "failure",
             },

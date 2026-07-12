@@ -90,7 +90,7 @@ _BROWSER_CONTRACTS: dict[CreativeCodingDomain, dict[str, object]] = {
             "Three.js is live-previewed only through the controlled JavaScript scene "
             "runtime, not as standalone HTML or a React component."
         ),
-        "demo_eligible": False,
+        "demo_eligible": True,
     },
     CreativeCodingDomain.GLSL: {
         "artifact_types": ("bounded WebGL fragment shader",),
@@ -108,7 +108,23 @@ _BROWSER_CONTRACTS: dict[CreativeCodingDomain, dict[str, object]] = {
             "GLSL live preview is limited to the validated fragment-shader subset; it "
             "is not a general GPU or Shadertoy runtime."
         ),
-        "demo_eligible": False,
+        "demo_eligible": True,
+    },
+    CreativeCodingDomain.TONE_JS: {
+        "artifact_types": ("bounded Tone.js program",),
+        "extensions": (".tone.js", ".tone.ts"),
+        "requirements": (
+            "One self-contained Tone.js program with a supported synth, oscillator, or noise voice.",
+            "The controlled audio runtime remains muted until the operator explicitly starts playback.",
+        ),
+        "fallback": (
+            "Inspect or download the source when it falls outside the controlled Tone.js parser contract."
+        ),
+        "boundary": (
+            "Tone.js is a live browser-preview domain only for parsed bounded "
+            "programs; no microphone access or autoplay is claimed."
+        ),
+        "demo_eligible": True,
     },
 }
 

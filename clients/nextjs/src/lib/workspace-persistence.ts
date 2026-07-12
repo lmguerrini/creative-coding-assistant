@@ -986,6 +986,10 @@ async function loadRemoteSession({
     const url = new URL(endpoint);
     url.searchParams.set("userId", userId);
     url.searchParams.set("sessionId", sessionId);
+    // A first-run profile has no saved record yet. Ask the supported endpoint
+    // for an explicit empty result so the expected bootstrap path does not
+    // surface as a browser-console resource failure.
+    url.searchParams.set("missingSession", "empty");
     const abort = createAbortSignal();
     const response = await withTimeout(
       resolvedFetch(url.toString(), {
@@ -998,6 +1002,10 @@ async function loadRemoteSession({
       timeoutMs,
       abort.abort
     );
+
+    if (response.status === 204) {
+      return { record: null, error: null };
+    }
 
     if (!response.ok) {
       const payload = (await tryReadJson(response)) ?? (await tryReadText(response));

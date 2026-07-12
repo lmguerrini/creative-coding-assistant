@@ -209,6 +209,64 @@ class DomainGenerationTests(unittest.TestCase):
         )
         self.assertTrue(all(artifact.preview_eligible for artifact in artifacts))
 
+    def test_tone_artifact_is_previewable_only_with_a_bounded_voice_program(self) -> None:
+        request = AssistantRequest(
+            query="Create a muted Tone.js cymatic study.",
+            domains=(CreativeCodingDomain.TONE_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```javascript filename=cymatic-study.tone.js",
+                    "const synth = new Tone.FMSynth().toDestination();",
+                    "new Tone.Sequence((time, note) => "
+                    "synth.triggerAttackRelease(note, '8n', time), ['C3', 'G3'], "
+                    "'8n').start(0);",
+                    "Tone.Transport.bpm.value = 96;",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        artifact = artifacts[0]
+        self.assertEqual(artifact.domain, CreativeCodingDomain.TONE_JS.value)
+        self.assertEqual(artifact.title, "cymatic-study.tone.js")
+        self.assertEqual(artifact.runtime, "tone")
+        self.assertEqual(artifact.renderer_id, "surface.tone")
+        self.assertTrue(artifact.preview_eligible)
+        self.assertEqual(artifact.language, "JavaScript + Tone.js")
+        self.assertEqual(
+            prepare_workflow_preview_results(
+                artifacts,
+                request=request,
+                route_decision=decision,
+            )[0].preview_artifact_id,
+            artifact.id,
+        )
+
+        microphone_artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```javascript filename=unsafe-input.tone.js",
+                    "const synth = new Tone.Synth().toDestination();",
+                    "navigator.mediaDevices.getUserMedia({ audio: true });",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+        self.assertEqual(len(microphone_artifacts), 1)
+        self.assertFalse(microphone_artifacts[0].preview_eligible)
+        self.assertEqual(microphone_artifacts[0].status, "Preview unavailable")
+        self.assertIn("Microphone", microphone_artifacts[0].summary)
+
     def test_p5_typescript_fence_is_normalized_to_previewable_javascript(self) -> None:
         request = AssistantRequest(
             query=(
@@ -323,6 +381,35 @@ class DomainGenerationTests(unittest.TestCase):
         self.assertEqual(artifacts[0].renderer_id, "surface.p5")
         self.assertEqual(artifacts[0].status, "Generated")
 
+    def test_p5_standard_degrees_helper_is_marked_preview_ready(self) -> None:
+        request = AssistantRequest(
+            query="Create a p5.js flow-field sketch with a colour gradient.",
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```js generated-sketch-1.p5.js",
+                    "function setup() { createCanvas(640, 360); colorMode(HSL, 360, 100, 100); }",
+                    "function draw() {",
+                    "  const hue = degrees(noise(frameCount * 0.01) * TWO_PI) % 360;",
+                    "  background(hue, 48, 12); circle(width / 2, height / 2, 40);",
+                    "}",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        self.assertTrue(artifacts[0].preview_eligible)
+        self.assertEqual(artifacts[0].runtime, "p5")
+        self.assertEqual(artifacts[0].status, "Generated")
+
     def test_p5_fenced_javascript_labels_produce_previewable_javascript_artifacts(self) -> None:
         request = AssistantRequest(
             query="Create a p5.js flow-field particle system.",
@@ -333,7 +420,9 @@ class DomainGenerationTests(unittest.TestCase):
         source = "\n".join(
             [
                 "function setup() { createCanvas(640, 360); rectMode(CENTER); smooth(); }",
-                "function draw() { const swatch = color(20, 40, 60); background(12); fill(red(swatch), green(swatch), blue(swatch)); rect(width / 2, height / 2, 32, 18); }",
+                "function draw() { const swatch = color(20, 40, 60); background(12); "
+                "fill(red(swatch), green(swatch), blue(swatch)); "
+                "rect(width / 2, height / 2, 32, 18); }",
             ]
         )
 
@@ -382,6 +471,33 @@ class DomainGenerationTests(unittest.TestCase):
         self.assertEqual(len(artifacts), 1)
         self.assertEqual(artifacts[0].title, "named-field.p5.js")
         self.assertTrue(artifacts[0].preview_eligible)
+
+    def test_unclosed_provider_code_fence_stays_inspectable_and_fails_preview_truthfully(self) -> None:
+        request = AssistantRequest(
+            query="Create a p5.js flow-field particle system.",
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```javascript filename=interrupted-field.p5.js",
+                    "function setup() { createCanvas(640, 360); }",
+                    "function draw() { background(12); circle(80, 80, 24);",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        artifact = artifacts[0]
+        self.assertEqual(artifact.title, "interrupted-field.p5.js")
+        self.assertEqual(artifact.status, "Runnable artifact extraction failed")
+        self.assertFalse(artifact.preview_eligible)
+        self.assertIsNone(artifact.runtime)
+        self.assertIn("appears incomplete", artifact.summary)
 
     def test_p5_extraction_prefers_lifecycle_source_and_marks_invalid_source_honestly(self) -> None:
         request = AssistantRequest(

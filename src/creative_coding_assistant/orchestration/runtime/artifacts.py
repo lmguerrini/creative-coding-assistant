@@ -259,14 +259,17 @@ _RUNTIME_LABELS = {
     "glsl": "GLSL",
     "p5": "p5.js",
     "three": "Three.js",
+    "tone": "Tone.js",
 }
 _P5_GLOBAL_MODE_FUNCTIONS = frozenset(
     {
-        "abs", "atan2", "background", "beginShape", "blendMode", "blue", "ceil", "circle", "clear",
-        "color", "colorMode", "constrain", "cos", "createCanvas", "curveVertex", "dist", "ellipse", "endShape", "exp",
-        "fill", "floor", "frameRate", "green", "int", "lerp", "line", "map", "max", "min", "noise",
-        "noiseDetail", "noFill", "noStroke", "pixelDensity", "point", "pop", "pow", "push", "random",
-        "rect", "rectMode", "red", "resizeCanvas", "rotate", "scale", "sin", "smooth", "sqrt", "stroke", "strokeCap", "strokeJoin", "strokeWeight",
+        "abs", "atan2", "background", "beginShape", "blendMode", "blue", "ceil",
+        "circle", "clear", "color", "colorMode", "constrain", "cos", "createCanvas",
+        "curveVertex", "degrees", "dist", "ellipse", "endShape", "exp", "fill", "floor",
+        "frameRate", "green", "int", "lerp", "line", "map", "max", "min", "noise",
+        "noiseDetail", "noFill", "noStroke", "pixelDensity", "point", "pop", "pow",
+        "push", "random", "rect", "rectMode", "red", "resizeCanvas", "rotate", "scale",
+        "sin", "smooth", "sqrt", "stroke", "strokeCap", "strokeJoin", "strokeWeight",
         "translate", "vertex",
     }
 )
@@ -279,6 +282,10 @@ _P5_CONTROL_FLOW_KEYWORDS = frozenset(
 _P5_GLOBAL_MODE_CONTRACT = (
     "Use a plain JavaScript global-mode sketch with function setup() and function draw(); "
     "keep p5 calls inside those lifecycle functions or helpers they call."
+)
+_TONE_VOICE_PATTERN = re.compile(
+    r"\bnew\s+Tone\.(?:AMSynth|DuoSynth|FMSynth|MembraneSynth|MetalSynth|"
+    r"MonoSynth|NoiseSynth|Oscillator|PolySynth|Synth)\s*\("
 )
 
 
@@ -391,6 +398,24 @@ def _parse_markdown_code_blocks(answer: str) -> tuple[_CodeBlock, ...]:
                 title=info["title"],
             )
         )
+    if blocks:
+        return tuple(blocks)
+
+    # A provider can terminate after opening an otherwise valid code fence. Keep
+    # that source inspectable and let the runtime validator decide readiness,
+    # rather than silently discarding the attempted artifact.
+    unclosed = re.match(r"^\s*```([^\n`]*)\n([\s\S]+)$", answer)
+    if unclosed is not None:
+        info = _parse_fence_info(unclosed.group(1) or "")
+        content = _trim_code_block(unclosed.group(2) or "")
+        if content:
+            return (
+                _CodeBlock(
+                    content=content,
+                    language=info["language"],
+                    title=info["title"],
+                ),
+            )
     return tuple(blocks)
 
 
@@ -485,6 +510,7 @@ def _build_workflow_artifact(
         summary_parts = [
             "Runnable artifact extraction failed",
             "the generated p5 source is not compatible with the browser preview",
+            preview_issue,
         ]
     else:
         summary_parts = ["Extracted from the generation result"]
@@ -719,6 +745,11 @@ def _infer_runtime(
         or "new p5" in haystack
     ):
         return "p5"
+    if (
+        normalized_title.endswith((".tone.js", ".tone.ts"))
+        or _TONE_VOICE_PATTERN.search(content)
+    ):
+        return "tone"
     return None
 
 
@@ -816,10 +847,17 @@ def _infer_language(content: str, title: str | None) -> str:
 
 
 def _runtime_source_preview_issue(runtime: str | None, content: str) -> str | None:
+    if runtime in {"p5", "three", "tone"} and _has_unbalanced_delimiters(content):
+        return (
+            "The generated JavaScript source appears incomplete. Regenerate a closed "
+            "self-contained artifact before previewing it."
+        )
     if runtime == "glsl":
         return _glsl_source_preview_issue(content)
     if runtime == "three":
         return _three_source_preview_issue(content)
+    if runtime == "tone":
+        return _tone_source_preview_issue(content)
     if runtime != "p5":
         return None
     if not content.strip():
@@ -924,6 +962,38 @@ def _three_source_preview_issue(content: str) -> str | None:
     return None
 
 
+def _tone_source_preview_issue(content: str) -> str | None:
+    source = content.strip()
+    if not source:
+        return "The Tone.js preview source is empty. Add a bounded Tone program."
+    if len(source) > 16000:
+        return "The Tone.js source exceeds the controlled preview size limit."
+    if _looks_like_html_source(source):
+        return (
+            "HTML documents cannot run in the controlled Tone.js preview. Return "
+            "self-contained JavaScript source only."
+        )
+    if "```" in source:
+        return (
+            "Markdown fences cannot run in the controlled Tone.js preview. Return "
+            "executable JavaScript source only."
+        )
+    if re.search(
+        r"\b(?:navigator\.mediaDevices|getUserMedia|AudioWorklet)\b", source,
+        flags=re.I,
+    ):
+        return (
+            "Microphone, AudioWorklet, and unrestricted audio-device APIs are outside "
+            "the controlled Tone.js preview."
+        )
+    if not _TONE_VOICE_PATTERN.search(source):
+        return (
+            "Tone.js source must define a supported synth, oscillator, or noise voice "
+            "for the controlled preview."
+        )
+    return None
+
+
 def _p5_bare_calls(source: str) -> tuple[tuple[str, int], ...]:
     calls: list[tuple[str, int]] = []
     for match in re.finditer(r"(?<![.$\w])([A-Za-z_$][\w$]*)\s*\(", source):
@@ -965,6 +1035,18 @@ def _strip_p5_comments_and_strings(source: str) -> str:
     without_strings = re.sub(r"'(?:\\.|[^'\\])*'", "''", without_comments)
     without_strings = re.sub(r'"(?:\\.|[^"\\])*"', '""', without_strings)
     return re.sub(r"`(?:\\.|[^`\\])*`", "``", without_strings)
+
+
+def _has_unbalanced_delimiters(source: str) -> bool:
+    pairs = {")": "(", "]": "[", "}": "{"}
+    stack: list[str] = []
+    for character in _strip_p5_comments_and_strings(source):
+        if character in "([{":
+            stack.append(character)
+        elif character in pairs:
+            if not stack or stack.pop() != pairs[character]:
+                return True
+    return bool(stack)
 
 
 def _looks_like_html_source(content: str) -> bool:
@@ -1114,6 +1196,8 @@ def _format_language_label(
         return "JavaScript + p5.js"
     if runtime == "glsl":
         return "GLSL"
+    if runtime == "tone":
+        return "JavaScript + Tone.js"
     if language == "typescript":
         return "TypeScript + React" if title.endswith(".tsx") else "TypeScript"
     return {
@@ -1143,6 +1227,8 @@ def _default_artifact_title(
         return f"generated-sketch-{index}.p5.{extension}"
     if runtime == "glsl":
         return f"generated-shader-{index}.frag"
+    if runtime == "tone":
+        return f"generated-audio-{index}.tone.js"
     extensions = {
         "css": "css",
         "glsl": "glsl",

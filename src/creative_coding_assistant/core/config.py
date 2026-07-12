@@ -58,6 +58,7 @@ class Settings(BaseSettings):
     )
     openai_model: str = Field(default="gpt-5-mini", min_length=1)
     openai_max_output_tokens: int = Field(default=4000, ge=64, le=8000)
+    openai_timeout_seconds: int = Field(default=90, ge=1, le=300)
     openai_embedding_model: str = Field(
         default="text-embedding-3-small",
         min_length=1,

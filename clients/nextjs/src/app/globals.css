@@ -3337,6 +3337,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   top: 10px;
   left: 10px;
   display: grid;
+  pointer-events: none;
   max-width: min(78%, 360px);
   gap: 6px;
   padding: 8px 10px;

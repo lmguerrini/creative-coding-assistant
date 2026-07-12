@@ -74,6 +74,10 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
                 events = tuple(provider.stream(_generation_input(stream=False)))
 
         self.assertEqual(constructor.api_keys, ["sk-settings-secret"])
+        self.assertEqual(
+            constructor.client_options,
+            [{"max_retries": 0, "timeout": 90}],
+        )
         self.assertEqual(len(events), 1)
         self.assertEqual(events[0].event_type, GenerationEventType.COMPLETED)
         self.assertEqual(
@@ -101,6 +105,10 @@ class OpenAIProviderAdapterTests(unittest.TestCase):
 
         self.assertIsInstance(client, _FakeOpenAIClient)
         self.assertEqual(constructor.api_keys, ["sk-env-secret"])
+        self.assertEqual(
+            constructor.client_options,
+            [{"max_retries": 0, "timeout": 90}],
+        )
 
     def test_non_streaming_request_maps_to_openai_payload(self) -> None:
         response = SimpleNamespace(
@@ -661,9 +669,19 @@ class _FakeOpenAIConstructor:
     def __init__(self, *, response: object) -> None:
         self._response = response
         self.api_keys: list[str] = []
+        self.client_options: list[dict[str, object]] = []
 
-    def __call__(self, *, api_key: str) -> _FakeOpenAIClient:
+    def __call__(
+        self,
+        *,
+        api_key: str,
+        max_retries: int,
+        timeout: int,
+    ) -> _FakeOpenAIClient:
         self.api_keys.append(api_key)
+        self.client_options.append(
+            {"max_retries": max_retries, "timeout": timeout}
+        )
         return _FakeOpenAIClient(response=self._response)
 
 

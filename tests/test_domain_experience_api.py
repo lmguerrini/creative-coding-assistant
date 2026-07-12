@@ -40,8 +40,12 @@ class DomainExperienceRegistryTests(unittest.TestCase):
                 CreativeCodingDomain.P5_JS,
                 CreativeCodingDomain.THREE_JS,
                 CreativeCodingDomain.GLSL,
+                CreativeCodingDomain.TONE_JS,
             },
         )
+        self.assertTrue(get_domain_experience("three_js").demo_eligible)
+        self.assertTrue(get_domain_experience("glsl").demo_eligible)
+        self.assertTrue(get_domain_experience("tone_js").demo_eligible)
         self.assertEqual(
             get_domain_experience(CreativeCodingDomain.HYDRA).delivery_kind,
             DomainDeliveryKind.CODE_EXPORT,

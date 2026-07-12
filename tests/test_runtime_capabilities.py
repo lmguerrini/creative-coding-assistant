@@ -48,7 +48,7 @@ class RuntimeCapabilityReasonerTests(unittest.TestCase):
             "\n".join(runtime_capability_prompt_lines(profile)),
         )
 
-    def test_reasoner_surfaces_tone_js_hitl_advisory_for_audio_scope(self) -> None:
+    def test_reasoner_surfaces_bounded_tone_js_preview_for_audio_scope(self) -> None:
         request = AssistantRequest(
             query="Generate a Tone.js rhythm pulse.",
             mode=AssistantMode.GENERATE,
@@ -60,8 +60,8 @@ class RuntimeCapabilityReasonerTests(unittest.TestCase):
         profile = derive_runtime_capability_profile(**context)
 
         self.assertEqual(profile.likely_candidates[0], "tone_js")
-        self.assertTrue(profile.hitl_advisable)
-        self.assertIn("live preview runtime", profile.hitl_reason or "")
+        self.assertFalse(profile.hitl_advisable)
+        self.assertIsNone(profile.hitl_reason)
         tone_candidate = _candidate(profile, "tone_js")
         self.assertEqual(tone_candidate.output_goal_fit, "strong")
         self.assertEqual(tone_candidate.preview_support, "workstation_preview_bounded")

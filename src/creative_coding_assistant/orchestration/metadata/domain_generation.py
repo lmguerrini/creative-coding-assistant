@@ -28,9 +28,10 @@ PREVIEWABLE_GENERATION_DOMAINS: tuple[CreativeCodingDomain, ...] = (
     CreativeCodingDomain.P5_JS,
     CreativeCodingDomain.GLSL,
     CreativeCodingDomain.THREE_JS,
+    CreativeCodingDomain.TONE_JS,
 )
 
-SUPPORTED_GENERATION_RUNTIMES = frozenset({"p5", "glsl", "three"})
+SUPPORTED_GENERATION_RUNTIMES = frozenset({"p5", "glsl", "three", "tone"})
 
 _RUNTIME_SUPPORT_BY_DOMAIN: dict[CreativeCodingDomain, DomainRuntimeSupport] = {
     CreativeCodingDomain.P5_JS: DomainRuntimeSupport(
@@ -54,12 +55,20 @@ _RUNTIME_SUPPORT_BY_DOMAIN: dict[CreativeCodingDomain, DomainRuntimeSupport] = {
         preview_target=PreviewTarget.BROWSER_SANDBOX.value,
         label="Three.js browser preview",
     ),
+    CreativeCodingDomain.TONE_JS: DomainRuntimeSupport(
+        domain=CreativeCodingDomain.TONE_JS,
+        runtime="tone",
+        renderer_id="surface.tone",
+        preview_target=PreviewTarget.BROWSER_SANDBOX.value,
+        label="Tone.js muted browser preview",
+    ),
 }
 
 _DOMAINS_BY_RUNTIME: dict[str, tuple[CreativeCodingDomain, ...]] = {
     "p5": (CreativeCodingDomain.P5_JS,),
     "glsl": (CreativeCodingDomain.GLSL,),
     "three": (CreativeCodingDomain.THREE_JS,),
+    "tone": (CreativeCodingDomain.TONE_JS,),
 }
 
 _MULTI_CANDIDATE_PATTERN = re.compile(
@@ -129,6 +138,15 @@ _DOMAIN_GENERATION_GUIDANCE: dict[CreativeCodingDomain, tuple[str, ...]] = {
         "Prefer a .r3f.tsx artifact name and keep Three.js imperative escapes minimal. "
         "React Three Fiber is code-only in the current workstation: it needs its own "
         "React bundle runtime and must not be presented as a live controlled Three.js preview.",
+    ),
+    CreativeCodingDomain.TONE_JS: (
+        "For Tone.js generation, return exactly one self-contained JavaScript "
+        "program in a filename=...tone.js fenced block.",
+        "Use a supported Tone synth, oscillator, or noise voice and optional "
+        "Tone.Transport or Tone.Sequence timing.",
+        "The controlled preview is muted until the operator explicitly starts "
+        "audio. Do not request microphone access, autoplay, imports, HTML, or "
+        "external assets.",
     ),
 }
 

@@ -156,6 +156,38 @@ const domainExperiencePayload = {
     updateStatus: "ready",
     updateHint: "E2E mock inventory is current.",
     provenanceBoundary: "E2E inventory is independent from retrieval runs."
+  },
+  creativeKnowledge: {
+    status: "available",
+    detail: "E2E creative guidance inventory is available.",
+    authorityBoundary: "Published guidance only; no private reasoning is exposed.",
+    recordCount: 7,
+    records: [
+      ["runtime-triage", "workflow", "Live visual runtime triage"],
+      ["audio-mapping", "technique", "Audio-reactive browser mapping"],
+      ["shader-pipeline", "pattern", "Shader and post-processing pipeline"],
+      ["audiovisual-timing", "workflow", "Audiovisual timing workflow"],
+      ["silent-audio", "best_practice", "Silent browser audio debugging"],
+      ["three-effects", "best_practice", "Three.js effects debugging"],
+      ["symbolic-translation", "pattern", "Symbolic motif to operational visual system"]
+    ].map(([id, kind, title]) => ({
+      id,
+      kind,
+      title,
+      summary: title + " is bounded, inspectable creative guidance for the local product.",
+      domains: ["p5_js"],
+      techniqueTags: ["browser_safe"],
+      workflowSteps: ["inspect", "apply", "validate"],
+      patternTags: ["bounded_guidance"],
+      taxonomyPath: ["creative production"],
+      sourceIds: ["e2e-source-p5-reference"],
+      provenanceCount: 1,
+      confidence: {
+        score: 0.82,
+        band: "high",
+        caveats: ["Deterministic E2E fixture."]
+      }
+    }))
   }
 };
 

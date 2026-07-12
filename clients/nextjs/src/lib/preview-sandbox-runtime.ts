@@ -830,7 +830,21 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
     class Object3D {
       constructor() {
         this.children = [];
-        this.position = { x: 0, y: 0, z: 0, set: (x, y, z) => { this.position.x = x || 0; this.position.y = y || 0; this.position.z = z || 0; } };
+        this.position = {
+          x: 0,
+          y: 0,
+          z: 0,
+          set: (x, y, z) => {
+            this.position.x = x || 0;
+            this.position.y = y || 0;
+            this.position.z = z || 0;
+            return this.position;
+          },
+          copy: (vector) => {
+            const next = vector || {};
+            return this.position.set(next.x, next.y, next.z);
+          }
+        };
         this.rotation = { x: 0, y: 0, z: 0 };
         this.scale = { x: 1, y: 1, z: 1, set: (x, y, z) => { this.scale.x = x || 1; this.scale.y = y || x || 1; this.scale.z = z || x || 1; } };
       }

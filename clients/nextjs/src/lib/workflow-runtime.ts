@@ -1129,7 +1129,9 @@ function parseTimestamp(value: string): number | null {
 
 function normalizeWorkflowStatus(status: string) {
   const normalizedStatus = status.trim().toLowerCase();
-  return normalizedStatus === "complete" ? "completed" : normalizedStatus;
+  return ["complete", "success"].includes(normalizedStatus)
+    ? "completed"
+    : normalizedStatus;
 }
 
 function isTerminalWorkflowStatus(status: string) {

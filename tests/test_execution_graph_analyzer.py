@@ -116,6 +116,7 @@ class ExecutionGraphAnalyzerTests(unittest.TestCase):
             {edge.target_node_id: edge.edge_kind for edge in prompt_edges},
             {
                 "planning": "linear",
+                "prompt_rendering": "conditional",
                 "finalization": "short_circuit",
                 "failure": "failure",
             },

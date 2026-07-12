@@ -72,7 +72,7 @@ class CreativeReasoningEngineTests(unittest.TestCase):
         self.assertIn("does not generate code", reasoning.authority_boundary)
         self.assertTrue(creative_reasoning_prompt_lines(reasoning))
 
-    def test_reasoning_surfaces_hitl_questions_from_ambiguity(self) -> None:
+    def test_reasoning_does_not_treat_bounded_tone_preview_as_unavailable(self) -> None:
         request = AssistantRequest(
             query="Generate a Tone.js rhythm pulse.",
             mode=AssistantMode.GENERATE,
@@ -84,7 +84,7 @@ class CreativeReasoningEngineTests(unittest.TestCase):
         )
 
         self.assertTrue(reasoning.hitl_questions)
-        self.assertTrue(
+        self.assertFalse(
             any("preview runtime" in item for item in reasoning.unresolved_decisions),
             reasoning.unresolved_decisions,
         )

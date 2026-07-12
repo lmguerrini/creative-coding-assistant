@@ -18,7 +18,7 @@ export const homepagePromptLibrary = [
     concept: "Physarum-inspired collective motion",
     runtime: "p5.js browser preview",
     prompt:
-      "Create exactly one runnable .p5.js artifact named physarum-drift.p5.js. Make a graceful Physarum-inspired trail field with setup(), draw(), 180 agents, noise-driven steering, rounded translucent paths, and pointer attraction. Use only global-mode p5.js JavaScript. No imports, HTML, Markdown, or prose. Return only the artifact.",
+      "Create exactly one runnable .p5.js artifact named physarum-drift.p5.js. Make a graceful Physarum-inspired trail field with setup(), draw(), 180 agents, noise-driven steering, rounded translucent paths, and pointer attraction. Use only compact global-mode p5.js JavaScript. No imports or HTML. Return only one closed ```javascript filename=physarum-drift.p5.js code fence with no prose, and keep the source below 2,800 characters.",
     expectedArtifact: "physarum-drift.p5.js",
     previewBoundary: "Runs in the controlled p5.js browser preview.",
     fallback: "Inspect the code artifact and retry with the same global-mode contract."

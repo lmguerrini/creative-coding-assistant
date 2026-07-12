@@ -171,6 +171,20 @@ class WorkspaceSessionApplication:
             )
 
         if record is None:
+            if _first_query_value(query, "missingSession", "") == "empty":
+                return empty_response(
+                    start_response,
+                    HTTPStatus.NO_CONTENT,
+                    request_id=request_id,
+                    allow_methods=WORKSPACE_SESSION_METHODS,
+                    allow_origin=allow_origin,
+                    extra_headers=[
+                        (
+                            WORKSPACE_SESSION_CONTRACT_HEADER,
+                            WORKSPACE_SESSION_CONTRACT_VERSION,
+                        )
+                    ],
+                )
             return error_response(
                 start_response,
                 HTTPStatus.NOT_FOUND,

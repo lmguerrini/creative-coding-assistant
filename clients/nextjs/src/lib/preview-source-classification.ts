@@ -71,6 +71,7 @@ const supportedP5GlobalFunctions = new Set([
   "cos",
   "createCanvas",
   "curveVertex",
+  "degrees",
   "dist",
   "ellipse",
   "endShape",
