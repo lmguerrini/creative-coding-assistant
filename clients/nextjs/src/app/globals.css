@@ -3889,6 +3889,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .workstation[data-inspector-state="collapsed"] .inspectorResizeHandle {
+  display: none;
   opacity: 0;
   pointer-events: none;
 }
