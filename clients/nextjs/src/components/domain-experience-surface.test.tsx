@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { KnowledgeBaseInventory } from "@/lib/domain-experience";
 import { KnowledgeBaseInventorySurface } from "./domain-experience-surface";
 
@@ -38,7 +38,35 @@ const inventory: KnowledgeBaseInventory = {
   ]
 };
 
+const inventoryWithTwoSources: KnowledgeBaseInventory = {
+  ...inventory,
+  registeredSourceCount: 2,
+  sources: [
+    ...inventory.sources,
+    {
+      ...inventory.sources[0],
+      id: "p5_reference",
+      title: "p5.js Core Sketch Reference",
+      url: "https://p5js.org/reference/"
+    }
+  ]
+};
+
+function jsonResponse(payload: Record<string, unknown>, ok = true) {
+  return { json: async () => payload, ok };
+}
+
 describe("KnowledgeBaseInventorySurface", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
   it("selects all official sources before an explicit check", async () => {
     const fetcher = vi.fn().mockResolvedValue({
       ok: true,
@@ -145,5 +173,100 @@ describe("KnowledgeBaseInventorySurface", () => {
 
     expect(await screen.findByText("The source check is ready for review.")).toBeVisible();
     expect(screen.getByRole("button", { name: "Check for updates" })).toBeEnabled();
+  });
+
+  it("runs Smart Update in the ordered check, update, rebuild, validate workflow", async () => {
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({
+        detail: "One changed source is ready for the selected update.",
+        sourceChanges: [
+          { sourceId: "three_docs", changeStatus: "changed" },
+          { sourceId: "p5_reference", changeStatus: "unavailable" }
+        ],
+        status: "review_ready_with_unavailable_sources"
+      }))
+      .mockResolvedValueOnce(jsonResponse({ status: "completed" }))
+      .mockResolvedValueOnce(jsonResponse({ status: "completed" }))
+      .mockResolvedValueOnce(jsonResponse({ detail: "The selected local index is valid.", status: "passed" }));
+    vi.stubGlobal("fetch", fetcher);
+
+    render(<KnowledgeBaseInventorySurface detailed inventory={inventoryWithTwoSources} />);
+    fireEvent.click(screen.getByRole("button", { name: "Smart Update" }));
+
+    expect(await screen.findByText("Smart Update complete")).toBeVisible();
+    expect(screen.getByLabelText("Smart Update progress")).toHaveTextContent(
+      /Check for updates.*Update affected.*Rebuild affected.*Validate index/s
+    );
+    expect(screen.getByText(/1 unavailable source was skipped; validation passed/i)).toBeVisible();
+    expect(screen.getByText(/Last successful Smart Update:/)).toBeVisible();
+    expect(fetcher).toHaveBeenCalledTimes(4);
+
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({
+      action: "check",
+      confirmed: false,
+      sourceIds: ["three_docs", "p5_reference"]
+    });
+    expect(JSON.parse(fetcher.mock.calls[1][1].body)).toEqual({
+      action: "update",
+      confirmed: true,
+      sourceIds: ["three_docs"]
+    });
+    expect(JSON.parse(fetcher.mock.calls[2][1].body)).toEqual({
+      action: "rebuild",
+      confirmed: true,
+      sourceIds: ["three_docs"]
+    });
+    expect(JSON.parse(fetcher.mock.calls[3][1].body)).toEqual({
+      action: "validate",
+      confirmed: false,
+      sourceIds: []
+    });
+  });
+
+  it("stops on a failed update, keeps the recovery guidance visible, and does not continue", async () => {
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({
+        sourceChanges: [{ sourceId: "three_docs", changeStatus: "changed" }],
+        status: "review_ready"
+      }))
+      .mockResolvedValueOnce(jsonResponse({
+        message: "The Knowledge Base update failed; the prior local index was restored."
+      }, false));
+    vi.stubGlobal("fetch", fetcher);
+
+    render(<KnowledgeBaseInventorySurface detailed inventory={inventory} />);
+    fireEvent.click(screen.getByRole("button", { name: "Smart Update" }));
+
+    expect(await screen.findByText(
+      "The Knowledge Base update failed; the prior local index was restored. Recovery: the later steps were not run; review the failed source and retry Smart Update."
+    )).toBeVisible();
+    expect(screen.getByText(/Recovery: the later steps were not run/i)).toBeVisible();
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it("prevents repeated Smart Update clicks while the initial check is still running", async () => {
+    let resolveCheck: (value: ReturnType<typeof jsonResponse>) => void = () => undefined;
+    const fetcher = vi.fn()
+      .mockImplementationOnce(() => new Promise<ReturnType<typeof jsonResponse>>((resolve) => {
+        resolveCheck = resolve;
+      }))
+      .mockResolvedValueOnce(jsonResponse({ status: "passed" }));
+    vi.stubGlobal("fetch", fetcher);
+
+    render(<KnowledgeBaseInventorySurface detailed inventory={inventory} />);
+    const smartUpdate = screen.getByRole("button", { name: "Smart Update" });
+    fireEvent.click(smartUpdate);
+    fireEvent.click(smartUpdate);
+
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Smart Update in progress" })).toBeDisabled();
+
+    resolveCheck(jsonResponse({
+      sourceChanges: [{ sourceId: "three_docs", changeStatus: "unchanged" }],
+      status: "review_ready"
+    }));
+
+    expect(await screen.findByText("Smart Update complete")).toBeVisible();
+    expect(fetcher).toHaveBeenCalledTimes(2);
   });
 });

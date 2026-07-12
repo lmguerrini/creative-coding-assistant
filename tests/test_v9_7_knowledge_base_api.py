@@ -7,6 +7,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from creative_coding_assistant.api.domain_experience import (
@@ -183,6 +184,43 @@ class V97KnowledgeBaseApiTests(unittest.TestCase):
             response["postBuildRetrievalValidation"],
             "deferred_to_explicit_evaluation",
         )
+
+    def test_failed_selected_update_restores_the_previous_valid_local_index(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            persist_dir = Path(temporary_directory) / "chroma"
+            persist_dir.mkdir()
+            marker_path = persist_dir / "valid-index-marker.txt"
+            marker_path.write_text("valid before update")
+            settings = Settings(
+                _env_file=None,
+                chroma_persist_dir=persist_dir,
+            )
+
+            class FailingSyncService:
+                def sync_selected_sources(self, source_ids):
+                    assert source_ids == ("three_docs",)
+                    marker_path.write_text("partial mutation")
+                    return SimpleNamespace(failed_count=1)
+
+            app = KnowledgeBaseApplication(
+                settings_factory=lambda: settings,
+                sync_service_factory=lambda **_kwargs: FailingSyncService(),
+            )
+            headers: dict[str, object] = {}
+            response = _call(
+                app,
+                {
+                    "action": "update",
+                    "confirmed": True,
+                    "sourceIds": ["three_docs"],
+                },
+                headers,
+            )
+
+            self.assertEqual(headers["status"], "503 Service Unavailable")
+            self.assertEqual(response["error"], "knowledge_base_update_failed")
+            self.assertIn("prior local index was restored", response["message"])
+            self.assertEqual(marker_path.read_text(), "valid before update")
 
 
 def _call(

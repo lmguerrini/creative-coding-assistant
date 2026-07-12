@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   formatDomainDeliveryKind,
   getDomainExperienceRecord,
@@ -8,6 +8,11 @@ import {
   type DomainExperienceRecord,
   type KnowledgeBaseInventory
 } from "@/lib/domain-experience";
+import {
+  readKnowledgeBaseSmartUpdateSnapshot,
+  writeKnowledgeBaseSmartUpdateSnapshot,
+  type KnowledgeBaseSmartUpdateSnapshot
+} from "@/lib/kb-smart-update";
 
 export function DomainExperienceSurface({
   activeDomainId,
@@ -185,11 +190,19 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
     sourceChanges: KnowledgeBaseSourceChange[];
   } | null>(null);
   const [runningAction, setRunningAction] = useState<KnowledgeBaseAction | null>(null);
+  const [smartUpdateRunning, setSmartUpdateRunning] = useState(false);
+  const [smartUpdateState, setSmartUpdateState] = useState<SmartUpdateState | null>(null);
+  const [latestSmartUpdate, setLatestSmartUpdate] = useState<KnowledgeBaseSmartUpdateSnapshot | null>(null);
+  const smartUpdateInFlight = useRef(false);
   const sourceIds = inventory.sources.map((source) => source.id);
   const sourceTitleById = new Map(inventory.sources.map((source) => [source.id, source.title]));
-  const operationRunning = runningAction !== null;
+  const operationRunning = runningAction !== null || smartUpdateRunning;
   const areAllSourcesSelected =
     sourceIds.length > 0 && sourceIds.every((sourceId) => selectedSourceIds.includes(sourceId));
+
+  useEffect(() => {
+    setLatestSmartUpdate(readKnowledgeBaseSmartUpdateSnapshot());
+  }, []);
 
   function toggleSource(sourceId: string) {
     setSelectedSourceIds((current) =>
@@ -203,7 +216,36 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
     setSelectedSourceIds(areAllSourcesSelected ? [] : sourceIds);
   }
 
+  function setSmartStep(
+    stepId: SmartUpdateStepId,
+    status: SmartUpdateStepStatus,
+    detail?: string
+  ) {
+    setSmartUpdateState((current) => current
+      ? {
+          ...current,
+          steps: current.steps.map((step) =>
+            step.id === stepId ? { ...step, status, ...(detail ? { detail } : {}) } : step
+          )
+        }
+      : current);
+  }
+
+  function failSmartUpdate(stepId: SmartUpdateStepId, message: string) {
+    setSmartStep(stepId, "failed", message);
+    setSmartUpdateState((current) => current
+      ? {
+          ...current,
+          detail: `${message} Recovery: the later steps were not run; review the failed source and retry Smart Update.`,
+          status: "failed"
+        }
+      : current);
+  }
+
   async function runOperation(action: KnowledgeBaseAction) {
+    if (operationRunning) {
+      return;
+    }
     if (
       (action === "update" || action === "rebuild") &&
       !window.confirm(
@@ -219,20 +261,11 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
       sourceChanges: []
     });
     try {
-      const response = await fetch(getKnowledgeBaseEndpoint(), {
-        body: JSON.stringify({
-          action,
-          confirmed: action === "update" || action === "rebuild",
-          sourceIds: selectedSourceIds
-        }),
-        headers: { "Content-Type": "application/json" },
-        method: "POST"
-      });
-      const payload: unknown = await response.json();
-      const record = asRecord(payload);
-      if (!response.ok || !record) {
-        throw new Error(readText(record?.message) ?? "Knowledge Base operation is unavailable.");
-      }
+      const record = await requestKnowledgeBaseOperation(
+        action,
+        selectedSourceIds,
+        action === "update" || action === "rebuild"
+      );
       const sourceChanges = readKnowledgeBaseSourceChanges(record.sourceChanges);
       if (action === "check") {
         const unavailableSourceIds = new Set(
@@ -265,6 +298,111 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
     }
   }
 
+  async function runSmartUpdate() {
+    if (smartUpdateInFlight.current || operationRunning || sourceIds.length === 0) {
+      return;
+    }
+
+    const sourceScope = selectedSourceIds.length > 0 ? selectedSourceIds : sourceIds;
+    const scopeDescription = selectedSourceIds.length > 0 ? "the selected" : "all registered";
+    if (!window.confirm(
+      `Smart Update will check ${scopeDescription} official sources, then update and rebuild only reachable changed sources before validating the local index. Continue?`
+    )) {
+      return;
+    }
+
+    smartUpdateInFlight.current = true;
+    setSmartUpdateRunning(true);
+    setOperationState(null);
+    setSmartUpdateState({
+      affectedSourceCount: 0,
+      detail: `Checking ${sourceScope.length} official ${sourceScope.length === 1 ? "source" : "sources"}. No local index changes have started.`,
+      scopeSourceCount: sourceScope.length,
+      status: "running",
+      steps: SMART_UPDATE_STEPS.map((step) => ({
+        ...step,
+        status: step.id === "check" ? "running" : "pending"
+      })),
+      unavailableSourceCount: 0
+    });
+
+    let activeStep: SmartUpdateStepId = "check";
+    try {
+      const checkRecord = await requestKnowledgeBaseOperation("check", sourceScope, false);
+      const sourceChanges = readKnowledgeBaseSourceChanges(checkRecord.sourceChanges);
+      const unavailableSourceIds = sourceChanges
+        .filter((change) => change.changeStatus === "unavailable")
+        .map((change) => change.sourceId);
+      const affectedSourceIds = sourceChanges
+        .filter((change) => change.changeStatus === "new" || change.changeStatus === "changed")
+        .map((change) => change.sourceId);
+
+      setSelectedSourceIds(affectedSourceIds);
+      setSmartStep("check", "completed", `${sourceScope.length} checked; ${affectedSourceIds.length} changed and reachable.`);
+      setSmartUpdateState((current) => current
+        ? {
+            ...current,
+            affectedSourceCount: affectedSourceIds.length,
+            detail: smartCheckDetail(affectedSourceIds.length, unavailableSourceIds.length),
+            unavailableSourceCount: unavailableSourceIds.length
+          }
+        : current);
+
+      if (affectedSourceIds.length === 0) {
+        setSmartStep("update", "skipped", "No changed reachable sources.");
+        setSmartStep("rebuild", "skipped", "No affected index needs rebuilding.");
+      } else {
+        activeStep = "update";
+        setSmartStep("update", "running", `Updating ${affectedSourceIds.length} affected source${affectedSourceIds.length === 1 ? "" : "s"}.`);
+        await requestKnowledgeBaseOperation("update", affectedSourceIds, true);
+        setSmartStep("update", "completed", `${affectedSourceIds.length} affected source${affectedSourceIds.length === 1 ? " was" : "s were"} updated.`);
+
+        activeStep = "rebuild";
+        setSmartStep("rebuild", "running", `Rebuilding ${affectedSourceIds.length} affected index${affectedSourceIds.length === 1 ? "" : "es"}.`);
+        await requestKnowledgeBaseOperation("rebuild", affectedSourceIds, true);
+        setSmartStep("rebuild", "completed", `${affectedSourceIds.length} affected index${affectedSourceIds.length === 1 ? " was" : "es were"} rebuilt.`);
+      }
+
+      activeStep = "validate";
+      setSmartStep("validate", "running", "Validating the local index after the completed source work.");
+      const validationRecord = await requestKnowledgeBaseOperation("validate", [], false);
+      const validationStatus = readText(validationRecord.status) ?? "unknown";
+      if (validationStatus !== "passed") {
+        failSmartUpdate("validate", readText(validationRecord.detail) ?? "The local index needs attention after Smart Update.");
+        return;
+      }
+
+      const completedAt = new Date().toISOString();
+      const snapshot: KnowledgeBaseSmartUpdateSnapshot = {
+        affectedSourceCount: affectedSourceIds.length,
+        completedAt,
+        rebuiltSourceCount: affectedSourceIds.length,
+        scopeSourceCount: sourceScope.length,
+        unavailableSourceCount: unavailableSourceIds.length,
+        updatedSourceCount: affectedSourceIds.length,
+        validationStatus
+      };
+      writeKnowledgeBaseSmartUpdateSnapshot(snapshot);
+      setLatestSmartUpdate(snapshot);
+      setSmartStep("validate", "completed", "Local index validation passed.");
+      setSmartUpdateState((current) => current
+        ? {
+            ...current,
+            detail: smartCompletionDetail(affectedSourceIds.length, unavailableSourceIds.length),
+            status: "completed"
+          }
+        : current);
+    } catch (error) {
+      const message = error instanceof Error
+        ? error.message
+        : "Smart Update could not complete.";
+      failSmartUpdate(activeStep, message);
+    } finally {
+      smartUpdateInFlight.current = false;
+      setSmartUpdateRunning(false);
+    }
+  }
+
   return (
     <section
       aria-busy={operationRunning}
@@ -277,7 +415,19 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
           <strong>Official sources</strong>
           <p>Registry inventory is separate from the references used in the current run.</p>
         </div>
-        <div className="kbSourceActions" role="group" aria-label="Knowledge Base update actions">
+        <div className="kbSmartUpdateActions" role="group" aria-label="Knowledge Base Smart Update action">
+          <button
+            aria-label={smartUpdateRunning ? "Smart Update in progress" : undefined}
+            className="kbSmartUpdateButton"
+            disabled={operationRunning || sourceIds.length === 0}
+            onClick={() => void runSmartUpdate()}
+            type="button"
+          >
+            {smartUpdateRunning ? <><span aria-hidden="true" className="kbActionSpinner" />Smart Update running</> : "Smart Update"}
+          </button>
+          <span>Checks, updates changed reachable sources, rebuilds, then validates after one confirmation.</span>
+        </div>
+        <div className="kbSourceActions" role="group" aria-label="Advanced Knowledge Base update actions">
           <button
             aria-pressed={areAllSourcesSelected}
             disabled={operationRunning || sourceIds.length === 0}
@@ -296,26 +446,51 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
               <><span aria-hidden="true" className="kbActionSpinner" />Checking sources</>
             ) : "Check for updates"}
           </button>
-          <button disabled={operationRunning} onClick={() => void runOperation("validate")} type="button">
-            Validate index
-          </button>
           <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("update")} type="button">
             Update selected
           </button>
           <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("rebuild")} type="button">
             Rebuild selected
           </button>
+          <button disabled={operationRunning} onClick={() => void runOperation("validate")} type="button">
+            Validate index
+          </button>
         </div>
       </header>
       <p className="kbSourceBoundary">
-        Select sources to check their official content fingerprints. Updating is an explicit, confirmed operation; a failed rebuild restores the prior local index.
+        Smart Update uses all registered sources when none are selected. It checks first, writes only changed reachable sources after your confirmation, and keeps the prior valid local index when a write fails.
       </p>
       <ul aria-label="Knowledge Base action guide" className="kbActionGuide">
+        <li><strong>Smart Update</strong><span>Checks first, then updates and rebuilds only changed reachable sources before validation.</span></li>
         <li><strong>Check for updates</strong><span>Compares official content with local fingerprints. Read-only.</span></li>
-        <li><strong>Validate index</strong><span>Inspects the local index only. No official pages are fetched.</span></li>
         <li><strong>Update selected</strong><span>Synchronizes selected official content after confirmation.</span></li>
         <li><strong>Rebuild selected</strong><span>Re-runs the selected source build; a failure restores the prior index.</span></li>
+        <li><strong>Validate index</strong><span>Inspects the local index only. No official pages are fetched.</span></li>
       </ul>
+      {smartUpdateState ? (
+        <section aria-live="polite" className="kbSmartUpdateStatus" data-status={smartUpdateState.status}>
+          <header>
+            <div>
+              <strong>{smartUpdateState.status === "completed" ? "Smart Update complete" : smartUpdateState.status === "failed" ? "Smart Update needs attention" : "Smart Update in progress"}</strong>
+              <p>{smartUpdateState.detail}</p>
+            </div>
+            <span>{smartUpdateState.scopeSourceCount} checked · {smartUpdateState.affectedSourceCount} affected · {smartUpdateState.unavailableSourceCount} unavailable</span>
+          </header>
+          <ol aria-label="Smart Update progress">
+            {smartUpdateState.steps.map((step) => (
+              <li aria-current={step.status === "running" ? "step" : undefined} data-status={step.status} key={step.id}>
+                <span aria-hidden="true" className={step.status === "running" ? "kbSmartStepSpinner" : "kbSmartStepMarker"} />
+                <div><strong>{step.label}</strong><small>{step.detail}</small></div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
+      {latestSmartUpdate ? (
+        <p className="kbSmartUpdateHistory">
+          Last successful Smart Update: {formatIndexedAt(latestSmartUpdate.completedAt)} · {latestSmartUpdate.affectedSourceCount} affected · validation passed.
+        </p>
+      ) : null}
       {operationState ? (
         <>
           <p aria-live="polite" className="kbOperationStatus" data-status={operationState.status}>
@@ -389,6 +564,63 @@ type KnowledgeBaseSourceChange = {
 };
 
 type KnowledgeBaseAction = "check" | "validate" | "update" | "rebuild";
+
+type SmartUpdateStepId = "check" | "update" | "rebuild" | "validate";
+type SmartUpdateStepStatus = "pending" | "running" | "completed" | "skipped" | "failed";
+type SmartUpdateState = {
+  affectedSourceCount: number;
+  detail: string;
+  scopeSourceCount: number;
+  status: "running" | "completed" | "failed";
+  steps: Array<{ detail: string; id: SmartUpdateStepId; label: string; status: SmartUpdateStepStatus }>;
+  unavailableSourceCount: number;
+};
+
+const SMART_UPDATE_STEPS: Array<{ detail: string; id: SmartUpdateStepId; label: string }> = [
+  { detail: "Compare official content with local fingerprints.", id: "check", label: "Check for updates" },
+  { detail: "Write only changed reachable official sources.", id: "update", label: "Update affected" },
+  { detail: "Rebuild only the affected local source indexes.", id: "rebuild", label: "Rebuild affected" },
+  { detail: "Verify the resulting local index.", id: "validate", label: "Validate index" }
+];
+
+async function requestKnowledgeBaseOperation(
+  action: KnowledgeBaseAction,
+  sourceIds: string[],
+  confirmed: boolean
+) {
+  const response = await fetch(getKnowledgeBaseEndpoint(), {
+    body: JSON.stringify({ action, confirmed, sourceIds }),
+    headers: { "Content-Type": "application/json" },
+    method: "POST"
+  });
+  const payload: unknown = await response.json();
+  const record = asRecord(payload);
+  if (!response.ok || !record) {
+    throw new Error(readText(record?.message) ?? "Knowledge Base operation is unavailable.");
+  }
+  return record;
+}
+
+function smartCheckDetail(affectedSourceCount: number, unavailableSourceCount: number) {
+  if (affectedSourceCount === 0) {
+    return unavailableSourceCount > 0
+      ? `No changed reachable sources were found. ${unavailableSourceCount} unavailable ${unavailableSourceCount === 1 ? "source was" : "sources were"} skipped; their prior local index remains valid.`
+      : "No changed reachable sources were found. Update and rebuild will be skipped.";
+  }
+  const affectedDetail = `${affectedSourceCount} changed reachable ${affectedSourceCount === 1 ? "source" : "sources"}`;
+  return unavailableSourceCount > 0
+    ? `${affectedDetail} will be updated. ${unavailableSourceCount} unavailable ${unavailableSourceCount === 1 ? "source was" : "sources were"} skipped; their prior local index remains valid.`
+    : `${affectedDetail} will be updated and rebuilt.`;
+}
+
+function smartCompletionDetail(affectedSourceCount: number, unavailableSourceCount: number) {
+  const sourceDetail = affectedSourceCount === 0
+    ? "No changed reachable sources required a write."
+    : `${affectedSourceCount} affected ${affectedSourceCount === 1 ? "source was" : "sources were"} updated and rebuilt.`;
+  return unavailableSourceCount > 0
+    ? `${sourceDetail} ${unavailableSourceCount} unavailable ${unavailableSourceCount === 1 ? "source was" : "sources were"} skipped; validation passed.`
+    : `${sourceDetail} Validation passed.`;
+}
 
 function readKnowledgeBaseSourceChanges(value: unknown): KnowledgeBaseSourceChange[] {
   if (!Array.isArray(value)) {
