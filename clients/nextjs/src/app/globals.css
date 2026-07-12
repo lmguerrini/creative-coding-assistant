@@ -14381,19 +14381,28 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   background: var(--surface-2);
 }
 
+.productDashboardManual article > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
+}
+
 /* Dashboard V9.7 follow-up: one decision per page, with scan-friendly cards. */
 .productDashboard {
   grid-template-columns: minmax(236px, 292px) minmax(0, 1fr);
 }
 
 .productDashboardNav > div {
-  gap: 5px;
+  gap: 3px;
   padding: 10px;
 }
 
 .productDashboardNav button {
-  gap: 5px;
-  padding: 11px 12px;
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 10px 12px;
   border-radius: 12px;
 }
 
@@ -14402,10 +14411,8 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   font-weight: 780;
 }
 
-.productDashboardNav button > small {
-  font-size: 11px;
-  line-height: 1.3;
-  white-space: normal;
+.productDashboardNav header {
+  padding: 18px 22px 14px;
 }
 
 .productDashboardContentHeader {
@@ -14528,6 +14535,153 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   padding: 10px 12px;
   font-size: 12px;
   line-height: 1.45;
+}
+
+.dashboardSignalBoard {
+  border: 1px solid rgba(255, 255, 255, 0.13);
+}
+
+.dashboardSignalBoard[data-tone="ready"] {
+  border-color: color-mix(in srgb, var(--green) 38%, var(--line));
+}
+
+.dashboardSignalBoard[data-tone="active"] {
+  border-color: color-mix(in srgb, var(--teal) 48%, var(--line));
+}
+
+.dashboardSignalBoard[data-tone="attention"] {
+  border-color: color-mix(in srgb, var(--coral) 46%, var(--line));
+}
+
+.dashboardSignalBoardGrid {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.85fr) minmax(0, 1.65fr);
+  gap: 12px;
+  padding: 0 18px 12px;
+}
+
+.dashboardSignalLead {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  min-height: 154px;
+  padding: 16px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--teal) 18%, transparent), transparent 44%),
+    rgba(0, 0, 0, 0.12);
+}
+
+.dashboardSignalLead[data-tone="attention"] {
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--coral) 20%, transparent), transparent 44%),
+    rgba(0, 0, 0, 0.12);
+}
+
+.dashboardSignalLead > span,
+.dashboardEvidenceCues li > span,
+.dashboardSignalMetrics dt {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 820;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.dashboardSignalLead > strong {
+  color: var(--foreground);
+  font-size: 20px;
+  line-height: 1.12;
+}
+
+.dashboardSignalLead > p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.42;
+}
+
+.dashboardSignalLead > small {
+  align-self: end;
+  margin-top: auto;
+  color: var(--teal);
+  font-size: 11px;
+  font-weight: 760;
+}
+
+.dashboardSignalMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.dashboardSignalMetrics > div {
+  display: grid;
+  align-content: space-between;
+  min-width: 0;
+  min-height: 72px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.dashboardSignalMetrics dd {
+  margin: 7px 0 2px;
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 16px;
+  font-weight: 760;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboardSignalMetrics small {
+  overflow: hidden;
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 720;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboardEvidenceCues {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0 18px 18px;
+  list-style: none;
+}
+
+.dashboardEvidenceCues li {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.dashboardEvidenceCues p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.dashboardFeatureActions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
 }
 
 .dashboardFeature,
@@ -14720,7 +14874,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 .userUsageOverview dt { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
 .userUsageOverview dd { overflow: hidden; margin: 0; color: var(--foreground); font-size: 17px; font-weight: 760; text-overflow: ellipsis; white-space: nowrap; }
 
-.sessionRegistry > header > button,
+.sessionRegistry > header button,
 .sessionRegistryTable button,
 .dashboardThemeChoices button,
 .dashboardScaleControl button,
@@ -14734,6 +14888,13 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .sessionRegistry > header > button {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.sessionRegistry .dashboardFeatureActions > button {
   min-height: 36px;
   padding: 0 12px;
   font-size: 12px;
@@ -14906,8 +15067,18 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   }
 
   .architectureRouteGrid,
+  .dashboardSignalBoardGrid,
+  .dashboardEvidenceCues,
   .userUsageOverview > dl {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboardSignalMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .productDashboardManual article > header {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .sessionRegistryTable {

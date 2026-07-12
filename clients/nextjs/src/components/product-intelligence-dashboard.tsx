@@ -192,6 +192,16 @@ const dashboardGroups: DashboardGroup[] = [
   }
 ];
 
+const dashboardGroupsWithSignalBoard = new Set<DashboardGroupId>([
+  "overview",
+  "architecture",
+  "workflow",
+  "workspace",
+  "runtime",
+  "preview",
+  "memory"
+]);
+
 export function ProductIntelligenceDashboard({
   activeCategory,
   model,
@@ -244,7 +254,6 @@ export function ProductIntelligenceDashboard({
         <header>
           <span>Advanced Dashboard</span>
           <strong>Workspace intelligence</strong>
-          <p>Detailed state, grouped by the decisions you need to make.</p>
         </header>
         <div role="list">
           {dashboardGroups.map((group) => {
@@ -261,7 +270,6 @@ export function ProductIntelligenceDashboard({
                 type="button"
               >
                 <span>{group.label}</span>
-                <small>{group.detail}</small>
               </button>
             );
           })}
@@ -325,19 +333,34 @@ function DashboardGroupView({
     return (
       <section aria-label="Workspace manual" className="productDashboardManual">
         <article>
-          <span>Start a run</span>
-          <strong>Describe a visual system, then choose a workflow route.</strong>
-          <p>Use the workspace for the conversation; open Preview, Code, or Saved only when they add context.</p>
+          <header>
+            <div>
+              <span>Start a run</span>
+              <strong>Describe a visual system, then choose a workflow route.</strong>
+              <p>Use the workspace for the conversation; open Preview, Code, or Saved only when they add context.</p>
+            </div>
+            <DashboardPanelHelp detail="A first prompt establishes the creative brief. Workflow selection changes orchestration, not the proven runtime boundaries of the workspace." label="Start a run" />
+          </header>
         </article>
         <article>
-          <span>Read the result</span>
-          <strong>Check the artifact, visible output, and runtime health separately.</strong>
-          <p>Advanced Dashboard keeps diagnostics, source evidence, and workflow detail together without crowding the creative session.</p>
+          <header>
+            <div>
+              <span>Read the result</span>
+              <strong>Check the artifact, visible output, and runtime health separately.</strong>
+              <p>Advanced Dashboard keeps diagnostics, source evidence, and workflow detail together without crowding the creative session.</p>
+            </div>
+            <DashboardPanelHelp detail="An artifact, its browser preview, and its runtime health are related but distinct signals. Review each before deciding whether to refine." label="Read the result" />
+          </header>
         </article>
         <article>
-          <span>Keep boundaries honest</span>
-          <strong>Live preview, code/export, and external-tool handoff are distinct outcomes.</strong>
-          <p>Use the Domain and Knowledge sections to confirm what is available in this browser workspace.</p>
+          <header>
+            <div>
+              <span>Keep boundaries honest</span>
+              <strong>Live preview, code/export, and external-tool handoff are distinct outcomes.</strong>
+              <p>Use the Domain and Knowledge sections to confirm what is available in this browser workspace.</p>
+            </div>
+            <DashboardPanelHelp detail="The Dashboard distinguishes what can run now in the browser from source that can be exported or handed to another application." label="Delivery boundaries" />
+          </header>
         </article>
       </section>
     );
@@ -349,6 +372,9 @@ function DashboardGroupView({
 
   return (
     <div className="productDashboardGroup" aria-label={`${group.label} details`}>
+      {dashboardGroupsWithSignalBoard.has(group.id) ? (
+        <DashboardSignalBoard group={group} model={model} />
+      ) : null}
       {group.categories.map((category) => {
         const section = getProductIntelligenceSection(model, category);
         return (
@@ -386,9 +412,12 @@ function DashboardGroupView({
       {group.id === "ai_agents" && feedback ? (
         <section className="productDashboardGroupSection productDashboardFeedback">
           <header>
-            <span>Feedback</span>
-            <strong>Shape future creative requests</strong>
-            <p>Explicit feedback stays in this local workspace profile.</p>
+            <div>
+              <span>Feedback</span>
+              <strong>Shape future creative requests</strong>
+              <p>Explicit feedback stays in this local workspace profile.</p>
+            </div>
+            <DashboardPanelHelp detail="Feedback records an explicit local response to the current artifact. It is not silently sent to an external provider." label="Output feedback" />
           </header>
           <OutputFeedbackPanel
             artifactTitle={feedback.artifactTitle}
@@ -397,6 +426,77 @@ function DashboardGroupView({
         </section>
       ) : null}
     </div>
+  );
+}
+
+function DashboardSignalBoard({
+  group,
+  model
+}: {
+  group: DashboardGroup;
+  model: ProductIntelligenceModel;
+}) {
+  const sections = group.categories.map((category) => getProductIntelligenceSection(model, category));
+  const primary = sections[0]!;
+  const metrics = sections.flatMap((section) => section.metrics.map((metric) => ({
+    ...metric,
+    category: section.category
+  })));
+  const evidence = sections.flatMap((section) => section.notes.map((note) => ({
+    category: section.category,
+    note
+  }))).slice(0, 3);
+  const signalMetrics = [
+    ...metrics,
+    { category: "Live board", label: "Published metrics", value: String(metrics.length) },
+    { category: "Live board", label: "Evidence cues", value: String(evidence.length) }
+  ].slice(0, 6);
+
+  return (
+    <section
+      aria-label={`${group.label} live signal board`}
+      className="dashboardFeature dashboardSignalBoard"
+      data-tone={primary.tone}
+    >
+      <header>
+        <div>
+          <span>Live signal board</span>
+          <strong>{formatUiStatusLabel(primary.summary)}</strong>
+          <p>Current workspace evidence for {group.label.toLowerCase()}.</p>
+        </div>
+        <DashboardPanelHelp
+          detail={`This board visualizes published ${group.label.toLowerCase()} state from the shared workspace model. It never infers private provider reasoning or unpublished runtime data.`}
+          label={`${group.label} live signal board`}
+        />
+      </header>
+      <div className="dashboardSignalBoardGrid">
+        <article className="dashboardSignalLead" data-tone={primary.tone}>
+          <span>Current state</span>
+          <strong>{formatUiStatusLabel(primary.summary)}</strong>
+          <p>{primary.detail}</p>
+          <small>{primary.category} · {formatUiStatusLabel(primary.tone)}</small>
+        </article>
+        <dl aria-label={`${group.label} signal metrics`} className="dashboardSignalMetrics">
+          {signalMetrics.map((metric) => (
+            <div key={`${metric.category}-${metric.label}`}>
+              <dt>{metric.label}</dt>
+              <dd title={metric.value}>{metric.value}</dd>
+              <small>{metric.category}</small>
+            </div>
+          ))}
+        </dl>
+      </div>
+      {evidence.length > 0 ? (
+        <ul aria-label={`${group.label} evidence cues`} className="dashboardEvidenceCues">
+          {evidence.map((item) => (
+            <li key={`${item.category}-${item.note}`}>
+              <span>{item.category}</span>
+              <p>{item.note}</p>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
   );
 }
 
@@ -427,6 +527,10 @@ function ArchitectureRouteGuide() {
           <strong>Three clear ways work can move through the studio</strong>
           <p>The live Architecture card above reports the route used for the current run.</p>
         </div>
+        <DashboardPanelHelp
+          detail="These route diagrams explain the product’s published execution shapes. The active route is reported from the current run, not guessed from the request."
+          label="Workflow route guide"
+        />
       </header>
       <div className="architectureRouteGrid">
         {routes.map((route) => (
@@ -465,6 +569,10 @@ function KnowledgePrinciples() {
           <strong>Visible creative criteria, separate from the source inventory</strong>
           <p>These are the product’s readable design lenses—not hidden provider reasoning.</p>
         </div>
+        <DashboardPanelHelp
+          detail="These are concise creative review lenses used to describe visual, audio, interaction, and runtime qualities. They do not imply a hidden scoring system."
+          label="Creative design principles"
+        />
       </header>
       <ul>
         {principles.map(([label, detail]) => (
@@ -496,6 +604,10 @@ function ArtifactRegistry({ model }: { model: ProductIntelligenceModel }) {
           <strong>{model.artifactRegistry.length} saved deliverable{model.artifactRegistry.length === 1 ? "" : "s"}</strong>
           <p>Every entry names its source session and keeps a readable, bounded source excerpt.</p>
         </div>
+        <DashboardPanelHelp
+          detail="This registry lists artifacts retained by the active workspace snapshot. Source excerpts are bounded for readability and do not claim that an external handoff runs in this browser."
+          label="Artifact registry"
+        />
       </header>
       <div role="list">
         {model.artifactRegistry.map((artifact) => (
@@ -558,7 +670,13 @@ function SessionRegistry({ controls }: { controls: DashboardSessionControls }) {
           <strong>{controls.sessions.length} local creative session{controls.sessions.length === 1 ? "" : "s"}</strong>
           <p>Sessions are stored for this browser profile. Rename, open, or remove them here.</p>
         </div>
-        <button onClick={controls.onCreate} type="button">New session</button>
+        <div className="dashboardFeatureActions">
+          <DashboardPanelHelp
+            detail="Sessions are isolated to this browser profile. Tokens and cost are shown only when the provider published them for the retained runs."
+            label="Session registry"
+          />
+          <button onClick={controls.onCreate} type="button">New session</button>
+        </div>
       </header>
       <div className="sessionRegistryTable" role="table" aria-label="Saved sessions">
         <div role="row">
@@ -626,6 +744,10 @@ function UserUsageOverview({ usage }: { usage: SessionUsageSummary[] }) {
           <strong>Usage retained across local sessions</strong>
           <p>Only provider-published token and cost data is counted. Missing provider fields remain visibly unreported.</p>
         </div>
+        <DashboardPanelHelp
+          detail="These totals aggregate only local-session records with provider-published usage fields. Unknown token or cost values are deliberately kept out of the totals."
+          label="Browser profile usage"
+        />
       </header>
       <dl>
         <div><dt>Sessions</dt><dd>{usage.length}</dd></div>
@@ -660,7 +782,10 @@ function DashboardSettings({ controls }: { controls: DashboardSettingsControls }
   return (
     <section aria-label="Dashboard settings" className="dashboardSettings">
       <article>
-        <header><span>Appearance</span><strong>Theme and colour</strong><p>The selected theme controls the accessible text, surface, and accent colours for this saved session.</p></header>
+        <header>
+          <div><span>Appearance</span><strong>Theme and colour</strong><p>The selected theme controls the accessible text, surface, and accent colours for this saved session.</p></div>
+          <DashboardPanelHelp detail="Theme changes the saved visual palette for this browser workspace. It does not change the generated artifact or workflow configuration." label="Appearance settings" />
+        </header>
         <div className="dashboardThemeChoices" role="group" aria-label="Theme options">
           {themes.map((theme) => (
             <button aria-pressed={preferences.theme === theme} data-theme={theme} key={theme} onClick={() => controls.onPreferencesChange({ theme })} type="button">{theme}</button>
@@ -668,14 +793,20 @@ function DashboardSettings({ controls }: { controls: DashboardSettingsControls }
         </div>
       </article>
       <article>
-        <header><span>Typography</span><strong>Comfortable reading</strong><p>Adjust the application and code scales independently. These settings are restored with this session.</p></header>
+        <header>
+          <div><span>Typography</span><strong>Comfortable reading</strong><p>Adjust the application and code scales independently. These settings are restored with this session.</p></div>
+          <DashboardPanelHelp detail="Interface and code sizes are saved per local workspace session, so the reading preference returns when that session is reopened." label="Typography settings" />
+        </header>
         <div className="dashboardSettingRows">
           <DashboardScaleControl label="Interface text" onChange={(uiFontSize) => controls.onPreferencesChange({ uiFontSize })} scales={scales} value={preferences.uiFontSize} />
           <DashboardScaleControl label="Code text" onChange={(codeFontSize) => controls.onPreferencesChange({ codeFontSize })} scales={scales} value={preferences.codeFontSize} />
         </div>
       </article>
       <article>
-        <header><span>Workspace</span><strong>Layout and focus</strong><p>Bring back the compact, focus, preview, and developer controls that are intentionally removed from the top bar.</p></header>
+        <header>
+          <div><span>Workspace</span><strong>Layout and focus</strong><p>Bring back the compact, focus, preview, and developer controls that are intentionally removed from the top bar.</p></div>
+          <DashboardPanelHelp detail="These controls restore the workspace, preview, inspector, density, and display choices that are saved for this local session." label="Workspace settings" />
+        </header>
         <div className="dashboardSettingRows">
           <DashboardToggle label="Density" onClick={() => controls.onDensityChange(layoutState.density === "cozy" ? "compact" : "cozy")} value={layoutState.density === "cozy" ? "Cozy" : "Compact"} />
           <DashboardToggle label="Focus" onClick={controls.onFocusModeToggle} value={controls.isFocusMode ? "On" : "Off"} />
@@ -775,17 +906,32 @@ export function ProductIntelligenceHelp({
   section: ProductIntelligenceSection;
 }) {
   return (
+    <DashboardPanelHelp
+      detail={section.detail}
+      guidance="Review the metric cards for the current values, then use the Dashboard categories or Inspector tabs to change context."
+      label={section.category}
+    />
+  );
+}
+
+function DashboardPanelHelp({
+  detail,
+  guidance,
+  label
+}: {
+  detail: string;
+  guidance?: string;
+  label: string;
+}) {
+  return (
     <details className="productIntelligenceHelp">
-      <summary aria-label={`Help with ${section.category}`}>
+      <summary aria-label={`Help with ${label}`}>
         <CircleHelp aria-hidden="true" size={15} />
       </summary>
       <div role="note">
-        <strong>{section.category}</strong>
-        <p>{section.detail}</p>
-        <p>
-          Review the metric cards for the current values, then use the
-          Dashboard categories or Inspector tabs to change context.
-        </p>
+        <strong>{label}</strong>
+        <p>{detail}</p>
+        {guidance ? <p>{guidance}</p> : null}
       </div>
     </details>
   );

@@ -45,11 +45,15 @@ describe("Product Intelligence surfaces", () => {
       />
     );
 
-    expect(screen.getByRole("navigation", { name: "Dashboard categories" }))
+    const navigation = screen.getByRole("navigation", { name: "Dashboard categories" });
+    expect(navigation)
       .toHaveTextContent("Manual guide");
-    expect(screen.getByRole("navigation", { name: "Dashboard categories" }))
+    expect(navigation)
       .toHaveTextContent("Knowledge Base");
+    expect(navigation).not.toHaveTextContent("Current workspace outcome and selected artifact.");
     expect(screen.getByRole("heading", { name: "Overview" })).toBeVisible();
+    expect(screen.getByLabelText("Overview live signal board")).toBeVisible();
+    expect(screen.getByLabelText("Help with Overview live signal board")).toBeVisible();
 
     fireEvent.click(screen.getAllByLabelText("Help with Overview")[0]!);
     expect(screen.getAllByRole("note")[0]).toHaveTextContent(
