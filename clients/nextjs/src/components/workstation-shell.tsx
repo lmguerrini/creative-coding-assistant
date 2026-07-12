@@ -2524,6 +2524,10 @@ export function WorkstationShell({
       return;
     }
 
+    if (scenario.requiresImageAttachment && imageAttachments.length === 0) {
+      return;
+    }
+
     setActiveDemoScenarioId(scenario.id);
     setIsDemoModeOpen(false);
     setWorkflowMode(scenario.workflowMode);
@@ -3709,6 +3713,7 @@ export function WorkstationShell({
               {isDemoModeOpen ? (
                 <DemoModePanel
                   activeScenario={activeDemoScenario}
+                  hasImageAttachment={imageAttachments.length > 0}
                   scenarios={demoModeScenarios}
                   onLoadScenario={handleDemoScenarioLoad}
                   onSelectScenario={handleDemoScenarioSelect}
@@ -4317,17 +4322,21 @@ function EmptyWorkspaceState({
 
 function DemoModePanel({
   activeScenario,
+  hasImageAttachment,
   onLoadScenario,
   onSelectScenario,
   scenarios,
   showDebugPanels
 }: {
   activeScenario: DemoModeScenario;
+  hasImageAttachment: boolean;
   onLoadScenario: (scenario: DemoModeScenario) => void;
   onSelectScenario: (scenario: DemoModeScenario) => void;
   scenarios: readonly DemoModeScenario[];
   showDebugPanels: boolean;
 }) {
+  const imageAttachmentRequired = activeScenario.requiresImageAttachment === true;
+  const canRunActiveScenario = !imageAttachmentRequired || hasImageAttachment;
   const scenarioFacts = showDebugPanels
     ? ([
         ["Concept", activeScenario.concept],
@@ -4439,15 +4448,21 @@ function DemoModePanel({
             </div>
             <button
               className="demoModeLoadButton"
+              disabled={!canRunActiveScenario}
               onClick={() => onLoadScenario(activeScenario)}
               type="button"
             >
               <Play size={15} aria-hidden="true" />
-              <span>Load prompt &amp; run</span>
+              <span>{canRunActiveScenario ? "Load prompt & run" : "Attach image to run"}</span>
             </button>
           </header>
 
           <p className="demoScenarioDescription">{activeScenario.description}</p>
+          {imageAttachmentRequired && !hasImageAttachment ? (
+            <p className="demoScenarioInputNotice" role="status">
+              Add one image reference through the composer before running this demo.
+            </p>
+          ) : null}
 
           <dl className="demoScenarioQuickFacts">
             {scenarioFacts.map(([label, value]) => (

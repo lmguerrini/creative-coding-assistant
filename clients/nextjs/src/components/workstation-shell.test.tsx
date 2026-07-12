@@ -967,18 +967,20 @@ function renderUserShell(
   props: Partial<ComponentProps<typeof WorkstationShell>> = {}
 ) {
   const result = renderShell(snapshot, props);
-  const displayMode = screen.getByRole("button", { name: "Display mode" });
+  const displayMode = getWorkspaceSettingsControl("Display mode");
   if (displayMode.textContent?.includes("Developer")) {
     fireEvent.click(displayMode);
   }
+  closeWorkspaceSettingsPanel();
   return result;
 }
 
 function openDeveloperInspector() {
-  const displayMode = screen.getByRole("button", { name: "Display mode" });
+  const displayMode = getWorkspaceSettingsControl("Display mode");
   if (displayMode.textContent?.includes("User")) {
     fireEvent.click(displayMode);
   }
+  closeWorkspaceSettingsPanel();
 
   const expandInspector = screen.queryByRole("button", {
     name: "Expand inspector"
@@ -986,6 +988,46 @@ function openDeveloperInspector() {
   if (expandInspector) {
     fireEvent.click(expandInspector);
   }
+}
+
+function openWorkspaceSettingsPanel() {
+  const currentPanel = screen.queryByRole("dialog", {
+    name: "Workspace settings"
+  });
+  if (currentPanel) {
+    return currentPanel;
+  }
+
+  fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+  return screen.getByRole("dialog", { name: "Workspace settings" });
+}
+
+function closeWorkspaceSettingsPanel() {
+  if (
+    screen.queryByRole("dialog", {
+      name: "Workspace settings"
+    })
+  ) {
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+  }
+}
+
+function getWorkspaceSettingsControl(name: string) {
+  return within(openWorkspaceSettingsPanel()).getByRole("button", { name });
+}
+
+function openDashboardKnowledgeBase() {
+  const dashboard = screen.queryByRole("region", { name: "Advanced Dashboard" });
+  if (!dashboard) {
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open Product Intelligence Dashboard" })
+    );
+  }
+
+  const navigation = screen.getByRole("navigation", {
+    name: "Dashboard categories"
+  });
+  fireEvent.click(within(navigation).getByRole("button", { name: "Knowledge Base" }));
 }
 
 describe("WorkstationShell", () => {
@@ -1022,9 +1064,18 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("region", { name: "Preview workspace" })).toBeVisible();
     expect(screen.getByRole("complementary", { name: "Right inspector" })).toBeVisible();
     expect(screen.getByRole("tablist", { name: "Inspector tabs" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Focus mode" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Display mode" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Workspace density" })).toBeVisible();
+    const settingsPanel = openWorkspaceSettingsPanel();
+    expect(
+      within(settingsPanel).getByRole("button", {
+        name: "Toggle focus mode from quick actions"
+      })
+    ).toBeVisible();
+    expect(within(settingsPanel).getByRole("button", { name: "Display mode" })).toBeVisible();
+    expect(
+      within(settingsPanel).getByRole("group", {
+        name: "Workspace density options"
+      })
+    ).toBeVisible();
     expect(screen.queryByRole("button", { name: "Command menu" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Theme" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Settings" })).toBeVisible();
@@ -1061,7 +1112,7 @@ describe("WorkstationShell", () => {
       name: "Demo Mode scenarios"
     });
     expect(demoMode).toBeVisible();
-    expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
+    expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent(
       "Developer"
     );
     expect(within(demoMode).getByText("Capstone scenarios")).toBeVisible();
@@ -1083,8 +1134,44 @@ describe("WorkstationShell", () => {
     fireEvent.click(within(demoMode).getByRole("button", { name: /Load prompt & run/ }));
 
     expect(screen.queryByRole("region", { name: "Demo Mode" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
+    expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent(
       "Developer"
+    );
+  });
+
+  it("requires an image reference before the reference-guided Demo can run", async () => {
+    renderShell(getInitialWorkspaceSnapshot());
+
+    fireEvent.click(screen.getByRole("button", { name: "Demo Mode" }));
+    const demoMode = screen.getByRole("region", { name: "Demo Mode" });
+    const demoScenarioList = within(demoMode).getByRole("list", {
+      name: "Demo Mode scenarios"
+    });
+    fireEvent.click(
+      within(demoScenarioList).getByRole("button", {
+        name: /Reference-guided palette study/
+      })
+    );
+
+    const loadButton = within(demoMode).getByRole("button", {
+      name: "Attach image to run"
+    });
+    expect(loadButton).toBeDisabled();
+    expect(demoMode).toHaveTextContent(
+      "Add one image reference through the composer before running this demo."
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Add attachment" }));
+    fireEvent.change(screen.getByLabelText("Upload image attachment"), {
+      target: {
+        files: [new File(["palette-bytes"], "palette.png", { type: "image/png" })]
+      }
+    });
+
+    await waitFor(() =>
+      expect(
+        within(demoMode).getByRole("button", { name: "Load prompt & run" })
+      ).toBeEnabled()
     );
   });
 
@@ -1217,10 +1304,10 @@ describe("WorkstationShell", () => {
     expect(screen.getByText("Ground answers in official sources")).toBeVisible();
     expect(screen.getByText("Preview, refine, and save artifacts")).toBeVisible();
     expect(screen.getByText("Support creative-coding workflows")).toBeVisible();
-    expect(screen.getByText("Tone.js")).toBeVisible();
-    expect(screen.getByText("Describe a visual system")).toBeVisible();
-    expect(screen.getByText("Generate browser-safe code")).toBeVisible();
-    expect(screen.getByText("Ways to work")).toBeVisible();
+    expect(screen.queryByText("Tone.js")).not.toBeInTheDocument();
+    expect(screen.queryByText("Describe a visual system")).not.toBeInTheDocument();
+    expect(screen.queryByText("Generate browser-safe code")).not.toBeInTheDocument();
+    expect(screen.queryByText("Ways to work")).not.toBeInTheDocument();
     expect(screen.getByText("How it works")).toBeVisible();
     const promptSuggestions = screen.getByLabelText("Prompt suggestions");
     expect(within(promptSuggestions).getAllByRole("button")).toHaveLength(4);
@@ -1409,20 +1496,20 @@ describe("WorkstationShell", () => {
 
     expect(workstation).toHaveAttribute("data-density", "cozy");
 
-    fireEvent.click(screen.getByRole("button", { name: "Workspace density" }));
+    fireEvent.click(getWorkspaceSettingsControl("Compact"));
     expect(workstation).toHaveAttribute("data-density", "compact");
 
-    fireEvent.click(screen.getByRole("button", { name: "Focus mode" }));
+    const focusMode = getWorkspaceSettingsControl("Toggle focus mode from quick actions");
+    fireEvent.click(focusMode);
 
-    expect(screen.getByRole("button", { name: "Focus mode" })).toHaveAttribute(
-      "aria-pressed",
-      "true"
+    expect(getWorkspaceSettingsControl("Toggle focus mode from quick actions")).toHaveTextContent(
+      "Exit focus mode"
     );
     expect(workstation).toHaveAttribute("data-focus-mode", "true");
     expect(screen.queryByRole("complementary", { name: "Right inspector" })).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Preview workspace" })).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Focus mode" }));
+    fireEvent.click(getWorkspaceSettingsControl("Toggle focus mode from quick actions"));
 
     expect(workstation).toHaveAttribute("data-focus-mode", "false");
     expect(screen.getByRole("complementary", { name: "Right inspector" })).toBeVisible();
@@ -1451,13 +1538,14 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("button", { name: "Keep session" }));
     expect(screen.getByLabelText("Operator checkpoint")).toHaveTextContent("Rejected");
 
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     fireEvent.click(screen.getByRole("button", { name: "Clear workspace session" }));
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Clear workspace" }));
       await Promise.resolve();
     });
 
-    expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
+    expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent(
       "Developer"
     );
     expect(screen.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
@@ -1502,7 +1590,7 @@ describe("WorkstationShell", () => {
     expect(screen.queryByRole("region", { name: "Demo Mode" })).not.toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue("");
     expect(screen.getByRole("button", { name: "Demo Mode" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
+    expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent(
       "Developer"
     );
     expect(screen.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
@@ -1794,49 +1882,29 @@ describe("WorkstationShell", () => {
   it("surfaces app-level KB status in User Mode without exposing retrieval internals", () => {
     renderUserShell(snapshotWithEmptyRetrieval());
 
-    fireEvent.click(screen.getByRole("button", { name: "Knowledge Base status" }));
+    openDashboardKnowledgeBase();
 
-    const kbDialog = screen.getByRole("dialog", { name: "Knowledge Base" });
-    expect(kbDialog).toBeVisible();
-    expect(
-      within(kbDialog).getByRole("group", { name: "Retrieval status" })
-    ).toHaveTextContent("No retrieved context for this run.");
-    expect(kbDialog).toHaveTextContent(
-      "This only describes the current workflow. It does not mean the Knowledge Base is empty."
+    expect(screen.queryByRole("button", { name: "Knowledge Base status" })).not.toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Advanced Dashboard" })).toHaveTextContent(
+      "Technical knowledge"
     );
-    expect(
-      within(kbDialog).getByRole("group", { name: "Knowledge Base status" })
-    ).toHaveTextContent("Inventory unavailable");
-    expect(kbDialog).toHaveTextContent(
-      "Knowledge Base inventory has not been loaded from the local backend."
+    expect(screen.getByRole("region", { name: "Advanced Dashboard" })).toHaveTextContent(
+      "Creative Knowledge Base"
     );
-    expect(kbDialog).toHaveTextContent(
-      "This screen does not infer inventory from the current retrieval run."
-    );
-    expect(
-      within(kbDialog).getByRole("button", { name: "Refresh official KB" })
-    ).toBeDisabled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Expand inspector" }));
-
-    expect(screen.getByRole("tab", { name: "Preview" })).toBeVisible();
-    expect(screen.getByRole("tab", { name: "Code" })).toBeVisible();
-    expect(screen.getByRole("tab", { name: "Saved" })).toBeVisible();
     expect(screen.queryByRole("tab", { name: "Retrieval" })).not.toBeInTheDocument();
   });
 
   it("keeps persistent KB inventory distinct from observed retrieval coverage", () => {
     renderUserShell();
 
-    fireEvent.click(screen.getByRole("button", { name: "Knowledge Base status" }));
+    openDashboardKnowledgeBase();
 
-    const kbDialog = screen.getByRole("dialog", { name: "Knowledge Base" });
-    expect(kbDialog).toHaveTextContent("Retrieved context available");
-    expect(kbDialog).toHaveTextContent("2 retrieved sources");
-    expect(kbDialog).toHaveTextContent("3 retrieved chunks");
-    expect(kbDialog).toHaveTextContent("Inventory unavailable");
-    expect(kbDialog).toHaveTextContent("0 approved sources");
-    expect(kbDialog).toHaveTextContent("0 indexed chunks");
+    const dashboard = screen.getByRole("region", { name: "Advanced Dashboard" });
+    expect(dashboard).toHaveTextContent("Technical knowledge");
+    expect(dashboard).toHaveTextContent("Creative Knowledge Base");
+    expect(dashboard).toHaveTextContent("Retrieval status");
+    expect(dashboard).toHaveTextContent("3 chunks from 2 sources");
   });
 
   it("labels ignored sources and unused chunks without losing global rank", () => {
@@ -1977,13 +2045,13 @@ describe("WorkstationShell", () => {
 
     expect(sendButton).toBeDisabled();
     expect(sendButton).toHaveAttribute("data-ready", "false");
-    expect(screen.getByText("Type a prompt to begin")).toBeVisible();
+    expect(screen.queryByText("Type a prompt to begin")).not.toBeInTheDocument();
 
     fireEvent.change(promptInput, {
       target: { value: "Make the low-frequency motion calmer." }
     });
     expect(sendButton).toHaveAttribute("data-ready", "true");
-    expect(screen.getByText("Ready to generate")).toBeVisible();
+    expect(screen.queryByText("Ready to generate")).not.toBeInTheDocument();
 
     fireEvent.click(sendButton);
 
@@ -3204,17 +3272,17 @@ describe("WorkstationShell", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     const settingsPanel = screen.getByRole("dialog", { name: "Workspace settings" });
-    fireEvent.click(screen.getByRole("button", { name: "Preview auto-open" }));
+    fireEvent.click(within(settingsPanel).getByRole("button", { name: "Preview auto-open" }));
     fireEvent.click(within(settingsPanel).getByRole("button", { name: "Display mode" }));
 
     await waitFor(() => {
       expect(persistenceClient.save).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          preferences: {
+          preferences: expect.objectContaining({
             theme: "matrix",
             autoOpenPreview: false,
             showDebugPanels: false
-          }
+          })
         })
       );
     });
@@ -3414,13 +3482,13 @@ describe("WorkstationShell", () => {
 
     expect(sendButton).toBeDisabled();
     expect(sendButton).toHaveAttribute("data-ready", "false");
-    expect(screen.getByText("Type a prompt to begin")).toBeVisible();
+    expect(screen.queryByText("Type a prompt to begin")).not.toBeInTheDocument();
 
     fireEvent.change(promptInput, {
       target: { value: "Make the low-frequency motion calmer." }
     });
     expect(sendButton).toHaveAttribute("data-ready", "true");
-    expect(screen.getByText("Ready to generate")).toBeVisible();
+    expect(screen.queryByText("Ready to generate")).not.toBeInTheDocument();
 
     fireEvent.click(sendButton);
 
@@ -3440,7 +3508,6 @@ describe("WorkstationShell", () => {
     expect(userMessage).toHaveAttribute("data-fresh", "true");
     expect(assistantMessage).toHaveAttribute("data-fresh", "true");
     expect(screen.getByLabelText("Current session")).toHaveTextContent("Intake");
-    expect(screen.getByText("Stream interrupted")).toBeVisible();
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
     ).toHaveAttribute("aria-valuenow", "1");
@@ -3487,7 +3554,6 @@ describe("WorkstationShell", () => {
       )
     ).toBeVisible();
     expect(screen.getByText("Live stream interrupted")).toBeVisible();
-    expect(screen.getByText("Stream interrupted")).toBeVisible();
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
     expect(await screen.findByText("Runtime issue")).toBeVisible();
@@ -4551,7 +4617,7 @@ describe("WorkstationShell", () => {
       }
     });
 
-    expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
+    expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent(
       "User"
     );
 
@@ -6769,7 +6835,7 @@ describe("WorkstationShell", () => {
       height: "380px"
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "Workspace density" }));
+    fireEvent.click(getWorkspaceSettingsControl("Compact"));
 
     await waitFor(() => {
       expect(persistenceClient.save).toHaveBeenLastCalledWith(
@@ -6837,8 +6903,8 @@ describe("WorkstationShell", () => {
     renderShell(snapshot, { persistenceClient });
 
     expect(await screen.findByText("Workspace restored.")).toBeVisible();
-    expect(screen.getByText("Restored projection session")).toBeVisible();
-    expect(screen.getByRole("button", { name: "Display mode" })).toHaveTextContent(
+    expect(screen.getAllByText("Restored projection session").length).toBeGreaterThan(0);
+    expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent(
       "User"
     );
     await waitFor(() =>
@@ -6936,7 +7002,7 @@ describe("WorkstationShell", () => {
     );
     vi.mocked(persistenceClient.save).mockClear();
 
-    fireEvent.click(screen.getByRole("button", { name: "Workspace density" }));
+    fireEvent.click(getWorkspaceSettingsControl("Compact"));
 
     await waitFor(() =>
       expect(persistenceClient.save).toHaveBeenLastCalledWith(

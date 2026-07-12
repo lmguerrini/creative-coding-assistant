@@ -1764,6 +1764,17 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   white-space: nowrap;
 }
 
+.demoScenarioInputNotice {
+  margin: 0.55rem 0 0;
+  border: 1px solid color-mix(in srgb, var(--warning) 58%, var(--surface-muted));
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--warning) 9%, transparent);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  padding: 0.55rem 0.65rem;
+}
+
 .demoScenarioQuickFacts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));

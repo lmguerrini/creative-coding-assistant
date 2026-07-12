@@ -310,8 +310,9 @@ async function expectGeneratedPreview(
 
 async function expectWorkspacePersistence(page) {
   await page.getByRole("button", { name: "Settings" }).click();
-  await page.getByRole("button", { name: "Use Matrix theme" }).click();
-  await page.getByRole("button", { name: "Compact" }).click();
+  const settings = page.getByRole("dialog", { name: "Workspace settings" });
+  await settings.getByRole("button", { name: "Use Matrix theme" }).click();
+  await settings.getByRole("button", { exact: true, name: "Compact" }).click();
   await expect(page.locator(".workstation")).toHaveAttribute("data-theme", "matrix");
   await page.reload();
   await expect(page.locator(".workstation")).toHaveAttribute("data-theme", "matrix");
@@ -356,12 +357,15 @@ async function expandInspectorIfCollapsed(page) {
 }
 
 async function switchToDeveloperMode(page) {
+  const settings = page.getByRole("button", { name: "Settings" });
+  await settings.click();
   const displayMode = page.getByRole("button", { name: "Display mode" });
   const label = await displayMode.textContent();
   if (label?.includes("User")) {
     await displayMode.click();
   }
   await expect(displayMode).toContainText("Developer");
+  await settings.click();
 }
 
 async function handleWorkspaceSessionRoute(route, request) {

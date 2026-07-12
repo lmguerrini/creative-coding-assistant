@@ -79,6 +79,7 @@ describe("demo mode scenarios", () => {
     );
 
     expect(multimodal?.inputRequirement).toContain("Attach one PNG");
+    expect(multimodal?.requiresImageAttachment).toBe(true);
     expect(multimodal?.expectedPreview).toContain("self-contained p5.js canvas");
     expect(recovery?.providerRequirement).toContain("Controlled failure fixture");
     expect(recovery?.expectedPreview).toContain("No live preview");

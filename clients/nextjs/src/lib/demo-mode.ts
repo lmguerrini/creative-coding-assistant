@@ -15,6 +15,7 @@ export type DemoModeScenario = {
   workflowMode: WorkflowExecutionMode;
   workflow: string;
   inputRequirement: string;
+  requiresImageAttachment?: boolean;
   prompt: string;
   expectedArtifact: string;
   expectedPreview: string;
@@ -256,6 +257,7 @@ export const demoModeScenarioCatalog = [
     workflowMode: "single_agent",
     workflow: "Single-agent image-guided runnable-code generation",
     inputRequirement: "Attach one PNG, JPEG, WebP, or GIF reference image before Send; do not attach private material for a public demo.",
+    requiresImageAttachment: true,
     prompt:
       "Using the attached image only as palette and composition guidance, create exactly one global-mode .p5.js artifact named reference-palette-study.p5.js with setup() and draw(). Make a self-contained abstract field with no image loading, external assets, imports, HTML, Markdown, or prose. Return only the artifact.",
     expectedArtifact: "reference-palette-study.p5.js plus one persisted image-reference record",

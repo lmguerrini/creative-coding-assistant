@@ -145,7 +145,7 @@ test.describe("V9.6 workstation E2E smoke", () => {
     consoleGate.assertClean();
   });
 
-  test("loads a curated Demo Mode prompt into the normal composer", async ({
+  test("inspects a curated Demo Mode prompt before explicitly loading and running it", async ({
     page
   }) => {
     const consoleGate = installConsoleGate(page);
@@ -162,8 +162,15 @@ test.describe("V9.6 workstation E2E smoke", () => {
       .getByRole("button", { name: /Physarum drift/ })
       .click();
 
+    await expect(demoMode).toBeVisible();
+    const selectedScenario = demoMode.getByRole("article", {
+      name: "Selected demo scenario"
+    });
+    await expect(selectedScenario).toContainText("Physarum drift");
+    await selectedScenario.getByRole("button", { name: "Load prompt & run" }).click();
+
     await expect(demoMode).toHaveCount(0);
-    await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue(
+    await expect(page.getByRole("log", { name: "Conversation" })).toContainText(
       /physarum-drift\.p5\.js/
     );
     consoleGate.assertClean();
@@ -189,10 +196,11 @@ test.describe("V9.6 workstation E2E smoke", () => {
     await demoScenarios
       .getByRole("button", { name: /Physarum drift/ })
       .click();
-    await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue(
-      /physarum-drift\.p5\.js/
-    );
-    await page.getByRole("button", { name: "Send prompt" }).click();
+    await demoMode
+      .getByRole("article", { name: "Selected demo scenario" })
+      .getByRole("button", { name: "Load prompt & run" })
+      .click();
+    await expect(demoMode).toHaveCount(0);
     await expectGeneratedPreview(page, {
       artifactTitle: "physarum-drift-2.p5.js"
     });
@@ -213,13 +221,16 @@ test.describe("V9.6 workstation E2E smoke", () => {
       .getByRole("list", { name: "Demo Mode scenarios" })
       .getByRole("button", { name: /Physarum drift/ })
       .click();
-    await expect(page.getByRole("button", { name: "Display mode" })).toContainText(
+    await page.getByRole("button", { name: "Settings" }).click();
+    const displayMode = page.getByRole("button", { name: "Display mode" });
+    await expect(displayMode).toContainText(
       "Developer"
     );
-    await page.getByRole("button", { name: "Display mode" }).click();
-    await expect(page.getByRole("button", { name: "Display mode" })).toContainText(
+    await displayMode.click();
+    await expect(displayMode).toContainText(
       "User"
     );
+    await page.getByRole("button", { name: "Settings" }).click();
     await expect(page.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
       "data-state",
       "collapsed"
@@ -231,10 +242,12 @@ test.describe("V9.6 workstation E2E smoke", () => {
     await expect(page.getByRole("tab", { name: "Saved" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "Runtime" })).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Display mode" }).click();
-    await expect(page.getByRole("button", { name: "Display mode" })).toContainText(
+    await page.getByRole("button", { name: "Settings" }).click();
+    await displayMode.click();
+    await expect(displayMode).toContainText(
       "Developer"
     );
+    await page.getByRole("button", { name: "Settings" }).click();
     await expect(page.getByRole("tab", { name: "Workflow" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "Telemetry" })).toBeVisible();
 
@@ -242,7 +255,7 @@ test.describe("V9.6 workstation E2E smoke", () => {
     await page.getByRole("button", { name: "Use Codex theme" }).click();
     await expect(page.locator(".workstation")).toHaveAttribute("data-theme", "codex");
 
-    await page.getByRole("button", { name: "Command menu" }).click();
+    await page.getByRole("button", { name: "Settings" }).click();
     await page.getByRole("button", { name: "Clear workspace session" }).click();
     await page.getByRole("button", { name: "Clear workspace" }).click();
 
@@ -250,6 +263,7 @@ test.describe("V9.6 workstation E2E smoke", () => {
     await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue("");
     await expect(page.getByRole("region", { name: "Preview workspace" })).toHaveCount(0);
     await expect(page.getByRole("group", { name: "Empty creative workspace" })).toBeVisible();
+    await page.getByRole("button", { name: "Settings" }).click();
     await expect(page.getByRole("button", { name: "Display mode" })).toContainText(
       "Developer"
     );
