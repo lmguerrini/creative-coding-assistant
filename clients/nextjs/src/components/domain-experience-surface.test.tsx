@@ -52,6 +52,17 @@ const inventoryWithTwoSources: KnowledgeBaseInventory = {
   ]
 };
 
+const syncedInventory: KnowledgeBaseInventory = {
+  ...inventoryWithTwoSources,
+  indexedChunkCount: 24,
+  indexedSourceCount: 1,
+  lastIndexedAt: "2026-07-12T02:21:00Z",
+  sources: inventoryWithTwoSources.sources.map((source) => source.id === "three_docs"
+    ? { ...source, chunkCount: 24, fingerprint: "updated-fingerprint", indexed: true, lastIndexedAt: "2026-07-12T02:21:00Z" }
+    : { ...source, chunkCount: 0, fingerprint: null, indexed: false, lastIndexedAt: null }
+  )
+};
+
 function jsonResponse(payload: Record<string, unknown>, ok = true) {
   return { json: async () => payload, ok };
 }
@@ -185,7 +196,7 @@ describe("KnowledgeBaseInventorySurface", () => {
         ],
         status: "review_ready_with_unavailable_sources"
       }))
-      .mockResolvedValueOnce(jsonResponse({ status: "completed" }))
+      .mockResolvedValueOnce(jsonResponse({ inventory: syncedInventory, status: "completed" }))
       .mockResolvedValueOnce(jsonResponse({ status: "completed" }))
       .mockResolvedValueOnce(jsonResponse({ detail: "The selected local index is valid.", status: "passed" }));
     vi.stubGlobal("fetch", fetcher);
@@ -199,6 +210,11 @@ describe("KnowledgeBaseInventorySurface", () => {
     );
     expect(screen.getByText(/1 unavailable source was skipped; validation passed/i)).toBeVisible();
     expect(screen.getByText(/Last successful Smart Update:/)).toBeVisible();
+    expect(
+      screen.getByRole("checkbox", {
+        name: "Select three.js Documentation for a Knowledge Base operation"
+      }).closest("article")
+    ).toHaveTextContent("24 chunks");
     expect(fetcher).toHaveBeenCalledTimes(4);
 
     expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({
@@ -219,7 +235,7 @@ describe("KnowledgeBaseInventorySurface", () => {
     expect(JSON.parse(fetcher.mock.calls[3][1].body)).toEqual({
       action: "validate",
       confirmed: false,
-      sourceIds: []
+      sourceIds: ["three_docs"]
     });
   });
 

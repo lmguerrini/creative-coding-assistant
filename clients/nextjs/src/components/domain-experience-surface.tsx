@@ -135,29 +135,35 @@ export function KnowledgeBaseInventorySurface({
   detailed?: boolean;
   inventory: KnowledgeBaseInventory;
 }) {
+  const [currentInventory, setCurrentInventory] = useState(inventory);
+
+  useEffect(() => {
+    setCurrentInventory(inventory);
+  }, [inventory]);
+
   return (
     <article
       aria-label="Persistent Knowledge Base inventory"
       className="kbInventorySurface"
-      data-state={inventory.status}
+      data-state={currentInventory.status}
       role="group"
     >
       <header>
         <div>
           <span>Knowledge Base inventory</span>
-          <strong>{formatKnowledgeBaseStatus(inventory.status)}</strong>
-          <p>{inventory.detail}</p>
+          <strong>{formatKnowledgeBaseStatus(currentInventory.status)}</strong>
+          <p>{currentInventory.detail}</p>
         </div>
       </header>
       <div aria-label="Knowledge Base inventory metrics" className="kbInventoryMetrics" role="list">
-        <Metric label="Registered" value={`${inventory.registeredSourceCount} sources`} />
-        <Metric label="Indexed" value={`${inventory.indexedSourceCount} sources`} />
-        <Metric label="Chunks" value={`${inventory.indexedChunkCount}`} />
+        <Metric label="Registered" value={`${currentInventory.registeredSourceCount} sources`} />
+        <Metric label="Indexed" value={`${currentInventory.indexedSourceCount} sources`} />
+        <Metric label="Chunks" value={`${currentInventory.indexedChunkCount}`} />
         {detailed ? (
           <>
-            <Metric label="Registered domains" value={`${inventory.registeredDomainCount}`} />
-            <Metric label="Indexed domains" value={`${inventory.indexedDomainCount}`} />
-            <Metric label="Last indexed" value={formatIndexedAt(inventory.lastIndexedAt)} />
+            <Metric label="Registered domains" value={`${currentInventory.registeredDomainCount}`} />
+            <Metric label="Indexed domains" value={`${currentInventory.indexedDomainCount}`} />
+            <Metric label="Last indexed" value={formatIndexedAt(currentInventory.lastIndexedAt)} />
           </>
         ) : null}
       </div>
@@ -171,18 +177,24 @@ export function KnowledgeBaseInventorySurface({
             <div><dt>Last indexed</dt><dd>The local index timestamp, not a claim that an upstream site is unchanged.</dd></div>
           </dl>
           <footer>
-            <p>{inventory.freshnessDetail}</p>
-            <p>{inventory.updateHint}</p>
-            <p>{inventory.provenanceBoundary}</p>
+            <p>{currentInventory.freshnessDetail}</p>
+            <p>{currentInventory.updateHint}</p>
+            <p>{currentInventory.provenanceBoundary}</p>
           </footer>
-          <KnowledgeBaseSourceExplorer inventory={inventory} />
+          <KnowledgeBaseSourceExplorer inventory={currentInventory} onInventoryChange={setCurrentInventory} />
         </>
       ) : null}
     </article>
   );
 }
 
-function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseInventory }) {
+function KnowledgeBaseSourceExplorer({
+  inventory,
+  onInventoryChange
+}: {
+  inventory: KnowledgeBaseInventory;
+  onInventoryChange: (inventory: KnowledgeBaseInventory) => void;
+}) {
   const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
   const [operationState, setOperationState] = useState<{
     detail: string;
@@ -242,6 +254,13 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
       : current);
   }
 
+  function applyReturnedInventory(record: Record<string, unknown>) {
+    const returnedInventory = readKnowledgeBaseInventory(record.inventory);
+    if (returnedInventory) {
+      onInventoryChange(returnedInventory);
+    }
+  }
+
   async function runOperation(action: KnowledgeBaseAction) {
     if (operationRunning) {
       return;
@@ -266,6 +285,7 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
         selectedSourceIds,
         action === "update" || action === "rebuild"
       );
+      applyReturnedInventory(record);
       const sourceChanges = readKnowledgeBaseSourceChanges(record.sourceChanges);
       if (action === "check") {
         const unavailableSourceIds = new Set(
@@ -354,22 +374,36 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
       } else {
         activeStep = "update";
         setSmartStep("update", "running", `Updating ${affectedSourceIds.length} affected source${affectedSourceIds.length === 1 ? "" : "s"}.`);
-        await requestKnowledgeBaseOperation("update", affectedSourceIds, true);
+        const updateRecord = await requestKnowledgeBaseOperation("update", affectedSourceIds, true);
+        applyReturnedInventory(updateRecord);
         setSmartStep("update", "completed", `${affectedSourceIds.length} affected source${affectedSourceIds.length === 1 ? " was" : "s were"} updated.`);
 
         activeStep = "rebuild";
         setSmartStep("rebuild", "running", `Rebuilding ${affectedSourceIds.length} affected index${affectedSourceIds.length === 1 ? "" : "es"}.`);
-        await requestKnowledgeBaseOperation("rebuild", affectedSourceIds, true);
+        const rebuildRecord = await requestKnowledgeBaseOperation("rebuild", affectedSourceIds, true);
+        applyReturnedInventory(rebuildRecord);
         setSmartStep("rebuild", "completed", `${affectedSourceIds.length} affected index${affectedSourceIds.length === 1 ? " was" : "es were"} rebuilt.`);
       }
 
-      activeStep = "validate";
-      setSmartStep("validate", "running", "Validating the local index after the completed source work.");
-      const validationRecord = await requestKnowledgeBaseOperation("validate", [], false);
-      const validationStatus = readText(validationRecord.status) ?? "unknown";
-      if (validationStatus !== "passed") {
-        failSmartUpdate("validate", readText(validationRecord.detail) ?? "The local index needs attention after Smart Update.");
-        return;
+      const validationSourceIds = affectedSourceIds.length > 0
+        ? affectedSourceIds
+        : sourceChanges
+          .filter((change) => change.changeStatus === "unchanged")
+          .map((change) => change.sourceId);
+      let validationStatus = "not_required";
+      if (validationSourceIds.length === 0) {
+        setSmartStep("validate", "skipped", "No reachable local index changed or required validation.");
+      } else {
+        activeStep = "validate";
+        setSmartStep("validate", "running", "Validating only the affected reachable local indexes.");
+        const validationRecord = await requestKnowledgeBaseOperation("validate", validationSourceIds, false);
+        applyReturnedInventory(validationRecord);
+        validationStatus = readText(validationRecord.status) ?? "unknown";
+        if (validationStatus !== "passed") {
+          failSmartUpdate("validate", readText(validationRecord.detail) ?? "The affected local index needs attention after Smart Update.");
+          return;
+        }
+        setSmartStep("validate", "completed", "Affected local index validation passed.");
       }
 
       const completedAt = new Date().toISOString();
@@ -384,11 +418,14 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
       };
       writeKnowledgeBaseSmartUpdateSnapshot(snapshot);
       setLatestSmartUpdate(snapshot);
-      setSmartStep("validate", "completed", "Local index validation passed.");
       setSmartUpdateState((current) => current
         ? {
             ...current,
-            detail: smartCompletionDetail(affectedSourceIds.length, unavailableSourceIds.length),
+            detail: smartCompletionDetail(
+              affectedSourceIds.length,
+              unavailableSourceIds.length,
+              validationStatus
+            ),
             status: "completed"
           }
         : current);
@@ -415,48 +452,48 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
           <strong>Official sources</strong>
           <p>Registry inventory is separate from the references used in the current run.</p>
         </div>
-        <div className="kbSmartUpdateActions" role="group" aria-label="Knowledge Base Smart Update action">
-          <button
-            aria-label={smartUpdateRunning ? "Smart Update in progress" : undefined}
-            className="kbSmartUpdateButton"
-            disabled={operationRunning || sourceIds.length === 0}
-            onClick={() => void runSmartUpdate()}
-            type="button"
-          >
-            {smartUpdateRunning ? <><span aria-hidden="true" className="kbActionSpinner" />Smart Update running</> : "Smart Update"}
-          </button>
-          <span>Checks, updates changed reachable sources, rebuilds, then validates after one confirmation.</span>
-        </div>
-        <div className="kbSourceActions" role="group" aria-label="Advanced Knowledge Base update actions">
-          <button
-            aria-pressed={areAllSourcesSelected}
-            disabled={operationRunning || sourceIds.length === 0}
-            onClick={toggleAllSources}
-            type="button"
-          >
-            {areAllSourcesSelected ? "Clear selection" : "Select all"}
-          </button>
-          <button
-            aria-label={runningAction === "check" ? "Checking selected official sources" : undefined}
-            disabled={operationRunning || selectedSourceIds.length === 0}
-            onClick={() => void runOperation("check")}
-            type="button"
-          >
-            {runningAction === "check" ? (
-              <><span aria-hidden="true" className="kbActionSpinner" />Checking sources</>
-            ) : "Check for updates"}
-          </button>
-          <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("update")} type="button">
-            Update selected
-          </button>
-          <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("rebuild")} type="button">
-            Rebuild selected
-          </button>
-          <button disabled={operationRunning} onClick={() => void runOperation("validate")} type="button">
-            Validate index
-          </button>
-        </div>
       </header>
+      <div className="kbSmartUpdateActions" role="group" aria-label="Knowledge Base Smart Update action">
+        <button
+          aria-label={smartUpdateRunning ? "Smart Update in progress" : undefined}
+          className="kbSmartUpdateButton"
+          disabled={operationRunning || sourceIds.length === 0}
+          onClick={() => void runSmartUpdate()}
+          type="button"
+        >
+          {smartUpdateRunning ? <><span aria-hidden="true" className="kbActionSpinner" />Smart Update running</> : "Smart Update"}
+        </button>
+        <span>Checks, updates changed reachable sources, rebuilds, then validates after one confirmation.</span>
+      </div>
+      <div className="kbSourceActions" role="group" aria-label="Advanced Knowledge Base update actions">
+        <button
+          aria-pressed={areAllSourcesSelected}
+          disabled={operationRunning || sourceIds.length === 0}
+          onClick={toggleAllSources}
+          type="button"
+        >
+          {areAllSourcesSelected ? "Clear selection" : "Select all"}
+        </button>
+        <button
+          aria-label={runningAction === "check" ? "Checking selected official sources" : undefined}
+          disabled={operationRunning || selectedSourceIds.length === 0}
+          onClick={() => void runOperation("check")}
+          type="button"
+        >
+          {runningAction === "check" ? (
+            <><span aria-hidden="true" className="kbActionSpinner" />Checking sources</>
+          ) : "Check for updates"}
+        </button>
+        <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("update")} type="button">
+          Update selected
+        </button>
+        <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("rebuild")} type="button">
+          Rebuild selected
+        </button>
+        <button disabled={operationRunning} onClick={() => void runOperation("validate")} type="button">
+          Validate index
+        </button>
+      </div>
       <p className="kbSourceBoundary">
         Smart Update uses all registered sources when none are selected. It checks first, writes only changed reachable sources after your confirmation, and keeps the prior valid local index when a write fails.
       </p>
@@ -488,7 +525,7 @@ function KnowledgeBaseSourceExplorer({ inventory }: { inventory: KnowledgeBaseIn
       ) : null}
       {latestSmartUpdate ? (
         <p className="kbSmartUpdateHistory">
-          Last successful Smart Update: {formatIndexedAt(latestSmartUpdate.completedAt)} · {latestSmartUpdate.affectedSourceCount} affected · validation passed.
+          Last successful Smart Update: {formatIndexedAt(latestSmartUpdate.completedAt)} · {latestSmartUpdate.affectedSourceCount} affected · {latestSmartUpdate.validationStatus === "passed" ? "validation passed." : "validation was not required."}
         </p>
       ) : null}
       {operationState ? (
@@ -557,6 +594,19 @@ function readText(value: unknown) {
   return typeof value === "string" && value.trim() ? value : null;
 }
 
+function readKnowledgeBaseInventory(value: unknown): KnowledgeBaseInventory | null {
+  const record = asRecord(value);
+  if (
+    !record ||
+    typeof record.status !== "string" ||
+    typeof record.detail !== "string" ||
+    !Array.isArray(record.sources)
+  ) {
+    return null;
+  }
+  return record as unknown as KnowledgeBaseInventory;
+}
+
 type KnowledgeBaseSourceChange = {
   sourceId: string;
   changeStatus: string;
@@ -613,13 +663,20 @@ function smartCheckDetail(affectedSourceCount: number, unavailableSourceCount: n
     : `${affectedDetail} will be updated and rebuilt.`;
 }
 
-function smartCompletionDetail(affectedSourceCount: number, unavailableSourceCount: number) {
+function smartCompletionDetail(
+  affectedSourceCount: number,
+  unavailableSourceCount: number,
+  validationStatus: string
+) {
   const sourceDetail = affectedSourceCount === 0
     ? "No changed reachable sources required a write."
     : `${affectedSourceCount} affected ${affectedSourceCount === 1 ? "source was" : "sources were"} updated and rebuilt.`;
+  const validationDetail = validationStatus === "passed"
+    ? "Validation passed."
+    : "No eligible local index required validation.";
   return unavailableSourceCount > 0
-    ? `${sourceDetail} ${unavailableSourceCount} unavailable ${unavailableSourceCount === 1 ? "source was" : "sources were"} skipped; validation passed.`
-    : `${sourceDetail} Validation passed.`;
+    ? `${sourceDetail} ${unavailableSourceCount} unavailable ${unavailableSourceCount === 1 ? "source was" : "sources were"} skipped; ${validationDetail}`
+    : `${sourceDetail} ${validationDetail}`;
 }
 
 function readKnowledgeBaseSourceChanges(value: unknown): KnowledgeBaseSourceChange[] {

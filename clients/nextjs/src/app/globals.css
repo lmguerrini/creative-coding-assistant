@@ -12639,13 +12639,19 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 .kbSourceActions {
   flex-wrap: wrap;
   justify-content: flex-end;
+  margin-top: 0.55rem;
 }
 
 .kbSmartUpdateActions {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 0.55rem;
+  margin-top: 0.65rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--teal) 28%, var(--line));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--panel) 90%, var(--teal));
   min-width: 0;
 }
 
@@ -13093,12 +13099,10 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 
   .kbSourceActions {
     justify-content: flex-start;
-    margin-top: 0.65rem;
   }
 
   .kbSmartUpdateActions {
     justify-content: flex-start;
-    margin-top: 0.65rem;
   }
 
   .kbSmartUpdateStatus ol {
