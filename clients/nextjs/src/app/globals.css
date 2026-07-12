@@ -14135,6 +14135,24 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
     min-height: 0;
     height: 100%;
   }
+
+  .workspaceLayout {
+    align-items: stretch;
+  }
+
+  .mainColumn,
+  .sessionSidebar {
+    align-self: stretch;
+    height: 100%;
+  }
+
+  .workstation[data-preview="closed"] .mainColumn {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .sessionPanel {
+    height: 100%;
+  }
 }
 
 .homepageDomains {
