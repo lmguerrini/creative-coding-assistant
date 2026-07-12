@@ -77,6 +77,16 @@ class DomainExperienceApiTests(unittest.TestCase):
         self.assertIn("freshness is not reported", knowledge["freshnessDetail"])
         self.assertEqual(knowledge["updateStatus"], "explicit_selected_source_actions")
         self.assertIn("explicit confirmation", knowledge["updateHint"])
+        creative_knowledge = payload["creativeKnowledge"]
+        assert isinstance(creative_knowledge, dict)
+        self.assertEqual(creative_knowledge["status"], "available")
+        self.assertEqual(creative_knowledge["recordCount"], 7)
+        self.assertEqual(len(creative_knowledge["records"]), 7)
+        self.assertIn("without fetching external sources", creative_knowledge["authorityBoundary"])
+        first_record = creative_knowledge["records"][0]
+        self.assertIn("title", first_record)
+        self.assertIn("confidence", first_record)
+        self.assertNotIn("secret-user-request", json.dumps(creative_knowledge).lower())
 
     def test_wsgi_endpoint_is_read_only_and_public_safe(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

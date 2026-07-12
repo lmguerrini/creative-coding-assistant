@@ -14938,6 +14938,17 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   border-radius: 13px;
   color: var(--muted-strong);
 }
+
+.knowledgeDashboardView .kbInventorySurface[data-header-mode="embedded"] {
+  padding: 16px 18px 18px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.knowledgeDashboardView .kbInventorySurface[data-header-mode="embedded"] .kbInventoryMetrics {
+  margin-top: 0;
+}
 .knowledgeEmptyState span { color: var(--foreground); font-size: 13px; font-weight: 740; }
 .knowledgeEmptyState p { margin: 0; font-size: 12px; line-height: 1.4; }
 
@@ -15000,6 +15011,384 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 
 .knowledgePrinciples li strong { color: var(--foreground); font-size: 13px; }
 .knowledgePrinciples li span { color: var(--muted-strong); font-size: 12px; line-height: 1.4; }
+
+.creativeKnowledgeMetrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 9px;
+  padding: 0 18px 12px;
+}
+
+.creativeKnowledgeMetrics > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  min-height: 70px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.creativeKnowledgeMetrics span,
+.creativeKnowledgeRecordGrid article > header > span,
+.creativeStudyShelf > header span,
+.artifactCreativeDirection > header span,
+.creativeKnowledgeRecordGrid dt,
+.creativeStudyShelf dt {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 820;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.creativeKnowledgeMetrics strong {
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.creativeKnowledgeFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 0 18px 12px;
+}
+
+.creativeKnowledgeFilters button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(0, 0, 0, 0.13);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 720;
+  text-transform: capitalize;
+}
+
+.creativeKnowledgeFilters button:hover,
+.creativeKnowledgeFilters button[aria-pressed="true"] {
+  border-color: rgba(var(--accent-rgb), 0.48);
+  color: var(--foreground);
+  background: rgba(var(--accent-rgb), 0.12);
+}
+
+.creativeKnowledgeRecordGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+  padding: 0 18px 18px;
+}
+
+.creativeKnowledgeRecordGrid article {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.11);
+}
+
+.creativeKnowledgeRecordGrid article[data-kind="best_practice"] { border-color: color-mix(in srgb, var(--green) 35%, var(--line)); }
+.creativeKnowledgeRecordGrid article[data-kind="workflow"] { border-color: color-mix(in srgb, var(--teal) 40%, var(--line)); }
+
+.creativeKnowledgeRecordGrid article > header { display: grid; gap: 5px; }
+.creativeKnowledgeRecordGrid article > header strong { color: var(--foreground); font-size: 15px; line-height: 1.24; }
+.creativeKnowledgeRecordGrid article > p { margin: 0; color: var(--muted-strong); font-size: 12px; line-height: 1.42; }
+
+.creativeKnowledgeDomainChips,
+.creativeKnowledgeTagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.creativeKnowledgeDomainChips span,
+.creativeKnowledgeTagRow span {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 4px 6px;
+  border-radius: 999px;
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.09);
+  font-size: 10px;
+  font-weight: 710;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.creativeKnowledgeTagRow span { color: var(--muted-strong); background: rgba(255, 255, 255, 0.05); }
+
+.creativeKnowledgeRecordGrid dl,
+.creativeStudyShelf dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0;
+}
+
+.creativeKnowledgeRecordGrid dl div,
+.creativeStudyShelf dl div {
+  min-width: 0;
+  padding: 8px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.creativeKnowledgeRecordGrid dd,
+.creativeStudyShelf dd {
+  margin: 4px 0 0;
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 11px;
+  font-weight: 680;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+}
+
+.creativeKnowledgeRecordGrid ol {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.creativeKnowledgeRecordGrid ol li {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.creativeKnowledgeRecordGrid ol span {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--accent-ink);
+  background: rgb(var(--accent-rgb));
+  font-size: 9px;
+  font-weight: 820;
+}
+
+.creativeStudyShelf,
+.artifactCreativeDirection {
+  margin: 0 18px 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.creativeStudyShelf > header,
+.artifactCreativeDirection > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  padding: 13px;
+  border-bottom: 1px solid var(--section-divider);
+}
+
+.creativeStudyShelf > header strong,
+.artifactCreativeDirection > header strong { display: block; margin-top: 4px; color: var(--foreground); font-size: 14px; }
+
+.creativeStudyShelf > div[role="list"] {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 8px;
+  padding: 12px;
+}
+
+.creativeStudyShelf article {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 11px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.creativeStudyShelf article > div { display: grid; gap: 3px; }
+.creativeStudyShelf article > div strong { color: var(--foreground); font-size: 13px; }
+.creativeStudyShelf article > div span { color: var(--teal); font-size: 10px; font-weight: 750; }
+.creativeStudyShelf article > p { margin: 0; color: var(--muted-strong); font-size: 11px; line-height: 1.4; }
+
+.artifactCreativeDirection ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 13px;
+  list-style: none;
+}
+
+.artifactCreativeDirection li { display: grid; gap: 5px; padding: 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.035); }
+.artifactCreativeDirection li strong { color: var(--foreground); font-size: 12px; }
+.artifactCreativeDirection li span { color: var(--muted-strong); font-size: 11px; line-height: 1.4; }
+
+.creativeKnowledgeBoundary {
+  margin: 0 18px 18px;
+  padding: 10px 12px;
+  border-left: 2px solid rgba(var(--accent-rgb), 0.45);
+  border-radius: 0 9px 9px 0;
+  color: var(--muted-strong);
+  background: rgba(var(--accent-rgb), 0.05);
+  font-size: 11px;
+  line-height: 1.42;
+}
+
+.dashboardComponentSurface > .runtimeConsoleDashboard,
+.dashboardComponentSurface > .conversationContextInspector,
+.dashboardComponentSurface > .providerObservabilityCard {
+  margin: 0 18px 18px;
+}
+
+.runtimeConsoleDashboard {
+  display: grid;
+  gap: 12px;
+}
+
+.evaluationDashboardSplit {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+  gap: 12px;
+  padding: 0 18px 18px;
+}
+
+.evaluationDashboardSplit > * { min-width: 0; }
+
+.activeDocumentBoard > dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  margin: 0;
+  padding: 0 18px 12px;
+}
+
+.activeDocumentBoard > dl > div {
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.11);
+}
+
+.activeDocumentBoard dt {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 820;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.activeDocumentBoard dd {
+  margin: 5px 0 0;
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 720;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activeDocumentBoard pre {
+  max-height: 300px;
+  overflow: auto;
+  margin: 0 18px 18px;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  color: var(--muted-strong);
+  background: rgba(0, 0, 0, 0.18);
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.previewReadinessMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  padding: 0 18px 12px;
+}
+
+.previewReadinessMetrics > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.11);
+}
+
+.previewReadinessMetrics span,
+.previewLifecycle strong {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 820;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.previewReadinessMetrics strong {
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.previewLifecycle {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  margin: 0;
+  padding: 0 18px 18px;
+  list-style: none;
+}
+
+.previewLifecycle li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.09);
+}
+
+.previewLifecycle li > span {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.previewLifecycle li[data-complete="true"] { border-color: color-mix(in srgb, var(--green) 38%, var(--line)); }
+.previewLifecycle li[data-complete="true"] > span { color: var(--accent-ink); background: var(--green); }
+.previewLifecycle li > div { display: grid; min-width: 0; gap: 3px; }
+.previewLifecycle small { overflow: hidden; color: var(--foreground); font-size: 12px; font-weight: 720; text-overflow: ellipsis; white-space: nowrap; }
+.previewReadinessError { margin: 0 18px 18px; padding: 10px 12px; border-left: 2px solid var(--coral); border-radius: 0 9px 9px 0; color: var(--muted-strong); background: rgba(255, 122, 102, 0.07); font-size: 12px; line-height: 1.4; }
 
 .artifactRegistry > div[role="list"] {
   display: grid;
@@ -15310,7 +15699,12 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   .workflowTransitionRail,
   .aiAgentRoute,
   .aiAgentSplit,
-  .telemetrySignalGrid {
+  .telemetrySignalGrid,
+  .creativeKnowledgeMetrics,
+  .evaluationDashboardSplit,
+  .activeDocumentBoard > dl,
+  .previewReadinessMetrics,
+  .previewLifecycle {
     grid-template-columns: minmax(0, 1fr);
   }
 

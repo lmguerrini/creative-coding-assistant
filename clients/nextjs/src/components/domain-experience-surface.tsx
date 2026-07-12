@@ -130,9 +130,11 @@ export function DomainExperienceSurface({
 
 export function KnowledgeBaseInventorySurface({
   detailed = false,
+  headerMode = "default",
   inventory
 }: {
   detailed?: boolean;
+  headerMode?: "default" | "embedded";
   inventory: KnowledgeBaseInventory;
 }) {
   const [currentInventory, setCurrentInventory] = useState(inventory);
@@ -146,15 +148,18 @@ export function KnowledgeBaseInventorySurface({
       aria-label="Persistent Knowledge Base inventory"
       className="kbInventorySurface"
       data-state={currentInventory.status}
+      data-header-mode={headerMode}
       role="group"
     >
-      <header>
-        <div>
-          <span>Knowledge Base inventory</span>
-          <strong>{formatKnowledgeBaseStatus(currentInventory.status)}</strong>
-          <p>{currentInventory.detail}</p>
-        </div>
-      </header>
+      {headerMode === "default" ? (
+        <header>
+          <div>
+            <span>Knowledge Base inventory</span>
+            <strong>{formatKnowledgeBaseStatus(currentInventory.status)}</strong>
+            <p>{currentInventory.detail}</p>
+          </div>
+        </header>
+      ) : null}
       <div aria-label="Knowledge Base inventory metrics" className="kbInventoryMetrics" role="list">
         <Metric label="Registered" value={`${currentInventory.registeredSourceCount} sources`} />
         <Metric label="Indexed" value={`${currentInventory.indexedSourceCount} sources`} />

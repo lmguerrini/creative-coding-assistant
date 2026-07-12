@@ -63,11 +63,39 @@ export type KnowledgeBaseSource = {
   provenance: string;
 };
 
+export type CreativeKnowledgeRecord = {
+  id: string;
+  kind: "technique" | "workflow" | "pattern" | "best_practice" | "taxonomy" | "kb_reality";
+  title: string;
+  summary: string;
+  domains: string[];
+  techniqueTags: string[];
+  workflowSteps: string[];
+  patternTags: string[];
+  taxonomyPath: string[];
+  sourceIds: string[];
+  provenanceCount: number;
+  confidence: {
+    score: number;
+    band: "high" | "medium" | "low" | "guarded";
+    caveats: string[];
+  };
+};
+
+export type CreativeKnowledgeInventory = {
+  status: "available" | "unavailable";
+  detail: string;
+  authorityBoundary: string;
+  recordCount: number;
+  records: CreativeKnowledgeRecord[];
+};
+
 export type DomainExperienceCatalog = {
   state: "loading" | "available" | "unavailable";
   schemaVersion: string | null;
   domains: DomainExperienceRecord[];
   knowledgeBase: KnowledgeBaseInventory;
+  creativeKnowledge: CreativeKnowledgeInventory;
   error: string | null;
 };
 
@@ -75,6 +103,7 @@ type DomainExperiencePayload = {
   schemaVersion?: unknown;
   domains?: unknown;
   knowledgeBase?: unknown;
+  creativeKnowledge?: unknown;
 };
 
 const defaultKnowledgeBase: KnowledgeBaseInventory = {
@@ -96,11 +125,21 @@ const defaultKnowledgeBase: KnowledgeBaseInventory = {
   sources: []
 };
 
+const defaultCreativeKnowledge: CreativeKnowledgeInventory = {
+  status: "unavailable",
+  detail: "Creative Knowledge Base has not been loaded from the local backend.",
+  authorityBoundary:
+    "Creative guidance is not available until the local product catalog is loaded.",
+  recordCount: 0,
+  records: []
+};
+
 export const loadingDomainExperienceCatalog: DomainExperienceCatalog = {
   state: "loading",
   schemaVersion: null,
   domains: [],
   knowledgeBase: defaultKnowledgeBase,
+  creativeKnowledge: defaultCreativeKnowledge,
   error: null
 };
 
@@ -162,14 +201,97 @@ function normalizeDomainExperiencePayload(value: unknown): DomainExperienceCatal
     ? payload.domains.map(normalizeDomainRecord).filter(isDomainRecord)
     : [];
   const knowledgeBase = normalizeKnowledgeBase(payload?.knowledgeBase);
+  const creativeKnowledge = normalizeCreativeKnowledge(payload?.creativeKnowledge);
 
   return {
     state: "available",
     schemaVersion: typeof payload?.schemaVersion === "string" ? payload.schemaVersion : null,
     domains,
     knowledgeBase,
+    creativeKnowledge,
     error: null
   };
+}
+
+function normalizeCreativeKnowledge(value: unknown): CreativeKnowledgeInventory {
+  const record = asRecord(value);
+  const records = Array.isArray(record?.records)
+    ? record.records.map(normalizeCreativeKnowledgeRecord).filter(isCreativeKnowledgeRecord)
+    : [];
+  const status = record?.status === "available" ? "available" : "unavailable";
+  return {
+    status,
+    detail: readString(record?.detail) ?? defaultCreativeKnowledge.detail,
+    authorityBoundary:
+      readString(record?.authorityBoundary) ?? defaultCreativeKnowledge.authorityBoundary,
+    recordCount: readCount(record?.recordCount) || records.length,
+    records
+  };
+}
+
+function normalizeCreativeKnowledgeRecord(value: unknown): CreativeKnowledgeRecord | null {
+  const record = asRecord(value);
+  const confidence = asRecord(record?.confidence);
+  const id = readString(record?.id);
+  const kind = readCreativeKnowledgeKind(record?.kind);
+  const title = readString(record?.title);
+  const summary = readString(record?.summary);
+  const confidenceBand = readCreativeKnowledgeConfidenceBand(confidence?.band);
+  const confidenceScore = confidence?.score;
+  if (
+    !id ||
+    !kind ||
+    !title ||
+    !summary ||
+    !confidenceBand ||
+    typeof confidenceScore !== "number" ||
+    !Number.isFinite(confidenceScore)
+  ) {
+    return null;
+  }
+  return {
+    id,
+    kind,
+    title,
+    summary,
+    domains: readStrings(record?.domains),
+    techniqueTags: readStrings(record?.techniqueTags),
+    workflowSteps: readStrings(record?.workflowSteps),
+    patternTags: readStrings(record?.patternTags),
+    taxonomyPath: readStrings(record?.taxonomyPath),
+    sourceIds: readStrings(record?.sourceIds),
+    provenanceCount: readCount(record?.provenanceCount),
+    confidence: {
+      score: Math.min(1, Math.max(0, confidenceScore)),
+      band: confidenceBand,
+      caveats: readStrings(confidence?.caveats)
+    }
+  };
+}
+
+function isCreativeKnowledgeRecord(
+  value: CreativeKnowledgeRecord | null
+): value is CreativeKnowledgeRecord {
+  return value !== null;
+}
+
+function readCreativeKnowledgeKind(value: unknown): CreativeKnowledgeRecord["kind"] | null {
+  return value === "technique" ||
+    value === "workflow" ||
+    value === "pattern" ||
+    value === "best_practice" ||
+    value === "taxonomy" ||
+    value === "kb_reality"
+    ? value
+    : null;
+}
+
+function readCreativeKnowledgeConfidenceBand(
+  value: unknown
+): CreativeKnowledgeRecord["confidence"]["band"] | null {
+  return value === "high" || value === "medium" || value === "low" || value === "guarded"
+    ? value
+    : null;
 }
 
 function normalizeDomainRecord(value: unknown): DomainExperienceRecord | null {

@@ -13,7 +13,31 @@ import {
 function buildModel(): ProductIntelligenceModel {
   return {
     activeDomainId: null,
-    domainExperience: loadingDomainExperienceCatalog,
+    domainExperience: {
+      ...loadingDomainExperienceCatalog,
+      creativeKnowledge: {
+        status: "available",
+        detail: "Typed creative guidance.",
+        authorityBoundary: "No private reasoning is exposed.",
+        recordCount: 1,
+        records: [
+          {
+            id: "creative_knowledge::runtime_selection_hydra_vs_p5",
+            kind: "workflow",
+            title: "Live visual runtime triage",
+            summary: "Choose a controlled sketch path.",
+            domains: ["hydra", "p5_js"],
+            techniqueTags: ["runtime_triage"],
+            workflowSteps: ["Compare runtime boundaries"],
+            patternTags: ["runtime_selection"],
+            taxonomyPath: ["creative production", "runtime choice"],
+            sourceIds: ["p5_reference"],
+            provenanceCount: 1,
+            confidence: { score: 0.8, band: "high", caveats: [] }
+          }
+        ]
+      }
+    },
     artifactRegistry: [],
     session: { id: "session-1", title: "Creative workspace" },
     sections: productIntelligenceCategories.map((category) => ({
@@ -76,7 +100,10 @@ describe("Product Intelligence surfaces", () => {
       />
     );
     expect(screen.getByText("Technical knowledge")).toBeVisible();
+    expect(screen.queryByText("Knowledge Base inventory")).not.toBeInTheDocument();
     expect(screen.getAllByText("Creative Knowledge Base")[0]).toBeVisible();
+    expect(screen.getByText("Live visual runtime triage")).toBeVisible();
+    expect(screen.getByLabelText("Curated creative studies")).toBeVisible();
     expect(screen.getByText("Published request, source, chunk, quality, and freshness signals for this run.")).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "Close dashboard" }));

@@ -49,6 +49,28 @@ describe("domain experience catalog", () => {
           updateStatus: "explicit_selected_source_actions",
           updateHint: "Use explicit selected-source actions.",
           provenanceBoundary: "No source text is returned."
+        },
+        creativeKnowledge: {
+          status: "available",
+          detail: "Typed creative guidance.",
+          authorityBoundary: "No private reasoning is returned.",
+          recordCount: 1,
+          records: [
+            {
+              id: "creative_knowledge::runtime_selection_hydra_vs_p5",
+              kind: "workflow",
+              title: "Live visual runtime triage",
+              summary: "Choose a controlled sketch path.",
+              domains: ["hydra", "p5_js"],
+              techniqueTags: ["runtime_triage"],
+              workflowSteps: ["Compare runtime boundaries"],
+              patternTags: ["runtime_selection"],
+              taxonomyPath: ["creative production", "runtime choice"],
+              sourceIds: ["p5_reference"],
+              provenanceCount: 1,
+              confidence: { score: 0.8, band: "high", caveats: [] }
+            }
+          ]
         }
       })
     });
@@ -58,6 +80,11 @@ describe("domain experience catalog", () => {
     expect(catalog.state).toBe("available");
     expect(catalog.knowledgeBase.indexedChunkCount).toBe(280);
     expect(catalog.knowledgeBase.freshnessStatus).toBe("local_index_timestamp");
+    expect(catalog.creativeKnowledge).toMatchObject({
+      status: "available",
+      recordCount: 1,
+      records: [{ title: "Live visual runtime triage", kind: "workflow" }]
+    });
     expect(catalog.domains).toHaveLength(1);
     expect(getDomainExperienceRecord(catalog, "p5_js")).toMatchObject({
       displayName: "p5.js",

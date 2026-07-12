@@ -6,17 +6,23 @@ import type { WorkflowRuntimeModel } from "@/lib/workflow-runtime";
 
 export function RuntimeConsoleInspector({
   console,
-  productOutcome
+  productOutcome,
+  presentation = "inspector"
 }: {
   console: RuntimeConsoleModel;
   productOutcome?: WorkflowRuntimeModel["summary"]["productOutcome"];
+  presentation?: "dashboard" | "inspector";
 }) {
   const statusMetric = console.metrics.find((metric) => metric.id === "status");
 
   return (
     <section
       aria-label="Runtime console inspector"
-      className="inspectorPanel runtimeConsolePanel"
+      className={
+        presentation === "inspector"
+          ? "inspectorPanel runtimeConsolePanel"
+          : "runtimeConsoleDashboard"
+      }
       data-state={console.hero.tone}
       id="runtime-inspector-panel"
       role="tabpanel"

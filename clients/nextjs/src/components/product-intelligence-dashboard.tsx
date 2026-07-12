@@ -6,6 +6,12 @@ import {
   DomainExperienceSurface,
   KnowledgeBaseInventorySurface
 } from "./domain-experience-surface";
+import { RetrievalInspector } from "./retrieval-inspector";
+import { RuntimeConsoleInspector } from "./runtime-console-inspector";
+import { ConversationContextInspector } from "./conversation-context-inspector";
+import { ProviderObservabilityDeepDive } from "./provider-observability-deep-dive";
+import { EvaluationSessionDashboard } from "./evaluation-session-dashboard";
+import { WorkstationDashboardSurface } from "./workstation-dashboard-surface";
 import {
   getProductIntelligenceSection,
   type ProductIntelligenceCategory,
@@ -19,6 +25,7 @@ import type {
 } from "@/lib/workspace-persistence";
 import type { SessionUsageSummary } from "@/lib/session-usage-ledger";
 import { formatUiStatusLabel } from "@/lib/ui-copy";
+import { morphogenesisPromptLibrary } from "@/lib/curated-prompt-library";
 import type {
   EvaluationHistoryRecord,
   FeedbackSentiment
@@ -409,11 +416,17 @@ function DashboardGroupView({
       })}
       {group.id === "architecture" ? <ArchitectureRouteGuide model={model} /> : null}
       {group.id === "workflow" ? <WorkflowLiveMap model={model} /> : null}
+      {group.id === "workspace" ? <ActiveDocumentBoard model={model} /> : null}
+      {group.id === "runtime" ? <RuntimeDashboardSurface model={model} /> : null}
+      {group.id === "preview" ? <PreviewReadinessBoard model={model} /> : null}
       {group.id === "ai_agents" ? <AiAgentSystemMap model={model} /> : null}
+      {group.id === "ai_agents" ? <ProviderDashboardSurface model={model} /> : null}
+      {group.id === "memory" ? <MemoryDashboardSurface model={model} /> : null}
       {group.id === "artifacts" ? <ArtifactRegistry model={model} /> : null}
       {group.id === "sessions" && sessions ? <SessionRegistry controls={sessions} /> : null}
       {group.id === "telemetry" ? <TelemetryObservatory model={model} /> : null}
       {group.id === "telemetry" && sessions ? <UserUsageOverview usage={sessions.usage} /> : null}
+      {group.id === "evaluation" ? <EvaluationDashboardSurface model={model} /> : null}
       {group.id === "ai_agents" && feedback ? (
         <section className="productDashboardGroupSection productDashboardFeedback">
           <header>
@@ -594,12 +607,16 @@ function KnowledgeDashboardView({ model }: { model: ProductIntelligenceModel }) 
         <header>
           <div>
             <span>Technical knowledge</span>
-            <strong>Official source inventory and local index</strong>
-            <p>Registered documentation, freshness checks, update controls, and local search coverage.</p>
+            <strong>{formatUiStatusLabel(knowledge.summary)}</strong>
+            <p>{knowledge.detail}</p>
           </div>
           <ProductIntelligenceHelp section={knowledge} />
         </header>
-        <ProductIntelligenceSectionView detailed model={model} section={knowledge} />
+        <KnowledgeBaseInventorySurface
+          detailed
+          headerMode="embedded"
+          inventory={model.domainExperience.knowledgeBase}
+        />
       </section>
       <CreativeKnowledgePanel model={model} />
       <section className="productDashboardGroupSection">
@@ -611,7 +628,14 @@ function KnowledgeDashboardView({ model }: { model: ProductIntelligenceModel }) 
           </div>
           <ProductIntelligenceHelp section={retrieval} />
         </header>
-        <ProductIntelligenceSectionView detailed model={model} section={retrieval} />
+        {model.details ? (
+          <RetrievalInspector
+            inventory={model.domainExperience.knowledgeBase}
+            runtime={model.details.retrievalRuntime}
+          />
+        ) : (
+          <ProductIntelligenceSectionView detailed model={model} section={retrieval} />
+        )}
       </section>
     </div>
   );
@@ -619,7 +643,13 @@ function KnowledgeDashboardView({ model }: { model: ProductIntelligenceModel }) 
 
 function CreativeKnowledgePanel({ model }: { model: ProductIntelligenceModel }) {
   const translation = model.artifactRegistry[0]?.creativeTranslation ?? null;
-  const groups = translation
+  const [selectedKind, setSelectedKind] = useState<string>("all");
+  const inventory = model.domainExperience.creativeKnowledge;
+  const recordKinds = [...new Set(inventory.records.map((record) => record.kind))];
+  const visibleRecords = inventory.records.filter(
+    (record) => selectedKind === "all" || record.kind === selectedKind
+  );
+  const artifactGroups = translation
     ? [
         { label: "Intent", values: [translation.creativeIntent] },
         { label: "Style", values: translation.visualStyle?.styles ?? [] },
@@ -629,39 +659,131 @@ function CreativeKnowledgePanel({ model }: { model: ProductIntelligenceModel }) 
         { label: "Runtime", values: translation.runtimeRecommendations }
       ].filter((group) => group.values.length > 0)
     : [];
+  const inventoryMetrics = [
+    { label: "Records", value: inventory.recordCount },
+    { label: "Techniques", value: inventory.records.filter((record) => record.kind === "technique").length },
+    { label: "Workflows", value: inventory.records.filter((record) => record.kind === "workflow").length },
+    { label: "Best practices", value: inventory.records.filter((record) => record.kind === "best_practice").length }
+  ];
 
   return (
-    <section aria-label="Creative Knowledge Base" className="dashboardFeature knowledgePrinciples">
+    <section aria-label="Creative Knowledge Base" className="dashboardFeature creativeKnowledgeBase">
       <header>
         <div>
           <span>Creative Knowledge Base</span>
-          <strong>{translation ? "Published direction for the selected artifact" : "Creative direction is recorded with each generated artifact"}</strong>
-          <p>{translation
-            ? "These are the structured, user-facing creative directions retained with the artifact."
-            : "Generate an artifact to inspect its published intent, aesthetic direction, structure, motion, and runtime recommendations."}</p>
+          <strong>{inventory.status === "available" ? "Explicit techniques, workflows, patterns, and practical safeguards" : "Curated creative studies are available while the local inventory loads"}</strong>
+          <p>Inspectable guidance only: source-backed patterns and browser boundaries, never hidden provider reasoning.</p>
         </div>
         <DashboardPanelHelp
-          detail="Creative knowledge is artifact metadata that is explicitly published for inspection. It is separate from the official technical-source inventory and does not expose private model reasoning."
+          detail="Creative Knowledge Base exposes deterministic records from the existing creative-distillation architecture, plus the product's curated studies. It is separate from Technical Knowledge and contains no private prompt, memory, or model chain-of-thought."
           label="Creative Knowledge Base"
         />
       </header>
-      {groups.length ? (
-        <ul>
-          {groups.map((group) => (
-            <li key={group.label}>
-              <strong>{group.label}</strong>
-              <span>{group.values.slice(0, 4).join(" · ")}</span>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className="knowledgeEmptyState">
-          <span>Awaiting published artifact metadata</span>
-          <p>Legacy or not-yet-generated artifacts do not provide structured creative guidance.</p>
+      <div aria-label="Creative Knowledge Base summary" className="creativeKnowledgeMetrics">
+        {inventoryMetrics.map((metric) => (
+          <div key={metric.label}>
+            <span>{metric.label}</span>
+            <strong>{metric.value}</strong>
+          </div>
+        ))}
+        <div>
+          <span>Boundary</span>
+          <strong>{inventory.status === "available" ? "Inspectable" : "Loading"}</strong>
         </div>
-      )}
+      </div>
+      {inventory.records.length ? (
+        <>
+          <div aria-label="Creative Knowledge filters" className="creativeKnowledgeFilters" role="group">
+            <button aria-pressed={selectedKind === "all"} onClick={() => setSelectedKind("all")} type="button">All</button>
+            {recordKinds.map((kind) => (
+              <button aria-pressed={selectedKind === kind} key={kind} onClick={() => setSelectedKind(kind)} type="button">
+                {formatCreativeKnowledgeKind(kind)}
+              </button>
+            ))}
+          </div>
+          <div aria-label="Creative knowledge records" className="creativeKnowledgeRecordGrid" role="list">
+            {visibleRecords.map((record) => (
+              <article data-kind={record.kind} key={record.id} role="listitem">
+                <header>
+                  <span>{formatCreativeKnowledgeKind(record.kind)}</span>
+                  <strong>{record.title}</strong>
+                </header>
+                <p>{record.summary}</p>
+                <div className="creativeKnowledgeDomainChips" aria-label={`${record.title} domains`}>
+                  {record.domains.map((domain) => <span key={domain}>{formatCreativeDomain(model, domain)}</span>)}
+                </div>
+                <dl>
+                  <div><dt>Confidence</dt><dd>{Math.round(record.confidence.score * 100)}% · {record.confidence.band}</dd></div>
+                  <div><dt>Provenance</dt><dd>{record.provenanceCount} record{record.provenanceCount === 1 ? "" : "s"}</dd></div>
+                </dl>
+                {record.techniqueTags.length || record.patternTags.length ? (
+                  <div className="creativeKnowledgeTagRow">
+                    {[...record.techniqueTags, ...record.patternTags].slice(0, 5).map((tag) => <span key={tag}>{formatCreativeTag(tag)}</span>)}
+                  </div>
+                ) : null}
+                {record.workflowSteps.length ? (
+                  <ol aria-label={`${record.title} workflow`}>
+                    {record.workflowSteps.slice(0, 3).map((step, index) => <li key={step}><span>{index + 1}</span>{step}</li>)}
+                  </ol>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        </>
+      ) : null}
+      <section aria-label="Curated creative studies" className="creativeStudyShelf">
+        <header>
+          <div>
+            <span>Curated creative studies</span>
+            <strong>Browser-aware pattern starters</strong>
+          </div>
+          <DashboardPanelHelp
+            detail="These are existing curated prompt-library studies. They are deterministic starter briefs and honest runtime boundaries, not a claim of a new generative or semantic system."
+            label="Curated creative studies"
+          />
+        </header>
+        <div role="list">
+          {morphogenesisPromptLibrary.map((study) => (
+            <article key={study.id} role="listitem">
+              <div>
+                <strong>{study.title}</strong>
+                <span>{study.concept}</span>
+              </div>
+              <p>{study.description}</p>
+              <dl>
+                <div><dt>Runtime</dt><dd>{study.runtime}</dd></div>
+                <div><dt>Boundary</dt><dd>{study.previewBoundary}</dd></div>
+              </dl>
+            </article>
+          ))}
+        </div>
+      </section>
+      {artifactGroups.length ? (
+        <section aria-label="Selected artifact creative direction" className="artifactCreativeDirection">
+          <header>
+            <div><span>Selected artifact direction</span><strong>Published with the current artifact</strong></div>
+            <DashboardPanelHelp detail="These fields are structured creative metadata retained with the selected artifact. They are useful for follow-up refinement but do not replace the persistent Creative Knowledge Base." label="Selected artifact direction" />
+          </header>
+          <ul>
+            {artifactGroups.map((group) => <li key={group.label}><strong>{group.label}</strong><span>{group.values.slice(0, 4).join(" · ")}</span></li>)}
+          </ul>
+        </section>
+      ) : null}
+      <footer className="creativeKnowledgeBoundary">{inventory.authorityBoundary}</footer>
     </section>
   );
+}
+
+function formatCreativeKnowledgeKind(kind: string) {
+  return kind.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatCreativeTag(tag: string) {
+  return tag.replace(/_/g, " ");
+}
+
+function formatCreativeDomain(model: ProductIntelligenceModel, domain: string) {
+  return model.domainExperience.domains.find((record) => record.id === domain)?.displayName ?? formatCreativeTag(domain);
 }
 
 function WorkflowLiveMap({ model }: { model: ProductIntelligenceModel }) {
@@ -798,6 +920,129 @@ function TelemetryObservatory({ model }: { model: ProductIntelligenceModel }) {
         <div><span>Tokens</span><strong>{telemetry.provider.summary.tokenLabel}</strong></div>
         <div><span>Est. cost</span><strong>{telemetry.provider.summary.costLabel}</strong></div>
         <div><span>Runtime</span><strong>{telemetry.summary.runtimeLabel}</strong></div>
+      </div>
+    </section>
+  );
+}
+
+function ActiveDocumentBoard({ model }: { model: ProductIntelligenceModel }) {
+  const artifact = model.artifactRegistry[0] ?? null;
+  if (!artifact) {
+    return (
+      <section aria-label="Active document" className="dashboardFeature dashboardEmptyState">
+        <header>
+          <div><span>Active document</span><strong>No generated source yet</strong><p>Generate an artifact to inspect its source, delivery boundary, and preview eligibility here.</p></div>
+          <DashboardPanelHelp detail="This Dashboard view reports the current saved artifact. Source, preview capability, and delivery boundary remain separate product signals." label="Active document" />
+        </header>
+      </section>
+    );
+  }
+
+  return (
+    <section aria-label="Active document" className="dashboardFeature activeDocumentBoard">
+      <header>
+        <div>
+          <span>Active document</span>
+          <strong>{artifact.title}</strong>
+          <p>{artifact.summary}</p>
+        </div>
+        <DashboardPanelHelp detail="The active document is the retained source artifact selected by the workspace. Preview status is reported separately because a saved artifact is not necessarily runnable in this browser." label="Active document" />
+      </header>
+      <dl>
+        <div><dt>Language</dt><dd>{artifact.language}</dd></div>
+        <div><dt>Artifact status</dt><dd>{artifact.status}</dd></div>
+        <div><dt>Preview</dt><dd>{artifact.previewEligible ? "Eligible" : "Not eligible"}</dd></div>
+        <div><dt>Domain</dt><dd>{artifact.domain ? formatCreativeDomain(model, artifact.domain) : "Not published"}</dd></div>
+      </dl>
+      <pre aria-label="Active document source excerpt"><code>{artifactSnippet(artifact.content)}</code></pre>
+    </section>
+  );
+}
+
+function PreviewReadinessBoard({ model }: { model: ProductIntelligenceModel }) {
+  const preview = model.details?.telemetryDashboard.preview;
+  if (!preview) return null;
+  const stages = [
+    { label: "Artifact", value: preview.artifactName ? "Ready" : "Pending", complete: Boolean(preview.artifactName) },
+    { label: "Route", value: preview.renderer || "Pending", complete: Boolean(preview.renderer) },
+    { label: "Mount", value: preview.available ? "Available" : preview.active ? "Starting" : "Waiting", complete: preview.available },
+    { label: "Health", value: preview.healthLabel, complete: !preview.error && preview.available }
+  ];
+  return (
+    <section aria-label="Preview readiness" className="dashboardFeature previewReadinessBoard" data-state={preview.state}>
+      <header>
+        <div><span>Preview readiness</span><strong>{preview.healthLabel}</strong><p>{preview.detail}</p></div>
+        <DashboardPanelHelp detail="Preview readiness separates the selected artifact, renderer route, browser mount state, and runtime health. A saved artifact or renderer label alone does not claim that a visible preview is running." label="Preview readiness" />
+      </header>
+      <div className="previewReadinessMetrics">
+        <div><span>State</span><strong>{formatUiStatusLabel(preview.state)}</strong></div>
+        <div><span>Renderer</span><strong>{preview.renderer || "Pending"}</strong></div>
+        <div><span>Target</span><strong>{preview.target}</strong></div>
+        <div><span>Artifact</span><strong>{preview.artifactName || "No artifact"}</strong></div>
+      </div>
+      <ol aria-label="Preview lifecycle" className="previewLifecycle">
+        {stages.map((stage, index) => <li data-complete={stage.complete ? "true" : "false"} key={stage.label}><span>{index + 1}</span><div><strong>{stage.label}</strong><small>{stage.value}</small></div></li>)}
+      </ol>
+      {preview.error ? <p className="previewReadinessError">{preview.error}</p> : null}
+    </section>
+  );
+}
+
+function RuntimeDashboardSurface({ model }: { model: ProductIntelligenceModel }) {
+  const details = model.details;
+  if (!details) return null;
+  return (
+    <section aria-label="Runtime health console" className="dashboardFeature dashboardComponentSurface">
+      <header>
+        <div><span>Runtime health</span><strong>Renderer, diagnostics, and recovery evidence</strong><p>Current runtime state is separate from the generated source and preview availability.</p></div>
+        <DashboardPanelHelp detail="The runtime console presents published renderer health, metric signals, diagnostics, context, and events. It never treats a source artifact as proof that a runtime executed successfully." label="Runtime health console" />
+      </header>
+      <RuntimeConsoleInspector console={details.runtimeConsole} presentation="dashboard" productOutcome={details.workflowRuntime.summary.productOutcome} />
+    </section>
+  );
+}
+
+function ProviderDashboardSurface({ model }: { model: ProductIntelligenceModel }) {
+  const telemetry = model.details?.providerTelemetry;
+  if (!telemetry) return null;
+  return (
+    <section aria-label="Provider observability" className="dashboardFeature dashboardComponentSurface">
+      <header>
+        <div><span>Provider observability</span><strong>Usage, latency, configuration, and recovery path</strong><p>Only provider-published identifiers, usage fields, and configuration provenance are shown.</p></div>
+        <DashboardPanelHelp detail="Provider observability distinguishes known values from unavailable values. It does not reveal prompts, private memory, or internal model reasoning." label="Provider observability" />
+      </header>
+      <ProviderObservabilityDeepDive telemetry={telemetry} />
+    </section>
+  );
+}
+
+function MemoryDashboardSurface({ model }: { model: ProductIntelligenceModel }) {
+  const context = model.details?.conversationContext;
+  if (!context) return null;
+  return (
+    <section aria-label="Memory and context" className="dashboardFeature dashboardComponentSurface">
+      <header>
+        <div><span>Context boundary</span><strong>What the current run explicitly published</strong><p>Counts make the session context inspectable without exposing conversation or private memory content.</p></div>
+        <DashboardPanelHelp detail="This panel is privacy-safe: it exposes only counts and context-boundary facts published by the runtime. No private session text, embeddings, or provider prompt is shown." label="Memory and context" />
+      </header>
+      <ConversationContextInspector context={context} />
+    </section>
+  );
+}
+
+function EvaluationDashboardSurface({ model }: { model: ProductIntelligenceModel }) {
+  const telemetry = model.details?.telemetryDashboard;
+  const workstation = model.details?.workstationDashboard;
+  if (!telemetry || !workstation) return null;
+  return (
+    <section aria-label="Evaluation and validation" className="dashboardFeature dashboardComponentSurface">
+      <header>
+        <div><span>Evaluation and validation</span><strong>Session evidence and workstation health</strong><p>Evaluation outcomes, trace lineage, and local workstation checks remain visibly separate.</p></div>
+        <DashboardPanelHelp detail="Evaluation records result quality when it exists; workstation signals describe current product health. Neither surface upgrades an unscored or unavailable signal into success." label="Evaluation and validation" />
+      </header>
+      <div className="evaluationDashboardSplit">
+        <EvaluationSessionDashboard evaluation={telemetry.evaluation} />
+        <WorkstationDashboardSurface dashboard={workstation} />
       </div>
     </section>
   );

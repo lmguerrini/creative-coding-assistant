@@ -20,6 +20,7 @@ from creative_coding_assistant.core.config import Settings, load_settings
 from creative_coding_assistant.domains import domain_experience_records
 from creative_coding_assistant.knowledge.creative_distillation import (
     build_kb_reality_snapshot,
+    build_v8_1_creative_knowledge_distillation,
     inventory_local_chroma_kb,
 )
 from creative_coding_assistant.rag.sources import approved_official_sources
@@ -136,6 +137,9 @@ def build_domain_experience_payload(
     kb_reality = build_kb_reality_snapshot(
         indexed_chunk_counts_by_source=indexed_source_counts
     )
+    creative_knowledge = build_v8_1_creative_knowledge_distillation(
+        indexed_chunk_counts_by_source=indexed_source_counts
+    )
     registered_source_count = kb_reality.registry_source_count
     registered_domain_count = kb_reality.registry_domain_count
     indexed_source_count = kb_reality.indexed_source_count
@@ -240,6 +244,36 @@ def build_domain_experience_payload(
                     "provenance": "Approved official-source registry and local Chroma index.",
                 }
                 for source in approved_official_sources()
+            ],
+        },
+        "creativeKnowledge": {
+            "status": "available",
+            "detail": (
+                "Typed creative guidance distilled from registered sources, "
+                "retrieval demos, and repository contracts."
+            ),
+            "authorityBoundary": creative_knowledge.authority_boundary,
+            "recordCount": len(creative_knowledge.records),
+            "records": [
+                {
+                    "id": record.record_id,
+                    "kind": record.kind.value,
+                    "title": record.title,
+                    "summary": record.summary,
+                    "domains": [domain.value for domain in record.domains],
+                    "techniqueTags": list(record.technique_tags),
+                    "workflowSteps": list(record.workflow_steps),
+                    "patternTags": list(record.pattern_tags),
+                    "taxonomyPath": list(record.taxonomy_path),
+                    "sourceIds": list(record.source_ids),
+                    "provenanceCount": len(record.provenance),
+                    "confidence": {
+                        "score": record.confidence.score,
+                        "band": record.confidence.band.value,
+                        "caveats": list(record.confidence.caveats),
+                    },
+                }
+                for record in creative_knowledge.records
             ],
         },
     }
