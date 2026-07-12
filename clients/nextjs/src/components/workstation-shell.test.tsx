@@ -1208,6 +1208,11 @@ describe("WorkstationShell", () => {
       screen.getByRole("group", { name: "Empty creative workspace" })
     ).toBeVisible();
     expect(screen.getByText("New creative session")).toBeVisible();
+    expect(screen.getByText("Describe the creative system you want to build.")).toBeVisible();
+    expect(screen.getByRole("textbox", { name: "Assistant prompt" })).toHaveAttribute(
+      "placeholder",
+      "Describe the visual, audio, or interactive experience you want to create."
+    );
     expect(screen.getByText("Build browser-native visuals")).toBeVisible();
     expect(screen.getByText("Ground answers in official sources")).toBeVisible();
     expect(screen.getByText("Preview, refine, and save artifacts")).toBeVisible();
@@ -6498,6 +6503,9 @@ describe("WorkstationShell", () => {
     expect(
       within(overviewTelemetry).getByText("openai / gpt-5-mini")
     ).toBeVisible();
+    expect(screen.getByLabelText("Current session")).toHaveTextContent(
+      "1,500 tokens · $0.0009"
+    );
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
 

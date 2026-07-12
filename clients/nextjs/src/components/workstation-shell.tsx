@@ -3822,7 +3822,7 @@ export function WorkstationShell({
                 <textarea
                   aria-label="Assistant prompt"
                   onChange={(event) => setComposerValue(event.currentTarget.value)}
-                  placeholder="Describe the art, sound, or interactive experience you want to create."
+                  placeholder="Describe the visual, audio, or interactive experience you want to create."
                   ref={composerTextareaRef}
                   value={composerValue}
                 />
@@ -4270,7 +4270,7 @@ function EmptyWorkspaceState({
     >
       <header className="emptyWorkspaceHero">
         <span className="eyebrow">New creative session</span>
-        <strong>Describe the art you want to create.</strong>
+        <strong>Describe the creative system you want to build.</strong>
         <p>
           Start with an idea, medium, constraint, or reference. Creative Coding
           Assistant turns it into grounded guidance, generated code, previewable
@@ -8637,11 +8637,14 @@ function resolveClarificationNumericAnswer(
 }
 
 function formatSessionTelemetryLabel(telemetry: ProviderTelemetryModel) {
-  if (telemetry.status === "idle") {
+  const hasTokenUsage = telemetry.tokenUsage.totalTokens != null;
+  const hasCostEstimate = telemetry.cost.totalCost != null;
+
+  if (!hasTokenUsage && !hasCostEstimate && telemetry.status === "idle") {
     return "Tokens and estimated cost pending";
   }
 
-  return `${telemetry.summary.tokenLabel} / ${telemetry.summary.costLabel}`;
+  return `${telemetry.summary.tokenLabel} · ${telemetry.summary.costLabel}`;
 }
 
 function formatWorkflowModeLabel(mode: WorkflowExecutionMode) {
