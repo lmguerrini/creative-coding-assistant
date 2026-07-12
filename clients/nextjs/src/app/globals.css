@@ -12626,6 +12626,19 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   justify-content: space-between;
 }
 
+.kbSourceExplorerIntro {
+  min-width: 0;
+  max-width: 590px;
+}
+
+.kbSourceExplorerControls {
+  display: grid;
+  flex: 0 1 440px;
+  justify-items: end;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
 .kbSourceExplorer > header p,
 .kbSourceBoundary,
 .kbOperationStatus,
@@ -12639,7 +12652,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 .kbSourceActions {
   flex-wrap: wrap;
   justify-content: flex-end;
-  margin-top: 0.55rem;
+  margin: 0;
 }
 
 .kbSmartUpdateActions {
@@ -13104,6 +13117,11 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 
   .kbSourceActions {
     justify-content: flex-start;
+  }
+
+  .kbSourceExplorerControls {
+    justify-items: end;
+    margin-top: 0.65rem;
   }
 
   .kbSmartUpdateActions {

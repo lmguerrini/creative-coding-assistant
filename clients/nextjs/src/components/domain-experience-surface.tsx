@@ -448,55 +448,57 @@ function KnowledgeBaseSourceExplorer({
       data-running={operationRunning ? "true" : "false"}
     >
       <header>
-        <div>
+        <div className="kbSourceExplorerIntro">
           <strong>Official sources</strong>
           <p>Registry inventory is separate from the references used in the current run.</p>
+          <p className="kbSourceBoundary">
+            Smart Update uses all registered sources when none are selected. It checks first, writes only changed reachable sources after your confirmation, and keeps the prior valid local index when a write fails.
+          </p>
         </div>
-        <div className="kbSmartUpdateActions" role="group" aria-label="Knowledge Base Smart Update action">
-          <button
-            aria-label={smartUpdateRunning ? "Smart Update in progress" : undefined}
-            className="kbSmartUpdateButton"
-            disabled={operationRunning || sourceIds.length === 0}
-            onClick={() => void runSmartUpdate()}
-            type="button"
-          >
-            {smartUpdateRunning ? <><span aria-hidden="true" className="kbActionSpinner" />Smart Update running</> : "Smart Update"}
-          </button>
-          <span>Checks, updates changed reachable sources, rebuilds, then validates after one confirmation.</span>
+        <div className="kbSourceExplorerControls">
+          <div className="kbSmartUpdateActions" role="group" aria-label="Knowledge Base Smart Update action">
+            <button
+              aria-label={smartUpdateRunning ? "Smart Update in progress" : undefined}
+              className="kbSmartUpdateButton"
+              disabled={operationRunning || sourceIds.length === 0}
+              onClick={() => void runSmartUpdate()}
+              type="button"
+            >
+              {smartUpdateRunning ? <><span aria-hidden="true" className="kbActionSpinner" />Smart Update running</> : "Smart Update"}
+            </button>
+            <span>Checks, updates changed reachable sources, rebuilds, then validates after one confirmation.</span>
+          </div>
+          <div className="kbSourceActions" role="group" aria-label="Advanced Knowledge Base update actions">
+            <button
+              aria-pressed={areAllSourcesSelected}
+              disabled={operationRunning || sourceIds.length === 0}
+              onClick={toggleAllSources}
+              type="button"
+            >
+              {areAllSourcesSelected ? "Clear selection" : "Select all"}
+            </button>
+            <button
+              aria-label={runningAction === "check" ? "Checking selected official sources" : undefined}
+              disabled={operationRunning || selectedSourceIds.length === 0}
+              onClick={() => void runOperation("check")}
+              type="button"
+            >
+              {runningAction === "check" ? (
+                <><span aria-hidden="true" className="kbActionSpinner" />Checking sources</>
+              ) : "Check for updates"}
+            </button>
+            <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("update")} type="button">
+              Update selected
+            </button>
+            <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("rebuild")} type="button">
+              Rebuild selected
+            </button>
+            <button disabled={operationRunning} onClick={() => void runOperation("validate")} type="button">
+              Validate index
+            </button>
+          </div>
         </div>
       </header>
-      <div className="kbSourceActions" role="group" aria-label="Advanced Knowledge Base update actions">
-        <button
-          aria-pressed={areAllSourcesSelected}
-          disabled={operationRunning || sourceIds.length === 0}
-          onClick={toggleAllSources}
-          type="button"
-        >
-          {areAllSourcesSelected ? "Clear selection" : "Select all"}
-        </button>
-        <button
-          aria-label={runningAction === "check" ? "Checking selected official sources" : undefined}
-          disabled={operationRunning || selectedSourceIds.length === 0}
-          onClick={() => void runOperation("check")}
-          type="button"
-        >
-          {runningAction === "check" ? (
-            <><span aria-hidden="true" className="kbActionSpinner" />Checking sources</>
-          ) : "Check for updates"}
-        </button>
-        <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("update")} type="button">
-          Update selected
-        </button>
-        <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("rebuild")} type="button">
-          Rebuild selected
-        </button>
-        <button disabled={operationRunning} onClick={() => void runOperation("validate")} type="button">
-          Validate index
-        </button>
-      </div>
-      <p className="kbSourceBoundary">
-        Smart Update uses all registered sources when none are selected. It checks first, writes only changed reachable sources after your confirmation, and keeps the prior valid local index when a write fails.
-      </p>
       <ul aria-label="Knowledge Base action guide" className="kbActionGuide">
         <li><strong>Smart Update</strong><span>Checks first, then updates and rebuilds only changed reachable sources before validation.</span></li>
         <li><strong>Check for updates</strong><span>Compares official content with local fingerprints. Read-only.</span></li>
