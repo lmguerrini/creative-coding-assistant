@@ -12656,10 +12656,12 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .kbSmartUpdateActions > span {
+  flex: 1 1 220px;
   max-width: 250px;
   color: var(--muted);
   font-size: 0.67rem;
   line-height: 1.35;
+  order: 1;
 }
 
 .kbSmartUpdateButton {
@@ -12676,6 +12678,8 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   box-shadow: 0 6px 16px color-mix(in srgb, var(--teal) 16%, transparent);
   font-size: 0.75rem;
   font-weight: 800;
+  margin-inline-start: auto;
+  order: 2;
 }
 
 .kbSmartUpdateButton:hover:not(:disabled) {
