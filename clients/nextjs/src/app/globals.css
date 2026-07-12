@@ -12645,9 +12645,10 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 .kbSmartUpdateActions {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: flex-end;
   gap: 0.55rem;
-  margin-top: 0.65rem;
+  width: min(100%, 440px);
+  margin: 0.65rem 0 0 auto;
   padding: 0.45rem 0.55rem;
   border: 1px solid color-mix(in srgb, var(--teal) 28%, var(--line));
   border-radius: 12px;
@@ -12656,7 +12657,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .kbSmartUpdateActions > span {
-  flex: 1 1 220px;
+  flex: 0 1 250px;
   max-width: 250px;
   color: var(--muted);
   font-size: 0.67rem;
@@ -12678,7 +12679,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   box-shadow: 0 6px 16px color-mix(in srgb, var(--teal) 16%, transparent);
   font-size: 0.75rem;
   font-weight: 800;
-  margin-inline-start: auto;
+  margin-inline-start: 0;
   order: 2;
 }
 
@@ -13106,7 +13107,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   }
 
   .kbSmartUpdateActions {
-    justify-content: flex-start;
+    justify-content: flex-end;
   }
 
   .kbSmartUpdateStatus ol {
