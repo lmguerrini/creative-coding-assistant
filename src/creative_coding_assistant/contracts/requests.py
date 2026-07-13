@@ -7,7 +7,14 @@ from collections.abc import Sequence
 from enum import StrEnum
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SecretStr,
+    field_validator,
+    model_validator,
+)
 
 from creative_coding_assistant.contracts.events import StreamEvent
 
@@ -128,7 +135,7 @@ class AssistantImageReference(BaseModel):
     name: str = Field(min_length=1)
     mime_type: str = Field(alias="mimeType", min_length=1)
     size_bytes: int = Field(alias="sizeBytes", gt=0, le=MAX_IMAGE_REFERENCE_BYTES)
-    data_url: str | None = Field(default=None, alias="dataUrl")
+    data_url: SecretStr | None = Field(default=None, alias="dataUrl")
 
     @field_validator("mime_type")
     @classmethod
@@ -144,10 +151,11 @@ class AssistantImageReference(BaseModel):
 
     @field_validator("data_url")
     @classmethod
-    def validate_data_url(cls, value: str | None) -> str | None:
+    def validate_data_url(cls, value: SecretStr | None) -> SecretStr | None:
         if value is None:
             return None
-        if not value.startswith("data:") or ";base64," not in value:
+        raw_value = value.get_secret_value()
+        if not raw_value.startswith("data:") or ";base64," not in raw_value:
             raise ValueError("Assistant image reference data URL must be a base64 image.")
         return value
 
@@ -155,7 +163,10 @@ class AssistantImageReference(BaseModel):
     def validate_data_url_matches_metadata(self) -> AssistantImageReference:
         if self.data_url is None:
             return self
-        prefix, encoded = self.data_url.split(";base64,", maxsplit=1)
+        prefix, encoded = self.data_url.get_secret_value().split(
+            ";base64,",
+            maxsplit=1,
+        )
         if prefix != f"data:{self.mime_type}":
             raise ValueError("Assistant image reference data URL MIME type must match metadata.")
         try:
@@ -164,7 +175,27 @@ class AssistantImageReference(BaseModel):
             raise ValueError("Assistant image reference data URL must be valid base64.") from exc
         if len(payload) != self.size_bytes:
             raise ValueError("Assistant image reference size must match the uploaded data.")
+        if not _image_payload_matches_mime(payload, self.mime_type):
+            raise ValueError(
+                "Assistant image reference bytes must match the declared MIME type."
+            )
         return self
+
+
+def _image_payload_matches_mime(payload: bytes, mime_type: str) -> bool:
+    if mime_type == "image/png":
+        return payload.startswith(b"\x89PNG\r\n\x1a\n")
+    if mime_type == "image/jpeg":
+        return payload.startswith(b"\xff\xd8\xff")
+    if mime_type == "image/gif":
+        return payload.startswith((b"GIF87a", b"GIF89a"))
+    if mime_type == "image/webp":
+        return (
+            len(payload) >= 12
+            and payload.startswith(b"RIFF")
+            and payload[8:12] == b"WEBP"
+        )
+    return False
 
 
 class AssistantArtifactRefinement(BaseModel):

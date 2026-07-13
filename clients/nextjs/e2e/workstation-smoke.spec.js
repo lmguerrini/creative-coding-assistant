@@ -159,19 +159,19 @@ test.describe("V9.6 workstation E2E smoke", () => {
     await expect(demoMode).toContainText("Capstone scenarios");
 
     await demoScenarios
-      .getByRole("button", { name: /Physarum drift/ })
+      .getByRole("button", { name: /Recursive aurora garden/ })
       .click();
 
     await expect(demoMode).toBeVisible();
     const selectedScenario = demoMode.getByRole("article", {
       name: "Selected demo scenario"
     });
-    await expect(selectedScenario).toContainText("Physarum drift");
+    await expect(selectedScenario).toContainText("Recursive aurora garden");
     await selectedScenario.getByRole("button", { name: "Load prompt & run" }).click();
 
     await expect(demoMode).toHaveCount(0);
     await expect(page.getByRole("log", { name: "Conversation" })).toContainText(
-      /physarum-drift\.p5\.js/
+      /recursive-aurora-garden\.p5\.js/
     );
     consoleGate.assertClean();
   });
@@ -194,7 +194,7 @@ test.describe("V9.6 workstation E2E smoke", () => {
 
     await expect(demoMode).toContainText("10 flows");
     await demoScenarios
-      .getByRole("button", { name: /Physarum drift/ })
+      .getByRole("button", { name: /Recursive aurora garden/ })
       .click();
     await demoMode
       .getByRole("article", { name: "Selected demo scenario" })
@@ -202,7 +202,7 @@ test.describe("V9.6 workstation E2E smoke", () => {
       .click();
     await expect(demoMode).toHaveCount(0);
     await expectGeneratedPreview(page, {
-      artifactTitle: "physarum-drift-2.p5.js"
+      artifactTitle: "recursive-aurora-garden-2.p5.js"
     });
 
     consoleGate.assertClean();
@@ -219,7 +219,7 @@ test.describe("V9.6 workstation E2E smoke", () => {
     await page
       .getByRole("region", { name: "Demo Mode" })
       .getByRole("list", { name: "Demo Mode scenarios" })
-      .getByRole("button", { name: /Physarum drift/ })
+      .getByRole("button", { name: /Recursive aurora garden/ })
       .click();
     await page.getByRole("button", { name: "Settings" }).click();
     const displayMode = page.getByRole("button", { name: "Display mode" });
@@ -252,7 +252,7 @@ test.describe("V9.6 workstation E2E smoke", () => {
     await expect(page.getByRole("tab", { name: "Telemetry" })).toBeVisible();
 
     await page.getByRole("button", { name: "Theme" }).click();
-    await page.getByRole("button", { name: "Use Codex theme" }).click();
+    await page.getByRole("button", { name: "Use Deep Blue theme" }).click();
     await expect(page.locator(".workstation")).toHaveAttribute("data-theme", "codex");
 
     await page.getByRole("button", { name: "Settings" }).click();

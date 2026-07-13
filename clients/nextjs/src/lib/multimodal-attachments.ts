@@ -52,6 +52,20 @@ export async function createImageAttachmentFromFile({
   }
 
   try {
+    const dataUrl = await readFileAsDataUrl(file);
+    if (!imageDataUrlMatchesMime(dataUrl, file.type)) {
+      return {
+        ok: false,
+        error: createImageUploadError({
+          type: "image_reference_signature_mismatch",
+          userMessage: "The selected file does not contain the image format it declares.",
+          debugMessage: `${file.name || "image"} does not match ${file.type}.`,
+          suggestedAction:
+            "Export the reference as a valid PNG, JPEG, WebP, or GIF and attach it again."
+        })
+      };
+    }
+
     return {
       ok: true,
       attachment: {
@@ -60,7 +74,7 @@ export async function createImageAttachmentFromFile({
         name: file.name || "Untitled image reference",
         mimeType: file.type,
         sizeBytes: file.size,
-        dataUrl: await readFileAsDataUrl(file),
+        dataUrl,
         createdAt
       }
     };
@@ -108,9 +122,10 @@ export function buildMultimodalSummary({
         "image references"
       )}`,
       detail:
-        `${formatAttachmentNames(imageAttachments)} will be sent with the next ` +
-        "request as image-reference metadata. The current provider path does not " +
-        "perform pixel analysis or visual-reference extraction.",
+        `${formatAttachmentNames(imageAttachments)} stays local until you submit ` +
+        "a generation request. The browser does not perform pixel analysis; the " +
+        "configured provider receives the selected pixels as visual input only for " +
+        "that explicit request.",
       imageAttachments,
       error: null
     };
@@ -121,8 +136,8 @@ export function buildMultimodalSummary({
     state: "empty",
     status: "No image references",
     detail:
-      baseMultimodal.detail ||
-      "Attach image references as metadata for the next request; pixel analysis and audio upload are not supported in this product path.",
+      "Attach a PNG, JPEG, WebP, or GIF for visual guidance. Its pixels stay local " +
+      "until you explicitly submit a generation request; audio upload is not supported.",
     imageAttachments: [],
     error: null
   };
@@ -141,7 +156,9 @@ export function normalizeImageAttachments(
 export function toAssistantRequestImageAttachments(
   attachments: ImageAttachmentSummary[]
 ): AssistantRequestImageAttachment[] {
-  return attachments.map((attachment) => ({
+  // This serializer is called only by an explicit generation submission. Recheck
+  // persisted data here so stale or tampered local state cannot bypass upload bounds.
+  return normalizeImageAttachments(attachments).map((attachment) => ({
     type: "image",
     id: attachment.id,
     name: attachment.name,
@@ -166,7 +183,7 @@ function validateImageAttachmentFile(
   if (existingCount >= maxImageAttachmentCount) {
     return createImageUploadError({
       type: "image_upload_limit_reached",
-      userMessage: `Attach up to ${maxImageAttachmentCount} image references per session.`,
+      userMessage: `Attach up to ${maxImageAttachmentCount} image references per request.`,
       suggestedAction:
         "Remove an existing image reference before attaching another one."
     });
@@ -289,7 +306,76 @@ function isImageAttachmentSummary(value: unknown): value is ImageAttachmentSumma
     value.sizeBytes <= maxImageAttachmentBytes &&
     typeof value.dataUrl === "string" &&
     value.dataUrl.startsWith(`data:${value.mimeType};base64,`) &&
+    dataUrlPayloadSize(value.dataUrl, value.mimeType) === value.sizeBytes &&
+    imageDataUrlMatchesMime(value.dataUrl, value.mimeType) &&
     typeof value.createdAt === "string"
+  );
+}
+
+function dataUrlPayloadSize(dataUrl: string, mimeType: string) {
+  const prefix = `data:${mimeType};base64,`;
+  if (!dataUrl.startsWith(prefix)) {
+    return null;
+  }
+
+  const encoded = dataUrl.slice(prefix.length);
+  if (
+    encoded.length === 0 ||
+    encoded.length % 4 !== 0 ||
+    !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)
+  ) {
+    return null;
+  }
+
+  const padding = encoded.endsWith("==") ? 2 : encoded.endsWith("=") ? 1 : 0;
+  return (encoded.length / 4) * 3 - padding;
+}
+
+function imageDataUrlMatchesMime(dataUrl: string, mimeType: string) {
+  const bytes = decodeDataUrlBytes(dataUrl, mimeType);
+  if (!bytes) {
+    return false;
+  }
+
+  if (mimeType === "image/png") {
+    return startsWithBytes(bytes, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  }
+  if (mimeType === "image/jpeg") {
+    return startsWithBytes(bytes, [0xff, 0xd8, 0xff]);
+  }
+  if (mimeType === "image/gif") {
+    return startsWithBytes(bytes, [0x47, 0x49, 0x46, 0x38, 0x37, 0x61]) ||
+      startsWithBytes(bytes, [0x47, 0x49, 0x46, 0x38, 0x39, 0x61]);
+  }
+  if (mimeType === "image/webp") {
+    return (
+      startsWithBytes(bytes, [0x52, 0x49, 0x46, 0x46]) &&
+      bytes.length >= 12 &&
+      startsWithBytes(bytes.slice(8), [0x57, 0x45, 0x42, 0x50])
+    );
+  }
+
+  return false;
+}
+
+function decodeDataUrlBytes(dataUrl: string, mimeType: string) {
+  const prefix = `data:${mimeType};base64,`;
+  if (!dataUrl.startsWith(prefix)) {
+    return null;
+  }
+
+  try {
+    const decoded = globalThis.atob(dataUrl.slice(prefix.length));
+    return Uint8Array.from(decoded, (character) => character.charCodeAt(0));
+  } catch {
+    return null;
+  }
+}
+
+function startsWithBytes(bytes: Uint8Array, signature: readonly number[]) {
+  return (
+    bytes.length >= signature.length &&
+    signature.every((value, index) => bytes[index] === value)
   );
 }
 

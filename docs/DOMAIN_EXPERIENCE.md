@@ -11,8 +11,9 @@ Dashboard and Inspector. It lists every registered creative domain, its
 artifact extensions, knowledge-source coverage, validation contract, fallback,
 and one of three delivery kinds:
 
-- **Live browser preview:** p5.js, Three.js, and GLSL only. Each is limited to
-  the validated browser-generation contract and exposes a runtime fallback.
+- **Live browser preview:** p5.js, Three.js, GLSL, and Tone.js only. Each is
+  limited to the validated browser-generation contract and exposes a runtime
+  fallback. Tone.js playback remains behind an explicit user-start control.
 - **Code/export:** source is produced for use or inspection outside that live
   preview contract. Hydra and React Three Fiber are code/export-only in the
   current product. A client adapter or historical QA artifact is not a claim
@@ -52,11 +53,14 @@ Base is empty.
 
 ## Multimodal and export boundaries
 
-Image attachments are retained as metadata for the workflow and may be listed
-in an export. The workstation does not perform pixel analysis, visual-feature
-extraction, or image-to-prompt inference. Audio upload and audio analysis are
-not available in the workstation; Tone playback is only initiated through its
-explicit browser playback control.
+Image attachments remain browser-local until explicit submission. The backend
+validates their declared format and size, keeps pixel payloads out of diagnostic
+metadata, and sends the selected pixels to the configured multimodal provider as
+visual input for that request. The composer clears them after submission and
+workspace persistence does not restore them. A project bundle exported before
+submission can still include queued images, so it must be reviewed before
+sharing. Audio upload and audio analysis are not available in the workstation;
+Tone playback is only initiated through its explicit browser playback control.
 
 Export packages contain the generated source, manifest, and any appropriate
 handoff documents. They do not imply external tool execution, a hosted

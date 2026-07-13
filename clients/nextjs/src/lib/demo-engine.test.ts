@@ -1,14 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { demoModeScenarios } from "./demo-mode";
 import {
+  auditDemoPromptSeparation,
   auditDemoScenarioMetadata,
   demoClarificationFixtures,
   demoDurationBudgets,
+  demoShowcaseValidationFixtures,
   goldenDemoFixtures,
   summarizeDemoOutputQuality,
   summarizeDemoReliability,
   totalDemoDurationSeconds,
-  validateDemoPromptContracts
+  validateDemoPromptContracts,
+  validateDemoShowcaseFixtures
 } from "./demo-engine";
 
 describe("demo engine contracts", () => {
@@ -21,9 +24,35 @@ describe("demo engine contracts", () => {
     expect(demoClarificationFixtures).toHaveLength(2);
   });
 
-  it("audits complete metadata and exact-prompt boundaries", () => {
+  it("audits complete metadata, Homepage separation, and exact-prompt boundaries", () => {
     expect(auditDemoScenarioMetadata()).toEqual([]);
+    expect(auditDemoPromptSeparation()).toEqual([]);
     expect(validateDemoPromptContracts()).toEqual([]);
+  });
+
+  it("gives every active browser runtime a complete showcase smoke contract", () => {
+    expect(demoShowcaseValidationFixtures.map((fixture) => fixture.runtimeKind)).toEqual([
+      "tone",
+      "p5",
+      "three",
+      "glsl"
+    ]);
+    expect(
+      demoShowcaseValidationFixtures.every((fixture) =>
+        [
+          "generation",
+          "artifact",
+          "runtime",
+          "preview",
+          "fullscreen",
+          "follow_up",
+          "visual_quality"
+        ].every((check) =>
+          (fixture.smokeChecks as readonly string[]).includes(check)
+        )
+      )
+    ).toBe(true);
+    expect(validateDemoShowcaseFixtures()).toEqual([]);
   });
 
   it("summarizes reliability and quality without inventing an evaluation run", () => {

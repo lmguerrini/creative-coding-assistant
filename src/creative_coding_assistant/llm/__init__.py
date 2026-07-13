@@ -10,6 +10,7 @@ _EXPORT_MAP = {
     "GenerationError": "creative_coding_assistant.llm.generation",
     "GenerationEventType": "creative_coding_assistant.llm.generation",
     "GenerationFinishReason": "creative_coding_assistant.llm.generation",
+    "GenerationImageInput": "creative_coding_assistant.llm.generation",
     "GenerationInput": "creative_coding_assistant.llm.generation",
     "GenerationInputBuilder": "creative_coding_assistant.llm.generation",
     "GenerationMessage": "creative_coding_assistant.llm.generation",

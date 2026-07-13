@@ -14,6 +14,7 @@ from creative_coding_assistant.llm.generation import (
     GenerationError,
     GenerationEventType,
     GenerationFinishReason,
+    GenerationImageInput,
     GenerationInput,
     GenerationMessage,
     GenerationMessageName,
@@ -202,7 +203,16 @@ def _build_openai_payload(
         if message.role is GenerationMessageRole.SYSTEM:
             instructions.append(message.content)
             continue
-        input_messages.append(_build_openai_message(message))
+        input_messages.append(
+            _build_openai_message(
+                message,
+                image_inputs=(
+                    request.image_inputs
+                    if message.name is GenerationMessageName.USER
+                    else ()
+                ),
+            )
+        )
 
     payload: dict[str, Any] = {
         "model": model,
@@ -239,19 +249,32 @@ def _supported_openai_generation_parameters(
     return {}
 
 
-def _build_openai_message(message: GenerationMessage) -> dict[str, Any]:
+def _build_openai_message(
+    message: GenerationMessage,
+    *,
+    image_inputs: tuple[GenerationImageInput, ...] = (),
+) -> dict[str, Any]:
     # Retrieved and remembered material is evidence, not application policy.
     role = "user" if message.role is GenerationMessageRole.CONTEXT else message.role.value
     text = _format_message_text(message)
+    content: list[dict[str, Any]] = [
+        {
+            "type": "input_text",
+            "text": text,
+        }
+    ]
+    content.extend(
+        {
+            "type": "input_image",
+            "image_url": image_input.data_url.get_secret_value(),
+            "detail": image_input.detail,
+        }
+        for image_input in image_inputs
+    )
     return {
         "type": "message",
         "role": role,
-        "content": [
-            {
-                "type": "input_text",
-                "text": text,
-            }
-        ],
+        "content": content,
     }
 
 

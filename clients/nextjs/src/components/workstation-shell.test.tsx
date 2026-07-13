@@ -33,6 +33,9 @@ const originalCancelAnimationFrame = window.cancelAnimationFrame;
 const originalRequestAnimationFrame = window.requestAnimationFrame;
 const originalCreateObjectURL = URL.createObjectURL;
 const originalRevokeObjectURL = URL.revokeObjectURL;
+const validPngBytes = new Uint8Array([
+  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
+]);
 
 const testCreativePlan = {
   outputModality: "visual" as const,
@@ -1067,7 +1070,7 @@ describe("WorkstationShell", () => {
     const settingsPanel = openWorkspaceSettingsPanel();
     expect(
       within(settingsPanel).getByRole("button", {
-        name: "Toggle focus mode from quick actions"
+        name: "Toggle Fullscreen Creative Session from quick actions"
       })
     ).toBeVisible();
     expect(within(settingsPanel).getByRole("button", { name: "Display mode" })).toBeVisible();
@@ -1078,6 +1081,9 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
     expect(screen.queryByRole("button", { name: "Command menu" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Theme" })).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Enter Fullscreen Creative Session" })
+    ).toBeVisible();
     expect(screen.getByRole("button", { name: "Settings" })).toBeVisible();
     expect(screen.getByRole("combobox", { name: "Workflow" })).toHaveValue("auto");
     expect(screen.queryByText("Type a prompt to begin")).not.toBeInTheDocument();
@@ -1118,19 +1124,21 @@ describe("WorkstationShell", () => {
     expect(within(demoMode).getByText("Capstone scenarios")).toBeVisible();
     expect(
       within(demoScenarioList).getByRole("button", {
-        name: /Physarum drift/
+        name: /Recursive aurora garden/
       })
     ).toBeVisible();
     expect(within(demoMode).getByText("10 flows")).toBeVisible();
 
     fireEvent.click(
       within(demoScenarioList).getByRole("button", {
-        name: /Physarum drift/
+        name: /Recursive aurora garden/
       })
     );
 
     expect(screen.getByRole("region", { name: "Demo Mode" })).toBeVisible();
-    expect(within(demoMode).getAllByText("Physarum drift").length).toBeGreaterThan(1);
+    expect(
+      within(demoMode).getAllByText("Recursive aurora garden").length
+    ).toBeGreaterThan(1);
     fireEvent.click(within(demoMode).getByRole("button", { name: /Load prompt & run/ }));
 
     expect(screen.queryByRole("region", { name: "Demo Mode" })).not.toBeInTheDocument();
@@ -1164,7 +1172,7 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("button", { name: "Add attachment" }));
     fireEvent.change(screen.getByLabelText("Upload image attachment"), {
       target: {
-        files: [new File(["palette-bytes"], "palette.png", { type: "image/png" })]
+        files: [new File([validPngBytes], "palette.png", { type: "image/png" })]
       }
     });
 
@@ -1455,21 +1463,18 @@ describe("WorkstationShell", () => {
       ["Deep Blue", "codex"],
       ["Dark", "codex_white"],
       ["Light", "light"],
-      ["Matrix", "matrix"]
+      ["Matrix", "matrix"],
+      ["Terminal", "terminal"],
+      ["Horizon", "horizon"],
+      ["Zen", "zen"],
+      ["Blueprint", "blueprint"]
     ] as const) {
       fireEvent.click(screen.getByRole("button", { name: "Theme" }));
       fireEvent.click(screen.getByRole("button", { name: `Use ${label} theme` }));
       expect(document.documentElement).toHaveAttribute("data-cca-theme", theme);
     }
 
-    fireEvent.click(screen.getByRole("button", { name: "Theme" }));
-    expect(
-      screen.queryByRole("button", { name: "Use Terminal theme" })
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Use Horizon theme" })
-    ).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Use Zen theme" })).not.toBeInTheDocument();
+    expect(document.documentElement).toHaveAttribute("data-cca-theme", "blueprint");
   });
 
   it("collapses the inspector into a compact rail and expands it again", () => {
@@ -1505,21 +1510,48 @@ describe("WorkstationShell", () => {
     fireEvent.click(getWorkspaceSettingsControl("Compact"));
     expect(workstation).toHaveAttribute("data-density", "compact");
 
-    const focusMode = getWorkspaceSettingsControl("Toggle focus mode from quick actions");
+    const focusMode = getWorkspaceSettingsControl(
+      "Toggle Fullscreen Creative Session from quick actions"
+    );
     fireEvent.click(focusMode);
 
-    expect(getWorkspaceSettingsControl("Toggle focus mode from quick actions")).toHaveTextContent(
-      "Exit focus mode"
-    );
+    expect(
+      getWorkspaceSettingsControl(
+        "Toggle Fullscreen Creative Session from quick actions"
+      )
+    ).toHaveTextContent("Exit Fullscreen Creative Session");
     expect(workstation).toHaveAttribute("data-focus-mode", "true");
+    expect(workstation).toHaveAttribute("data-sidebar-state", "collapsed");
+    expect(workstation).toHaveAttribute("data-inspector-state", "collapsed");
     expect(screen.queryByRole("complementary", { name: "Right inspector" })).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Preview workspace" })).not.toBeInTheDocument();
 
-    fireEvent.click(getWorkspaceSettingsControl("Toggle focus mode from quick actions"));
+    fireEvent.click(
+      getWorkspaceSettingsControl(
+        "Toggle Fullscreen Creative Session from quick actions"
+      )
+    );
 
     expect(workstation).toHaveAttribute("data-focus-mode", "false");
+    expect(workstation).toHaveAttribute("data-sidebar-state", "open");
+    expect(workstation).toHaveAttribute("data-inspector-state", "open");
     expect(screen.getByRole("complementary", { name: "Right inspector" })).toBeVisible();
     expect(screen.getByRole("region", { name: "Preview workspace" })).toBeVisible();
+  });
+
+  it("projects the compact workflow graph to the selected route", () => {
+    renderShell();
+    const selector = screen.getByRole("combobox", { name: "Workflow" });
+    const graph = screen.getByLabelText("Minimal live workflow state");
+
+    fireEvent.change(selector, { target: { value: "single_agent" } });
+    expect(within(graph).queryByText("Planning")).not.toBeInTheDocument();
+    expect(within(graph).queryByText("Review")).not.toBeInTheDocument();
+    expect(within(graph).getByText("Generation")).toBeVisible();
+
+    fireEvent.change(selector, { target: { value: "multi_agent" } });
+    expect(within(graph).getByText("Planning")).toBeVisible();
+    expect(within(graph).getByText("Review")).toBeVisible();
   });
 
   it("clears the workspace session only after operator approval", async () => {
@@ -1579,12 +1611,14 @@ describe("WorkstationShell", () => {
     });
     fireEvent.click(
       within(demoScenarioList).getByRole("button", {
-        name: /Physarum drift/
+        name: /Recursive aurora garden/
       })
     );
 
     expect(screen.getByRole("region", { name: "Demo Mode" })).toBeVisible();
-    expect(within(demoMode).getAllByText("Physarum drift").length).toBeGreaterThan(1);
+    expect(
+      within(demoMode).getAllByText("Recursive aurora garden").length
+    ).toBeGreaterThan(1);
 
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     fireEvent.click(screen.getByRole("button", { name: "Clear workspace session" }));
@@ -1957,7 +1991,7 @@ describe("WorkstationShell", () => {
   });
 
   it("streams backend events into the conversation and workflow state", async () => {
-    const backendStream = vi.fn(() =>
+    const backendStream = vi.fn((_request: AssistantStreamRequest) =>
       streamEvents([
         {
           event_type: "status",
@@ -2728,8 +2762,8 @@ describe("WorkstationShell", () => {
     });
   });
 
-  it("uploads image references with an explicit metadata-only boundary", async () => {
-    const backendStream = vi.fn(() =>
+  it("sends genuine image pixels once with a request-scoped privacy boundary", async () => {
+    const backendStream = vi.fn((_request: AssistantStreamRequest) =>
       streamEvents([
         {
           event_type: "final",
@@ -2749,7 +2783,7 @@ describe("WorkstationShell", () => {
       "true"
     );
     const uploadInput = screen.getByLabelText("Upload image attachment");
-    const imageFile = new File(["palette-bytes"], "palette.png", {
+    const imageFile = new File([validPngBytes], "palette.png", {
       type: "image/png"
     });
 
@@ -2794,14 +2828,19 @@ describe("WorkstationShell", () => {
         query: "Use this palette reference."
       })
     );
+    expect(
+      screen.queryByRole("region", { name: "Image references" })
+    ).not.toBeInTheDocument();
 
-    fireEvent.click(
-      within(imageShelf).getByRole("button", {
-        name: "Remove image reference palette.png"
-      })
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Continue without the reference." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    await waitFor(() => expect(backendStream).toHaveBeenCalledTimes(2));
+    expect(backendStream.mock.calls[1]?.[0]).toEqual(
+      expect.not.objectContaining({ attachments: expect.anything() })
     );
-
-    expect(screen.queryByText("palette.png")).not.toBeInTheDocument();
   });
 
   it("shows a graceful image upload error for unsupported files", async () => {
@@ -6731,6 +6770,15 @@ describe("WorkstationShell", () => {
       name: "Telemetry dashboard"
     });
     expect(dashboard).toBeVisible();
+    expect(within(dashboard).getByLabelText("Telemetry signal summary")).toBeVisible();
+    const evidenceDisclosure = within(dashboard)
+      .getByText("Evidence detail")
+      .closest("details");
+    expect(evidenceDisclosure).not.toHaveAttribute("open");
+    expect(
+      within(dashboard).getByRole("group", { name: "Stream lifecycle" })
+    ).not.toBeVisible();
+    fireEvent.click((evidenceDisclosure as HTMLElement).querySelector("summary")!);
     expect(
       within(dashboard).getByRole("group", { name: "Stream lifecycle" })
     ).toBeVisible();
@@ -6794,6 +6842,10 @@ describe("WorkstationShell", () => {
         name: "Retrieval quality evaluation signal"
       })
     ).toHaveTextContent("84%");
+    const eventDisclosure = within(dashboard)
+      .getByText("Raw event distribution")
+      .closest("details");
+    fireEvent.click((eventDisclosure as HTMLElement).querySelector("summary")!);
     expect(
       within(dashboard).getByRole("group", { name: "Telemetry event type counts" })
     ).toBeVisible();

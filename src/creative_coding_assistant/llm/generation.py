@@ -4,12 +4,16 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from enum import StrEnum
-from typing import Protocol, Self
+from typing import Literal, Protocol, Self
 
 from loguru import logger
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, model_validator
 
-from creative_coding_assistant.contracts import GenerationControls
+from creative_coding_assistant.contracts import (
+    MAX_IMAGE_REFERENCE_BYTES,
+    MAX_IMAGE_REFERENCE_COUNT,
+    GenerationControls,
+)
 from creative_coding_assistant.orchestration.prompt_templates import (
     RenderedPromptResponse,
 )
@@ -63,6 +67,19 @@ class GenerationMessage(BaseModel):
     content: str = Field(min_length=1)
 
 
+class GenerationImageInput(BaseModel):
+    """Validated image bytes held behind a redacted provider boundary."""
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    id: str = Field(min_length=1)
+    name: str = Field(min_length=1)
+    mime_type: str = Field(min_length=1)
+    size_bytes: int = Field(gt=0, le=MAX_IMAGE_REFERENCE_BYTES)
+    data_url: SecretStr
+    detail: Literal["auto", "low", "high"] = "auto"
+
+
 class GenerationRequest(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -83,6 +100,21 @@ class GenerationInput(BaseModel):
 
     request: GenerationRequest
     messages: tuple[GenerationMessage, ...] = Field(min_length=1)
+    image_inputs: tuple[GenerationImageInput, ...] = Field(
+        default_factory=tuple,
+        max_length=MAX_IMAGE_REFERENCE_COUNT,
+    )
+
+    @model_validator(mode="after")
+    def validate_image_input_alignment(self) -> Self:
+        user_message_count = sum(
+            message.name is GenerationMessageName.USER for message in self.messages
+        )
+        if self.image_inputs and user_message_count != 1:
+            raise ValueError(
+                "Generation image inputs require exactly one user message."
+            )
+        return self
 
 
 class GenerationDelta(BaseModel):
@@ -195,10 +227,30 @@ class RenderedPromptGenerationBuilder:
             )
             for section in request.rendered_prompt.sections
         )
-        generation_input = GenerationInput(request=request, messages=messages)
+        attachments = (
+            request.rendered_prompt.request.prompt_input.request.assistant_request.attachments
+        )
+        image_inputs = tuple(
+            GenerationImageInput(
+                id=attachment.id,
+                name=attachment.name,
+                mime_type=attachment.mime_type,
+                size_bytes=attachment.size_bytes,
+                data_url=attachment.data_url,
+            )
+            for attachment in attachments
+            if attachment.data_url is not None
+        )
+        generation_input = GenerationInput(
+            request=request,
+            messages=messages,
+            image_inputs=image_inputs,
+        )
         logger.info(
-            "Built generation input with {} message(s) for route '{}'",
+            "Built generation input with {} message(s) and {} image input(s) "
+            "for route '{}'",
             len(generation_input.messages),
+            len(generation_input.image_inputs),
             request.route.value,
         )
         return generation_input

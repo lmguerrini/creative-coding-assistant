@@ -548,8 +548,12 @@ class PromptInputContractsTests(unittest.TestCase):
                     id="image-reference-1",
                     name="palette.png",
                     mimeType="image/png",
-                    sizeBytes=7,
-                    dataUrl="data:image/png;base64,cGFsZXR0ZQ==",
+                    sizeBytes=68,
+                    dataUrl=(
+                        "data:image/png;base64,"
+                        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8A"
+                        "AQUBAScY42YAAAAASUVORK5CYII="
+                    ),
                 ),
             ),
         )
@@ -572,7 +576,8 @@ class PromptInputContractsTests(unittest.TestCase):
                     id="image-reference-1",
                     name="palette.png",
                     mime_type="image/png",
-                    size_bytes=7,
+                    size_bytes=68,
+                    visual_input_available=True,
                 ),
             ),
         )
@@ -583,7 +588,7 @@ class PromptInputContractsTests(unittest.TestCase):
             1,
         )
         self.assertNotIn(
-            "data:image/png;base64,cGFsZXR0ZQ==",
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwC",
             response.user_input.model_dump_json(),
         )
 

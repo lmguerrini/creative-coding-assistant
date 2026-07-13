@@ -37,23 +37,36 @@ describe("preview sandbox runtime", () => {
     expect(sandboxDocument).toContain("globals.strokeJoin = function (join)");
   });
 
-  it("keeps the executable Three.js facade aligned with common generated scene APIs", () => {
-    const sandboxDocument = readFileSync(
+  it("loads the same licensed Three.js r176 runtime in both sandbox documents", () => {
+    const staticSandboxDocument = readFileSync(
       resolve(process.cwd(), "public/preview-sandbox.html"),
       "utf8"
     );
+    const generatedSandboxDocument = buildPreviewSandboxDocument({
+      kind: "three",
+      runtimeId: "three-runtime-contract",
+      source: {
+        fingerprint: "three-runtime-contract",
+        lineCount: 1,
+        source: "new THREE.Scene();",
+        title: "runtime-contract.three.js"
+      }
+    });
+    const license = readFileSync(
+      resolve(process.cwd(), "public/vendor/three.LICENSE.txt"),
+      "utf8"
+    );
 
-    expect(sandboxDocument).toContain("function Group() { Object3D.call(this); }");
-    expect(sandboxDocument).toContain("const PlaneGeometry = geometry(\"plane\");");
-    expect(sandboxDocument).toContain("const HemisphereLight = function () { Object3D.call(this); };");
-    expect(sandboxDocument).toContain("function BufferGeometry()");
-    expect(sandboxDocument).toContain("function Points(geometry, material)");
-    expect(sandboxDocument).toContain("const runSource = Function.apply(null, parameters.concat(runtime.source.source));");
-    expect(sandboxDocument).toContain("Clock.prototype.getDelta = function ()");
-    expect(sandboxDocument).toContain("Object3D,");
-    expect(sandboxDocument).toContain("shadowMap = { enabled: false, type: null }");
-    expect(sandboxDocument).toContain("Color.prototype.clone = function ()");
-    expect(sandboxDocument).toContain("copy: function (vector) { vector = vector || {}; return this.set(vector.x, vector.y, vector.z); }");
+    for (const sandboxDocument of [staticSandboxDocument, generatedSandboxDocument]) {
+      expect(sandboxDocument).toContain('src="/vendor/three-r176.min.js"');
+      expect(sandboxDocument).toContain('bundledThree.REVISION !== "176"');
+      expect(sandboxDocument).toContain("class SandboxWebGLRenderer extends bundledThree.WebGLRenderer");
+      expect(sandboxDocument).toContain("this.__ccaRender(scene, camera)");
+      expect(sandboxDocument).toContain("gl.readPixels");
+      expect(sandboxDocument).toContain("dataset.threeRuntimeRevision");
+    }
+    expect(license).toContain("Copyright © 2010-2025 three.js authors");
+    expect(license).toContain("The MIT License");
   });
 
   it("prepares TypeScript-flavored p5 source for browser execution", () => {

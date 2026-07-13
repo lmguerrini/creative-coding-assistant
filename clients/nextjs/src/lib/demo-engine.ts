@@ -2,6 +2,7 @@ import {
   demoModeScenarios,
   type DemoModeScenario
 } from "./demo-mode";
+import { homepagePromptLibrary } from "./curated-prompt-library";
 
 export type DemoValidationLayer =
   | "contract"
@@ -52,6 +53,70 @@ export type DemoQualitySample = {
   safety: number;
   truthfulness: number;
 };
+
+export type DemoShowcaseRuntimeKind =
+  | "p5"
+  | "three"
+  | "glsl"
+  | "tone";
+
+export type DemoShowcaseSmokeCheck =
+  | "generation"
+  | "artifact"
+  | "runtime"
+  | "preview"
+  | "fullscreen"
+  | "follow_up"
+  | "visual_quality";
+
+export type DemoShowcaseValidationFixture = {
+  scenarioId: DemoModeScenario["id"];
+  runtimeKind: DemoShowcaseRuntimeKind;
+  requiredPromptTokens: readonly string[];
+  smokeChecks: readonly DemoShowcaseSmokeCheck[];
+  visibleOutputContract: string;
+};
+
+const completeShowcaseSmokeChecks = [
+  "generation",
+  "artifact",
+  "runtime",
+  "preview",
+  "fullscreen",
+  "follow_up",
+  "visual_quality"
+] as const satisfies readonly DemoShowcaseSmokeCheck[];
+
+export const demoShowcaseValidationFixtures = [
+  {
+    scenarioId: "cymatic-chladni-audiovisual",
+    runtimeKind: "tone",
+    requiredPromptTokens: ["Tone.FMSynth", "Tone.MembraneSynth", "Tone.Transport.start()"],
+    smokeChecks: completeShowcaseSmokeChecks,
+    visibleOutputContract: "Silent-first animated spectrum; sound begins only after Start audio."
+  },
+  {
+    scenarioId: "physarum-p5-hero",
+    runtimeKind: "p5",
+    requiredPromptTokens: ["setup()", "draw()", "golden-angle", "pointer parallax"],
+    smokeChecks: completeShowcaseSmokeChecks,
+    visibleOutputContract: "Nonblank animated aurora garden with visible pointer parallax."
+  },
+  {
+    scenarioId: "kinetic-three-hero",
+    runtimeKind: "three",
+    requiredPromptTokens: ["TorusKnotGeometry", "sculptureRig", "orbitRig", "cameraRig", "camera.lookAt()"],
+    smokeChecks: completeShowcaseSmokeChecks,
+    visibleOutputContract: "Nonblank dynamic WebGL frames from authored geometry, camera motion, and nested parent transforms."
+  },
+  {
+    scenarioId: "chladni-glsl-hero",
+    runtimeKind: "glsl",
+    requiredPromptTokens: ["void main()", "u_time", "u_resolution", "gl_FragColor"],
+    smokeChecks: completeShowcaseSmokeChecks,
+    visibleOutputContract: "Compiled nonblank animated cyan/gold fractal bloom."
+  }
+] as const satisfies readonly DemoShowcaseValidationFixture[];
 
 export const goldenDemoFixtures: GoldenDemoFixture[] = demoModeScenarios.map(
   (scenario) => ({
@@ -155,6 +220,71 @@ export function validateDemoPromptContracts(
   return issues;
 }
 
+export function auditDemoPromptSeparation(
+  scenarios: readonly DemoModeScenario[] = demoModeScenarios,
+  homepagePrompts: readonly {
+    id: string;
+    prompt: string;
+    expectedArtifact: string;
+  }[] = homepagePromptLibrary
+) {
+  const issues: string[] = [];
+  const homepageByPrompt = new Map(
+    homepagePrompts.map((prompt) => [normalizePrompt(prompt.prompt), prompt.id])
+  );
+  const homepageByArtifact = new Map(
+    homepagePrompts.map((prompt) => [prompt.expectedArtifact, prompt.id])
+  );
+
+  for (const scenario of scenarios) {
+    const duplicatedPromptId = homepageByPrompt.get(normalizePrompt(scenario.prompt));
+    if (duplicatedPromptId) {
+      issues.push(`${scenario.id}: duplicates Homepage prompt ${duplicatedPromptId}.`);
+    }
+    const duplicatedArtifactId = homepageByArtifact.get(scenario.expectedArtifact);
+    if (duplicatedArtifactId) {
+      issues.push(`${scenario.id}: reuses Homepage artifact ${duplicatedArtifactId}.`);
+    }
+  }
+
+  return issues;
+}
+
+export function validateDemoShowcaseFixtures(
+  fixtures: readonly DemoShowcaseValidationFixture[] = demoShowcaseValidationFixtures,
+  scenarios: readonly DemoModeScenario[] = demoModeScenarios
+) {
+  const issues: string[] = [];
+  const expectedChecks = new Set<DemoShowcaseSmokeCheck>(completeShowcaseSmokeChecks);
+
+  for (const fixture of fixtures) {
+    const scenario = scenarios.find((candidate) => candidate.id === fixture.scenarioId);
+    if (!scenario) {
+      issues.push(`${fixture.scenarioId}: showcase fixture has no Demo Mode scenario.`);
+      continue;
+    }
+    for (const token of fixture.requiredPromptTokens) {
+      if (!scenario.prompt.includes(token)) {
+        issues.push(`${fixture.scenarioId}: prompt is missing required token ${token}.`);
+      }
+    }
+    for (const check of expectedChecks) {
+      if (!fixture.smokeChecks.includes(check)) {
+        issues.push(`${fixture.scenarioId}: missing ${check} smoke check.`);
+      }
+    }
+    if (!fixture.visibleOutputContract.trim()) {
+      issues.push(`${fixture.scenarioId}: visible-output contract is empty.`);
+    }
+  }
+
+  if (new Set(fixtures.map((fixture) => fixture.runtimeKind)).size !== 4) {
+    issues.push("Demo showcase fixtures must cover all four canonical browser-live runtime domains.");
+  }
+
+  return issues;
+}
+
 export function summarizeDemoReliability(samples: readonly DemoReliabilitySample[]) {
   const passed = samples.filter((sample) => sample.passed).length;
   const total = samples.length;
@@ -218,4 +348,8 @@ function requiredLayersForScenario(scenario: DemoModeScenario): DemoValidationLa
     return [...shared, "provider", "visible_output"];
   }
   return [...shared, "provider", "visible_output"];
+}
+
+function normalizePrompt(prompt: string) {
+  return prompt.replace(/\s+/g, " ").trim().toLowerCase();
 }

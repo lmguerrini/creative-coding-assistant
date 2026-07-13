@@ -188,6 +188,95 @@ describe("Product Intelligence surfaces", () => {
     expect(onSubmitFeedback).toHaveBeenCalledWith("positive", "");
   });
 
+  it("gives every retained artifact a visual surface or an explicit export boundary", () => {
+    const model = buildModel();
+    model.activeArtifactId = "export-only";
+    model.artifactRegistry = [
+      {
+        actions: ["Open", "Preview", "Copy"],
+        content: "function draw() { background(8); }",
+        id: "preview-ready",
+        language: "JavaScript + p5.js",
+        previewEligible: true,
+        previewTarget: "browser_sandbox",
+        status: "Generated",
+        summary: "A browser-native visual study.",
+        title: "orbit-study.p5.js",
+        type: "code"
+      },
+      {
+        actions: ["Open", "Export", "Copy"],
+        content: "@fragment fn main() -> @location(0) vec4f { return vec4f(1.0); }",
+        id: "export-only",
+        language: "WGSL",
+        previewEligible: false,
+        status: "Generated",
+        summary: "A WebGPU shader export.",
+        title: "light-field.wgsl",
+        type: "export"
+      }
+    ];
+
+    render(
+      <ProductIntelligenceDashboard
+        activeCategory="Artifacts"
+        model={model}
+        onCategoryChange={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+
+    const registry = screen.getByRole("region", { name: "Artifact registry" });
+    expect(within(registry).getAllByRole("figure")).toHaveLength(2);
+    expect(within(registry).getByLabelText("orbit-study.p5.js export boundary"))
+      .toHaveTextContent("Preview evidence unavailable");
+    expect(within(registry).getByLabelText("light-field.wgsl export boundary"))
+      .toHaveTextContent(/Code \/ export boundary.*does not simulate an unsupported runtime/i);
+    expect(within(registry).getByText("export · selected").closest("article"))
+      .toHaveAttribute("aria-current", "true");
+  });
+
+  it("uses the published active artifact on the Workspace page", () => {
+    const model = buildModel();
+    model.activeArtifactId = "selected-artifact";
+    model.artifactRegistry = [
+      {
+        actions: ["Open"],
+        id: "older-artifact",
+        language: "JavaScript",
+        status: "Generated",
+        summary: "Earlier source.",
+        title: "older.js",
+        type: "code"
+      },
+      {
+        actions: ["Open", "Preview"],
+        content: "function draw() {}",
+        id: "selected-artifact",
+        language: "JavaScript + p5.js",
+        previewEligible: true,
+        status: "Generated",
+        summary: "Current selected source.",
+        title: "selected.p5.js",
+        type: "code"
+      }
+    ];
+
+    render(
+      <ProductIntelligenceDashboard
+        activeCategory="Code"
+        model={model}
+        onCategoryChange={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole("region", { name: "Active document" }))
+      .toHaveTextContent("selected.p5.js");
+    expect(screen.getByLabelText("Active document source excerpt"))
+      .toHaveTextContent("function draw() {}");
+  });
+
   it("covers every saved typography category in Dashboard settings", () => {
     const onPreferencesChange = vi.fn();
     const onWorkflowModeChange = vi.fn();

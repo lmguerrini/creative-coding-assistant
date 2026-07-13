@@ -99,9 +99,22 @@ def provider_input_summary(generation_input: object) -> dict[str, object]:
         )
     request = getattr(generation_input, "request", None)
     controls = getattr(request, "generation_controls", None)
+    image_inputs = getattr(generation_input, "image_inputs", ())
+    image_entries = [
+        {
+            "id": getattr(image, "id", None),
+            "name": getattr(image, "name", None),
+            "mime_type": getattr(image, "mime_type", None),
+            "size_bytes": getattr(image, "size_bytes", None),
+        }
+        for image in image_inputs
+        if image is not None
+    ]
     return {
         "message_count": len(entries),
         "messages": entries,
+        "image_input_count": len(image_entries),
+        "image_inputs": image_entries,
         "generation_controls": {
             "profile": getattr(getattr(controls, "profile", None), "value", None),
             "requested_temperature": getattr(controls, "requested_temperature", None),
@@ -110,6 +123,7 @@ def provider_input_summary(generation_input: object) -> dict[str, object]:
         "guardrails": {
             "protected_instructions": "not exposed",
             "untrusted_reference_content": "isolated",
+            "image_payloads": "not emitted",
             "private_trace_payload": "not emitted",
         },
     }

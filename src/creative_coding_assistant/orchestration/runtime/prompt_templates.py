@@ -1253,7 +1253,15 @@ def _public_prompt_text(value: str) -> str:
 
 
 def _image_reference_line(image: PromptImageReferenceInput) -> str:
-    return f"{image.name} ({image.mime_type}, {image.size_bytes} bytes, id: {image.id})"
+    input_state = (
+        "visual input attached"
+        if image.visual_input_available
+        else "metadata only; no pixels attached"
+    )
+    return (
+        f"{image.name} ({image.mime_type}, {image.size_bytes} bytes, "
+        f"{input_state}, id: {image.id})"
+    )
 
 
 def _effective_domain_scope_label(user_input: PromptUserInput) -> str:

@@ -1,4 +1,5 @@
 const { expect } = require("@playwright/test");
+const { getShowcaseSmokeCase } = require("./demo-fixtures");
 
 const corsHeaders = {
   "Access-Control-Allow-Headers": "Accept, Content-Type",
@@ -287,8 +288,14 @@ async function installApiMocks(page, scenario = "success") {
       return;
     }
 
+    const showcase =
+      typeof scenario === "string" && scenario.startsWith("showcase:")
+        ? getShowcaseSmokeCase(scenario.slice("showcase:".length))
+        : null;
     await route.fulfill({
-      body: buildAssistantNdjson(scenario),
+      body: showcase
+        ? buildShowcaseAssistantNdjson(showcase, request.postDataJSON())
+        : buildAssistantNdjson(scenario),
       contentType: "application/x-ndjson",
       headers: corsHeaders,
       status: 200
@@ -604,6 +611,68 @@ function buildAssistantNdjson(scenario) {
       })
     );
   }
+
+  return `${events.map((event) => JSON.stringify(event)).join("\n")}\n`;
+}
+
+function buildShowcaseAssistantNdjson(showcase, requestPayload) {
+  const isRefinement = Boolean(requestPayload.artifactRefinement);
+  const artifact = showcase.artifact;
+  const successfulProductOutcome = {
+    orchestration_status: "COMPLETED",
+    provider_status: "LOCAL_TEST_FIXTURE",
+    generation_status: isRefinement ? "SEEDED_REFINEMENT" : "SEEDED_ARTIFACT",
+    deliverable_status: "USABLE",
+    artifact_extraction_status: "EXTRACTED",
+    artifact_runnability: "RUNNABLE",
+    preview_status: "READY",
+    runtime_health: "PENDING_BROWSER_VALIDATION",
+    product_outcome: "SUCCESS",
+    summary:
+      "A local deterministic showcase fixture is ready for browser smoke; no provider generation is claimed.",
+    recovery_action: ""
+  };
+  const workflow = {
+    current_step: "finalization",
+    phase: "completed",
+    product_outcome: successfulProductOutcome,
+    refinement_count: isRefinement ? 1 : 0,
+    status: "completed"
+  };
+  const events = [
+    streamEvent("status", 0, {
+      message: isRefinement
+        ? "Local deterministic showcase refinement received."
+        : "Local deterministic showcase request received.",
+      status: isRefinement ? "fixture_refinement_received" : "fixture_request_received",
+      workflow: { current_step: isRefinement ? "refinement" : "intake" }
+    }),
+    streamEvent("artifact_extracted", 1, {
+      artifacts: [artifact],
+      message: `${artifact.title} loaded from the local deterministic showcase fixture.`,
+      status: "artifact_extracted",
+      workflow: { current_step: "artifact_extraction" }
+    }),
+    streamEvent("preview_artifact", 2, {
+      artifact_id: artifact.id,
+      emitted_at: new Date(0).toISOString(),
+      result: {
+        completed_at: new Date(1).toISOString(),
+        preview_artifact_id: artifact.id,
+        request: { target: artifact.preview_target },
+        provenance: { renderer_id: artifact.renderer_id },
+        summary: "Local deterministic browser preview fixture prepared."
+      },
+      status: "succeeded",
+      workflow: { current_step: "preview_preparation" }
+    }),
+    streamEvent("final", 3, {
+      answer: isRefinement
+        ? `Applied the local deterministic follow-up to ${artifact.title}; this is not provider-backed evidence.`
+        : `Loaded ${artifact.title} from a local deterministic browser fixture; this is not provider-backed evidence.`,
+      workflow
+    })
+  ];
 
   return `${events.map((event) => JSON.stringify(event)).join("\n")}\n`;
 }

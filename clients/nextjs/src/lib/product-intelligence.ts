@@ -61,6 +61,7 @@ export type ProductIntelligenceSection = {
 };
 
 export type ProductIntelligenceModel = {
+  activeArtifactId?: string | null;
   activeDomainId: string | null;
   domainExperience: DomainExperienceCatalog;
   artifactRegistry: ArtifactSummary[];
@@ -474,6 +475,7 @@ export function buildProductIntelligenceModel({
   ];
 
   return {
+    activeArtifactId: activeArtifact?.id ?? null,
     activeDomainId,
     domainExperience,
     artifactRegistry: snapshot.artifacts,

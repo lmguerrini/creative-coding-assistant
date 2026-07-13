@@ -92,7 +92,7 @@ const workspaceAreas: GuideCard[] = [
     title: "Preview shelf"
   },
   {
-    detail: "Demo Mode starts curated flows. The Dashboard opens the complete run, knowledge, session, evaluation, and configuration reference.",
+    detail: "Demo Mode starts curated flows. Session fullscreen collapses both sidebars for focused creation. The Dashboard opens the complete product reference.",
     icon: LayoutDashboard,
     title: "Top bar"
   }
@@ -203,7 +203,7 @@ const troubleshooting = [
   {
     title: "The interface feels crowded or important diagnostics are hidden",
     checks: [
-      "Use Focus Mode, collapse the sessions rail or inspector, resize the inspector/preview, or switch to Compact density.",
+      "Use Session fullscreen, collapse the sessions rail or inspector, resize the inspector/preview, or switch to Compact density.",
       "Choose User Mode for the quiet creative path; choose Developer Mode when you need traces, Retrieval, Runtime, or Telemetry.",
       "Restore surfaces from the top-bar Settings quick actions or the Dashboard Settings page."
     ]
@@ -293,20 +293,20 @@ export function UserGuide() {
               <div><dt>Workflow</dt><dd>Auto, Single-Agent, or Multi-Agent for the next request.</dd></div>
               <div><dt>AI provider</dt><dd>Shows the active server-configured OpenAI route and availability; credentials are not edited here.</dd></div>
               <div><dt>Creativity</dt><dd>Controlled, Balanced, or Exploratory changes the requested generation profile; provider application is reported only when published.</dd></div>
-              <div><dt>Image reference</dt><dd>Attach up to four PNG, JPEG, WebP, or GIF files of 1 MB each. References are retained with the session and bundle when available; this path exposes metadata, not pixel analysis.</dd></div>
+              <div><dt>Image reference</dt><dd>Attach up to four PNG, JPEG, WebP, or GIF files of 1 MB each. On Send, the configured provider receives the selected pixels as visual input for that request; the composer then clears them and session persistence excludes them.</dd></div>
               <div><dt>Audio input</dt><dd>Audio upload and audio analysis are not implemented. Compatible Tone.js artifacts can play only after an explicit start.</dd></div>
               <div><dt>Send</dt><dd>Runs the normal streamed assistant workflow; Demo Mode also enters through this same path.</dd></div>
             </dl>
           </div>
         </details>
         <details className="userGuideDisclosure">
-          <summary>Inspector tabs, layout, and Focus Mode</summary>
+          <summary>Inspector tabs, layout, and Fullscreen Creative Session</summary>
           <div className="userGuideDisclosureBody">
             <ul className="userGuideBullets">
               <li><strong>Open a tab</strong> from the Inspector add menu or Settings quick actions. Close tabs you do not need; they can be re-added later.</li>
               <li><strong>Open in Dashboard</strong> carries the current Inspector category into the larger evidence view.</li>
               <li><strong>Resize</strong> the Inspector and a visual Preview shelf with their separators; the saved layout returns with the session.</li>
-              <li><strong>Focus Mode</strong> hides surrounding workspace chrome and restores the previous Inspector and Preview state when you exit.</li>
+              <li><strong>Fullscreen Creative Session</strong> collapses Sessions, Inspector, and Preview, then restores their exact prior state when you exit.</li>
               <li><strong>Preview auto-open</strong> can open the shelf when a ready supported artifact arrives, or remain Manual in Settings.</li>
             </ul>
           </div>
@@ -448,8 +448,8 @@ export function UserGuide() {
               <li><strong>Open</strong> selects the artifact in Code; <strong>Preview</strong> selects its supported renderer route.</li>
               <li><strong>Copy</strong> writes the current document text to the browser clipboard. <strong>Download</strong> saves that document.</li>
               <li><strong>Export</strong> appears only on an export artifact that supplies that action; there is no universal “Export workspace” button.</li>
-              <li><strong>Project bundle</strong> ZIPs can include all artifact files, manifest and README, the saved conversation/preferences/layout snapshot, Workflow, Retrieval, Preview, and operator-checkpoint summaries, plus includable image files and external-tool handoffs.</li>
-              <li><strong>Review before sharing</strong>: a bundle is a local browser download, not a deployment, and can contain prompts, session data, diagnostics, and original image bytes.</li>
+              <li><strong>Project bundle</strong> ZIPs can include all artifact files, manifest and README, the saved conversation/preferences/layout snapshot, Workflow, Retrieval, Preview, and operator-checkpoint summaries, plus queued image files and external-tool handoffs.</li>
+              <li><strong>Review before sharing</strong>: a bundle is a local browser download, not a deployment, and can contain prompts, session data, diagnostics, and original image bytes if exported while an image is still queued.</li>
               <li><strong>Refine</strong> sends an explicit instruction through a new workflow pass and creates a new version. Parameter controls and quick suggestions are guidance only: they do not mutate saved source or the running Preview until submitted. The targeted flow defaults to a two-pass limit.</li>
               <li><strong>Delete</strong> asks for confirmation and offers Undo/Redo while the session remains open. Rename changes the saved display/file title after validation.</li>
             </ul>
@@ -545,7 +545,7 @@ export function UserGuide() {
         />
         <div className="userGuideCardGrid">
           <article><Settings aria-hidden="true" size={19} /><strong>Appearance</strong><p>Choose Aqua, Deep Blue, Dark, Light, Matrix, Terminal, Horizon, Zen, or Blueprint themes and separate heading, body, label/control, and code scales.</p></article>
-          <article><LayoutDashboard aria-hidden="true" size={19} /><strong>Layout</strong><p>Use Cozy or Compact density; collapse the sessions rail or inspector; open the Preview shelf; resize panels; or enter Focus Mode.</p></article>
+          <article><LayoutDashboard aria-hidden="true" size={19} /><strong>Layout</strong><p>Use Cozy or Compact density; collapse either sidebar; open the Preview shelf; resize panels; or enter Fullscreen Creative Session.</p></article>
           <article><Gauge aria-hidden="true" size={19} /><strong>Display mode</strong><p>User Mode presents the quiet creative path. Developer Mode exposes detailed workflow, runtime, retrieval, telemetry, and evaluation evidence.</p></article>
           <article><Sparkles aria-hidden="true" size={19} /><strong>Generation defaults</strong><p>Set workflow and creativity for the next prompt. Provider selection is shown for clarity and remains server-configured.</p></article>
           <article><Database aria-hidden="true" size={19} /><strong>Personalization</strong><p>Only explicit local helpful/needs-work signals are retained. Enable, remove, or clear them from top-bar Settings.</p></article>
@@ -556,7 +556,7 @@ export function UserGuide() {
           <div className="userGuideDisclosureBody">
             <ul className="userGuideBullets">
               <li>Sessions and preferences are isolated to this browser profile. “Local” does not mean a claim of absolute security.</li>
-              <li>Image references are retained with the session. Do not attach private material to a public demonstration.</li>
+              <li>Image references stay browser-local until explicit submission, are sent to the configured provider for that request, then leave the composer and are excluded from session persistence. A bundle exported before Send can include queued pixels, so review it before sharing.</li>
               <li>Raw output-feedback comments and titles stay local. When personalization is enabled, up to three relevant derived preference categories and a signal count can shape a later request.</li>
               <li>Evaluation always supports deterministic local evidence. Provider-assisted RAGAS is optional, requires explicit authorization, and can use only the committed sanitized or redacted fixture—never raw local sessions.</li>
               <li>Provider calls depend on server configuration. The interface does not expose or edit provider credentials.</li>

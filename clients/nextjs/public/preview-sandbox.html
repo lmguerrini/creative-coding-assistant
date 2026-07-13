@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; media-src 'none'; font-src 'none'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; media-src 'none'; font-src 'none'" />
   <style>
     html, body {
       width: 100%;
@@ -270,6 +270,8 @@
     <button id="audio-mute" type="button" aria-pressed="false" disabled>Mute audio</button>
   </div>
   <pre id="runtime-status">Runtime host waiting</pre>
+  <!-- Three.js r176, MIT; vendored from the official package. See vendor/three.LICENSE.txt. -->
+  <script src="/vendor/three-r176.min.js"></script>
   <script>
     (function () {
       const messageSource = "cca-preview-runtime";
@@ -300,6 +302,7 @@
       let canvasIntervalHandles = new Set();
       let canvasTimeoutHandles = new Set();
       let p5InputCleanup = null;
+      let threeRuntimeCleanup = null;
 
       function isMountMessage(data) {
         return data &&
@@ -398,6 +401,10 @@
         if (p5InputCleanup) {
           p5InputCleanup();
           p5InputCleanup = null;
+        }
+        if (threeRuntimeCleanup) {
+          threeRuntimeCleanup();
+          threeRuntimeCleanup = null;
         }
         setToneControlsVisible(false);
         runtime = null;
@@ -2355,7 +2362,119 @@
         });
       }
 
-      function makeThree() {
+      function makeThree(token) {
+        const bundledThree = window.CCAThree;
+        if (!bundledThree || bundledThree.REVISION !== "176") {
+          throw new Error("The locally bundled Three.js r176 runtime is unavailable.");
+        }
+
+        const activeRenderers = new Set();
+        class SandboxWebGLRenderer extends bundledThree.WebGLRenderer {
+          constructor(options) {
+            const rendererOptions = Object.assign({}, options || {});
+            if (!rendererOptions.canvas) rendererOptions.canvas = canvas;
+            super(rendererOptions);
+            this.__ccaAnimationFrame = 0;
+            this.__ccaFrameIndex = 0;
+            this.__ccaRender = this.render.bind(this);
+            this.__ccaDispose = this.dispose.bind(this);
+            this.render = SandboxWebGLRenderer.prototype.render.bind(this);
+            this.setAnimationLoop = SandboxWebGLRenderer.prototype.setAnimationLoop.bind(this);
+            this.dispose = SandboxWebGLRenderer.prototype.dispose.bind(this);
+            activeRenderers.add(this);
+          }
+
+          render(scene, camera) {
+            if (token !== activeToken) return;
+            const rect = root.getBoundingClientRect();
+            const width = Math.max(1, Math.floor(rect.width || innerWidth || 640));
+            const height = Math.max(1, Math.floor(rect.height || innerHeight || 360));
+            const dpr = Math.min(devicePixelRatio || 1, 2);
+            const expectedWidth = Math.floor(width * dpr);
+            const expectedHeight = Math.floor(height * dpr);
+            if (this.domElement.width !== expectedWidth || this.domElement.height !== expectedHeight) {
+              this.setPixelRatio(dpr);
+              this.setSize(width, height, false);
+            }
+            if (camera && camera.isPerspectiveCamera) {
+              camera.aspect = width / height;
+              camera.updateProjectionMatrix();
+            }
+            this.__ccaRender(scene, camera);
+            this.__ccaFrameIndex += 1;
+            if (this.__ccaFrameIndex <= 2 || this.__ccaFrameIndex % 15 === 0) {
+              const gl = this.getContext();
+              const sampleWidth = Math.min(48, gl.drawingBufferWidth);
+              const sampleHeight = Math.min(48, gl.drawingBufferHeight);
+              const sampleX = Math.max(0, Math.floor((gl.drawingBufferWidth - sampleWidth) / 2));
+              const sampleY = Math.max(0, Math.floor((gl.drawingBufferHeight - sampleHeight) / 2));
+              const pixels = new Uint8Array(sampleWidth * sampleHeight * 4);
+              gl.readPixels(sampleX, sampleY, sampleWidth, sampleHeight, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+              const minimum = [255, 255, 255];
+              const maximum = [0, 0, 0];
+              let signature = 2166136261;
+              for (let index = 0; index < pixels.length; index += 4) {
+                for (let channel = 0; channel < 3; channel += 1) {
+                  const value = pixels[index + channel];
+                  minimum[channel] = Math.min(minimum[channel], value);
+                  maximum[channel] = Math.max(maximum[channel], value);
+                  signature ^= value;
+                  signature = Math.imul(signature, 16777619);
+                }
+              }
+              document.body.dataset.threeFrameEnergy = String(
+                maximum.reduce(function (sum, value, channel) {
+                  return sum + value - minimum[channel];
+                }, 0)
+              );
+              document.body.dataset.threeFrameSignature = String(signature >>> 0);
+              document.body.dataset.threeRuntimeRevision = bundledThree.REVISION;
+            }
+            frame(performance.now());
+          }
+
+          setAnimationLoop(callback) {
+            if (this.__ccaAnimationFrame) {
+              cancelAnimationFrame(this.__ccaAnimationFrame);
+              this.__ccaAnimationFrame = 0;
+            }
+            if (typeof callback !== "function") return;
+            const renderer = this;
+            function loop(time) {
+              if (token !== activeToken) return;
+              try {
+                callback(time);
+                renderer.__ccaAnimationFrame = requestAnimationFrame(loop);
+              } catch (error) {
+                fail(error, "Three.js runtime failed");
+              }
+            }
+            this.__ccaAnimationFrame = requestAnimationFrame(loop);
+          }
+
+          dispose() {
+            if (this.__ccaAnimationFrame) {
+              cancelAnimationFrame(this.__ccaAnimationFrame);
+              this.__ccaAnimationFrame = 0;
+            }
+            activeRenderers.delete(this);
+            this.__ccaDispose();
+          }
+        }
+
+        threeRuntimeCleanup = function () {
+          Array.from(activeRenderers).forEach(function (renderer) {
+            renderer.setAnimationLoop(null);
+            renderer.dispose();
+          });
+          activeRenderers.clear();
+        };
+
+        return Object.assign({}, bundledThree, {
+          WebGLRenderer: SandboxWebGLRenderer
+        });
+
+        /* Legacy facade retained below only for old serialized srcdoc snapshots. */
         const renderers = [];
         const scenes = [];
         const cameras = [];
@@ -2580,11 +2699,21 @@
         };
       }
 
-      function startThree() {
+      function startThree(token) {
         const size = resizeCanvas();
-        const THREE = makeThree();
+        const THREE = makeThree(token);
         const parameters = ["THREE", "window", "document", "requestAnimationFrame", "cancelAnimationFrame", "performance"];
-        const values = [THREE, window, document, requestAnimationFrame.bind(window), cancelAnimationFrame.bind(window), performance];
+        const requestThreeAnimationFrame = function (callback) {
+          return window.requestAnimationFrame(function (time) {
+            if (token !== activeToken) return;
+            try {
+              callback(time);
+            } catch (error) {
+              fail(error, "Three.js runtime failed");
+            }
+          });
+        };
+        const values = [THREE, window, document, requestThreeAnimationFrame, cancelAnimationFrame.bind(window), performance];
         if (!/\b(?:const|let|var|function|class)\s+width\b/.test(runtime.source.source)) {
           parameters.push("width");
           values.push(size.width);
@@ -2595,8 +2724,7 @@
         }
         const runSource = Function.apply(null, parameters.concat(runtime.source.source));
         runSource.apply(null, values);
-        THREE.runDefaultLoop();
-        status("running", "Three.js runtime running", "Executing " + runtime.source.title + " inside a sandboxed Three.js-compatible iframe.");
+        status("running", "Three.js runtime running", "Executing " + runtime.source.title + " with the locally bundled Three.js r176 WebGL runtime.");
       }
 
       function fragmentSource(source) {

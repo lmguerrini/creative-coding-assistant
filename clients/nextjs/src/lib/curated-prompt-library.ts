@@ -61,6 +61,57 @@ export const homepagePromptLibrary = [
   }
 ] as const satisfies readonly CuratedPrompt[];
 
+export const demoShowcasePromptLibrary = [
+  {
+    id: "polyrhythmic-constellation",
+    title: "Polyrhythmic constellation",
+    description: "A silent-first generative score with a luminous spectrum preview.",
+    concept: "Generative audio and orbital rhythm",
+    runtime: "Tone.js browser preview",
+    prompt:
+      "Create exactly one executable .tone.js artifact named polyrhythmic-constellation.tone.js. Use a Tone.FMSynth and a Tone.MembraneSynth, two Tone.Sequence patterns with complementary notes and 8n/16n subdivisions, Tone.Transport.bpm.value = 108, and Tone.Transport.start(). Keep the score elegant and sparse. Use only variable declarations and Tone namespace calls; do not create DOM, canvas, buttons, listeners, files, imports, HTML, Markdown, or prose. The controlled preview supplies a silent-first spectrum and explicit Start audio action. Return only the artifact.",
+    expectedArtifact: "polyrhythmic-constellation.tone.js",
+    previewBoundary: "Visuals mount silently; audio starts only after an explicit presenter action.",
+    fallback: "Use the silent spectrum and inspect the generated Tone.js score."
+  },
+  {
+    id: "recursive-aurora-garden",
+    title: "Recursive aurora garden",
+    description: "A golden-angle field that grows into an interactive luminous garden.",
+    concept: "Recursive growth, phyllotaxis, and pointer parallax",
+    runtime: "p5.js browser preview",
+    prompt:
+      "Create exactly one runnable .p5.js artifact named recursive-aurora-garden.p5.js. In compact global-mode JavaScript with setup() and draw(), compose 160 golden-angle seeds into a deep-night aurora garden with recursive-looking branching ribbons, translucent cyan/gold glow, slow breathing motion, and pointer parallax. Use only the supported p5 drawing surface; no imports, HTML, assets, Markdown, or prose. Return only one closed ```javascript filename=recursive-aurora-garden.p5.js code fence and keep source below 3,200 characters.",
+    expectedArtifact: "recursive-aurora-garden.p5.js",
+    previewBoundary: "Runs in the controlled global-mode p5.js preview.",
+    fallback: "Inspect the source and retry with the same compact global-mode contract."
+  },
+  {
+    id: "kinetic-orbit-capstone",
+    title: "Kinetic orbit sculpture",
+    description: "A gallery-lit orbital sculpture authored as a real Three.js scene graph.",
+    concept: "Kinetic sculpture, nested orbital rigs, and cinematic camera motion",
+    runtime: "Three.js browser preview",
+    prompt:
+      "Create exactly one self-contained .three.js artifact named kinetic-orbit-capstone.three.js. Use plain JavaScript and real scene-graph authorship: a warm-gold TorusKnotGeometry inside sculptureRig, three thin TorusGeometry meshes inside orbitRig, and a PerspectiveCamera parented to cameraRig. Give every rig intentional position/rotation/scale, add two PointLights plus AmbientLight, a deep navy background, WebGLRenderer, and a requestAnimationFrame loop that rotates sculpture/rings, moves cameraRig, calls camera.lookAt(), and renders every frame. Use numeric hex colors; do not declare canvas, width, height, or pixelRatio. No imports, HTML, React, TypeScript, external assets, Markdown, or prose. Return only the artifact.",
+    expectedArtifact: "kinetic-orbit-capstone.three.js",
+    previewBoundary: "Runs with the locally bundled Three.js r176 WebGL runtime.",
+    fallback: "Inspect the scene source and retry without changing the bounded Three.js contract."
+  },
+  {
+    id: "fractal-solar-bloom",
+    title: "Fractal solar bloom",
+    description: "A precise, animated interference bloom for the WebGL shader surface.",
+    concept: "Analytical fractal repetition and solar interference",
+    runtime: "GLSL browser preview",
+    prompt:
+      "Create exactly one compact .frag artifact named fractal-solar-bloom.frag. Return only WebGL 1 fragment shader source with void main(), u_time, u_resolution, and gl_FragColor. Render a cinematic recursive-looking solar bloom from analytic polar folds, nested sine detail, a dark indigo field, and cyan/gold radiance. Do not use #version, textures, samplers, loops, discard, HTML, Markdown, or prose.",
+    expectedArtifact: "fractal-solar-bloom.frag",
+    previewBoundary: "Runs only in the bounded WebGL 1 fragment preview.",
+    fallback: "Inspect the shader source if WebGL is unavailable."
+  }
+] as const satisfies readonly CuratedPrompt[];
+
 export const domainStarterPromptLibrary = [
   ...homepagePromptLibrary,
   {

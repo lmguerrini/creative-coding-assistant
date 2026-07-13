@@ -7357,6 +7357,35 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   transition: width 320ms ease;
 }
 
+.workflowGraphHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  border-radius: 15px;
+  background:
+    linear-gradient(120deg, rgba(var(--accent-rgb), 0.11), transparent 62%),
+    rgba(255, 255, 255, 0.035);
+}
+
+.workflowGraphHeader div {
+  display: grid;
+  gap: 4px;
+}
+
+.workflowGraphHeader span,
+.workflowGraphHeader small {
+  color: var(--muted-strong);
+  font-size: var(--label-copy-size);
+}
+
+.workflowGraphHeader strong {
+  color: var(--foreground);
+  font-size: var(--body-copy-size);
+}
+
 .workflowGraph {
   position: relative;
   display: grid;
@@ -8186,6 +8215,8 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .artifactParameterPanel {
+  position: relative;
+  z-index: 0;
   display: grid;
   gap: 10px;
   padding: 10px;
@@ -8516,6 +8547,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 .artifactRefinementForm {
   display: grid;
   gap: 8px;
+  isolation: isolate;
 }
 
 .artifactRefinementForm textarea {
@@ -8572,9 +8604,12 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .artifactRefinementSubmit {
+  position: relative;
+  z-index: 1;
   justify-self: start;
   padding: 0 11px;
   border-color: rgba(var(--accent-rgb), 0.28);
+  scroll-margin-block: 12px;
 }
 
 .artifactRefinementSuggestions button:hover,
@@ -8590,6 +8625,10 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 .artifactRefinementForm textarea:disabled {
   cursor: not-allowed;
   opacity: 0.55;
+  transform: none;
+}
+
+.artifactRefinementSubmit:hover {
   transform: none;
 }
 
@@ -13865,19 +13904,95 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 .workflowPanel > .workflowIssueStack,
 .workflowPanel > .workflowProgress,
 .workflowPanel > .workflowSummaryGrid,
+.workflowPanel > .workflowExplorerSurface,
+.workflowPanel > .creativeTimelineSurface,
 .workflowPanel > .conversationContextInspector,
 .workflowPanel > .workflowProvenanceCard,
-.workflowPanel > .v3InspectorPanelsSurface,
+.workflowPanel > .v3InspectorSurface,
 .workflowPanel > .telemetryLifecycleCard,
 .workflowPanel > .workflowTimelineExplorer,
-.workflowPanel > .workflowGraph,
 .workflowPanel > .workflowTraceCard {
   display: none;
 }
 
 .workflowPanel > .workflowExecutionInspector { order: 0; }
-.workflowPanel > .creativeTimelineSurface { order: 1; }
-.workflowPanel > .workflowExplorerSurface { order: 2; }
+.workflowPanel > .workflowGraphHeader { order: 1; }
+.workflowPanel > .workflowGraph { order: 2; }
+
+.workflowPanel .workflowGraph {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.workflowPanel .workflowGraph::before {
+  display: none;
+}
+
+.workflowPanel .workflowNode {
+  grid-template-columns: 24px minmax(0, 1fr);
+  min-height: 0;
+  padding: 8px 9px;
+}
+
+.workflowPanel .workflowNode p,
+.workflowPanel .workflowNode small,
+.workflowPanel .workflowNodeMeta {
+  display: none;
+}
+
+.inspectorDisclosure {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.inspectorDisclosure > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.inspectorDisclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.inspectorDisclosure > summary div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.inspectorDisclosure > summary span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.inspectorDisclosure > summary strong {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inspectorDisclosure[open] > summary {
+  border-bottom: 1px solid var(--line);
+  background: rgba(var(--accent-rgb), 0.055);
+}
+
+.telemetryEvidenceDisclosure > .telemetryDashboardGrid {
+  padding: 10px;
+}
+
+.telemetryEventDisclosure > .telemetryDashboardCard,
+.inspectorDisclosureBoundary {
+  margin: 10px;
+}
 
 .runtimeConsolePanel [aria-label="Semantic runtime outcome"],
 .runtimeConsolePanel .runtimeConsoleHealth,
@@ -14426,6 +14541,408 @@ html[data-cca-code-font-size] .workstation :is(
   .artifactRegistry pre
 ) {
   font-size: var(--code-font-size) !important;
+}
+
+/* V9.8 Dashboard reviewer hierarchy, truthful previews, and run evidence. */
+.architectureRouteGrid article > span {
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.architectureRouteGrid article[data-selected="true"] {
+  border-color: rgba(var(--accent-rgb), 0.46);
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.11), transparent 68%),
+    rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.architectureTopology {
+  display: grid;
+  gap: 12px;
+  margin: 0 18px 18px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.11);
+}
+
+.architectureTopology > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.architectureTopology > header span {
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.architectureTopology > header strong {
+  color: var(--foreground);
+  font-size: 14px;
+}
+
+.architectureTopology > ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.architectureTopology li {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 9px;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.architectureTopology li > span {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.architectureTopology li[data-state="complete"] { border-color: color-mix(in srgb, var(--green) 38%, var(--line)); }
+.architectureTopology li[data-state="active"] { border-color: rgba(var(--accent-rgb), 0.5); }
+.architectureTopology li[data-state="failed"] { border-color: color-mix(in srgb, var(--coral) 50%, var(--line)); }
+.architectureTopology li[data-state="complete"] > span { color: var(--accent-ink); background: var(--green); }
+.architectureTopology li[data-state="active"] > span { color: var(--accent-ink); background: rgb(var(--accent-rgb)); }
+
+.architectureTopology li > div { display: grid; gap: 4px; min-width: 0; }
+.architectureTopology li strong { color: var(--foreground); font-size: 13px; }
+.architectureTopology li small { color: var(--muted-strong); font-size: 11px; line-height: 1.4; }
+.architectureTopology li em {
+  color: var(--teal);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 820;
+  white-space: nowrap;
+}
+
+.architectureTopology > p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.artifactVisualPreview {
+  display: grid;
+  min-width: 0;
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 13px;
+  background: rgba(3, 6, 9, 0.72);
+}
+
+.artifactVisualPreview > div:first-child {
+  min-height: 210px;
+}
+
+.artifactVisualPreview .previewSurface[data-chrome="comparison"],
+.artifactVisualPreview .previewSurface[data-chrome="comparison"] .previewRuntimeStage,
+.artifactVisualPreview .previewSurface[data-chrome="comparison"] .previewRuntimeFrame {
+  min-height: 210px;
+}
+
+.artifactVisualPreview figcaption {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px 10px;
+  padding: 10px 11px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.artifactVisualPreview figcaption span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 830;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.artifactVisualPreview figcaption strong {
+  color: var(--foreground);
+  font-size: 11px;
+  text-align: right;
+}
+
+.artifactVisualPreview figcaption small {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.artifactPreviewBoundary {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 24px;
+  color: var(--amber);
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(var(--accent-rgb), 0.09), transparent 36%),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.018) 0 8px, transparent 8px 16px);
+}
+
+.artifactPreviewBoundary > span {
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.artifactPreviewBoundary > strong {
+  max-width: 34ch;
+  color: var(--foreground);
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.artifactPreviewBoundary > p {
+  max-width: 52ch;
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.artifactRegistry article[aria-current="true"] {
+  border-color: rgba(var(--accent-rgb), 0.42);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+}
+
+.telemetryReviewerHero {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.4fr);
+  gap: 12px;
+  padding: 0 18px 12px;
+}
+
+.telemetryOutcomeCard {
+  display: grid;
+  align-content: center;
+  gap: 7px;
+  min-height: 150px;
+  padding: 17px;
+  border: 1px solid rgba(var(--accent-rgb), 0.32);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(var(--accent-rgb), 0.16), transparent 42%),
+    rgba(0, 0, 0, 0.12);
+}
+
+.telemetryOutcomeCard[data-state="complete"] { border-color: color-mix(in srgb, var(--green) 42%, var(--line)); }
+.telemetryOutcomeCard[data-state="error"] { border-color: color-mix(in srgb, var(--coral) 50%, var(--line)); }
+.telemetryOutcomeCard > span { color: var(--teal); font-size: 10px; font-weight: 850; letter-spacing: 0.08em; text-transform: uppercase; }
+.telemetryOutcomeCard > strong { color: var(--foreground); font-size: 24px; letter-spacing: -0.035em; }
+.telemetryOutcomeCard > p { margin: 0; color: var(--muted-strong); font-size: 12px; line-height: 1.45; }
+.telemetryOutcomeCard > small { color: var(--muted); font-size: 10px; line-height: 1.4; }
+
+.telemetryReviewerHero .telemetryRunFacts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: stretch;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+}
+
+.telemetryReviewerHero .telemetryRunFacts > div:first-child {
+  grid-column: 1 / -1;
+}
+
+.telemetryRunFacts dt {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 820;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.telemetryRunFacts dd {
+  overflow: hidden;
+  margin: 0;
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.telemetryLifecycleRail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  margin: 0;
+  padding: 0 18px 12px;
+  list-style: none;
+}
+
+.telemetryLifecycleRail li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 9px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.telemetryLifecycleRail li > span {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.telemetryLifecycleRail li > div { display: grid; gap: 4px; min-width: 0; }
+.telemetryLifecycleRail li strong { color: var(--foreground); font-size: 12px; }
+.telemetryLifecycleRail li small { color: var(--muted-strong); font-size: 10px; line-height: 1.38; }
+.telemetryLifecycleRail li em { grid-column: 1 / -1; color: var(--teal); font-size: 10px; font-style: normal; font-weight: 780; }
+.telemetryLifecycleRail li[data-state="complete"] { border-color: color-mix(in srgb, var(--green) 38%, var(--line)); }
+.telemetryLifecycleRail li[data-state="error"],
+.telemetryLifecycleRail li[data-state="failed"] { border-color: color-mix(in srgb, var(--coral) 46%, var(--line)); }
+
+.telemetryEvidenceDisclosure {
+  margin: 0 18px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.09);
+}
+
+.telemetryEvidenceDisclosure > summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 13px;
+  color: var(--muted-strong);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 780;
+}
+
+.telemetryEvidenceDisclosure .telemetrySignalGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0 12px 12px;
+}
+
+.telemetryTruthBoundary {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 18px 18px;
+  padding: 11px 12px;
+  border-left: 2px solid var(--teal);
+  border-radius: 0 10px 10px 0;
+  color: var(--muted-strong);
+  background: rgba(var(--accent-rgb), 0.055);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.telemetryTruthBoundary svg { flex: 0 0 auto; margin-top: 1px; color: var(--teal); }
+.telemetryTruthBoundary strong { color: var(--foreground); }
+
+.capstoneSelectedRun {
+  color: #91a0ad;
+  font-size: 9px;
+  font-weight: 720;
+  line-height: 1.4;
+}
+
+.capstoneConfigureButton {
+  min-height: 30px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #8ebde5;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 780;
+}
+
+.capstoneConfigureButton:hover:not(:disabled) { color: #c5e4ff; }
+.capstoneConfigureButton:disabled { cursor: wait; opacity: 0.5; }
+
+.evaluationCategoryCard[data-measured="false"] {
+  background:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.012) 0 8px, transparent 8px 16px),
+    rgba(255, 255, 255, 0.018);
+}
+
+.evaluationCategoryUnmeasured {
+  display: grid;
+  gap: 6px;
+  min-height: 86px;
+  align-content: center;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.evaluationCategoryUnmeasured > strong {
+  color: #c6cbd2;
+  font-size: 14px;
+}
+
+.evaluationCategoryUnmeasured > span {
+  color: #7f8995;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+@media (max-width: 980px) {
+  .telemetryReviewerHero { grid-template-columns: minmax(0, 1fr); }
+  .telemetryLifecycleRail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .architectureTopology > header { align-items: flex-start; flex-direction: column; }
+  .architectureTopology > ol,
+  .telemetryLifecycleRail,
+  .telemetryEvidenceDisclosure .telemetrySignalGrid { grid-template-columns: minmax(0, 1fr); }
+  .artifactVisualPreview > div:first-child,
+  .artifactVisualPreview .previewSurface[data-chrome="comparison"],
+  .artifactVisualPreview .previewSurface[data-chrome="comparison"] .previewRuntimeStage,
+  .artifactVisualPreview .previewSurface[data-chrome="comparison"] .previewRuntimeFrame { min-height: 180px; }
+  .telemetryReviewerHero,
+  .telemetryLifecycleRail { padding-right: 16px; padding-left: 16px; }
 }
 
 .retrievalEvolutionPanel>footer .retrievalReportProof {
@@ -15892,6 +16409,13 @@ html[data-cca-label-font-size] .workstation :is(
 
 .productIntelligenceMetrics dt {
   font-size: 10px;
+}
+
+.productDashboardGroupSection .productIntelligenceMetrics dt {
+  overflow: visible;
+  line-height: 1.25;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 .productIntelligenceMetrics dd {

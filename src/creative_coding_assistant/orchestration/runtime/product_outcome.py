@@ -11,8 +11,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from creative_coding_assistant.orchestration.runtime.workflow_review import (
-    request_requires_deliverable,
     request_requests_preview,
+    request_requires_deliverable,
 )
 
 if TYPE_CHECKING:

@@ -163,8 +163,12 @@ class PromptTemplateFoundationTests(unittest.TestCase):
                     id="image-reference-1",
                     name="warm-neon-grid-glass.png",
                     mimeType="image/png",
-                    sizeBytes=7,
-                    dataUrl="data:image/png;base64,cGFsZXR0ZQ==",
+                    sizeBytes=68,
+                    dataUrl=(
+                        "data:image/png;base64,"
+                        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8A"
+                        "AQUBAScY42YAAAAASUVORK5CYII="
+                    ),
                 ),
             ),
         )
@@ -202,14 +206,16 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         self.assertIn(
             (
                 "- warm-neon-grid-glass.png "
-                "(image/png, 7 bytes, id: image-reference-1)"
+                "(image/png, 68 bytes, visual input attached, "
+                "id: image-reference-1)"
             ),
             user_section.content,
         )
         self.assertNotIn("data:image/png", user_section.content)
         self.assertIn("- Reference fusion summary:", system_section.content)
         self.assertNotIn("- Reference palette direction:", system_section.content)
-        self.assertIn("metadata-only", system_section.content)
+        self.assertIn("attached as visual model input", system_section.content)
+        self.assertIn("untrusted user content", system_section.content)
         self.assertIn("Do not identify people", system_section.content)
 
     def test_jinja_prompt_renderer_includes_selected_artifact_refinement_context(

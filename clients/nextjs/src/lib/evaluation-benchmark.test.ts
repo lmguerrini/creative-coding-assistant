@@ -15,15 +15,15 @@ const emptyModel = {
 } as unknown as ProductIntelligenceModel;
 
 describe("canonical evaluation benchmark", () => {
-  it("deduplicates the product-authored sources into 31 stable cases", () => {
+  it("deduplicates the product-authored sources into 35 stable cases", () => {
     const first = buildGoldenEvaluationDataset();
     const second = buildGoldenEvaluationDataset();
 
-    expect(first.cases).toHaveLength(31);
+    expect(first.cases).toHaveLength(35);
     expect(first.rawSourceCount).toBe(42);
-    expect(first.duplicateCount).toBe(11);
+    expect(first.duplicateCount).toBe(7);
     expect(first.fingerprint).toBe(second.fingerprint);
-    expect(new Set(first.cases.map((item) => item.prompt)).size).toBe(31);
+    expect(new Set(first.cases.map((item) => item.prompt)).size).toBe(35);
     expect(first.cases.every((item) => item.applicableMetricIds.length > 0)).toBe(true);
   });
 

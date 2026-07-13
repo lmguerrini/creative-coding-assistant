@@ -166,6 +166,7 @@ class PromptImageReferenceInput(BaseModel):
     name: str = Field(min_length=1)
     mime_type: str = Field(min_length=1)
     size_bytes: int = Field(gt=0)
+    visual_input_available: bool = False
 
 
 class PromptArtifactRefinementInput(BaseModel):
@@ -554,6 +555,7 @@ def _build_user_input(
                 name=attachment.name,
                 mime_type=attachment.mime_type,
                 size_bytes=attachment.size_bytes,
+                visual_input_available=attachment.data_url is not None,
             )
             for attachment in assistant_request.attachments
         ),

@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { getLocalWorkspaceSnapshot } from "./assistant-client";
+import {
+  getLocalWorkspaceSnapshot,
+  type AssistantWorkspaceSnapshot
+} from "./assistant-client";
 import {
   createWorkspacePersistenceClient,
   createWorkspaceSessionRecord,
@@ -48,6 +51,51 @@ describe("workspace persistence client", () => {
     expect(record.messages).toEqual(snapshot.messages);
     expect(record.artifacts).toHaveLength(3);
     expect(record.updatedAt).toBeDefined();
+  });
+
+  it("never persists or restores request-scoped image pixels", () => {
+    const baseSnapshot = getLocalWorkspaceSnapshot();
+    const dataUrl = "data:image/png;base64,iVBORw0KGgo=";
+    const snapshot: AssistantWorkspaceSnapshot = {
+      ...baseSnapshot,
+      multimodal: {
+        ...baseSnapshot.multimodal,
+        state: "ready",
+        status: "1 image reference",
+        detail: "Ready for the next request.",
+        imageAttachments: [
+          {
+            id: "private-reference",
+            kind: "image",
+            name: "private.png",
+            mimeType: "image/png",
+            sizeBytes: 8,
+            dataUrl,
+            createdAt: "2026-07-13T08:00:00Z"
+          }
+        ]
+      }
+    };
+
+    const record = createWorkspaceSessionRecord({
+      activeArtifactId: "source-sketch",
+      activeInspectorTab: "Overview",
+      previewArtifactId: "",
+      previewOpen: false,
+      snapshot
+    });
+    const serialized = JSON.stringify(record);
+    const restored = snapshotFromWorkspaceSessionRecord(baseSnapshot, {
+      ...record,
+      multimodal: snapshot.multimodal,
+      snapshot
+    });
+
+    expect(record.multimodal?.imageAttachments).toEqual([]);
+    expect(record.snapshot.multimodal.imageAttachments).toEqual([]);
+    expect(serialized).not.toContain(dataUrl);
+    expect(serialized).not.toContain("private.png");
+    expect(restored.multimodal.imageAttachments).toEqual([]);
   });
 
   it("restores a persisted partial product outcome without inventing success", () => {

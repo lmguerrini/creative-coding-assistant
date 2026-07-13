@@ -1,5 +1,5 @@
 import {
-  homepagePromptLibrary,
+  demoShowcasePromptLibrary,
   rhythmicLineStudyPrompt
 } from "./curated-prompt-library";
 import type { WorkflowExecutionMode } from "./workflow-execution";
@@ -35,106 +35,110 @@ export type DemoModeRecommendation = {
   rationale: string;
 };
 
-const [physarumPrompt, kineticPrompt, chladniPrompt, cymaticPrompt] =
-  homepagePromptLibrary;
+const [
+  audioShowcasePrompt,
+  p5ShowcasePrompt,
+  threeShowcasePrompt,
+  glslShowcasePrompt
+] = demoShowcasePromptLibrary;
 
 export const demoModeScenarioCatalog = [
   {
     id: "cymatic-chladni-audiovisual",
-    title: "Cymatic Chladni study",
-    concept: cymaticPrompt.concept,
+    title: audioShowcasePrompt.title,
+    concept: audioShowcasePrompt.concept,
     purpose: "Open with a memorable audio-visual system that remains safe in a silent room.",
     description:
-      "A deterministic Chladni visualization follows the same compact Tone.js sequence that can be started by the presenter.",
+      "A complementary two-voice score drives a polished spectrum while remaining silent until the presenter opts in.",
     category: "Audio-visual browser scene",
-    runtime: cymaticPrompt.runtime,
+    runtime: audioShowcasePrompt.runtime,
     workflowMode: "single_agent",
     workflow: "Single-agent executable audio artifact",
     inputRequirement: "No upload is needed; audio stays optional and muted until the presenter chooses Start audio.",
-    prompt: cymaticPrompt.prompt,
-    expectedArtifact: cymaticPrompt.expectedArtifact,
+    prompt: audioShowcasePrompt.prompt,
+    expectedArtifact: audioShowcasePrompt.expectedArtifact,
     expectedPreview:
-      "Muted Chladni visual on load; controlled Tone.js playback after Start audio.",
+      "Muted constellation spectrum on load; controlled Tone.js playback after Start audio.",
     expectedInteraction:
-      "Use Start audio for optional playback, then Stop or Mute. No microphone is requested.",
+      "Use Start audio for optional playback, try fullscreen, then ask for a slower tempo variation. Stop or Mute before leaving; no microphone is requested.",
     expectedValidation:
-      "Exact source parses to a Tone program, mounts muted, exposes controls, and retains the silent state after reload.",
-    fallback: cymaticPrompt.fallback,
+      "Verify generation, artifact identity, parsed Tone runtime, silent-first preview, fullscreen, tempo follow-up, visual quality, controls, and reload.",
+    fallback: audioShowcasePrompt.fallback,
     estimatedGenerationTime: "Target: 90 seconds for generation and 30 seconds for the muted preview check.",
     providerRequirement: "Configured provider for a live generation run",
     retrievalRequirement: "Optional runtime guidance; no microphone or uploaded audio",
     sourceBoundary:
-      "The visual maps the parsed Tone sequence and tempo; it does not analyze live microphone input or claim scientific measurement."
+      "The visual maps the parsed score and tempo; it does not analyze live microphone input or claim scientific measurement."
   },
   {
     id: "physarum-p5-hero",
-    title: "Physarum drift",
-    concept: physarumPrompt.concept,
+    title: p5ShowcasePrompt.title,
+    concept: p5ShowcasePrompt.concept,
     purpose: "Show the quickest path from a clear prompt to a living browser sketch.",
     description:
-      "A concise particle-trail prompt selected for the controlled p5.js runtime rather than an open-ended simulation claim.",
+      "A golden-angle garden combines compact recursive-looking growth, luminous trails, and immediate pointer parallax.",
     category: "Generative browser sketch",
-    runtime: physarumPrompt.runtime,
+    runtime: p5ShowcasePrompt.runtime,
     workflowMode: "single_agent",
     workflow: "Single-agent runnable-code generation",
     inputRequirement: "No upload is needed; the pointer is the only live input.",
-    prompt: physarumPrompt.prompt,
-    expectedArtifact: physarumPrompt.expectedArtifact,
-    expectedPreview: "One running p5.js canvas with soft trails and pointer attraction.",
-    expectedInteraction: "Move the pointer to draw the field toward a new local attractor.",
+    prompt: p5ShowcasePrompt.prompt,
+    expectedArtifact: p5ShowcasePrompt.expectedArtifact,
+    expectedPreview: "One running p5.js canvas with an animated aurora garden and pointer parallax.",
+    expectedInteraction: "Move the pointer, try fullscreen, then ask for a colder palette variation.",
     expectedValidation:
-      "Exact prompt artifact classification, visible p5 canvas, runtime health, and same-session reload.",
-    fallback: physarumPrompt.fallback,
+      "Verify generation, artifact identity, visible p5 runtime, pointer preview, fullscreen, palette follow-up, visual quality, and reload.",
+    fallback: p5ShowcasePrompt.fallback,
     estimatedGenerationTime: "Target: 90 seconds for generation and 30 seconds for the canvas check.",
     providerRequirement: "Configured provider for a live generation run",
     retrievalRequirement: "Optional creative-code source grounding",
     sourceBoundary:
-      "Physarum is a visual inspiration. The sketch is not presented as a biological model."
+      "The recursive growth is an artistic construction, not a biological-growth simulation."
   },
   {
     id: "kinetic-three-hero",
     title: "Kinetic orbit sculpture",
-    concept: kineticPrompt.concept,
+    concept: threeShowcasePrompt.concept,
     purpose: "Show a spatial, browser-native hero piece with a truthful Three.js route.",
     description:
-      "A self-contained scene prompt avoids HTML, React, and module assumptions that the bounded runtime cannot execute.",
+      "A self-contained scene uses authored geometry, nested parent transforms, lights, and a moving camera in the real bundled Three.js runtime.",
     category: "3D browser scene",
-    runtime: kineticPrompt.runtime,
+    runtime: threeShowcasePrompt.runtime,
     workflowMode: "single_agent",
     workflow: "Single-agent runnable-code generation",
     inputRequirement: "No upload is needed; fullscreen is the optional presentation interaction.",
-    prompt: kineticPrompt.prompt,
-    expectedArtifact: kineticPrompt.expectedArtifact,
-    expectedPreview: "One animated Three.js scene with sculpture, lights, and camera motion.",
-    expectedInteraction: "Use fullscreen for the artwork-only view; reload keeps the selected artifact.",
+    prompt: threeShowcasePrompt.prompt,
+    expectedArtifact: threeShowcasePrompt.expectedArtifact,
+    expectedPreview: "One nonblank animated WebGL scene whose sculpture, orbit rigs, parent transforms, lights, and camera motion are all visible.",
+    expectedInteraction: "Use fullscreen, then ask for slower orbit motion; reload keeps the selected artifact.",
     expectedValidation:
-      "Exact prompt artifact classification, visible renderer, runtime health, fullscreen, and reload coverage.",
-    fallback: kineticPrompt.fallback,
+      "Verify generation, artifact identity, bundled Three.js r176, nonblank dynamic frame evidence, authored parent/camera transforms, fullscreen, motion follow-up, visual quality, and reload.",
+    fallback: threeShowcasePrompt.fallback,
     estimatedGenerationTime: "Target: 90 seconds for generation and 45 seconds for fullscreen and reload.",
     providerRequirement: "Configured provider for a live generation run",
     retrievalRequirement: "Optional Three.js source grounding",
     sourceBoundary:
-      "Only the controlled Three.js JavaScript surface is live. React Three Fiber and standalone HTML remain code/export-only."
+      "The local Three.js r176 runtime executes only the controlled JavaScript artifact. React Three Fiber, standalone HTML, and remote modules remain code/export-only."
   },
   {
     id: "chladni-glsl-hero",
-    title: "Chladni light field",
-    concept: chladniPrompt.concept,
+    title: glslShowcasePrompt.title,
+    concept: glslShowcasePrompt.concept,
     purpose: "Show technical depth through a compact, visibly running fragment shader.",
     description:
-      "A compact shader stays inside the documented WebGL 1 contract and provides a polished silent visual companion to the audio study.",
+      "A compact analytical shader stays inside the documented WebGL 1 contract while producing a polished recursive-looking bloom.",
     category: "Shader browser scene",
-    runtime: chladniPrompt.runtime,
+    runtime: glslShowcasePrompt.runtime,
     workflowMode: "single_agent",
     workflow: "Single-agent runnable-code generation",
     inputRequirement: "No upload is needed; the shader runs from its bounded source alone.",
-    prompt: chladniPrompt.prompt,
-    expectedArtifact: chladniPrompt.expectedArtifact,
+    prompt: glslShowcasePrompt.prompt,
+    expectedArtifact: glslShowcasePrompt.expectedArtifact,
     expectedPreview: "One nonblank animated WebGL fragment field.",
-    expectedInteraction: "Use fullscreen or reload; the shader itself has no hidden external controls.",
+    expectedInteraction: "Use fullscreen, then ask for a higher-contrast color variation; the shader has no hidden external controls.",
     expectedValidation:
-      "Exact prompt source contract, shader compile/link, nonblank visible frame, runtime health, and reload coverage.",
-    fallback: chladniPrompt.fallback,
+      "Verify generation, artifact source contract, shader compile/link, nonblank runtime preview, fullscreen, color follow-up, visual quality, and reload.",
+    fallback: glslShowcasePrompt.fallback,
     estimatedGenerationTime: "Target: 90 seconds for generation and 30 seconds for the frame check.",
     providerRequirement: "Configured provider for a live generation run",
     retrievalRequirement: "Optional GLSL source grounding",
@@ -260,17 +264,17 @@ export const demoModeScenarioCatalog = [
     requiresImageAttachment: true,
     prompt:
       "Using the attached image only as palette and composition guidance, create exactly one global-mode .p5.js artifact named reference-palette-study.p5.js with setup() and draw(). Make a self-contained abstract field with no image loading, external assets, imports, HTML, Markdown, or prose. Return only the artifact.",
-    expectedArtifact: "reference-palette-study.p5.js plus one persisted image-reference record",
+    expectedArtifact: "reference-palette-study.p5.js guided by the request-scoped image; no attachment record is persisted with the session",
     expectedPreview: "One self-contained p5.js canvas; the source must not fetch or embed the uploaded image.",
     expectedInteraction: "Attach the reference, inspect the image-reference status, then move the pointer over the generated canvas.",
     expectedValidation:
-      "Attachment acceptance, request-scoped image metadata, exact prompt source contract, visible p5 canvas, and project-bundle image-reference metadata.",
+      "Attachment acceptance, real multimodal provider input, request-scoped metadata cleared after submission, exact prompt source contract, visible p5 canvas, and no attachment/session persistence. Reference metadata can enter a bundle only when export is explicitly requested before Send.",
     fallback: "Run the same palette-study prompt without an attachment and state that the result is text-guided rather than reference-guided.",
     estimatedGenerationTime: "Target: 90 seconds for generation and 45 seconds for attachment and canvas inspection.",
     providerRequirement: "Configured provider that accepts the supplied image reference",
     retrievalRequirement: "Not required; image-reference context remains separate from retrieval sources",
     sourceBoundary:
-      "The attachment is request-scoped creative guidance. The generated preview does not fetch, analyze, or expose the original image as a runtime asset."
+      "The attachment is request-scoped creative guidance and is cleared after submission rather than persisted in the session. The generated preview does not fetch or expose the original image as a runtime asset; an export can include reference metadata only if requested before Send."
   },
   {
     id: "failure-recovery-rehearsal",
@@ -308,14 +312,14 @@ export const demoModeRecommendedLiveSequence = [
   {
     role: "Audio-visual opener",
     scenarioId: "cymatic-chladni-audiovisual",
-    title: "Cymatic Chladni study",
-    rationale: "Silent-by-default visual with optional, explicit Tone.js playback."
+    title: "Polyrhythmic constellation",
+    rationale: "Silent-by-default spectrum with an original two-voice score and explicit Tone.js playback."
   },
   {
     role: "Fast browser artifact",
     scenarioId: "physarum-p5-hero",
-    title: "Physarum drift",
-    rationale: "A concise global-mode p5.js request with a visible interactive canvas."
+    title: "Recursive aurora garden",
+    rationale: "A concise global-mode p5.js showcase with golden-angle growth and pointer parallax."
   },
   {
     role: "Spatial hero",
@@ -326,8 +330,8 @@ export const demoModeRecommendedLiveSequence = [
   {
     role: "Technical close-up",
     scenarioId: "chladni-glsl-hero",
-    title: "Chladni light field",
-    rationale: "A compact shader that makes its WebGL boundary explicit."
+    title: "Fractal solar bloom",
+    rationale: "A compact analytical shader that makes its WebGL boundary explicit."
   }
 ] as const satisfies readonly DemoModeRecommendation[];
 

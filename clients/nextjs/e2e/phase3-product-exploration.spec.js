@@ -25,10 +25,10 @@ const dashboardPages = [
 ];
 
 const runnableDemoScenarios = [
-  ["Cymatic Chladni study", "single_agent"],
-  ["Physarum drift", "single_agent"],
+  ["Polyrhythmic constellation", "single_agent"],
+  ["Recursive aurora garden", "single_agent"],
   ["Kinetic orbit sculpture", "single_agent"],
-  ["Chladni light field", "single_agent"],
+  ["Fractal solar bloom", "single_agent"],
   ["Source-grounded design brief", "auto"],
   ["Multi-agent production plan", "multi_agent"],
   ["Single-agent line study", "single_agent"],
@@ -132,7 +132,10 @@ test.describe("V9.7 Phase 3 product exploration", () => {
 
     await page.getByRole("button", { name: "Add attachment" }).click();
     await page.getByLabel("Upload image attachment").setInputFiles({
-      buffer: Buffer.from("phase-3-reference"),
+      buffer: Buffer.from(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+        "base64"
+      ),
       mimeType: "image/png",
       name: "phase3-reference.png"
     });

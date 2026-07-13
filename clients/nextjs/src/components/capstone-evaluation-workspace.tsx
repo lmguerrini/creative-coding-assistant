@@ -140,6 +140,7 @@ export function CapstoneEvaluationWorkspace({ history, model: _model, onRun, run
     : scope === "full"
       ? dataset.cases.length
       : dataset.cases.filter((item) => item.categories.includes(scope)).length;
+  const selectedScopeLabel = scopes.find((item) => item.id === scope)?.label ?? "Selected evaluation";
   const selectedHasRag = scope === "full" || scope === "rag" || (scope === "cases" && dataset.cases.some((item) => caseIds.includes(item.id) && item.categories.includes("rag")));
   const isRunning = running || progress?.phase === "running";
 
@@ -188,9 +189,11 @@ export function CapstoneEvaluationWorkspace({ history, model: _model, onRun, run
           <span className="evaluationStatusPill" data-status="partial">Approved RAGAS baseline</span>
           <strong>61.44% approved-fixture RAGAS macro</strong>
           <small>Equal-weight mean · four metrics · four sanitized rows · not current-product quality</small>
-          <button className="capstonePrimaryButton" disabled={isRunning} onClick={() => setRunOpen(true)} type="button">
+          <span className="capstoneSelectedRun">Selected: {selectedScopeLabel} · {selectedCount} contract{selectedCount === 1 ? "" : "s"} · local by default</span>
+          <button className="capstonePrimaryButton" disabled={isRunning || selectedCount === 0} onClick={() => { setRunOpen(true); void run(); }} type="button">
             <Sparkles aria-hidden="true" size={16} /> {isRunning ? "Evaluation running…" : "Run Evaluation"}
           </button>
+          <button className="capstoneConfigureButton" disabled={isRunning} onClick={() => setRunOpen(true)} type="button">Configure run</button>
         </div>
       </header>
 
@@ -213,17 +216,29 @@ export function CapstoneEvaluationWorkspace({ history, model: _model, onRun, run
       <section aria-label="Evaluation categories" className="evaluationCategoryGrid">
         {categories.map((category) => {
           const result = selectedRun?.categoryResults.find((item) => item.category === category);
+          const measured = result?.score != null;
           return (
-            <article className="evaluationCategoryCard" key={category}>
+            <article className="evaluationCategoryCard" data-measured={measured ? "true" : "false"} key={category}>
               <header><span>{formatQualityLane(category)}</span><Status status={result?.status ?? "not_run"} /></header>
-              <div className="evaluationCategoryScore"><strong>{formatScore(result?.score ?? null)}</strong><span>target {Math.round((result?.target ?? .8) * 100)}%</span></div>
-              <div className="evaluationScoreTrack"><i style={{ width: `${(result?.score ?? 0) * 100}%` }} /></div>
-              <dl>
-                <div><dt>Previous</dt><dd>{formatScore(result?.previousScore ?? null)}</dd></div>
-                <div><dt>Delta</dt><dd>{formatDelta(result?.delta ?? null)}</dd></div>
-                <div><dt>Gap</dt><dd>{result?.gap == null ? "—" : `${Math.round(result.gap * 100)} pts`}</dd></div>
-                <div><dt>Evidence</dt><dd>{result ? `${result.measuredMetrics}/${result.applicableMetrics}` : "0/0"}</dd></div>
-              </dl>
+              {result?.score != null ? (
+                <>
+                  <div className="evaluationCategoryScore"><strong>{formatScore(result.score)}</strong><span>target {Math.round(result.target * 100)}%</span></div>
+                  <div aria-label={`${formatQualityLane(category)} measured score`} className="evaluationScoreTrack"><i style={{ width: `${result.score * 100}%` }} /></div>
+                  <dl>
+                    <div><dt>Previous</dt><dd>{formatScore(result.previousScore)}</dd></div>
+                    <div><dt>Delta</dt><dd>{formatDelta(result.delta)}</dd></div>
+                    <div><dt>Gap</dt><dd>{result.gap == null ? "—" : `${Math.round(result.gap * 100)} pts`}</dd></div>
+                    <div><dt>Evidence</dt><dd>{result.measuredMetrics}/{result.applicableMetrics}</dd></div>
+                  </dl>
+                </>
+              ) : (
+                <div className="evaluationCategoryUnmeasured">
+                  <strong>Not measured</strong>
+                  <span>{result
+                    ? `${result.measuredMetrics}/${result.applicableMetrics} metrics published; no category score is defensible.`
+                    : "No run has published evidence for this category."}</span>
+                </div>
+              )}
               <p>{result?.detail ?? "Run this category to create current, comparable evidence."}</p>
             </article>
           );

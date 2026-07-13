@@ -10,8 +10,7 @@ import type {
 } from "./assistant-client";
 import { readProductOutcome } from "./assistant-stream";
 import {
-  buildMultimodalSummary,
-  normalizeImageAttachments
+  buildMultimodalSummary
 } from "./multimodal-attachments";
 import {
   createWorkstationError,
@@ -410,12 +409,17 @@ export function createWorkspaceSessionRecord({
   snapshot
 }: WorkspaceSessionRecordInput): WorkspaceSessionRecord {
   const updatedAt = new Date().toISOString();
-  const messages = compactWorkspaceMessages(snapshot.messages);
-  const artifacts = compactWorkspaceArtifacts(snapshot.artifacts);
+  const persistedMultimodal = requestScopedPersistenceBoundary(snapshot.multimodal);
+  const persistedSnapshot = {
+    ...snapshot,
+    multimodal: persistedMultimodal
+  };
+  const messages = compactWorkspaceMessages(persistedSnapshot.messages);
+  const artifacts = compactWorkspaceArtifacts(persistedSnapshot.artifacts);
   const compactSnapshot = compactWorkspaceSnapshot({
     artifacts,
     messages,
-    snapshot,
+    snapshot: persistedSnapshot,
     updatedAt
   });
 
@@ -435,7 +439,7 @@ export function createWorkspaceSessionRecord({
     messages,
     workflow: snapshot.workflow,
     artifacts,
-    multimodal: snapshot.multimodal,
+    multimodal: persistedMultimodal,
     preview: snapshot.preview,
     snapshot: compactSnapshot,
     updatedAt
@@ -740,9 +744,25 @@ function normalizeWorkspaceMultimodal(
       imageAttachments: [],
       error: null
     },
-    imageAttachments: normalizeImageAttachments(value.imageAttachments),
+    // Image bytes are request-scoped. Older records may contain attachments from
+    // the previous session-scoped contract, but they must never be rehydrated.
+    imageAttachments: [],
     uploadError: null
   });
+}
+
+function requestScopedPersistenceBoundary(
+  multimodal: MultimodalSummary
+): MultimodalSummary {
+  return {
+    ...multimodal,
+    state: "empty",
+    status: "No image references",
+    detail:
+      "Image inputs are request-scoped and are not stored with workspace sessions.",
+    imageAttachments: [],
+    error: null
+  };
 }
 
 function normalizeWorkspaceWorkflow(

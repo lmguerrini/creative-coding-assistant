@@ -579,8 +579,15 @@ def _case_alignments() -> tuple[CapstoneCaseAlignment, ...]:
                 "CCA combines LangGraph orchestration, Chroma-backed retrieval, "
                 "preview surfaces, and manual eval tooling."
             ),
-            evidence_refs=("pyproject.toml", "docs/eval_pipeline.md", "clients/nextjs/public/preview-sandbox.html"),
-            boundary="Do not claim live DCC/MCP integrations, autonomous immersive execution, or unsupported preview runtimes.",
+            evidence_refs=(
+                "pyproject.toml",
+                "docs/eval_pipeline.md",
+                "clients/nextjs/public/preview-sandbox.html",
+            ),
+            boundary=(
+                "Do not claim live DCC/MCP integrations, autonomous immersive "
+                "execution, or unsupported preview runtimes."
+            ),
         ),
     )
 
@@ -1019,7 +1026,10 @@ def _checklist_items() -> tuple[DemoChecklistItem, ...]:
             item_id="check_no_overclaims",
             category="presentation",
             status="ready",
-            action="Avoid live DCC/MCP, autonomous execution platform, autonomous agent swarm, and generic search claims.",
+            action=(
+                "Avoid live DCC/MCP, autonomous execution platform, autonomous "
+                "agent swarm, and generic search claims."
+            ),
             evidence_refs=("docs/CAPSTONE_DEMO_SHOWCASE.md", "README.md"),
         ),
         DemoChecklistItem(

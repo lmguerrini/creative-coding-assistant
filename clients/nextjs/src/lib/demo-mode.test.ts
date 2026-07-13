@@ -23,9 +23,9 @@ describe("demo mode scenarios", () => {
       "failure-recovery-rehearsal"
     ]);
     expect(demoModeScenarioCatalog).toHaveLength(10);
-    expect(demoModeScenarios).not.toContainEqual(
-      expect.objectContaining({ runtime: "Hydra" })
-    );
+    expect(
+      new Set(demoModeScenarios.slice(0, 4).map((scenario) => scenario.runtime)).size
+    ).toBe(4);
   });
 
   it("gives every visible scenario its complete demo contract", () => {
@@ -45,15 +45,17 @@ describe("demo mode scenarios", () => {
     }
   });
 
-  it("keeps the Cymatics opener deterministic and silent until the user opts in", () => {
-    const cymatic = getDefaultDemoModeScenario();
+  it("keeps the original audio opener distinct and silent until the user opts in", () => {
+    const audio = getDefaultDemoModeScenario();
 
-    expect(cymatic.id).toBe("cymatic-chladni-audiovisual");
-    expect(cymatic.workflowMode).toBe("single_agent");
-    expect(cymatic.prompt).toContain("// CCA_VISUAL: cymatics");
-    expect(cymatic.prompt).toContain("Tone.Transport.bpm.value = 96");
-    expect(cymatic.expectedInteraction).toContain("Start audio");
-    expect(cymatic.sourceBoundary).toContain("microphone");
+    expect(audio.id).toBe("cymatic-chladni-audiovisual");
+    expect(audio.title).toBe("Polyrhythmic constellation");
+    expect(audio.workflowMode).toBe("single_agent");
+    expect(audio.prompt).toContain("Tone.FMSynth");
+    expect(audio.prompt).toContain("Tone.MembraneSynth");
+    expect(audio.prompt).toContain("Tone.Transport.bpm.value = 108");
+    expect(audio.expectedInteraction).toContain("Start audio");
+    expect(audio.sourceBoundary).toContain("microphone");
   });
 
   it("keeps the featured sequence within the visible, live browser scenarios", () => {
@@ -81,6 +83,9 @@ describe("demo mode scenarios", () => {
     expect(multimodal?.inputRequirement).toContain("Attach one PNG");
     expect(multimodal?.requiresImageAttachment).toBe(true);
     expect(multimodal?.expectedPreview).toContain("self-contained p5.js canvas");
+    expect(multimodal?.expectedArtifact).toContain("no attachment record is persisted");
+    expect(multimodal?.expectedValidation).toContain("cleared after submission");
+    expect(multimodal?.sourceBoundary).toContain("before Send");
     expect(recovery?.providerRequirement).toContain("Controlled failure fixture");
     expect(recovery?.expectedPreview).toContain("No live preview");
   });

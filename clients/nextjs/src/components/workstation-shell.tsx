@@ -112,6 +112,10 @@ import {
   type WorkflowExecutionModel
 } from "@/lib/workflow-execution";
 import {
+  formatWorkflowGraphRoute,
+  selectWorkflowGraphSteps
+} from "@/lib/workflow-graph";
+import {
   buildConversationContextModel,
   type ConversationContextModel
 } from "@/lib/conversation-context";
@@ -368,6 +372,7 @@ type UtilityPanelName = "theme" | "settings";
 type FocusRestoreState = {
   inspectorCollapsed: boolean;
   previewOpen: boolean;
+  sidebarCollapsed: boolean;
 };
 type WorkspaceLayoutStyle = CSSProperties & {
   "--inspector-width": string;
@@ -450,6 +455,34 @@ const themePresetOptions = [
     accent: "#9fe870",
     surface:
       "linear-gradient(135deg, rgba(159, 232, 112, 0.16), rgba(38, 58, 30, 0.16), rgba(7, 11, 6, 0.26))"
+  },
+  {
+    value: "terminal",
+    label: "Terminal",
+    description: "Ink-black console surfaces with warm phosphor-green signals.",
+    accent: "#86efac",
+    surface: "linear-gradient(135deg, rgba(134, 239, 172, 0.18), rgba(3, 12, 8, 0.98))"
+  },
+  {
+    value: "horizon",
+    label: "Horizon",
+    description: "Midnight indigo with a restrained coral horizon accent.",
+    accent: "#fb7185",
+    surface: "linear-gradient(135deg, rgba(251, 113, 133, 0.2), rgba(30, 27, 75, 0.94))"
+  },
+  {
+    value: "zen",
+    label: "Zen",
+    description: "Low-noise slate surfaces with a calm sage highlight.",
+    accent: "#a7c4a0",
+    surface: "linear-gradient(135deg, rgba(167, 196, 160, 0.2), rgba(25, 31, 29, 0.96))"
+  },
+  {
+    value: "blueprint",
+    label: "Blueprint",
+    description: "Technical navy surfaces with crisp cyan drafting lines.",
+    accent: "#67e8f9",
+    surface: "linear-gradient(135deg, rgba(103, 232, 249, 0.2), rgba(8, 47, 73, 0.96))"
   }
 ] satisfies readonly ThemePresetOption[];
 
@@ -2205,6 +2238,9 @@ export function WorkstationShell({
         focusRestore?.inspectorCollapsed ?? false,
         { preserveFocusMode: true }
       );
+      updateLayout({
+        sidebarCollapsed: focusRestore?.sidebarCollapsed ?? false
+      });
       if (interactiveSnapshot.preview.available) {
         handlePreviewOpenChange(focusRestore?.previewOpen ?? false, {
           preserveFocusMode: true
@@ -2217,10 +2253,12 @@ export function WorkstationShell({
 
     focusRestoreRef.current = {
       inspectorCollapsed: isInspectorCollapsed,
-      previewOpen: isPreviewOpen
+      previewOpen: isPreviewOpen,
+      sidebarCollapsed: layoutState.sidebarCollapsed
     };
     setIsPreviewFullscreen(false);
     handleInspectorCollapsedChange(true, { preserveFocusMode: true });
+    updateLayout({ sidebarCollapsed: true });
     if (interactiveSnapshot.preview.available) {
       handlePreviewOpenChange(false, { preserveFocusMode: true });
     }
@@ -2446,7 +2484,7 @@ export function WorkstationShell({
           nextAttachments.length,
           "image reference",
           "image references"
-        )} attached to the session.`
+        )} attached to the next request.`
       });
     }
 
@@ -2462,7 +2500,7 @@ export function WorkstationShell({
     appendImageReferenceRuntimeEvent({
       attachments: nextAttachments,
       code: "image_reference_removed",
-      message: "Image reference removed from the session."
+      message: "Image reference removed before submission."
     });
   }
 
@@ -2490,7 +2528,10 @@ export function WorkstationShell({
     message
   }: {
     attachments: ImageAttachmentSummary[];
-    code: "image_reference_attached" | "image_reference_removed";
+    code:
+      | "image_reference_attached"
+      | "image_reference_removed"
+      | "image_reference_submitted";
     message: string;
   }) {
     appendLocalRuntimeEvent({
@@ -2709,6 +2750,19 @@ export function WorkstationShell({
     let receivedTerminalStreamError = false;
     let latestWorkflowActivity = initialWorkflowActivity;
     const requestAttachments = toAssistantRequestImageAttachments(imageAttachments);
+    if (requestAttachments.length > 0) {
+      setImageAttachments([]);
+      setImageUploadError(null);
+      appendImageReferenceRuntimeEvent({
+        attachments: [],
+        code: "image_reference_submitted",
+        message: `${requestAttachments.length} ${pluralize(
+          requestAttachments.length,
+          "image reference was",
+          "image references were"
+        )} sent for this request and removed from the composer.`
+      });
+    }
     const personalizationContext = selectPersonalizationContext({
       enabled: workspacePreferences.personalizationEnabled,
       prompt,
@@ -3511,6 +3565,25 @@ export function WorkstationShell({
             <span>Demo Mode</span>
           </button>
           <button
+            aria-label={
+              isFocusMode
+                ? "Exit Fullscreen Creative Session"
+                : "Enter Fullscreen Creative Session"
+            }
+            aria-pressed={isFocusMode}
+            className="toolbarToggle"
+            onClick={handleFocusModeToggle}
+            title={
+              isFocusMode
+                ? "Restore sidebars and preview"
+                : "Collapse sidebars for a fullscreen creative session"
+            }
+            type="button"
+          >
+            {isFocusMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            <span>{isFocusMode ? "Exit session" : "Session fullscreen"}</span>
+          </button>
+          <button
             aria-label="Open Product Intelligence Dashboard"
             aria-pressed={isDashboardOpen}
             className="iconButton"
@@ -3908,7 +3981,9 @@ export function WorkstationShell({
                           type="file"
                         />
                         <span>Upload image reference</span>
-                        <small>Metadata only; pixel analysis is not available in this path.</small>
+                        <small>
+                          Sent as visual input only with your next explicit request.
+                        </small>
                       </label>
                       <span
                         aria-disabled="true"
@@ -4281,9 +4356,10 @@ function ImageReferenceShelf({
         </div>
       ) : null}
       <p className="imageReferenceBoundary">
-        Image files are retained for this session and exported with the project bundle
-        when available. Audio upload and audio analysis are not supported in this
-        workspace.
+        Image pixels are sent only with the next explicit request, then removed from
+        the composer and are not persisted with the session. A bundle exported before
+        submission can include the still-queued files. Audio upload and audio analysis
+        are not supported in this workspace.
       </p>
     </section>
   );
@@ -4552,7 +4628,7 @@ function DemoModePanel({
           ) : (
             <div className="demoUserEssentials">
               <p>
-                <strong>Validates:</strong> {activeScenario.expectedValidation}
+                <strong>Acceptance checks:</strong> {activeScenario.expectedValidation}
               </p>
             </div>
           )}
@@ -5077,6 +5153,7 @@ function InspectorPanel({
         telemetry={providerTelemetry}
         showDebugPanels={showDebugPanels}
         issues={workflowIssues}
+        workflowMode={workflowMode}
       />
     );
   }
@@ -5129,6 +5206,7 @@ function InspectorPanel({
       activeArtifact={activeArtifact}
       retrieval={retrievalRuntime}
       runtime={workflowRuntime}
+      workflowExecution={workflowExecution}
       workflowMode={workflowMode}
       sessionIntelligence={sessionIntelligence}
       workstationDashboard={workstationDashboard}
@@ -5147,6 +5225,7 @@ function OverviewInspector({
   onClarificationOptionSelect,
   retrieval,
   runtime,
+  workflowExecution,
   workflowMode,
   sessionIntelligence,
   workstationDashboard,
@@ -5159,6 +5238,7 @@ function OverviewInspector({
   onClarificationOptionSelect: (option: string) => Promise<void>;
   retrieval: RetrievalRuntimeModel;
   runtime: WorkflowRuntimeModel;
+  workflowExecution: WorkflowExecutionModel;
   workflowMode: WorkflowExecutionMode;
   sessionIntelligence: SessionIntelligenceModel;
   workstationDashboard: WorkstationDashboardModel;
@@ -5166,7 +5246,16 @@ function OverviewInspector({
   showDebugPanels: boolean;
   snapshot: AssistantWorkspaceSnapshot;
 }) {
-  const workflowProgress = getWorkflowRuntimeProgress(runtime.steps);
+  const visibleWorkflowSteps = selectWorkflowGraphSteps({
+    execution: workflowExecution,
+    requestedMode: workflowMode,
+    steps: runtime.steps
+  });
+  const workflowProgress = getWorkflowRuntimeProgress(visibleWorkflowSteps);
+  const workflowRouteLabel = formatWorkflowGraphRoute({
+    execution: workflowExecution,
+    requestedMode: workflowMode
+  });
   const latestTransitions = runtime.transitions.slice(-3);
 
   return (
@@ -5186,7 +5275,7 @@ function OverviewInspector({
           <header>
             <div>
               <span>Workflow</span>
-              <strong>{formatWorkflowModeLabel(workflowMode)}</strong>
+              <strong>{workflowRouteLabel}</strong>
               <p>{runtime.summary.activity.label}</p>
               <small>{runtime.summary.activity.detail}</small>
             </div>
@@ -5210,7 +5299,7 @@ function OverviewInspector({
             progress={workflowProgress}
           />
           <div className="miniWorkflow" aria-label="Minimal live workflow state">
-            {runtime.steps.map((step) => (
+            {visibleWorkflowSteps.map((step) => (
               <div
                 aria-current={
                   step.state === "active" || step.state === "failed"
@@ -5916,7 +6005,8 @@ function WorkflowInspector({
   runtime,
   v3InspectorPanels,
   telemetry,
-  showDebugPanels
+  showDebugPanels,
+  workflowMode
 }: {
   creativeTimeline: CreativeTimelineModel;
   conversationContext: ConversationContextModel;
@@ -5928,8 +6018,18 @@ function WorkflowInspector({
   v3InspectorPanels: V3InspectorPanelsModel;
   telemetry: ProviderTelemetryModel;
   showDebugPanels: boolean;
+  workflowMode: WorkflowExecutionMode;
 }) {
-  const workflowProgress = getWorkflowRuntimeProgress(runtime.steps);
+  const visibleWorkflowSteps = selectWorkflowGraphSteps({
+    execution,
+    requestedMode: workflowMode,
+    steps: runtime.steps
+  });
+  const workflowProgress = getWorkflowRuntimeProgress(visibleWorkflowSteps);
+  const workflowRouteLabel = formatWorkflowGraphRoute({
+    execution,
+    requestedMode: workflowMode
+  });
   const recentEvents = runtime.events.slice(-6).reverse();
 
   return (
@@ -6022,12 +6122,21 @@ function WorkflowInspector({
       <V3InspectorPanelsSurface model={v3InspectorPanels} />
       <TelemetryLifecycleCard telemetry={telemetry} />
       <WorkflowTimelineExplorer timeline={runtime.timeline} />
+      <header className="workflowGraphHeader">
+        <div>
+          <span>Actual runtime graph</span>
+          <strong>{workflowRouteLabel}</strong>
+        </div>
+        <small>{`${visibleWorkflowSteps.length} route node${
+          visibleWorkflowSteps.length === 1 ? "" : "s"
+        }`}</small>
+      </header>
       <div
         aria-label="LangGraph workflow visualization"
         className="workflowGraph"
         role="group"
       >
-        {runtime.steps.map((step, index) => (
+        {visibleWorkflowSteps.map((step, index) => (
           <article
             aria-current={
               step.state === "active" || step.state === "failed"
@@ -6239,7 +6348,15 @@ function TelemetryInspector({
         ))}
       </div>
 
-      <div className="telemetryDashboardGrid">
+      <details className="inspectorDisclosure telemetryEvidenceDisclosure">
+        <summary>
+          <div>
+            <span>Evidence detail</span>
+            <strong>Provider, runtime, preview, retrieval, and evaluation</strong>
+          </div>
+          <span>{dashboard.summary.coverageLabel}</span>
+        </summary>
+        <div className="telemetryDashboardGrid">
         <article
           aria-label="Stream lifecycle"
           className="telemetryDashboardCard"
@@ -6451,44 +6568,46 @@ function TelemetryInspector({
           </dl>
           <p>{dashboard.artifactLink.target}</p>
         </article>
-      </div>
+        </div>
+      </details>
 
-      {showDebugPanels ? (
-        <article
-          aria-label="Telemetry event type counts"
-          className="telemetryDashboardCard telemetryDashboardCard--wide"
-          role="group"
-        >
-          <header>
-            <span>Event distribution</span>
-            <strong>{dashboard.stream.eventCount} events</strong>
-          </header>
-          <div className="telemetryEventPills">
-            {populatedEventTypes.length > 0 ? (
-              populatedEventTypes.map(([eventType, count]) => (
-                <span key={eventType}>
-                  {formatRuntimeCode(eventType)}
-                  <strong>{count}</strong>
-                </span>
-              ))
-            ) : (
-              <p>No stream events captured yet.</p>
-            )}
+      <details className="inspectorDisclosure telemetryEventDisclosure">
+        <summary>
+          <div>
+            <span>Raw event distribution</span>
+            <strong>
+              {showDebugPanels
+                ? `${dashboard.stream.eventCount} captured events`
+                : "Hidden in Settings"}
+            </strong>
           </div>
-        </article>
-      ) : (
-        <article
-          aria-label="Telemetry debug panels hidden"
-          className="telemetryDashboardCard telemetryDashboardCard--wide"
-          role="group"
-        >
-          <header>
-            <span>Event distribution</span>
-            <strong>Hidden</strong>
-          </header>
-          <p>Raw event counts are hidden in Settings.</p>
-        </article>
-      )}
+          <span>{showDebugPanels ? "Inspect" : "Off"}</span>
+        </summary>
+        {showDebugPanels ? (
+          <article
+            aria-label="Telemetry event type counts"
+            className="telemetryDashboardCard telemetryDashboardCard--wide"
+            role="group"
+          >
+            <div className="telemetryEventPills">
+              {populatedEventTypes.length > 0 ? (
+                populatedEventTypes.map(([eventType, count]) => (
+                  <span key={eventType}>
+                    {formatRuntimeCode(eventType)}
+                    <strong>{count}</strong>
+                  </span>
+                ))
+              ) : (
+                <p>No stream events captured yet.</p>
+              )}
+            </div>
+          </article>
+        ) : (
+          <p className="inspectorDisclosureBoundary">
+            Enable advanced diagnostics in Settings to inspect raw event counts.
+          </p>
+        )}
+      </details>
     </section>
   );
 }
@@ -6946,12 +7065,16 @@ function WorkspaceQuickActions({
           </span>
         </button>
         <button
-          aria-label="Toggle focus mode from quick actions"
+          aria-label="Toggle Fullscreen Creative Session from quick actions"
           onClick={onFocusModeToggle}
           type="button"
         >
-          <strong>{isFocusMode ? "Exit focus mode" : "Enter focus mode"}</strong>
-          <span>Hide or restore the surrounding workspace chrome.</span>
+          <strong>
+            {isFocusMode
+              ? "Exit Fullscreen Creative Session"
+              : "Enter Fullscreen Creative Session"}
+          </strong>
+          <span>Collapse or restore Sessions, Inspector, and the preview shelf.</span>
         </button>
         <button
           aria-label="Clear workspace session"

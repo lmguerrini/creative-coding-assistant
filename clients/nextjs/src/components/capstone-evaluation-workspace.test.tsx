@@ -49,7 +49,7 @@ describe("Capstone Evaluation workspace", () => {
 
     expect(screen.getByText("AI Engineering Lab")).toBeVisible();
     expect(screen.getByRole("heading", { name: "Measure retrieval. Diagnose weaknesses. Improve the real system." })).toBeVisible();
-    expect(screen.getByText(/unique cases/)).toHaveTextContent("31 unique cases");
+    expect(screen.getByText(/unique cases/)).toHaveTextContent("35 unique cases");
     expect(screen.getAllByText("RAG / Retrieval").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Creative Artifacts").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Agents & Workflow").length).toBeGreaterThan(0);
@@ -61,6 +61,10 @@ describe("Capstone Evaluation workspace", () => {
     for (const label of ["Retrieval Quality", "Creative Quality", "Workflow Quality", "Product Reliability", "Benchmark Coverage", "Evidence Coverage"]) {
       expect(within(boundaries).getByText(label)).toBeVisible();
     }
+    const categoryCards = screen.getByRole("region", { name: "Evaluation categories" });
+    expect(within(categoryCards).getAllByText("Not measured")).toHaveLength(4);
+    expect(within(categoryCards).queryByText(/target 80%/i)).not.toBeInTheDocument();
+    expect(within(categoryCards).queryByLabelText(/measured score/i)).not.toBeInTheDocument();
     expect(boundaries).toHaveTextContent(/coverage is not quality/i);
     expect(screen.getByText("Approved-fixture Overall Retrieval Score")).toBeVisible();
     for (const label of ["Faithfulness", "Answer Relevancy", "Context Precision", "Context Recall", "Context Relevancy"]) {
@@ -114,11 +118,21 @@ describe("Capstone Evaluation workspace", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Run Evaluation" }));
     expect(screen.getByLabelText("Evaluation preflight")).toHaveTextContent(/no provider call/i);
+    await waitFor(() => expect(onRun).toHaveBeenCalledWith({
+      scope: "full",
+      caseIds: [],
+      allowProviderCalls: false,
+      approvedRagasDataset: "sanitized_public"
+    }));
+    expect(screen.getByLabelText("Live evaluation progress")).toHaveTextContent(
+      "Current workspace snapshot"
+    );
     const authorization = screen.getByRole("checkbox", { name: /explicitly authorize evaluator provider calls/i });
     expect(authorization).not.toBeChecked();
     expect(screen.getByLabelText("Approved RAGAS dataset")).toBeDisabled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Run 31 cases" }));
+    onRun.mockClear();
+    fireEvent.click(screen.getByRole("button", { name: "Run 35 cases" }));
     await waitFor(() => expect(onRun).toHaveBeenCalledWith({
       scope: "full",
       caseIds: [],
@@ -127,7 +141,7 @@ describe("Capstone Evaluation workspace", () => {
     }));
     const progress = screen.getByLabelText("Live evaluation progress");
     expect(progress).toHaveTextContent("Estimated progress: indeterminate");
-    expect(progress).toHaveTextContent("golden_eval.v1 · 31 contracts enumerated");
+    expect(progress).toHaveTextContent("golden_eval.v1 · 35 contracts enumerated");
     expect(progress).toHaveTextContent("Current workspace snapshot");
     expect(progress).toHaveTextContent("0 confirmed / 1 unresolved snapshot");
     expect(within(progress).getByRole("progressbar")).not.toHaveAttribute("aria-valuenow");
@@ -137,10 +151,10 @@ describe("Capstone Evaluation workspace", () => {
     const onRun = vi.fn(() => new Promise<void>(() => undefined));
     render(<CapstoneEvaluationWorkspace history={[]} model={model} onRun={onRun} running={false} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Run Evaluation" }));
+    fireEvent.click(screen.getByRole("button", { name: "Configure run" }));
     fireEvent.click(screen.getByRole("checkbox", { name: /explicitly authorize evaluator provider calls/i }));
     fireEvent.change(screen.getByLabelText("Approved RAGAS dataset"), { target: { value: "redacted_public" } });
-    fireEvent.click(screen.getByRole("button", { name: "Run 31 cases" }));
+    fireEvent.click(screen.getByRole("button", { name: "Run 35 cases" }));
 
     await waitFor(() => expect(onRun).toHaveBeenCalledWith(expect.objectContaining({
       allowProviderCalls: true,
