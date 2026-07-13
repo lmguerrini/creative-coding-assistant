@@ -24,6 +24,16 @@ import {
   CURRENT_APPROVED_RAGAS_EVIDENCE,
   CURRENT_CANONICAL_RETRIEVAL_REPORT
 } from "@/lib/current-ragas-evidence";
+import {
+  DashboardCallout,
+  DashboardCardGrid,
+  DashboardDisclosure,
+  DashboardInfoCard,
+  DashboardMetricGrid,
+  DashboardSection,
+  DashboardSectionHeader,
+  DashboardTableFrame
+} from "./dashboard-page-primitives";
 
 type Props = {
   history: EvaluationHistoryRecord[];
@@ -173,29 +183,40 @@ export function CapstoneEvaluationWorkspace({ history, model: _model, onRun, run
   });
 
   return (
-    <section aria-label="Capstone evaluation workspace" className="capstoneEvaluation">
-      <header className="capstoneEvaluationHero">
-        <div>
-          <span className="capstoneEyebrow"><FlaskConical aria-hidden="true" size={14} /> AI Engineering Lab</span>
-          <h2>Measure retrieval. Diagnose weaknesses. Improve the real system.</h2>
-          <p>Follow the engineering loop from fixed benchmark evidence to root cause, product change, and comparable rerun. RAG, creative, workflow, and product quality stay separate so every claim remains defensible.</p>
-          <div className="capstoneHeroMeta">
-            <span><strong>{dataset.cases.length}</strong> unique cases</span>
-            <span><strong>{dataset.version}</strong> dataset</span>
-            <span><strong>{dataset.fingerprint.slice(0, 10)}</strong> fingerprint</span>
+    <section aria-label="Capstone evaluation workspace" className="evaluationWorkspace">
+      <DashboardSection
+        action={(
+          <div className="evaluationLaunchActions">
+            <button className="capstonePrimaryButton" disabled={isRunning || selectedCount === 0} onClick={() => { setRunOpen(true); void run(); }} type="button">
+              <Sparkles aria-hidden="true" size={16} /> {isRunning ? "Evaluation running…" : "Run Evaluation"}
+            </button>
+            <button className="capstoneConfigureButton" disabled={isRunning} onClick={() => setRunOpen(true)} type="button">Configure run</button>
           </div>
-        </div>
-        <div className="capstoneHeroAction">
-          <span className="evaluationStatusPill" data-status="partial">Approved RAGAS baseline</span>
-          <strong>61.44% approved-fixture RAGAS macro</strong>
-          <small>Equal-weight mean · four metrics · four sanitized rows · not current-product quality</small>
-          <span className="capstoneSelectedRun">Selected: {selectedScopeLabel} · {selectedCount} contract{selectedCount === 1 ? "" : "s"} · local by default</span>
-          <button className="capstonePrimaryButton" disabled={isRunning || selectedCount === 0} onClick={() => { setRunOpen(true); void run(); }} type="button">
-            <Sparkles aria-hidden="true" size={16} /> {isRunning ? "Evaluation running…" : "Run Evaluation"}
-          </button>
-          <button className="capstoneConfigureButton" disabled={isRunning} onClick={() => setRunOpen(true)} type="button">Configure run</button>
-        </div>
-      </header>
+        )}
+        className="evaluationLabIntro"
+        detail="Move from fixed benchmark evidence to root cause, product change, and a comparable rerun while keeping retrieval, creative, workflow, and reliability claims separate."
+        eyebrow="AI Engineering Lab"
+        icon={FlaskConical}
+        label="AI Engineering Lab"
+        title="Measure retrieval. Diagnose weaknesses. Improve the real system."
+      >
+        <DashboardMetricGrid
+          className="evaluationLabMetrics"
+          label="Evaluation benchmark summary"
+          metrics={[
+            { label: "Benchmark corpus", value: `${dataset.cases.length} unique cases` },
+            { label: "Dataset", value: dataset.version },
+            { label: "Fingerprint", value: dataset.fingerprint.slice(0, 10) },
+            { detail: "Four supported metrics · four sanitized rows", label: "Approved RAGAS baseline", tone: "warning", value: "61.44%" }
+          ]}
+        />
+        <DashboardCallout
+          detail={`Selected: ${selectedScopeLabel} · ${selectedCount} contract${selectedCount === 1 ? "" : "s"} · deterministic local evidence by default. The approved-fixture RAGAS macro is not current-product quality.`}
+          icon={ShieldCheck}
+          title="Scope and evidence stay explicit"
+          tone="warning"
+        />
+      </DashboardSection>
 
       <QualityBoundaryMap ragCaseCount={ragCaseIds.length} run={selectedRun} />
 
@@ -204,50 +225,66 @@ export function CapstoneEvaluationWorkspace({ history, model: _model, onRun, run
         run={selectedRun}
       />
 
-      <div className="evaluationCountStrip" aria-label="Latest result counts">
-        <Count label="Pass" value={selectedRun?.counts.pass ?? 0} tone="pass" />
-        <Count label="Partial" value={selectedRun?.counts.partial ?? 0} tone="partial" />
-        <Count label="Fail" value={selectedRun?.counts.fail ?? 0} tone="fail" />
-        <Count label="Blocked" value={selectedRun?.counts.blocked ?? 0} tone="blocked" />
-        <Count label="Missing" value={selectedRun?.counts.missing ?? 0} tone="missing_evidence" />
-        <Count label="Not run" value={selectedRun?.counts.notRun ?? dataset.cases.length} tone="not_run" />
-      </div>
-
-      <section aria-label="Evaluation categories" className="evaluationCategoryGrid">
-        {categories.map((category) => {
-          const result = selectedRun?.categoryResults.find((item) => item.category === category);
-          const measured = result?.score != null;
-          return (
-            <article className="evaluationCategoryCard" data-measured={measured ? "true" : "false"} key={category}>
-              <header><span>{formatQualityLane(category)}</span><Status status={result?.status ?? "not_run"} /></header>
-              {result?.score != null ? (
-                <>
-                  <div className="evaluationCategoryScore"><strong>{formatScore(result.score)}</strong><span>target {Math.round(result.target * 100)}%</span></div>
-                  <div aria-label={`${formatQualityLane(category)} measured score`} className="evaluationScoreTrack"><i style={{ width: `${result.score * 100}%` }} /></div>
-                  <dl>
-                    <div><dt>Previous</dt><dd>{formatScore(result.previousScore)}</dd></div>
-                    <div><dt>Delta</dt><dd>{formatDelta(result.delta)}</dd></div>
-                    <div><dt>Gap</dt><dd>{result.gap == null ? "—" : `${Math.round(result.gap * 100)} pts`}</dd></div>
-                    <div><dt>Evidence</dt><dd>{result.measuredMetrics}/{result.applicableMetrics}</dd></div>
-                  </dl>
-                </>
-              ) : (
-                <div className="evaluationCategoryUnmeasured">
-                  <strong>Not measured</strong>
-                  <span>{result
-                    ? `${result.measuredMetrics}/${result.applicableMetrics} metrics published; no category score is defensible.`
-                    : "No run has published evidence for this category."}</span>
-                </div>
-              )}
-              <p>{result?.detail ?? "Run this category to create current, comparable evidence."}</p>
-            </article>
-          );
-        })}
-      </section>
+      <DashboardDisclosure
+        className="evaluationWorkspaceDisclosure"
+        summary="Current workspace lanes and latest result counts"
+      >
+        <DashboardMetricGrid
+          label="Latest result counts"
+          metrics={[
+            { label: "Pass", tone: "good", value: selectedRun?.counts.pass ?? 0 },
+            { label: "Partial", tone: "warning", value: selectedRun?.counts.partial ?? 0 },
+            { label: "Fail", tone: "danger", value: selectedRun?.counts.fail ?? 0 },
+            { label: "Blocked", value: selectedRun?.counts.blocked ?? 0 },
+            { label: "Missing", value: selectedRun?.counts.missing ?? 0 },
+            { label: "Not run", value: selectedRun?.counts.notRun ?? dataset.cases.length }
+          ]}
+        />
+        <section aria-label="Evaluation categories" className="evaluationCategoriesContent">
+          <DashboardCardGrid label="Evaluation quality lanes" layout="equal" role="list">
+          {categories.map((category) => {
+            const result = selectedRun?.categoryResults.find((item) => item.category === category);
+            const measured = result?.score != null;
+            return (
+              <article className="dashboardInnerCard evaluationCategoryCard" data-measured={measured ? "true" : "false"} key={category} role="listitem">
+                <header><span>{formatQualityLane(category)}</span><Status status={result?.status ?? "not_run"} /></header>
+                {result?.score != null ? (
+                  <>
+                    <div className="evaluationCategoryScore"><strong>{formatScore(result.score)}</strong><span>target {Math.round(result.target * 100)}%</span></div>
+                    <div aria-label={`${formatQualityLane(category)} measured score`} className="evaluationScoreTrack"><i style={{ width: `${result.score * 100}%` }} /></div>
+                    <dl>
+                      <div><dt>Previous</dt><dd>{formatScore(result.previousScore)}</dd></div>
+                      <div><dt>Delta</dt><dd>{formatDelta(result.delta)}</dd></div>
+                      <div><dt>Gap</dt><dd>{result.gap == null ? "—" : `${Math.round(result.gap * 100)} pts`}</dd></div>
+                      <div><dt>Evidence</dt><dd>{result.measuredMetrics}/{result.applicableMetrics}</dd></div>
+                    </dl>
+                  </>
+                ) : (
+                  <div className="evaluationCategoryUnmeasured">
+                    <strong>Not measured</strong>
+                    <span>{result
+                      ? `${result.measuredMetrics}/${result.applicableMetrics} metrics published; no category score is defensible.`
+                      : "No run has published evidence for this category."}</span>
+                  </div>
+                )}
+                <p>{result?.detail ?? "Run this category to create current, comparable evidence."}</p>
+              </article>
+            );
+          })}
+          </DashboardCardGrid>
+        </section>
+      </DashboardDisclosure>
 
       {runOpen ? (
-        <section aria-label="Evaluation preflight" className="evaluationRunPanel">
-          <header><div><span>Run preflight</span><strong>Choose evidence—not a marketing score</strong></div><button disabled={isRunning} onClick={() => setRunOpen(false)} type="button">Close</button></header>
+        <DashboardSection
+          action={<button className="evaluationCloseButton" disabled={isRunning} onClick={() => setRunOpen(false)} type="button">Close</button>}
+          className="evaluationRunControls"
+          detail="Choose the evidence scope, execution boundary, and optional provider authorization before running the benchmark."
+          eyebrow="Run controls"
+          icon={Gauge}
+          label="Evaluation preflight"
+          title="Choose evidence—not a marketing score"
+        >
           <div className="evaluationScopeGrid">
             {scopes.map((item) => <button aria-pressed={scope === item.id} key={item.id} onClick={() => setScope(item.id)} type="button"><strong>{item.label}</strong><span>{item.detail}</span></button>)}
           </div>
@@ -258,7 +295,11 @@ export function CapstoneEvaluationWorkspace({ history, model: _model, onRun, run
             </details>
           ) : null}
           <div className="evaluationPreflightGrid">
-            <Preflight label="Execution" value="Deterministic local benchmark" detail="Always available; no provider call" />
+            <Preflight
+              label="Execution"
+              value={allowProviderCalls ? "Provider-assisted RAGAS + local benchmark" : "Deterministic local benchmark"}
+              detail={allowProviderCalls ? "Approved public-safe fixture only; explicitly authorized" : "Always available; no provider call"}
+            />
             <Preflight label="Selection" value={`${selectedCount} canonical contracts`} detail={`${scope.replace(/_/g, " ")} scope · current local snapshot is analyzed`} />
             <Preflight label="History" value="Append locally" detail="Up to 24 run records survive reload" />
             <Preflight label="Cost" value={allowProviderCalls ? "Estimate unavailable" : "$0 provider evaluation"} detail={allowProviderCalls ? "Actual provider usage is reported when published" : "Local evidence only"} />
@@ -272,44 +313,86 @@ export function CapstoneEvaluationWorkspace({ history, model: _model, onRun, run
             </div>
           ) : null}
           {progress ? <EvaluationRunProgress datasetVersion={dataset.version} progress={progress} run={latest} /> : null}
-          <footer><span>{selectedCount === 0 ? "Select at least one case." : allowProviderCalls ? "Provider call authorized for approved RAGAS fixture." : "No evaluator provider will be called."}</span><button className="capstonePrimaryButton" disabled={isRunning || selectedCount === 0} onClick={() => void run()} type="button">{isRunning ? "Running…" : `Run ${selectedCount} case${selectedCount === 1 ? "" : "s"}`}</button></footer>
-        </section>
+          <footer className="evaluationRunActions"><span>{selectedCount === 0 ? "Select at least one case." : allowProviderCalls ? "Provider call authorized for approved RAGAS fixture." : "No evaluator provider will be called."}</span><button className="capstonePrimaryButton" disabled={isRunning || selectedCount === 0} onClick={() => void run()} type="button">{isRunning ? "Running…" : `Run ${selectedCount} case${selectedCount === 1 ? "" : "s"}`}</button></footer>
+        </DashboardSection>
       ) : null}
 
-      <section aria-label="Evaluation results" className="evaluationResultsSection">
-        <SectionHeading icon={<BarChart3 aria-hidden="true" size={16} />} eyebrow="Results" title="Measured outcomes and evidence gaps" detail="Every category keeps its own metric family, threshold, and evidence boundary." />
-        <div className="evaluationTrendGrid">
-          {categories.map((category) => <Trend key={category} category={category} runs={comparableHistory} />)}
-        </div>
-        <div className="evaluationFilters">
-          <input aria-label="Filter evaluation cases" onChange={(event) => setQuery(event.target.value)} placeholder="Filter by case, domain, or source…" value={query} />
-          <select aria-label="Filter by category" onChange={(event) => setCategoryFilter(event.target.value as typeof categoryFilter)} value={categoryFilter}><option value="all">All categories</option>{categories.map((item) => <option key={item} value={item}>{formatEvaluationCategory(item)}</option>)}</select>
-          <select aria-label="Filter by status" onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)} value={statusFilter}><option value="all">All statuses</option>{["pass", "partial", "fail", "blocked", "missing_evidence", "not_run"].map((item) => <option key={item} value={item}>{item.replace(/_/g, " ")}</option>)}</select>
-        </div>
-        {selectedRun ? <div className="evaluationCaseTable">{cases.map((item) => <CaseRow caseResult={item} key={item.caseId} onCandidate={(caseResult) => { const candidate = createEvaluationCandidate({ caseResult }); if (candidate) setCandidates((current) => [...current, candidate]); }} />)}{cases.length === 0 ? <p className="evaluationEmpty">No cases match the active filters.</p> : null}</div> : <EmptyResults />}
-      </section>
+      <DashboardDisclosure
+        className="evaluationWorkspaceDisclosure"
+        defaultOpen={Boolean(selectedRun)}
+        summary={selectedRun ? "Measured case results and evidence gaps" : "Case results — run a benchmark to publish current evidence"}
+      >
+        <section aria-label="Evaluation results" className="evaluationResultsContent">
+          <DashboardSectionHeader
+            detail="Every category keeps its own metric family, threshold, and evidence boundary."
+            eyebrow="Results"
+            icon={BarChart3}
+            title="Measured outcomes and evidence gaps"
+          />
+          {comparableHistory.length >= 2 ? (
+            <div className="evaluationTrendGrid">
+              {categories.map((category) => <Trend key={category} category={category} runs={comparableHistory} />)}
+            </div>
+          ) : null}
+          <div className="evaluationFilters">
+            <input aria-label="Filter evaluation cases" onChange={(event) => setQuery(event.target.value)} placeholder="Filter by case, domain, or source…" value={query} />
+            <select aria-label="Filter by category" onChange={(event) => setCategoryFilter(event.target.value as typeof categoryFilter)} value={categoryFilter}><option value="all">All categories</option>{categories.map((item) => <option key={item} value={item}>{formatEvaluationCategory(item)}</option>)}</select>
+            <select aria-label="Filter by status" onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)} value={statusFilter}><option value="all">All statuses</option>{["pass", "partial", "fail", "blocked", "missing_evidence", "not_run"].map((item) => <option key={item} value={item}>{item.replace(/_/g, " ")}</option>)}</select>
+          </div>
+          {selectedRun ? <div className="evaluationCaseTable">{cases.map((item) => <CaseRow caseResult={item} key={item.caseId} onCandidate={(caseResult) => { const candidate = createEvaluationCandidate({ caseResult }); if (candidate) setCandidates((current) => [...current, candidate]); }} />)}{cases.length === 0 ? <p className="evaluationEmpty">No cases match the active filters.</p> : null}</div> : <EmptyResults />}
+        </section>
+      </DashboardDisclosure>
 
-      {candidates.length ? <section aria-label="Improvement candidates" className="evaluationCandidates"><SectionHeading icon={<Sparkles aria-hidden="true" size={16} />} eyebrow="Improve" title="Non-destructive prompt candidates" detail="The canonical prompt stays unchanged; candidates begin with no score or delta until rerun." />{candidates.map((item) => <article key={item.id}><div><span>Original</span><p>{item.originalPrompt}</p><strong>{formatScore(item.baselineScore)}</strong></div><div><span>Candidate</span><p>{item.candidatePrompt}</p><strong>Pending rerun · delta —</strong></div></article>)}</section> : null}
+      {candidates.length ? (
+        <DashboardSection
+          className="evaluationCandidates"
+          detail="The canonical prompt stays unchanged; candidates begin with no score or delta until rerun."
+          eyebrow="Improve"
+          icon={Sparkles}
+          label="Improvement candidates"
+          title="Non-destructive prompt candidates"
+        >
+          {candidates.map((item) => <article className="dashboardInnerCard" key={item.id}><div><span>Original</span><p>{item.originalPrompt}</p><strong>{formatScore(item.baselineScore)}</strong></div><div><span>Candidate</span><p>{item.candidatePrompt}</p><strong>Pending rerun · delta —</strong></div></article>)}
+        </DashboardSection>
+      ) : null}
 
-      <section aria-label="Evaluation history and trends" className="evaluationHistorySection">
-        <SectionHeading icon={<History aria-hidden="true" size={16} />} eyebrow="History" title="Comparable local runs" detail="Deltas appear only when dataset fingerprint, scope, selected cases, and metrics are comparable." />
-        {benchmarkHistory.length ? <div className="evaluationRunHistory">{[...benchmarkHistory].reverse().map((run) => <button aria-pressed={selectedRun?.id === run.id} key={run.id} onClick={() => setSelectedHistoryId(run.id)} type="button"><Status status={statusTone(run.statusLabel)} /><span><strong>{run.scope.replace(/_/g, " ")}</strong><small>{formatDate(run.completedAt)} · {run.executedCases}/{run.selectedCases} cases</small></span><span><strong>{run.provider ?? "Local only"}</strong><small>{run.totalTokens == null ? "Tokens unavailable" : `${run.totalTokens.toLocaleString()} tokens`} · {run.estimatedCost == null ? "Cost unavailable" : `${run.currency} ${run.estimatedCost.toFixed(4)}`}</small></span></button>)}</div> : <p className="evaluationEmpty">No rich benchmark run is stored yet. Existing legacy attempts remain preserved but are not comparable.</p>}
-      </section>
+      <DashboardDisclosure className="evaluationWorkspaceDisclosure" summary="Comparable stored runs">
+        <section aria-label="Evaluation history and trends" className="evaluationHistoryContent">
+          <DashboardSectionHeader
+            detail="Deltas appear only when dataset fingerprint, scope, selected cases, and metrics are comparable."
+            eyebrow="History"
+            icon={History}
+            title="Comparable stored runs"
+          />
+          {benchmarkHistory.length ? <div className="evaluationRunHistory">{[...benchmarkHistory].reverse().map((run) => <button aria-pressed={selectedRun?.id === run.id} key={run.id} onClick={() => setSelectedHistoryId(run.id)} type="button"><Status status={statusTone(run.statusLabel)} /><span><strong>{run.scope.replace(/_/g, " ")}</strong><small>{formatDate(run.completedAt)} · {run.executedCases}/{run.selectedCases} cases</small></span><span><strong>{run.provider ?? "Local only"}</strong><small>{run.totalTokens == null ? "Tokens unavailable" : `${run.totalTokens.toLocaleString()} tokens`} · {run.estimatedCost == null ? "Cost unavailable" : `${run.currency} ${run.estimatedCost.toFixed(4)}`}</small></span></button>)}</div> : <p className="evaluationEmpty">No rich benchmark run is stored yet. Existing legacy attempts remain preserved but are not comparable.</p>}
+        </section>
+      </DashboardDisclosure>
 
-      <section aria-label="Capstone evaluation mapping" className="evaluationCoverage">
-        <SectionHeading icon={<CheckCircle2 aria-hidden="true" size={16} />} eyebrow="Capstone coverage" title="What each evaluation claim is built from" detail="The matrix separates measurable product evidence from checks that require another environment or human observation." />
-        <div className="evaluationCoverageTable"><div className="evaluationCoverageHead"><span>Capability</span><span>Evidence</span><span>Truth boundary</span></div>{coverageRows.map((row) => <div key={row[0]}><strong>{row[0]}</strong><span>{row[1]}</span><small>{row[2]}</small></div>)}</div>
-      </section>
-
-      <details className="evaluationMethodology"><summary><ChevronDown aria-hidden="true" size={16} /> Methodology, scoring, and limitations</summary><div><p><strong>Golden dataset.</strong> {dataset.rawSourceCount} product-authored records are normalized into {dataset.cases.length} unique prompt contracts; {dataset.duplicateCount} aliases are deduplicated. IDs and a deterministic fingerprint make changes visible.</p><p><strong>Metric separation.</strong> RAGAS metrics apply only to recorded answers with contexts. Product-specific creative, workflow, runtime, and persistence signals retain their own labels. No cross-category global score is calculated because these lanes measure different constructs.</p><p><strong>Missing evidence.</strong> BLOCKED_BY_EXECUTION_ENVIRONMENT means a required evaluator, credential, network, or test runner was unavailable. MISSING_EVIDENCE means the current product did not publish defensible proof. Neither is converted to zero.</p><p><strong>Known limits.</strong> Context recall has no justified reference answers in the approved fixtures. Visual clarity and interaction success need rendered or human evidence. Historic QA can inform review but never becomes a current run result.</p></div></details>
+      <DashboardDisclosure className="evaluationWorkspaceDisclosure" summary="Evaluation claim mapping and methodology">
+        <section aria-label="Capstone evaluation mapping" className="evaluationCoverageContent">
+          <DashboardSectionHeader
+            detail="The matrix separates measurable product evidence from checks that require another environment or human observation."
+            eyebrow="Capstone coverage"
+            icon={CheckCircle2}
+            title="What each evaluation claim is built from"
+          />
+          <DashboardTableFrame>
+            <table>
+              <thead><tr><th>Capability</th><th>Evidence</th><th>Truth boundary</th></tr></thead>
+              <tbody>{coverageRows.map((row) => <tr key={row[0]}><th scope="row">{row[0]}</th><td>{row[1]}</td><td>{row[2]}</td></tr>)}</tbody>
+            </table>
+          </DashboardTableFrame>
+          <DashboardDisclosure className="evaluationMethodology" summary="Methodology, scoring, and limitations">
+            <div><p><strong>Golden dataset.</strong> {dataset.rawSourceCount} product-authored records are normalized into {dataset.cases.length} unique prompt contracts; {dataset.duplicateCount} aliases are deduplicated. IDs and a deterministic fingerprint make changes visible.</p><p><strong>Metric separation.</strong> RAGAS metrics apply only to recorded answers with contexts. Product-specific creative, workflow, runtime, and persistence signals retain their own labels. No cross-category global score is calculated because these lanes measure different constructs.</p><p><strong>Missing evidence.</strong> BLOCKED_BY_EXECUTION_ENVIRONMENT means a required evaluator, credential, network, or test runner was unavailable. MISSING_EVIDENCE means the current product did not publish defensible proof. Neither is converted to zero.</p><p><strong>Known limits.</strong> Context recall has no justified reference answers in the approved fixtures. Visual clarity and interaction success need rendered or human evidence. Historic QA can inform review but never becomes a current run result.</p></div>
+          </DashboardDisclosure>
+        </section>
+      </DashboardDisclosure>
     </section>
   );
 }
 
-function Count({ label, tone, value }: { label: string; tone: EvaluationMetricStatus; value: number }) { return <span data-status={tone}><strong>{value}</strong>{label}</span>; }
 function Status({ status }: { status: EvaluationMetricStatus }) { return <span className="evaluationStatusPill" data-status={status}>{status.replace(/_/g, " ")}</span>; }
 function Preflight({ detail, label, value }: { detail: string; label: string; value: string }) { return <div><span>{label}</span><strong>{value}</strong><small>{detail}</small></div>; }
-function SectionHeading({ detail, eyebrow, icon, title }: { detail: string; eyebrow: string; icon: React.ReactNode; title: string }) { return <header className="evaluationSectionHeading"><span>{icon}{eyebrow}</span><strong>{title}</strong><p>{detail}</p></header>; }
 
 function formatQualityLane(category: EvaluationCategory) {
   if (category === "rag") return "Retrieval Quality";
@@ -367,12 +450,33 @@ function QualityBoundaryMap({ ragCaseCount, run }: { ragCaseCount: number; run: 
   ] as const;
 
   return (
-    <section aria-label="Evaluation score boundaries" className="evaluationQualityMap">
-      <header><div><span><ShieldCheck aria-hidden="true" size={14} /> Score boundaries</span><strong>Six independent signals. No global score.</strong></div><small>Quality and coverage answer different questions and never share a denominator.</small></header>
-      <div>
-        {lanes.map((lane) => <article key={lane.label}><span>{lane.label}</span><strong>{lane.value}</strong><small>{lane.classification}</small><p>{lane.detail}</p></article>)}
-      </div>
-    </section>
+    <DashboardSection
+      className="evaluationQualityBoundaries"
+      detail="Quality and coverage answer different questions and never share a denominator."
+      eyebrow="Score boundaries"
+      icon={ShieldCheck}
+      label="Evaluation score boundaries"
+      title="Six independent signals. No global score."
+    >
+      <DashboardCardGrid label="Independent evaluation signals" layout="equal" role="list">
+        {lanes.map((lane) => (
+          <DashboardInfoCard
+            detail={lane.detail}
+            eyebrow={lane.label}
+            key={lane.label}
+            role="listitem"
+            title={lane.value}
+          >
+            <small className="evaluationLaneClassification">{lane.classification}</small>
+          </DashboardInfoCard>
+        ))}
+      </DashboardCardGrid>
+      <DashboardCallout
+        detail="Retrieval quality, creative quality, workflow quality, product reliability, benchmark coverage, and evidence coverage remain independent claims. Coverage is not quality."
+        icon={ShieldCheck}
+        title="No cross-category aggregate"
+      />
+    </DashboardSection>
   );
 }
 
@@ -396,50 +500,56 @@ function RetrievalEvaluation({ ragCaseIds, run }: { ragCaseIds: string[]; run: E
     : scoreStatus(retrievalScore);
 
   return (
-    <section aria-label="RAGAS retrieval evaluation" className="retrievalEvaluation">
-      <header className="retrievalEvaluationHeader">
-        <div>
-          <span><Database aria-hidden="true" size={15} /> Real RAGAS evaluation</span>
-          <h3>Retrieval quality, with every evidence boundary visible.</h3>
-          <p>The retrieval score uses only supported RAGAS measurements from the approved public-safe fixture. Missing or unsupported metrics are shown explicitly and never entered as zero.</p>
-        </div>
+    <DashboardSection
+      action={(
         <div className="retrievalExecutionBadge">
           <Status status={retrievalStatus} />
           <strong>{formatRagasDataset(evidence.datasetId)}</strong>
           <small>{usingCommittedSummary ? `committed transcribed baseline summary · ${formatDate(CURRENT_APPROVED_RAGAS_EVALUATED_AT)}${run ? ` · current attempt ${run.ragas.state.replace(/_/g, " ")}` : ""}` : `${evidence.state.replace(/_/g, " ")} · ${evidence.provider ?? "provider not reported"}`}</small>
         </div>
-      </header>
+      )}
+      className="evaluationRetrievalSection"
+      detail="Only supported measurements from the approved public-safe fixture enter the score. Missing or unsupported metrics remain visible and never become zero."
+      eyebrow={usingCommittedSummary ? "Approved RAGAS baseline" : "Selected RAGAS run"}
+      icon={Database}
+      label="RAGAS retrieval evaluation"
+      title="Retrieval quality, with every evidence boundary visible"
+    >
 
-      <div className="retrievalScoreSummary">
-        <article className="retrievalOverallScore" data-status={retrievalStatus}>
+      <div className="evaluationRetrievalOverview">
+        <article className="dashboardInnerCard retrievalOverallScore" data-status={retrievalStatus}>
           <span><Gauge aria-hidden="true" size={15} /> Approved-fixture Overall Retrieval Score</span>
           <strong>{formatPreciseScore(retrievalScore)}</strong>
           <div className="evaluationScoreTrack"><i style={{ width: `${(retrievalScore ?? 0) * 100}%` }} /></div>
           <p>{supportedScores.length}/{requestedSupportedIds.length} requested, supported RAGAS dimensions measured. {supportedScores.length < requestedSupportedIds.length ? "The score is provisional until supported evidence is complete." : "Each measured dimension contributes equally."} {usingCommittedSummary ? "Shown from the committed transcribed summary of the approved provider-scored fixture." : "Shown from this workspace run."}</p>
         </article>
-        <EvaluationBoundaryCard
-          detail={`${CURRENT_CANONICAL_RETRIEVAL_REPORT.casesWithResults}/${CURRENT_CANONICAL_RETRIEVAL_REPORT.retrievalPackCases} canonical retrieval-pack queries returned ranked results; 0/${ragCaseIds.length} exact golden contracts have end-to-end RAGAS evidence`}
-          label="Benchmark coverage"
-          value={`${CURRENT_CANONICAL_RETRIEVAL_REPORT.casesWithResults}/${CURRENT_CANONICAL_RETRIEVAL_REPORT.retrievalPackCases} retrieval queries`}
-        />
-        <EvaluationBoundaryCard
-          caution
-          detail={`${supportedScores.length}/${retrievalMetrics.length} requested RAG metric dimensions measured. This is not an overall product or project score.`}
-          label="Evidence coverage"
-          value={formatScore(evidenceCoverage)}
-        />
-        <EvaluationBoundaryCard
-          detail={productReliability?.score == null ? "Not measured in the selected run. Runtime, persistence, validation, and bug evidence remain a separate quality lane." : "Measured from product reliability evidence only; never included in the Retrieval Quality baseline."}
-          label="Product Reliability"
-          value={productReliability?.score == null ? "Not measured" : formatScore(productReliability.score)}
-        />
+        <DashboardCardGrid className="evaluationRetrievalBoundaries" label="Retrieval score boundaries" layout="equal" role="list">
+          <EvaluationBoundaryCard
+            detail={`${CURRENT_CANONICAL_RETRIEVAL_REPORT.casesWithResults}/${CURRENT_CANONICAL_RETRIEVAL_REPORT.retrievalPackCases} canonical retrieval-pack queries returned ranked results; 0/${ragCaseIds.length} exact golden contracts have end-to-end RAGAS evidence`}
+            label="Benchmark coverage"
+            value={`${CURRENT_CANONICAL_RETRIEVAL_REPORT.casesWithResults}/${CURRENT_CANONICAL_RETRIEVAL_REPORT.retrievalPackCases} retrieval queries`}
+          />
+          <EvaluationBoundaryCard
+            caution
+            detail={`${supportedScores.length}/${retrievalMetrics.length} requested RAG metric dimensions measured. This is not an overall product or project score.`}
+            label="Evidence coverage"
+            value={formatScore(evidenceCoverage)}
+          />
+          <EvaluationBoundaryCard
+            detail={productReliability?.score == null ? "Not measured in the selected run. Runtime, persistence, validation, and bug evidence remain a separate quality lane." : "Measured from product reliability evidence only; never included in the Retrieval Quality baseline."}
+            label="Product Reliability"
+            value={productReliability?.score == null ? "Not measured" : formatScore(productReliability.score)}
+          />
+        </DashboardCardGrid>
       </div>
 
       <ScoreCompositionContract evidence={evidence} />
 
-      <RetrievalEngineeringEvolution />
+      <DashboardDisclosure className="evaluationDeepDisclosure" summary="Retrieval engineering evolution — eight verified iterations">
+        <RetrievalEngineeringEvolution />
+      </DashboardDisclosure>
 
-      <div aria-label="RAGAS metric scores" className="retrievalMetricGrid">
+      <DashboardCardGrid className="evaluationRagasMetricGrid" label="RAGAS metric scores" layout="compact" role="list">
         {retrievalMetrics.map((definition) => {
           const metric = findRetrievalMetric(run, definition.id);
           const score = evidence.metricScores[definition.id] ?? metric?.score ?? null;
@@ -455,7 +565,7 @@ function RetrievalEvaluation({ ragCaseIds, run }: { ragCaseIds: string[]; run: E
             ? `Real RAGAS score across ${evidence.resultRows} approved retrieval rows.`
             : metric?.detail ?? "No defensible measurement is published for this dimension.";
           return (
-            <article data-status={status} key={definition.id}>
+            <article className="dashboardInnerCard evaluationRagasMetricCard" data-status={status} key={definition.id} role="listitem">
               <header><span>{definition.label}</span><Status status={status} /></header>
               <strong>{value}</strong>
               <p>{definition.detail}</p>
@@ -463,20 +573,26 @@ function RetrievalEvaluation({ ragCaseIds, run }: { ragCaseIds: string[]; run: E
             </article>
           );
         })}
-      </div>
+      </DashboardCardGrid>
 
-      <MetricDiagnostics />
+      <DashboardDisclosure className="evaluationDeepDisclosure" summary="Metric diagnostics — root cause, change, delta, and next step">
+        <MetricDiagnostics />
+      </DashboardDisclosure>
 
-      <div className="retrievalEvidenceGrid">
-        <EvidenceLineage evidence={evidence} />
-        <RetrievalExecutionTimeline />
-      </div>
+      <DashboardDisclosure className="evaluationDeepDisclosure" summary="Evidence lineage and evaluation execution timeline">
+        <div className="retrievalEvidenceGrid">
+          <EvidenceLineage evidence={evidence} />
+          <RetrievalExecutionTimeline />
+        </div>
+      </DashboardDisclosure>
 
-      <footer>
-        <ShieldCheck aria-hidden="true" size={16} />
-        <span><strong>Why this score is trustworthy.</strong> {evidence.resultRows} evaluated rows from {evidence.eligibleSamples}/{evidence.totalSamples} eligible fixture samples; raw workspace sessions are excluded. {evidence.model ?? "Evaluator model not reported"} · RAGAS {evidence.ragasVersion ?? "version unavailable"}. The separate current verified canonical retrieval report returned results for {CURRENT_CANONICAL_RETRIEVAL_REPORT.casesWithResults}/{CURRENT_CANONICAL_RETRIEVAL_REPORT.retrievalPackCases} queries, with {formatPreciseScore(currentRetrievalEvolution.sourceCoverage.ratio)} substantive expected-source overlap and {formatPreciseScore(currentRetrievalEvolution.domainCoverage.ratio)} requested-domain coverage. {CURRENT_CANONICAL_RETRIEVAL_REPORT.interpretation} {CURRENT_CANONICAL_RETRIEVAL_REPORT.qualityInterpretation} Context Recall stays visible until justified reference answers exist.</span>
-      </footer>
-    </section>
+      <DashboardCallout
+        as="footer"
+        detail={`${evidence.resultRows} evaluated rows from ${evidence.eligibleSamples}/${evidence.totalSamples} eligible fixture samples; raw workspace sessions are excluded. ${evidence.model ?? "Evaluator model not reported"} · RAGAS ${evidence.ragasVersion ?? "version unavailable"}. The separate canonical retrieval report covers ${CURRENT_CANONICAL_RETRIEVAL_REPORT.casesWithResults}/${CURRENT_CANONICAL_RETRIEVAL_REPORT.retrievalPackCases} queries. Context Recall stays visible until justified reference answers exist.`}
+        icon={ShieldCheck}
+        title="Evidence provenance and limits"
+      />
+    </DashboardSection>
   );
 }
 
@@ -552,9 +668,10 @@ function ScoreCompositionContract({ evidence }: { evidence: EvaluationBenchmarkR
   ] as const;
 
   return (
-    <details className="retrievalScoreContract" open>
-      <summary><div><span><ShieldCheck aria-hidden="true" size={14} /> Retrieval score contract</span><strong>Exactly what enters the approved baseline</strong></div><small>Only measurable · reproducible · defensible · comparable evidence</small><ChevronDown aria-hidden="true" size={14} /></summary>
-      <div>
+    <DashboardDisclosure
+      className="retrievalScoreContract"
+      summary={<div><span><ShieldCheck aria-hidden="true" size={14} /> Retrieval score contract</span><strong>Exactly what enters the approved baseline</strong></div>}
+    >
         <section aria-label="Included retrieval metrics">
           <header><span>Included</span><strong>Equal weight inside Retrieval Quality only</strong></header>
           {includedMetricIds.map((metricId) => {
@@ -578,8 +695,7 @@ function ScoreCompositionContract({ evidence }: { evidence: EvaluationBenchmarkR
             </article>
           ))}
         </section>
-      </div>
-    </details>
+    </DashboardDisclosure>
   );
 }
 
@@ -592,7 +708,7 @@ function MetricDiagnostics() {
           const diagnosis = retrievalMetricDiagnostics[metric.id];
           const baselineScore = CURRENT_APPROVED_RAGAS_EVIDENCE.metricScores[metric.id] ?? null;
           return (
-            <details key={metric.id} open={metric.id === "faithfulness" || metric.id === "answer_relevancy" || metric.id === "context_relevancy"}>
+            <details key={metric.id}>
               <summary><span>{metric.label}</span><strong>{formatPreciseScore(baselineScore)}</strong><ChevronDown aria-hidden="true" size={14} /></summary>
               <dl>
                 <div><dt>Current approved score</dt><dd>{baselineScore == null ? "MISSING_EVIDENCE" : formatPreciseScore(baselineScore)}</dd></div>
@@ -613,7 +729,7 @@ function MetricDiagnostics() {
 
 function EvidenceLineage({ evidence }: { evidence: EvaluationBenchmarkRun["ragas"] }) {
   return (
-    <details className="retrievalLineage" open>
+    <details className="retrievalLineage">
       <summary><span><Database aria-hidden="true" size={14} /> Evidence lineage</span><small>Run, contract, provider, and source trace</small><ChevronDown aria-hidden="true" size={14} /></summary>
       <dl>
         <div><dt>Run</dt><dd>{evidence.runId ?? "Unavailable"}</dd></div>
@@ -648,7 +764,7 @@ function RetrievalExecutionTimeline() {
 }
 
 function EvaluationBoundaryCard({ caution = false, detail, label, value }: { caution?: boolean; detail: string; label: string; value: string }) {
-  return <article className="evaluationBoundaryCard" data-caution={caution}><span>{label}</span><strong>{value}</strong><p>{detail}</p></article>;
+  return <article className="dashboardInnerCard evaluationBoundaryCard" data-caution={caution} role="listitem"><span>{label}</span><strong>{value}</strong><p>{detail}</p></article>;
 }
 
 function EvaluationRunProgress({ datasetVersion, progress, run }: { datasetVersion: string; progress: EvaluationProgress; run: EvaluationBenchmarkRun | null }) {

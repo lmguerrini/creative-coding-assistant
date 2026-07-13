@@ -14316,63 +14316,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   font-size: 11px;
 }
 
-.evaluationRunButton {
-  min-height: 34px;
-  margin: 0 14px 10px;
-  padding: 0 10px;
-  border: 1px solid rgba(var(--accent-rgb), 0.36);
-  border-radius: 9px;
-  background: rgba(var(--accent-rgb), 0.1);
-  color: var(--foreground);
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 780;
-}
-
-.evaluationHistory,
-.evaluationHistoryEmpty {
-  margin-top: 0.75rem;
-}
-
-.evaluationHistory header,
-.evaluationHistory li {
-  align-items: baseline;
-  display: flex;
-  gap: 0.65rem;
-  justify-content: space-between;
-}
-
-.evaluationHistory ul {
-  display: grid;
-  gap: 0.45rem;
-  list-style: none;
-  margin: 0.5rem 0 0;
-  padding: 0;
-}
-
-.evaluationHistory li {
-  border-top: 1px solid var(--line);
-  padding-top: 0.45rem;
-}
-
-.evaluationHistory strong,
-.evaluationHistory span,
-.evaluationHistory small,
-.evaluationHistory time {
-  display: block;
-}
-
-.evaluationHistory span,
-.evaluationHistory small,
-.evaluationHistory time,
-.evaluationHistoryEmpty {
-  color: var(--muted-strong);
-  font-size: 0.74rem;
-  line-height: 1.4;
-}
-
-.evaluationRunButton:disabled { cursor: wait; opacity: 0.7; }
-
 .srOnly {
   position: absolute;
   width: 1px;
@@ -14538,9 +14481,113 @@ html[data-cca-code-font-size] .workstation :is(
   .codeViewer,
   .codeViewer pre,
   .activeDocumentBoard pre,
-  .artifactRegistry pre
+  .artifactSourceDisclosure pre
 ) {
   font-size: var(--code-font-size) !important;
+}
+
+/* Navigation group labels are guide-style eyebrows, not content headings. */
+html[data-cca-heading-font-size] .workstation .dashboardNavSection > h2 {
+  font-size: var(--label-font-size) !important;
+}
+
+/* Overview: reviewer-first synthesis; generic surface treatment lives in the Design System. */
+.overviewDecisionGrid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.82fr) minmax(0, 1.7fr);
+  gap: 12px;
+}
+
+.overviewOutcomeCard {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  gap: 7px;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(var(--accent-rgb), 0.14), transparent 48%),
+    var(--dashboard-inner-card-background);
+}
+
+.overviewOutcomeCard[data-tone="attention"] {
+  border-color: color-mix(in srgb, var(--coral) 38%, var(--line));
+  background:
+    radial-gradient(circle at 100% 0, color-mix(in srgb, var(--coral) 16%, transparent), transparent 52%),
+    var(--dashboard-inner-card-background);
+}
+
+.overviewOutcomeCard > span {
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.overviewOutcomeCard > strong {
+  color: var(--foreground);
+  font-size: clamp(22px, 2.2vw, 30px);
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+
+.overviewOutcomeCard > p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.overviewOutcomeCard > small {
+  padding-top: 7px;
+  border-top: 1px solid var(--section-divider);
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.overviewDecisionSurface .dashboardCardGrid .dashboardInfoCard {
+  min-height: 132px;
+}
+
+.overviewDecisionSurface .dashboardInfoCard[data-tone="warning"] {
+  border-color: color-mix(in srgb, var(--coral) 30%, var(--line));
+}
+
+.overviewDecisionSurface .dashboardInfoCard[data-tone="success"] {
+  border-color: color-mix(in srgb, var(--green) 30%, var(--line));
+}
+
+@media (max-width: 980px) {
+  .overviewDecisionGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Runtime: keep the decision cards visible and defer deep diagnostics/history. */
+.runtimeConsoleDashboardDetails {
+  display: grid;
+  gap: 10px;
+}
+
+.runtimeConsoleGrid--secondary {
+  margin: 0;
+}
+
+.runtimeConsoleDashboard .runtimeConsoleCard,
+.runtimeConsoleDashboard .runtimeConsoleHero {
+  border-color: var(--line);
+  border-radius: var(--dashboard-inner-card-radius);
+  background: var(--dashboard-inner-card-background);
+}
+
+.runtimeConsoleDashboard .runtimeConsoleHero > div {
+  display: grid;
+  gap: 4px;
+}
+
+.runtimeConsoleDashboard .runtimeConsoleHero > div > span {
+  display: block;
 }
 
 /* V9.8 Dashboard reviewer hierarchy, truthful previews, and run evidence. */
@@ -14735,7 +14782,7 @@ html[data-cca-code-font-size] .workstation :is(
   line-height: 1.45;
 }
 
-.artifactRegistry article[aria-current="true"] {
+.artifactRegistryCard[aria-current="true"] {
   border-color: rgba(var(--accent-rgb), 0.42);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
 }
@@ -14766,36 +14813,6 @@ html[data-cca-code-font-size] .workstation :is(
 .telemetryOutcomeCard > strong { color: var(--foreground); font-size: 24px; letter-spacing: -0.035em; }
 .telemetryOutcomeCard > p { margin: 0; color: var(--muted-strong); font-size: 12px; line-height: 1.45; }
 .telemetryOutcomeCard > small { color: var(--muted); font-size: 10px; line-height: 1.4; }
-
-.telemetryReviewerHero .telemetryRunFacts {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-content: stretch;
-  gap: 9px;
-  margin: 0;
-  padding: 0;
-}
-
-.telemetryReviewerHero .telemetryRunFacts > div:first-child {
-  grid-column: 1 / -1;
-}
-
-.telemetryRunFacts dt {
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 820;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.telemetryRunFacts dd {
-  overflow: hidden;
-  margin: 0;
-  color: var(--foreground);
-  font-size: 14px;
-  font-weight: 750;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
 .telemetryLifecycleRail {
   display: grid;
@@ -14858,30 +14875,6 @@ html[data-cca-code-font-size] .workstation :is(
 .telemetryEvidenceDisclosure .telemetrySignalGrid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   padding: 0 12px 12px;
-}
-
-.telemetryTruthBoundary {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin: 0 18px 18px;
-  padding: 11px 12px;
-  border-left: 2px solid var(--teal);
-  border-radius: 0 10px 10px 0;
-  color: var(--muted-strong);
-  background: rgba(var(--accent-rgb), 0.055);
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-.telemetryTruthBoundary svg { flex: 0 0 auto; margin-top: 1px; color: var(--teal); }
-.telemetryTruthBoundary strong { color: var(--foreground); }
-
-.capstoneSelectedRun {
-  color: #91a0ad;
-  font-size: 9px;
-  font-weight: 720;
-  line-height: 1.4;
 }
 
 .capstoneConfigureButton {
@@ -14953,7 +14946,7 @@ html[data-cca-code-font-size] .workstation :is(
   overflow-wrap: anywhere;
 }
 
-/* User Guide: canonical, scan-first product documentation. */
+/* User Guide: scan-first layouts built on the shared Dashboard visual system. */
 .productDashboardManual.userGuide {
   width: 100%;
   max-width: 1480px;
@@ -14962,181 +14955,8 @@ html[data-cca-code-font-size] .workstation :is(
   padding: 18px;
 }
 
-.userGuideHero {
-  position: relative;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 18px;
-  overflow: hidden;
-  padding: 24px;
-  border: 1px solid color-mix(in srgb, var(--teal) 32%, var(--line));
-  border-radius: 20px;
-  background:
-    radial-gradient(circle at 8% 18%, rgba(var(--accent-rgb), 0.2), transparent 30%),
-    linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), transparent 58%),
-    var(--surface-2);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-
-.userGuideHero::after {
-  position: absolute;
-  right: -70px;
-  bottom: -90px;
-  width: 240px;
-  height: 240px;
-  border: 1px solid rgba(var(--accent-rgb), 0.1);
-  border-radius: 50%;
-  box-shadow:
-    0 0 0 28px rgba(var(--accent-rgb), 0.025),
-    0 0 0 56px rgba(var(--accent-rgb), 0.018);
-  content: "";
-  pointer-events: none;
-}
-
-.userGuideHeroIcon {
-  display: grid;
-  width: 52px;
-  height: 52px;
-  place-items: center;
-  border: 1px solid rgba(var(--accent-rgb), 0.3);
-  border-radius: 16px;
-  color: var(--teal);
-  background: rgba(var(--accent-rgb), 0.1);
-}
-
-.userGuideHero > div:nth-child(2) {
-  min-width: 0;
-}
-
-.productDashboardManual.userGuide .userGuideHero > div > span {
-  display: block;
-  color: var(--teal);
-  font-size: 10px;
-  font-weight: 850;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.userGuideHero h2 {
-  max-width: 780px;
-  margin: 6px 0 0;
-  color: var(--foreground);
-  font-size: clamp(22px, 2.5vw, 32px);
-  letter-spacing: -0.04em;
-  line-height: 1.06;
-}
-
-.productDashboardManual.userGuide .userGuideHero p {
-  max-width: 72ch;
-  margin: 8px 0 0;
-  color: var(--muted-strong);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.userGuideHeroBadges {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  max-width: 280px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 7px;
-}
-
-.productDashboardManual.userGuide .userGuideHeroBadges > span {
-  padding: 6px 9px;
-  border: 1px solid rgba(var(--accent-rgb), 0.22);
-  border-radius: 999px;
-  color: var(--foreground);
-  background: color-mix(in srgb, var(--surface-1) 78%, transparent);
-  font-size: 10px;
-  font-weight: 760;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.userGuideContents {
-  position: sticky;
-  z-index: 12;
-  top: 0;
-  display: flex;
-  overflow-x: auto;
-  gap: 6px;
-  padding: 8px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--surface-0) 91%, transparent);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
-  backdrop-filter: blur(14px) saturate(130%);
-  scrollbar-width: thin;
-}
-
-.userGuideContents a {
-  flex: 0 0 auto;
-  padding: 7px 10px;
-  border: 1px solid transparent;
-  border-radius: 9px;
-  color: var(--muted-strong);
-  font-size: 11px;
-  font-weight: 760;
-  text-decoration: none;
-}
-
-.userGuideContents a:hover,
-.userGuideContents a:focus-visible {
-  border-color: rgba(var(--accent-rgb), 0.25);
-  color: var(--foreground);
-  background: rgba(var(--accent-rgb), 0.08);
-  outline: none;
-}
-
 .userGuideSection {
-  display: grid;
   scroll-margin-top: 68px;
-  gap: 16px;
-  padding: 20px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background:
-    linear-gradient(145deg, rgba(var(--accent-rgb), 0.035), transparent 44%),
-    color-mix(in srgb, var(--surface-2) 94%, transparent);
-}
-
-.userGuideSectionHeader {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 11px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--section-divider);
-}
-
-.userGuideSectionHeader > div:first-child {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  place-items: center;
-  border: 1px solid rgba(var(--accent-rgb), 0.22);
-  border-radius: 11px;
-  color: var(--teal);
-  background: rgba(var(--accent-rgb), 0.07);
-}
-
-.userGuideSectionHeader h2 {
-  margin: 0;
-  color: var(--foreground);
-  font-size: 19px;
-  letter-spacing: -0.025em;
-  line-height: 1.2;
-}
-
-.productDashboardManual.userGuide .userGuideSectionHeader p {
-  margin: 3px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.4;
 }
 
 .userGuideJourney {
@@ -15207,7 +15027,7 @@ html[data-cca-code-font-size] .workstation :is(
   transform: translateY(-50%);
 }
 
-.userGuideCallout {
+.dashboardCallout {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
@@ -15219,116 +15039,30 @@ html[data-cca-code-font-size] .workstation :is(
   background: rgba(var(--accent-rgb), 0.055);
 }
 
-.userGuideCallout[data-tone="success"] {
+.dashboardCallout[data-tone="success"] {
   border-color: color-mix(in srgb, var(--green) 36%, var(--line));
   color: var(--green);
   background: color-mix(in srgb, var(--green) 6%, transparent);
 }
 
-.userGuideCallout[data-tone="warning"] {
-  border-color: color-mix(in srgb, var(--coral) 38%, var(--line));
-  color: var(--coral);
-  background: color-mix(in srgb, var(--coral) 6%, transparent);
+.dashboardCallout[data-tone="warning"] {
+  border-color: color-mix(in srgb, var(--amber) 38%, var(--line));
+  color: var(--amber);
+  background: color-mix(in srgb, var(--amber) 6%, transparent);
 }
 
-.productDashboardManual.userGuide .userGuideCallout strong {
+.dashboardCallout strong {
   margin: 0;
   color: var(--foreground);
   font-size: 13px;
   line-height: 1.3;
 }
 
-.productDashboardManual.userGuide .userGuideCallout p {
+.dashboardCallout p {
   margin: 3px 0 0;
   color: var(--muted-strong);
   font-size: 12px;
   line-height: 1.5;
-}
-
-.userGuideCardGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
-  gap: 10px;
-}
-
-.userGuideCardGrid--areas {
-  grid-template-columns: repeat(auto-fit, minmax(225px, 1fr));
-}
-
-.productDashboardManual.userGuide .userGuideCardGrid article {
-  display: grid;
-  min-height: 145px;
-  align-content: start;
-  gap: 8px;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  color: var(--teal);
-  background: rgba(255, 255, 255, 0.025);
-}
-
-.productDashboardManual.userGuide .userGuideCardGrid article > strong {
-  margin: 2px 0 0;
-  color: var(--foreground);
-  font-size: 14px;
-  line-height: 1.25;
-}
-
-.productDashboardManual.userGuide .userGuideCardGrid article > p {
-  margin: 0;
-  color: var(--muted-strong);
-  font-size: 12px;
-  line-height: 1.48;
-}
-
-.userGuideDisclosure {
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: rgba(0, 0, 0, 0.08);
-}
-
-.userGuideDisclosure > summary {
-  position: relative;
-  padding: 13px 44px 13px 15px;
-  color: var(--foreground);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 780;
-  list-style: none;
-}
-
-.userGuideDisclosure > summary::-webkit-details-marker {
-  display: none;
-}
-
-.userGuideDisclosure > summary::after {
-  position: absolute;
-  top: 50%;
-  right: 15px;
-  color: var(--teal);
-  content: "+";
-  font-size: 18px;
-  font-weight: 500;
-  transform: translateY(-50%);
-}
-
-.userGuideDisclosure[open] > summary::after {
-  content: "−";
-}
-
-.userGuideDisclosure > summary:hover,
-.userGuideDisclosure > summary:focus-visible {
-  color: var(--teal);
-  background: rgba(var(--accent-rgb), 0.055);
-  outline: none;
-}
-
-.userGuideDisclosureBody {
-  display: grid;
-  gap: 14px;
-  padding: 15px;
-  border-top: 1px solid var(--section-divider);
 }
 
 .userGuideDefinitionGrid {
@@ -15356,42 +15090,6 @@ html[data-cca-code-font-size] .workstation :is(
 
 .userGuideDefinitionGrid dd {
   margin: 5px 0 0;
-  color: var(--muted-strong);
-  font-size: 12px;
-  line-height: 1.48;
-}
-
-.userGuideModeGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.productDashboardManual.userGuide .userGuideModeGrid article {
-  min-height: 145px;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.025);
-}
-
-.productDashboardManual.userGuide .userGuideModeGrid article > span {
-  display: block;
-  color: var(--teal);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-
-.productDashboardManual.userGuide .userGuideModeGrid article > strong {
-  margin-top: 6px;
-  color: var(--foreground);
-  font-size: 16px;
-}
-
-.productDashboardManual.userGuide .userGuideModeGrid article > p {
-  margin: 7px 0 0;
   color: var(--muted-strong);
   font-size: 12px;
   line-height: 1.48;
@@ -15480,49 +15178,6 @@ html[data-cca-code-font-size] .workstation :is(
   background: rgba(var(--accent-rgb), 0.025);
   font-size: 11px;
   line-height: 1.5;
-}
-
-.userGuideTableWrap {
-  overflow-x: auto;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-}
-
-.userGuideTableWrap table {
-  width: 100%;
-  min-width: 760px;
-  border-collapse: collapse;
-  background: rgba(255, 255, 255, 0.018);
-}
-
-.userGuideTableWrap th,
-.userGuideTableWrap td {
-  padding: 11px 12px;
-  border-bottom: 1px solid var(--section-divider);
-  color: var(--muted-strong);
-  font-size: 11px;
-  line-height: 1.42;
-  text-align: left;
-  vertical-align: top;
-}
-
-.userGuideTableWrap thead th {
-  color: var(--muted);
-  background: rgba(var(--accent-rgb), 0.045);
-  font-size: 10px;
-  font-weight: 850;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.userGuideTableWrap tbody th {
-  color: var(--foreground);
-  font-weight: 780;
-  white-space: nowrap;
-}
-
-.userGuideTableWrap tbody tr:last-child > * {
-  border-bottom: 0;
 }
 
 .userGuideBullets {
@@ -15650,7 +15305,7 @@ html[data-cca-code-font-size] .workstation :is(
   gap: 8px;
 }
 
-.userGuideTroubleshooting .userGuideDisclosureBody ol {
+.userGuideTroubleshooting .dashboardDisclosureBody ol {
   display: grid;
   gap: 8px;
   margin: 0;
@@ -15693,29 +15348,7 @@ html[data-cca-code-font-size] .workstation :is(
     padding: 12px;
   }
 
-  .userGuideHero {
-    grid-template-columns: auto minmax(0, 1fr);
-    padding: 18px;
-  }
-
-  .userGuideHeroBadges {
-    grid-column: 1 / -1;
-    max-width: none;
-    justify-content: flex-start;
-  }
-
-  .userGuideContents {
-    margin-right: -4px;
-    margin-left: -4px;
-  }
-
-  .userGuideSection {
-    gap: 13px;
-    padding: 15px;
-  }
-
   .userGuideJourney,
-  .userGuideModeGrid,
   .userGuideCompactSteps,
   .userGuideCompactSteps--four,
   .userGuideTroubleshooting {
@@ -15735,28 +15368,10 @@ html[data-cca-code-font-size] .workstation :is(
     transform: rotate(90deg);
   }
 
-  .userGuideCardGrid,
-  .userGuideCardGrid--areas,
   .userGuideDefinitionGrid,
   .userGuideScenarioGrid,
   .userGuideDashboardGrid {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .productDashboardManual.userGuide .userGuideCardGrid article,
-  .productDashboardManual.userGuide .userGuideModeGrid article {
-    min-height: 0;
-  }
-}
-
-@media (max-width: 440px) {
-  .userGuideHero {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .userGuideHeroIcon {
-    width: 42px;
-    height: 42px;
   }
 }
 
@@ -15922,8 +15537,6 @@ html[data-cca-heading-font-size] h2 {
 
 html[data-cca-heading-font-size] :is(h3, h4, h5, h6),
 html[data-cca-heading-font-size] .productDashboardNav header strong,
-html[data-cca-heading-font-size] .dashboardSettings > article > header strong,
-html[data-cca-heading-font-size] .dashboardFeature > header > div > strong,
 html[data-cca-heading-font-size] .productDashboardManual > article > header > div > strong,
 html[data-cca-heading-font-size] .utilityPanelHeader > strong,
 html[data-cca-heading-font-size] .settingsSectionHeader > strong {
@@ -16195,16 +15808,6 @@ html[data-cca-label-font-size] .workstation :is(
   margin: 10px 18px 18px;
 }
 
-.productDashboardSecondary {
-  margin-top: 12px;
-}
-
-.productDashboardNav .productDashboardSecondary:first-of-type {
-  border-top: 1px solid var(--section-divider);
-  border-radius: 0;
-  padding-top: 14px;
-}
-
 .productDashboardGroup {
   display: grid;
   gap: 14px;
@@ -16328,9 +15931,7 @@ html[data-cca-label-font-size] .workstation :is(
   padding: 16px;
 }
 
-.productDashboardGroupSection,
-.dashboardFeature,
-.dashboardSettings > article {
+.productDashboardGroupSection {
   overflow: visible;
   border-color: rgba(255, 255, 255, 0.13);
   border-radius: 18px;
@@ -16339,9 +15940,7 @@ html[data-cca-label-font-size] .workstation :is(
     rgba(255, 255, 255, 0.025);
 }
 
-.productDashboardGroupSection > header,
-.dashboardFeature > header,
-.dashboardSettings > article > header {
+.productDashboardGroupSection > header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
@@ -16349,9 +15948,7 @@ html[data-cca-label-font-size] .workstation :is(
   padding: 17px 18px;
 }
 
-.productDashboardGroupSection > header > div > span,
-.dashboardFeature > header span,
-.dashboardSettings > article > header span {
+.productDashboardGroupSection > header > div > span {
   display: block;
   color: var(--teal);
   font-size: 11px;
@@ -16360,9 +15957,7 @@ html[data-cca-label-font-size] .workstation :is(
   text-transform: uppercase;
 }
 
-.productDashboardGroupSection > header > div > strong,
-.dashboardFeature > header strong,
-.dashboardSettings > article > header strong {
+.productDashboardGroupSection > header > div > strong {
   display: block;
   margin-top: 5px;
   color: var(--foreground);
@@ -16370,9 +15965,7 @@ html[data-cca-label-font-size] .workstation :is(
   line-height: 1.2;
 }
 
-.productDashboardGroupSection > header > div > p,
-.dashboardFeature > header p,
-.dashboardSettings > article > header p {
+.productDashboardGroupSection > header > div > p {
   margin: 6px 0 0;
   color: var(--muted-strong);
   font-size: 13px;
@@ -16433,156 +16026,10 @@ html[data-cca-label-font-size] .workstation :is(
   line-height: 1.45;
 }
 
-.dashboardSignalBoard {
-  border: 1px solid rgba(255, 255, 255, 0.13);
-}
-
-.dashboardSignalBoard[data-tone="ready"] {
-  border-color: color-mix(in srgb, var(--green) 38%, var(--line));
-}
-
-.dashboardSignalBoard[data-tone="active"] {
-  border-color: color-mix(in srgb, var(--teal) 48%, var(--line));
-}
-
-.dashboardSignalBoard[data-tone="attention"] {
-  border-color: color-mix(in srgb, var(--coral) 46%, var(--line));
-}
-
-.dashboardSignalBoardGrid {
-  display: grid;
-  grid-template-columns: minmax(220px, 0.85fr) minmax(0, 1.65fr);
-  gap: 12px;
-  padding: 0 18px 12px;
-}
-
-.dashboardSignalLead {
-  position: relative;
-  display: grid;
-  align-content: start;
-  gap: 7px;
-  min-height: 154px;
-  padding: 16px;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background:
-    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--teal) 18%, transparent), transparent 44%),
-    rgba(0, 0, 0, 0.12);
-}
-
-.dashboardSignalLead[data-tone="attention"] {
-  background:
-    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--coral) 20%, transparent), transparent 44%),
-    rgba(0, 0, 0, 0.12);
-}
-
-.dashboardSignalLead > span,
-.dashboardEvidenceCues li > span,
-.dashboardSignalMetrics dt {
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 820;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-
-.dashboardSignalLead > strong {
-  color: var(--foreground);
-  font-size: 20px;
-  line-height: 1.12;
-}
-
-.dashboardSignalLead > p {
-  margin: 0;
-  color: var(--muted-strong);
-  font-size: 12px;
-  line-height: 1.42;
-}
-
-.dashboardSignalLead > small {
-  align-self: end;
-  margin-top: auto;
-  color: var(--teal);
-  font-size: 11px;
-  font-weight: 760;
-}
-
-.dashboardSignalMetrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin: 0;
-}
-
-.dashboardSignalMetrics > div {
-  display: grid;
-  align-content: space-between;
-  min-width: 0;
-  min-height: 72px;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 13px;
-  background: rgba(0, 0, 0, 0.12);
-}
-
-.dashboardSignalMetrics dd {
-  margin: 7px 0 2px;
-  overflow: hidden;
-  color: var(--foreground);
-  font-size: 16px;
-  font-weight: 760;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.dashboardSignalMetrics small {
-  overflow: hidden;
-  color: var(--teal);
-  font-size: 10px;
-  font-weight: 720;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.dashboardEvidenceCues {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin: 0;
-  padding: 0 18px 18px;
-  list-style: none;
-}
-
-.dashboardEvidenceCues li {
-  display: grid;
-  gap: 5px;
-  min-width: 0;
-  padding: 11px 12px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.035);
-}
-
-.dashboardEvidenceCues p {
-  display: -webkit-box;
-  margin: 0;
-  overflow: hidden;
-  color: var(--muted-strong);
-  font-size: 12px;
-  line-height: 1.4;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-}
-
 .dashboardFeatureActions {
   display: flex;
   align-items: center;
   gap: 9px;
-}
-
-.dashboardFeature,
-.dashboardSettings > article {
-  border: 1px solid rgba(255, 255, 255, 0.13);
 }
 
 .architectureRouteGrid {
@@ -16643,21 +16090,15 @@ html[data-cca-label-font-size] .workstation :is(
 }
 
 .architectureExecutionFacts,
-.workflowLiveSummary,
-.telemetryRunFacts {
+.workflowLiveSummary {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 9px;
   padding: 0 18px 12px;
 }
 
-.telemetryRunFacts {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-}
-
 .architectureExecutionFacts > div,
-.workflowLiveSummary > div,
-.telemetryRunFacts > div {
+.workflowLiveSummary > div {
   display: grid;
   gap: 5px;
   min-width: 0;
@@ -16669,11 +16110,8 @@ html[data-cca-label-font-size] .workstation :is(
 
 .architectureExecutionFacts span,
 .workflowLiveSummary span,
-.telemetryRunFacts span,
 .architectureRoleRail > span,
 .workflowTransitionRail span,
-.aiAgentRoute span,
-.aiAgentSplit header span,
 .telemetrySignalGrid span {
   color: var(--muted);
   font-size: 10px;
@@ -16683,8 +16121,7 @@ html[data-cca-label-font-size] .workstation :is(
 }
 
 .architectureExecutionFacts strong,
-.workflowLiveSummary strong,
-.telemetryRunFacts strong {
+.workflowLiveSummary strong {
   overflow: hidden;
   color: var(--foreground);
   font-size: 14px;
@@ -16775,16 +16212,6 @@ html[data-cca-label-font-size] .workstation :is(
 .workflowTransitionRail strong { overflow: hidden; color: var(--foreground); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .workflowTransitionRail small { color: var(--muted-strong); font-size: 10px; line-height: 1.35; }
 
-.knowledgeEmptyState {
-  display: grid;
-  gap: 5px;
-  margin: 0 18px 18px;
-  padding: 14px;
-  border: 1px dashed var(--line);
-  border-radius: 13px;
-  color: var(--muted-strong);
-}
-
 .knowledgeDashboardView .kbInventorySurface[data-header-mode="embedded"] {
   padding: 16px 18px 18px;
   border: 0;
@@ -16795,20 +16222,12 @@ html[data-cca-label-font-size] .workstation :is(
 .knowledgeDashboardView .kbInventorySurface[data-header-mode="embedded"] .kbInventoryMetrics {
   margin-top: 0;
 }
-.knowledgeEmptyState span { color: var(--foreground); font-size: 13px; font-weight: 740; }
-.knowledgeEmptyState p { margin: 0; font-size: 12px; line-height: 1.4; }
-
-.aiAgentRoute,
-.aiAgentSplit,
 .telemetrySignalGrid {
   display: grid;
   gap: 10px;
   padding: 0 18px 12px;
 }
 
-.aiAgentRoute { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.aiAgentRoute article,
-.aiAgentSplit > section,
 .telemetrySignalGrid article {
   min-width: 0;
   padding: 13px;
@@ -16816,19 +16235,7 @@ html[data-cca-label-font-size] .workstation :is(
   border-radius: 13px;
   background: rgba(0, 0, 0, 0.11);
 }
-.aiAgentRoute strong { display: block; margin-top: 6px; overflow: hidden; color: var(--foreground); font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
-.aiAgentRoute p,
-.aiAgentSplit p { display: -webkit-box; margin: 6px 0 0; overflow: hidden; color: var(--muted-strong); font-size: 12px; line-height: 1.42; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
-
-.aiAgentSplit { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding-bottom: 18px; }
-.aiAgentSplit > section { display: grid; gap: 11px; }
-.aiAgentSplit header { display: grid; gap: 5px; }
-.aiAgentSplit header strong { color: var(--foreground); font-size: 14px; }
 .aiAgentRoleChips { display: flex; flex-wrap: wrap; gap: 7px; }
-.aiAgentSplit dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin: 0; }
-.aiAgentSplit dl div { min-width: 0; padding: 8px; border-radius: 9px; background: rgba(255, 255, 255, 0.035); }
-.aiAgentSplit dt { overflow: hidden; color: var(--muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
-.aiAgentSplit dd { margin: 4px 0 0; overflow: hidden; color: var(--foreground); font-size: 12px; font-weight: 720; text-overflow: ellipsis; white-space: nowrap; }
 
 .telemetrySignalGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .telemetrySignalGrid article { display: grid; gap: 6px; min-height: 118px; }
@@ -16837,26 +16244,6 @@ html[data-cca-label-font-size] .workstation :is(
 .telemetrySignalGrid article[data-tone="danger"] { border-color: color-mix(in srgb, var(--coral) 40%, var(--line)); }
 .telemetrySignalGrid strong { overflow: hidden; color: var(--foreground); font-size: 16px; text-overflow: ellipsis; white-space: nowrap; }
 .telemetrySignalGrid p { margin: 0; color: var(--muted-strong); font-size: 11px; line-height: 1.38; }
-
-.knowledgePrinciples > ul {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
-  gap: 10px;
-  margin: 0;
-  padding: 0 18px 18px;
-  list-style: none;
-}
-
-.knowledgePrinciples li {
-  display: grid;
-  gap: 5px;
-  padding: 13px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.045);
-}
-
-.knowledgePrinciples li strong { color: var(--foreground); font-size: 13px; }
-.knowledgePrinciples li span { color: var(--muted-strong); font-size: 12px; line-height: 1.4; }
 
 .creativeKnowledgeMetrics {
   display: grid;
@@ -17084,17 +16471,6 @@ html[data-cca-label-font-size] .workstation :is(
 .artifactCreativeDirection li strong { color: var(--foreground); font-size: 12px; }
 .artifactCreativeDirection li span { color: var(--muted-strong); font-size: 11px; line-height: 1.4; }
 
-.creativeKnowledgeBoundary {
-  margin: 0 18px 18px;
-  padding: 10px 12px;
-  border-left: 2px solid rgba(var(--accent-rgb), 0.45);
-  border-radius: 0 9px 9px 0;
-  color: var(--muted-strong);
-  background: rgba(var(--accent-rgb), 0.05);
-  font-size: 11px;
-  line-height: 1.42;
-}
-
 .dashboardComponentSurface > .runtimeConsoleDashboard,
 .dashboardComponentSurface > .conversationContextInspector,
 .dashboardComponentSurface > .providerObservabilityCard {
@@ -17234,34 +16610,26 @@ html[data-cca-label-font-size] .workstation :is(
 .previewLifecycle li[data-complete="true"] > span { color: var(--accent-ink); background: var(--green); }
 .previewLifecycle li > div { display: grid; min-width: 0; gap: 3px; }
 .previewLifecycle small { overflow: hidden; color: var(--foreground); font-size: 12px; font-weight: 720; text-overflow: ellipsis; white-space: nowrap; }
-.previewReadinessError { margin: 0 18px 18px; padding: 10px 12px; border-left: 2px solid var(--coral); border-radius: 0 9px 9px 0; color: var(--muted-strong); background: rgba(255, 122, 102, 0.07); font-size: 12px; line-height: 1.4; }
-
-.artifactRegistry > div[role="list"] {
-  display: grid;
+.artifactRegistryList {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 12px;
-  padding: 0 18px 18px;
 }
 
-.artifactRegistry article {
+.artifactRegistryCard {
   display: grid;
   gap: 12px;
   min-width: 0;
   padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: rgba(0, 0, 0, 0.12);
 }
 
-.artifactRegistry article > header {
+.artifactRegistryCard > header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
 }
 
-.artifactRegistry article header div > span,
-.artifactRegistry article header > span {
+.artifactRegistryCard header div > span,
+.artifactRegistryCard header > span {
   color: var(--teal);
   font-size: 10px;
   font-weight: 850;
@@ -17269,51 +16637,35 @@ html[data-cca-label-font-size] .workstation :is(
   text-transform: uppercase;
 }
 
-.artifactRegistry article header div > strong {
+.artifactRegistryCard header div > strong {
   display: block;
   margin-top: 4px;
   color: var(--foreground);
   font-size: 15px;
 }
 
-.artifactRegistry article header p {
+.artifactRegistryCard header p {
   margin: 4px 0 0;
   color: var(--muted-strong);
   font-size: 12px;
   line-height: 1.4;
 }
 
-.artifactRegistry article dl {
+.artifactRegistryCard dl {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 7px;
   margin: 0;
 }
 
-.artifactRegistry article dl div { min-width: 0; }
-.artifactRegistry article dt { color: var(--muted); font-size: 10px; text-transform: uppercase; }
-.artifactRegistry article dd { overflow: hidden; margin: 3px 0 0; color: var(--muted-strong); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.artifactRegistryCard dl div { min-width: 0; }
+.artifactRegistryCard dt { color: var(--muted); font-size: 10px; text-transform: uppercase; }
+.artifactRegistryCard dd { overflow: hidden; margin: 3px 0 0; color: var(--muted-strong); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 
-.artifactRegistry details {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.18);
-}
-
-.artifactRegistry details summary {
-  padding: 9px 10px;
-  color: var(--muted-strong);
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 750;
-}
-
-.artifactRegistry pre {
+.artifactSourceDisclosure pre {
   max-height: 280px;
   overflow: auto;
   margin: 0;
-  padding: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--muted-strong);
   font-size: 11px;
   line-height: 1.45;
@@ -17324,31 +16676,8 @@ html[data-cca-label-font-size] .workstation :is(
 .dashboardEmptyState strong { color: var(--foreground); font-size: 16px; }
 .dashboardEmptyState p { margin: 6px 0 0; color: var(--muted-strong); font-size: 13px; }
 
-.userUsageOverview > dl {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  margin: 0;
-  padding: 0 18px 18px;
-}
-
-.userUsageOverview dl div {
-  display: grid;
-  gap: 5px;
-  min-width: 0;
-  padding: 13px;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.12);
-}
-
-.userUsageOverview dt { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
-.userUsageOverview dd { overflow: hidden; margin: 0; color: var(--foreground); font-size: 17px; font-weight: 760; text-overflow: ellipsis; white-space: nowrap; }
-
 .sessionRegistry > header button,
-.sessionRegistryTable button,
-.dashboardThemeChoices button,
-.dashboardScaleControl button,
-.dashboardToggle {
+.sessionRegistryTable button {
   border: 1px solid var(--line);
   border-radius: 9px;
   color: var(--muted-strong);
@@ -17404,287 +16733,7 @@ html[data-cca-label-font-size] .workstation :is(
 .sessionRegistryTable form { display: flex; gap: 6px; }
 .sessionRegistryTable input { min-width: 0; padding: 6px 7px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface-0); }
 
-.dashboardSettings {
-  display: grid;
-  gap: 16px;
-  padding: 16px;
-}
-
-.dashboardSettings > article { overflow: hidden; }
-
-.dashboardThemeChoices {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(230px, 0.42fr);
-  gap: 10px;
-  padding: 0 18px 18px;
-}
-
-.dashboardSettingRows {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 9px;
-  padding: 0 18px 18px;
-}
-
-.dashboardGenerationRows {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  padding: 0 18px 18px;
-}
-
-.dashboardGenerationControl {
-  display: grid;
-  min-width: 0;
-  align-content: start;
-  gap: 8px;
-  min-height: 136px;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--surface-1);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
-}
-
-.dashboardGenerationControl > span {
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 850;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.dashboardGenerationControl > strong {
-  color: var(--foreground);
-  font-size: 15px;
-}
-
-.dashboardGenerationControl > select {
-  width: 100%;
-  min-height: 36px;
-  border: 1px solid var(--line-strong);
-  border-radius: 9px;
-  background: var(--surface-0);
-  color: var(--foreground);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 750;
-  padding: 0 30px 0 10px;
-}
-
-.dashboardGenerationControl > small {
-  color: var(--muted-strong);
-  font-size: 11px;
-  line-height: 1.4;
-}
-
-.dashboardProviderDisclosure {
-  position: relative;
-}
-
-.dashboardProviderDisclosure > summary {
-  display: inline-flex;
-  width: 100%;
-  min-height: 36px;
-  align-items: center;
-  padding: 0 10px;
-  border: 1px solid var(--line-strong);
-  border-radius: 9px;
-  background: var(--surface-0);
-  color: var(--foreground);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 750;
-  list-style: none;
-}
-
-.dashboardProviderDisclosure > summary::-webkit-details-marker {
-  display: none;
-}
-
-.dashboardProviderDisclosure > summary::after {
-  margin-left: auto;
-  color: var(--teal);
-  content: "⌄";
-}
-
-.dashboardProviderDisclosure[open] > summary {
-  border-color: rgba(var(--accent-rgb), 0.52);
-  background: rgba(var(--accent-rgb), 0.09);
-}
-
-.dashboardProviderDisclosure[open] > summary::after {
-  content: "⌃";
-}
-
-.dashboardProviderAvailability {
-  display: grid;
-  gap: 3px;
-  margin-top: 8px;
-  padding: 10px;
-  border: 1px solid rgba(var(--accent-rgb), 0.26);
-  border-radius: 9px;
-  background: rgba(var(--accent-rgb), 0.06);
-}
-
-.dashboardProviderAvailability > span {
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.dashboardProviderAvailability > strong {
-  color: var(--foreground);
-  font-size: 13px;
-}
-
-.dashboardProviderAvailability > small {
-  color: var(--teal);
-  font-size: 11px;
-}
-
-.dashboardThemeChoiceGroup {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-  padding: 11px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--surface-1);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
-}
-
-.dashboardThemeChoiceGroup[data-group="monochrome"] {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.12));
-}
-
-.dashboardThemeChoiceGroup > span {
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 850;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.dashboardThemeChoiceGroup > div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.dashboardThemeChoices button {
-  min-height: 36px;
-  padding: 0 11px;
-  text-transform: capitalize;
-  font-size: 12px;
-  font-weight: 750;
-}
-
-.dashboardThemeChoices button[aria-pressed="true"],
-.dashboardScaleControl button[aria-pressed="true"] {
-  border-color: rgba(var(--accent-rgb), 0.5);
-  color: var(--foreground);
-  background: rgba(var(--accent-rgb), 0.12);
-}
-
-.dashboardThemeChoices button[data-theme="aqua"] { box-shadow: inset 0 -2px #4cd7c8; }
-.dashboardThemeChoices button[data-theme="codex"] { box-shadow: inset 0 -2px #339cff; }
-.dashboardThemeChoices button[data-theme="codex_white"] { box-shadow: inset 0 -2px #f4f7fb; }
-.dashboardThemeChoices button[data-theme="light"] {
-  border-color: rgba(17, 19, 24, 0.34);
-  background: #ffffff;
-  box-shadow: inset 0 -4px #111318;
-  color: #111318;
-}
-
-.dashboardThemeChoices button[data-theme="light"]:hover,
-.dashboardThemeChoices button[data-theme="light"][aria-pressed="true"] {
-  border-color: #111318;
-  background: #ffffff;
-  box-shadow: inset 0 -4px #111318;
-  color: #111318;
-}
-.dashboardThemeChoices button[data-theme="matrix"] { box-shadow: inset 0 -2px #40c977; }
-.dashboardThemeChoices button[data-theme="terminal"] { box-shadow: inset 0 -2px #f1c56f; }
-.dashboardThemeChoices button[data-theme="horizon"] { box-shadow: inset 0 -2px #f4a36e; }
-.dashboardThemeChoices button[data-theme="zen"] { box-shadow: inset 0 -2px #8fd4c7; }
-.dashboardThemeChoices button[data-theme="blueprint"] { box-shadow: inset 0 -2px #7fd4ff; }
-
-.dashboardScaleControl {
-  display: grid;
-  gap: 8px;
-  min-width: 220px;
-  flex: 1 1 220px;
-  padding: 13px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.1);
-}
-
-.dashboardScaleControl > strong { color: var(--foreground); font-size: 13px; }
-.dashboardScaleControl > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-.dashboardScaleControl button { min-height: 30px; font-size: 11px; text-transform: capitalize; }
-
-.dashboardTypographyPreview {
-  display: block;
-  min-height: 22px;
-  margin-top: 1px;
-  color: var(--muted-strong);
-  line-height: 1.25;
-}
-
-.dashboardTypographyPreview[data-kind="heading"] {
-  color: var(--foreground);
-  font-size: var(--heading-card-size);
-  font-weight: 760;
-  letter-spacing: -0.02em;
-}
-
-.dashboardTypographyPreview[data-kind="body"] {
-  font-size: var(--body-copy-size);
-}
-
-.dashboardTypographyPreview[data-kind="label"] {
-  color: var(--muted);
-  font-size: var(--label-font-size);
-  font-weight: 780;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.dashboardTypographyPreview[data-kind="code"] {
-  color: var(--teal);
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  font-size: var(--code-font-size);
-}
-
-@media (max-width: 760px) {
-  .dashboardThemeChoices {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .dashboardGenerationRows {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.dashboardToggle {
-  display: grid;
-  min-width: 170px;
-  flex: 1 1 170px;
-  gap: 4px;
-  padding: 12px;
-  text-align: left;
-}
-
-.dashboardToggle span { color: var(--muted); font-size: 11px; }
-.dashboardToggle strong { color: var(--foreground); font-size: 14px; }
-.dashboardToggle:hover,
 .sessionRegistryTable button:hover,
-.dashboardThemeChoices button:hover,
-.dashboardScaleControl button:hover,
 .sessionRegistry > header > button:hover { border-color: rgba(var(--accent-rgb), 0.4); color: var(--foreground); }
 
 .domainExperienceSurface { gap: 18px; }
@@ -17753,14 +16802,9 @@ html[data-cca-label-font-size] .workstation :is(
   }
 
   .architectureRouteGrid,
-  .dashboardSignalBoardGrid,
-  .dashboardEvidenceCues,
-  .userUsageOverview > dl,
   .architectureExecutionFacts,
   .workflowLiveSummary,
   .workflowTransitionRail,
-  .aiAgentRoute,
-  .aiAgentSplit,
   .telemetrySignalGrid,
   .creativeKnowledgeMetrics,
   .evaluationDashboardSplit,
@@ -17768,10 +16812,6 @@ html[data-cca-label-font-size] .workstation :is(
   .previewReadinessMetrics,
   .previewLifecycle {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .dashboardSignalMetrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .productDashboardManual article > header {
@@ -18069,25 +17109,26 @@ html[data-cca-label-font-size] .workstation :is(
   }
 }
 
-/* Dashboard V9.9: a shared visual contract for every dashboard category. */
+/* Dashboard visual system: User Guide is the canonical page language. */
 .productDashboardContent {
   --dashboard-card-radius: 18px;
-  --dashboard-panel-background:
-    linear-gradient(135deg, rgba(var(--accent-rgb), 0.055), transparent 46%),
-    rgba(255, 255, 255, 0.025);
+  --dashboard-section-radius: 18px;
+  --dashboard-inner-card-radius: 14px;
+  --dashboard-section-background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.035), transparent 44%),
+    color-mix(in srgb, var(--surface-2) 94%, transparent);
+  --dashboard-inner-card-background: rgba(255, 255, 255, 0.024);
+  --dashboard-panel-background: var(--dashboard-section-background);
   --dashboard-section-padding: 18px;
 }
 
 .productDashboardGroup,
-.productDashboardManual,
-.dashboardSettings {
+.productDashboardManual {
   gap: 16px;
   padding: 16px;
 }
 
 .productDashboardGroupSection,
-.dashboardFeature,
-.dashboardSettings > article,
 .productDashboardManual article {
   overflow: visible;
   border-color: rgba(255, 255, 255, 0.13);
@@ -18100,8 +17141,6 @@ html[data-cca-label-font-size] .workstation :is(
 }
 
 .productDashboardGroupSection > header,
-.dashboardFeature > header,
-.dashboardSettings > article > header,
 .productDashboardManual article > header {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 14px;
@@ -18136,16 +17175,229 @@ html[data-cca-label-font-size] .workstation :is(
   line-height: 1.45;
 }
 
+.dashboardPageHero {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  overflow: hidden;
+  padding: 24px;
+  border: 1px solid color-mix(in srgb, var(--teal) 32%, var(--line));
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 8% 18%, rgba(var(--accent-rgb), 0.2), transparent 30%),
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), transparent 58%),
+    var(--surface-2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.dashboardPageHero::after {
+  position: absolute;
+  right: -70px;
+  bottom: -90px;
+  width: 240px;
+  height: 240px;
+  border: 1px solid rgba(var(--accent-rgb), 0.1);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 28px rgba(var(--accent-rgb), 0.025),
+    0 0 0 56px rgba(var(--accent-rgb), 0.018);
+  content: "";
+  pointer-events: none;
+}
+
+.dashboardPageHeroIcon {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  border-radius: 16px;
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.1);
+}
+
+.dashboardPageHeroCopy {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.dashboardPageHeroCopy > span,
+.dashboardSectionHeaderCopy > span {
+  display: block;
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dashboardPageHeroCopy h2 {
+  max-width: 780px;
+  margin: 6px 0 0;
+  color: var(--foreground);
+  font-size: clamp(22px, 2.5vw, 32px);
+  letter-spacing: -0.04em;
+  line-height: 1.06;
+}
+
+.dashboardPageHeroCopy p {
+  max-width: 72ch;
+  margin: 8px 0 0;
+  color: var(--muted-strong);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.dashboardPageHeroBadges {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  max-width: 280px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.dashboardPageHeroBadges > span {
+  padding: 6px 9px;
+  border: 1px solid rgba(var(--accent-rgb), 0.22);
+  border-radius: 999px;
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--surface-1) 78%, transparent);
+  font-size: 10px;
+  font-weight: 760;
+}
+
+.dashboardVisualSection {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  overflow: visible;
+  border: 1px solid var(--line);
+  border-radius: var(--dashboard-section-radius);
+  background: var(--dashboard-section-background);
+}
+
+.dashboardVisualSection > .dashboardSectionHeader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  padding: 0 0 14px;
+  border-bottom: 1px solid var(--section-divider);
+}
+
+.dashboardSectionHeaderIcon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid rgba(var(--accent-rgb), 0.22);
+  border-radius: 11px;
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.07);
+}
+
+.dashboardSectionHeaderCopy {
+  min-width: 0;
+}
+
+.dashboardSectionHeaderCopy > span {
+  margin-bottom: 4px;
+  letter-spacing: 0.08em;
+}
+
+.dashboardSectionHeaderCopy h2 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 19px;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.dashboardSectionHeaderCopy p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.dashboardSectionHeaderAction {
+  align-self: center;
+}
+
+.dashboardInnerCard {
+  border: 1px solid var(--line);
+  border-radius: var(--dashboard-inner-card-radius);
+  background: var(--dashboard-inner-card-background);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.telemetryOutcomeCard.dashboardInnerCard {
+  background:
+    radial-gradient(circle at 100% 0, rgba(var(--accent-rgb), 0.13), transparent 42%),
+    var(--dashboard-inner-card-background);
+}
+
+.dashboardVisualSection.telemetryObservatory > .telemetryReviewerHero,
+.dashboardVisualSection.telemetryObservatory > .telemetryLifecycleRail,
+.dashboardVisualSection.telemetryObservatory > .telemetrySignalGrid {
+  padding: 0;
+}
+
+.dashboardVisualSection.telemetryObservatory > .telemetryEvidenceDisclosure {
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .dashboardPageHero {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .dashboardPageHeroBadges {
+    grid-column: 1 / -1;
+    max-width: none;
+    justify-content: flex-start;
+  }
+}
+
 @media (max-width: 760px) {
   .productDashboardGroup,
-  .productDashboardManual,
-  .dashboardSettings {
+  .productDashboardManual {
     padding: 12px;
   }
 
   .productDashboardManual article > header {
     padding: 15px 16px;
   }
+
+  .dashboardPageHero {
+    padding: 18px;
+  }
+
+  .dashboardVisualSection {
+    gap: 13px;
+    padding: 15px;
+  }
+
+  .dashboardVisualSection > .dashboardSectionHeader {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+}
+
+@media (max-width: 440px) {
+  .dashboardPageHero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboardPageHeroIcon {
+    width: 42px;
+    height: 42px;
+  }
+
 }
 
 /* Keep the large official-source registry available without overwhelming the default view. */
@@ -18351,111 +17603,68 @@ html[data-cca-label-font-size] .workstation :is(
   --dashboard-readable-copy-size: 13px;
 }
 
-.dashboardSignalBoardGrid {
-  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.6fr);
-  gap: 14px;
-}
-
-.dashboardSignalLead,
 .architectureRouteGrid article,
 .workflowLivePath li,
-.aiAgentRoute article,
-.aiAgentSplit > section,
 .telemetrySignalGrid article,
 .creativeKnowledgeRecordGrid article,
-.artifactRegistry article {
+.artifactRegistryCard {
   padding: var(--dashboard-readable-card-padding);
   border-radius: 14px;
 }
 
-.dashboardSignalLead {
-  min-height: 170px;
-}
-
-.dashboardSignalLead > span,
-.dashboardEvidenceCues li > span,
-.dashboardSignalMetrics dt,
 .architectureExecutionFacts span,
 .workflowLiveSummary span,
-.telemetryRunFacts span,
 .workflowTransitionRail span,
-.aiAgentRoute span,
-.aiAgentSplit header span,
 .telemetrySignalGrid span,
 .creativeKnowledgeRecordGrid article > header > span,
 .creativeKnowledgeRecordGrid dt,
-.artifactRegistry article header div > span,
-.artifactRegistry article header > span,
-.artifactRegistry article dt {
+.artifactRegistryCard header div > span,
+.artifactRegistryCard header > span,
+.artifactRegistryCard dt {
   font-size: var(--dashboard-readable-label-size);
 }
 
-.dashboardSignalLead > p,
-.dashboardEvidenceCues p,
 .architectureRouteGrid article > p,
 .workflowLivePath p,
 .workflowTransitionRail small,
-.aiAgentRoute p,
-.aiAgentSplit p,
 .telemetrySignalGrid p,
 .creativeKnowledgeRecordGrid article > p,
-.artifactRegistry article header p {
+.artifactRegistryCard header p {
   font-size: var(--dashboard-readable-copy-size);
   line-height: 1.45;
 }
 
-.dashboardSignalLead > small,
-.dashboardSignalMetrics small,
 .workflowLivePath small {
   font-size: 12px;
 }
 
-.dashboardSignalMetrics {
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-}
-
-.dashboardSignalMetrics > div,
 .architectureExecutionFacts > div,
 .workflowLiveSummary > div,
-.telemetryRunFacts > div,
 .activeDocumentBoard > dl > div,
-.previewReadinessMetrics > div,
-.userUsageOverview dl div {
+.previewReadinessMetrics > div {
   min-height: 82px;
   padding: 13px;
   border-radius: 13px;
 }
 
-.dashboardEvidenceCues,
 .architectureRouteGrid,
 .workflowLivePath,
-.aiAgentRoute,
 .telemetrySignalGrid,
 .creativeKnowledgeRecordGrid,
-.artifactRegistry > div[role="list"] {
+.artifactRegistryList {
   gap: 12px;
 }
 
-.dashboardEvidenceCues,
 .architectureRouteGrid,
-.aiAgentRoute,
 .telemetrySignalGrid {
   grid-template-columns: repeat(auto-fit, minmax(var(--dashboard-readable-card-min), 1fr));
 }
 
-.dashboardEvidenceCues li {
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-}
-
 .architectureRouteGrid article > strong,
 .workflowLivePath strong,
-.aiAgentRoute strong,
 .telemetrySignalGrid strong,
 .creativeKnowledgeRecordGrid article > header strong,
-.artifactRegistry article header div > strong {
+.artifactRegistryCard header div > strong {
   font-size: var(--dashboard-readable-title-size);
   line-height: 1.28;
 }
@@ -18466,25 +17675,21 @@ html[data-cca-label-font-size] .workstation :is(
 
 .architectureRouteGrid li,
 .workflowTransitionRail strong,
-.aiAgentSplit dd,
 .telemetrySignalGrid p {
   font-size: 13px;
 }
 
 .architectureExecutionFacts,
 .workflowLiveSummary,
-.telemetryRunFacts,
 .activeDocumentBoard > dl,
 .previewReadinessMetrics,
-.previewLifecycle,
-.userUsageOverview > dl {
+.previewLifecycle {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
 }
 
 .architectureExecutionFacts strong,
 .workflowLiveSummary strong,
-.telemetryRunFacts strong,
 .activeDocumentBoard dd,
 .previewReadinessMetrics strong {
   font-size: 15px;
@@ -18510,31 +17715,10 @@ html[data-cca-label-font-size] .workstation :is(
   border-radius: 0 12px 12px 0;
 }
 
-.aiAgentSplit {
-  gap: 12px;
-}
-
-.aiAgentSplit > section {
-  gap: 13px;
-}
-
-.aiAgentSplit header strong {
-  font-size: 16px;
-}
-
-.aiAgentSplit dl {
-  gap: 9px;
-}
-
-.aiAgentSplit dl div,
 .creativeKnowledgeRecordGrid dl div,
-.artifactRegistry article dl div {
+.artifactRegistryCard dl div {
   padding: 10px;
   border-radius: 10px;
-}
-
-.aiAgentSplit dt {
-  font-size: 11px;
 }
 
 .telemetrySignalGrid article {
@@ -18603,7 +17787,7 @@ html[data-cca-label-font-size] .workstation :is(
 }
 
 .activeDocumentBoard pre,
-.artifactRegistry pre {
+.artifactSourceDisclosure pre {
   font-size: 12px;
   line-height: 1.55;
 }
@@ -18618,34 +17802,25 @@ html[data-cca-label-font-size] .workstation :is(
   font-size: 13px;
 }
 
-.artifactRegistry > div[role="list"] {
+.artifactRegistryList {
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }
 
-.artifactRegistry article {
+.artifactRegistryCard {
   gap: 14px;
 }
 
-.artifactRegistry article header p {
+.artifactRegistryCard header p {
   font-size: var(--dashboard-readable-copy-size);
 }
 
-.artifactRegistry article dl {
+.artifactRegistryCard dl {
   gap: 9px;
 }
 
-.artifactRegistry article dd {
+.artifactRegistryCard dd {
   margin-top: 5px;
   font-size: 12px;
-}
-
-.artifactRegistry details summary {
-  padding: 11px 12px;
-  font-size: 12px;
-}
-
-.userUsageOverview dd {
-  font-size: 18px;
 }
 
 .domainExperienceGrid {
@@ -18683,24 +17858,19 @@ html[data-cca-label-font-size] .workstation :is(
 .creativeKnowledgeMetrics span,
 .activeDocumentBoard dt,
 .previewReadinessMetrics span,
-.previewLifecycle strong,
-.userUsageOverview dt {
+.previewLifecycle strong {
   font-size: var(--dashboard-readable-label-size);
 }
 
 @media (max-width: 760px) {
-  .dashboardSignalBoardGrid,
-  .dashboardEvidenceCues,
   .architectureRouteGrid,
-  .aiAgentRoute,
   .telemetrySignalGrid,
   .creativeKnowledgeRecordGrid,
-  .artifactRegistry > div[role="list"] {
+  .artifactRegistryList {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .creativeKnowledgeRecordGrid,
-  .artifactRegistry > div[role="list"] {
+  .creativeKnowledgeRecordGrid {
     padding-right: 16px;
     padding-left: 16px;
   }
@@ -18773,6 +17943,232 @@ html[data-cca-label-font-size] .workstation :is(
     overflow-x: auto;
     overflow-y: hidden;
     padding: 8px;
+  }
+}
+
+/* Dashboard sidebar: the User Guide hierarchy in a compact navigation rail. */
+.productDashboard {
+  grid-template-columns: minmax(270px, 304px) minmax(0, 1fr);
+}
+
+.productDashboardNav {
+  background:
+    linear-gradient(180deg, rgba(var(--accent-rgb), 0.025), transparent 34%),
+    var(--surface-0);
+}
+
+.productDashboardNav .dashboardNavHeader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 11px;
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid var(--section-divider);
+}
+
+.dashboardNavHeaderIcon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid rgba(var(--accent-rgb), 0.22);
+  border-radius: 11px;
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.07);
+}
+
+.productDashboardNav .dashboardNavHeader > div:last-child {
+  min-width: 0;
+}
+
+.productDashboardNav .dashboardNavHeader > div > span {
+  display: block;
+  margin: 0 0 4px;
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.productDashboardNav .dashboardNavHeader strong {
+  display: block;
+  color: var(--foreground);
+  font-size: 17px;
+  letter-spacing: -0.025em;
+  line-height: 1.18;
+}
+
+.productDashboardNav .dashboardNavHeader p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.productDashboardNav > .dashboardNavSections {
+  display: grid;
+  align-content: start;
+  gap: 15px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.dashboardNavSection {
+  display: grid;
+  gap: 7px;
+}
+
+.dashboardNavSection > h2 {
+  margin: 0;
+  padding: 0 7px;
+  color: var(--muted);
+  font-size: var(--label-font-size) !important;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.dashboardNavSection > ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dashboardNavSection li {
+  min-width: 0;
+}
+
+.productDashboardNav .dashboardNavSection button {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  grid-template-columns: 28px minmax(0, 1fr) 6px;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 9px 6px 7px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: var(--muted-strong);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.dashboardNavItemIcon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--muted-strong);
+  background: color-mix(in srgb, var(--surface-1) 72%, transparent);
+}
+
+.productDashboardNav .dashboardNavItemLabel {
+  overflow: hidden;
+  color: inherit;
+  font-size: 12px;
+  font-weight: 760;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.productDashboardNav .dashboardNavSection button[data-tone] > .dashboardNavItemIcon {
+  color: var(--muted-strong);
+}
+
+.productDashboardNav .dashboardNavSection button[data-tone] > .dashboardNavItemLabel {
+  color: inherit;
+}
+
+.dashboardNavItemStatus {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  color: var(--muted);
+  background: currentColor;
+  opacity: 0.72;
+}
+
+.productDashboardNav .dashboardNavSection button[data-tone="ready"] .dashboardNavItemStatus {
+  color: var(--green);
+}
+
+.productDashboardNav .dashboardNavSection button[data-tone="active"] .dashboardNavItemStatus {
+  color: var(--teal);
+}
+
+.productDashboardNav .dashboardNavSection button[data-tone="attention"] .dashboardNavItemStatus {
+  color: var(--coral);
+}
+
+.productDashboardNav .dashboardNavSection button:hover,
+.productDashboardNav .dashboardNavSection button:focus-visible,
+.productDashboardNav .dashboardNavSection button[aria-current="page"] {
+  border-color: rgba(var(--accent-rgb), 0.26);
+  color: var(--foreground);
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.075), transparent 72%),
+    color-mix(in srgb, var(--surface-1) 74%, transparent);
+  outline: none;
+}
+
+.productDashboardNav .dashboardNavSection button[aria-current="page"] {
+  box-shadow: inset 2px 0 0 var(--teal);
+}
+
+.productDashboardNav .dashboardNavSection button:hover .dashboardNavItemIcon,
+.productDashboardNav .dashboardNavSection button:focus-visible .dashboardNavItemIcon,
+.productDashboardNav .dashboardNavSection button[aria-current="page"] .dashboardNavItemIcon {
+  border-color: rgba(var(--accent-rgb), 0.3);
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.08);
+}
+
+@media (max-width: 760px) {
+  .productDashboard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .productDashboardNav .dashboardNavHeader {
+    padding: 15px 16px 13px;
+  }
+
+  .productDashboardNav .dashboardNavHeader p {
+    display: none;
+  }
+
+  .productDashboardNav > .dashboardNavSections {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px;
+  }
+
+  .dashboardNavSection {
+    flex: 0 0 auto;
+    gap: 5px;
+  }
+
+  .dashboardNavSection > ul {
+    display: flex;
+  }
+
+  .productDashboardNav .dashboardNavSection button {
+    width: auto;
+    min-width: 136px;
+    min-height: 42px;
+    flex: 0 0 auto;
   }
 }
 
@@ -19060,7 +18456,7 @@ html[data-cca-code-font-size] .workstation :is(
   .codeViewer,
   .codeViewer pre,
   .activeDocumentBoard pre,
-  .artifactRegistry pre
+  .artifactSourceDisclosure pre
 ) {
   font-size: var(--code-font-size) !important;
 }

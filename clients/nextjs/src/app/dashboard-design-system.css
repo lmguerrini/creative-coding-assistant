@@ -1,0 +1,895 @@
+/*
+ * Canonical Dashboard Design System
+ * ---------------------------------
+ * User Guide is the visual reference; every Dashboard page enters through
+ * DashboardPage and consumes these shared primitives. Page-specific styles
+ * should describe only unique data visualizations, never generic surfaces.
+ */
+
+.productDashboard {
+  --dashboard-space-1: 6px;
+  --dashboard-space-2: 10px;
+  --dashboard-space-3: 14px;
+  --dashboard-space-4: 18px;
+  --dashboard-space-5: 24px;
+  --dashboard-radius-control: 9px;
+  --dashboard-radius-card: 14px;
+  --dashboard-radius-section: 18px;
+  --dashboard-radius-hero: 20px;
+  --dashboard-border: var(--line);
+  --dashboard-border-strong: color-mix(in srgb, var(--teal) 32%, var(--line));
+  --dashboard-surface-card: color-mix(in srgb, var(--surface-2) 92%, transparent);
+  --dashboard-surface-inset: color-mix(in srgb, var(--surface-1) 78%, transparent);
+  --dashboard-surface-accent: color-mix(in srgb, var(--teal) 7%, var(--surface-2));
+  --dashboard-shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --dashboard-reading-width: 1480px;
+}
+
+.dashboardPage {
+  display: grid;
+  width: 100%;
+  max-width: var(--dashboard-reading-width);
+  gap: 0;
+  margin: 0 auto;
+}
+
+.dashboardPage > .dashboardPageHero {
+  margin: var(--dashboard-space-4) var(--dashboard-space-4) 0;
+}
+
+.dashboardPage > :is(.productDashboardGroup, .productDashboardManual, .dashboardSettings) {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.dashboardPageHero:focus-within,
+.dashboardVisualSection:focus-within,
+.dashboardInnerCard:focus-within {
+  border-color: color-mix(in srgb, var(--teal) 42%, var(--line));
+}
+
+.dashboardTabs {
+  position: sticky;
+  z-index: 12;
+  top: 0;
+  display: flex;
+  overflow-x: auto;
+  gap: var(--dashboard-space-1);
+  padding: 8px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-card);
+  background: color-mix(in srgb, var(--surface-0) 91%, transparent);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(14px) saturate(130%);
+  scrollbar-width: thin;
+}
+
+.dashboardTabs a {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--dashboard-radius-control);
+  color: var(--muted-strong);
+  font-size: 11px;
+  font-weight: 760;
+  text-decoration: none;
+}
+
+.dashboardTabs a:hover,
+.dashboardTabs a:focus-visible {
+  border-color: rgba(var(--accent-rgb), 0.25);
+  color: var(--foreground);
+  background: rgba(var(--accent-rgb), 0.08);
+  outline: none;
+}
+
+.dashboardCardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+  gap: var(--dashboard-space-2);
+}
+
+.dashboardCardGrid[data-layout="compact"] {
+  grid-template-columns: repeat(auto-fit, minmax(225px, 1fr));
+}
+
+.dashboardCardGrid[data-layout="equal"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.dashboardInfoCard {
+  display: grid;
+  min-width: 0;
+  min-height: 145px;
+  align-content: start;
+  gap: 8px;
+  padding: 16px;
+  color: var(--teal);
+}
+
+.dashboardInfoCard > span {
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dashboardInfoCard > strong {
+  margin: 2px 0 0;
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.dashboardInfoCard > p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.48;
+}
+
+.dashboardDisclosure {
+  overflow: hidden;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-card);
+  background: color-mix(in srgb, var(--surface-0) 46%, transparent);
+}
+
+.dashboardDisclosure > summary {
+  position: relative;
+  padding: 13px 44px 13px 15px;
+  color: var(--foreground);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 780;
+  list-style: none;
+}
+
+.dashboardDisclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.dashboardDisclosure > summary::after {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  color: var(--teal);
+  content: "+";
+  font-size: 18px;
+  font-weight: 500;
+  transform: translateY(-50%);
+}
+
+.dashboardDisclosure[open] > summary::after {
+  content: "−";
+}
+
+.dashboardDisclosure > summary:hover,
+.dashboardDisclosure > summary:focus-visible {
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.055);
+  outline: none;
+}
+
+.dashboardDisclosureBody {
+  display: grid;
+  gap: var(--dashboard-space-3);
+  padding: 15px;
+  border-top: 1px solid var(--section-divider);
+}
+
+.dashboardTableFrame {
+  overflow-x: auto;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 12px;
+}
+
+.dashboardTableFrame table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.dashboardTableFrame :is(th, td) {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--section-divider);
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.42;
+  text-align: left;
+  vertical-align: top;
+}
+
+.dashboardTableFrame thead th {
+  color: var(--muted);
+  background: rgba(var(--accent-rgb), 0.045);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.dashboardTableFrame tbody th {
+  color: var(--foreground);
+  font-weight: 780;
+  white-space: nowrap;
+}
+
+.dashboardTableFrame tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.dashboardMetricGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--dashboard-space-2);
+  margin: 0;
+}
+
+.dashboardMetricCard {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 5px;
+  padding: 13px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-card);
+  background: var(--dashboard-surface-inset);
+  box-shadow: var(--dashboard-shadow-inset);
+}
+
+.dashboardMetricCard dt,
+.dashboardMetricCard > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.dashboardMetricCard dd,
+.dashboardMetricCard > strong {
+  overflow: hidden;
+  margin: 0;
+  color: var(--foreground);
+  font-size: 15px;
+  font-weight: 780;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+}
+
+.dashboardMetricCard > small {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.dashboardMetricCard[data-tone="good"] {
+  border-color: color-mix(in srgb, var(--green) 36%, var(--dashboard-border));
+}
+
+.dashboardMetricCard[data-tone="warning"] {
+  border-color: color-mix(in srgb, var(--amber) 42%, var(--dashboard-border));
+}
+
+.dashboardMetricCard[data-tone="danger"] {
+  border-color: color-mix(in srgb, var(--coral) 42%, var(--dashboard-border));
+}
+
+.dashboardInnerCard[data-tone="good"] {
+  border-color: color-mix(in srgb, var(--green) 36%, var(--dashboard-border));
+}
+
+.dashboardInnerCard[data-tone="warning"] {
+  border-color: color-mix(in srgb, var(--amber) 42%, var(--dashboard-border));
+}
+
+.dashboardInnerCard[data-tone="danger"] {
+  border-color: color-mix(in srgb, var(--coral) 42%, var(--dashboard-border));
+}
+
+/* Settings controls extend the same cards and grids. */
+.dashboardSettings .dashboardThemeChoices {
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 0.42fr);
+}
+
+.dashboardSettings .dashboardSettingRows {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.dashboardSettings .dashboardGenerationRows {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.dashboardSettings :is(.dashboardThemeChoices button, .dashboardScaleControl button, .dashboardToggle) {
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-control);
+  color: var(--muted-strong);
+  background: var(--dashboard-surface-inset);
+  cursor: pointer;
+  font: inherit;
+}
+
+.dashboardGenerationControl {
+  display: grid;
+  min-width: 0;
+  min-height: 136px;
+  align-content: start;
+  gap: 8px;
+  padding: 14px;
+}
+
+.dashboardGenerationControl > span,
+.dashboardThemeChoiceGroup > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dashboardGenerationControl > select {
+  width: 100%;
+  min-height: 36px;
+  padding: 0 30px 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--dashboard-radius-control);
+  color: var(--foreground);
+  background: var(--surface-0);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.dashboardGenerationControl > small {
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.dashboardThemeChoiceGroup {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  padding: 11px;
+}
+
+.dashboardThemeChoiceGroup[data-group="monochrome"] {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.12));
+}
+
+.dashboardThemeChoiceGroup > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dashboardThemeChoices button {
+  min-height: 36px;
+  padding: 0 11px;
+  font-size: 12px;
+  font-weight: 750;
+  text-transform: capitalize;
+}
+
+.dashboardThemeChoices button[aria-pressed="true"],
+.dashboardScaleControl button[aria-pressed="true"] {
+  border-color: rgba(var(--accent-rgb), 0.5);
+  color: var(--foreground);
+  background: rgba(var(--accent-rgb), 0.12);
+}
+
+.dashboardThemeChoices button[data-theme="aqua"] { box-shadow: inset 0 -2px #4cd7c8; }
+.dashboardThemeChoices button[data-theme="codex"] { box-shadow: inset 0 -2px #339cff; }
+.dashboardThemeChoices button[data-theme="codex_white"] { box-shadow: inset 0 -2px #f4f7fb; }
+.dashboardThemeChoices button[data-theme="matrix"] { box-shadow: inset 0 -2px #40c977; }
+.dashboardThemeChoices button[data-theme="terminal"] { box-shadow: inset 0 -2px #f1c56f; }
+.dashboardThemeChoices button[data-theme="horizon"] { box-shadow: inset 0 -2px #f4a36e; }
+.dashboardThemeChoices button[data-theme="zen"] { box-shadow: inset 0 -2px #8fd4c7; }
+.dashboardThemeChoices button[data-theme="blueprint"] { box-shadow: inset 0 -2px #7fd4ff; }
+
+.dashboardThemeChoices button[data-theme="light"] {
+  border-color: rgba(17, 19, 24, 0.34);
+  color: #111318;
+  background: #fff;
+  box-shadow: inset 0 -4px #111318;
+}
+
+.dashboardThemeChoices button[data-theme="light"]:hover,
+.dashboardThemeChoices button[data-theme="light"][aria-pressed="true"] {
+  border-color: #111318;
+  color: #111318;
+  background: #fff;
+  box-shadow: inset 0 -4px #111318;
+}
+
+.dashboardScaleControl {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  padding: 13px;
+}
+
+.dashboardScaleControl > strong {
+  color: var(--foreground);
+  font-size: 13px;
+}
+
+.dashboardScaleControl > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.dashboardScaleControl button {
+  min-height: 30px;
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
+.dashboardTypographyPreview {
+  display: block;
+  min-height: 22px;
+  margin-top: 1px;
+  color: var(--muted-strong);
+  line-height: 1.25;
+}
+
+.dashboardTypographyPreview[data-kind="heading"] {
+  color: var(--foreground);
+  font-size: var(--heading-card-size);
+  font-weight: 760;
+  letter-spacing: -0.02em;
+}
+
+.dashboardTypographyPreview[data-kind="body"] { font-size: var(--body-copy-size); }
+
+.dashboardTypographyPreview[data-kind="label"] {
+  color: var(--muted);
+  font-size: var(--label-font-size);
+  font-weight: 780;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dashboardTypographyPreview[data-kind="code"] {
+  color: var(--teal);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: var(--code-font-size);
+}
+
+.dashboardToggle {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  padding: 12px;
+  text-align: left;
+}
+
+.dashboardToggle span { color: var(--muted); font-size: 11px; }
+.dashboardToggle strong { color: var(--foreground); font-size: 14px; }
+
+.dashboardSettings :is(.dashboardToggle, .dashboardThemeChoices button, .dashboardScaleControl button):hover {
+  border-color: rgba(var(--accent-rgb), 0.4);
+  color: var(--foreground);
+}
+
+.telemetryReviewerHero {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.4fr);
+  gap: var(--dashboard-space-2);
+}
+
+.telemetryRunMetrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.telemetryRunMetrics > :first-child {
+  grid-column: 1 / -1;
+}
+
+.telemetrySignalMetrics,
+.browserUsageOverview .userUsageMetrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.browserUsageOverview .userUsageMetrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.telemetryEvidenceDetails > .dashboardDisclosureBody {
+  padding: var(--dashboard-space-3);
+}
+
+.telemetryEvidenceBoundary {
+  margin: 0;
+}
+
+.evaluationWorkspace {
+  display: grid;
+  gap: var(--dashboard-space-4);
+}
+
+.evaluationLaunchActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.evaluationLaunchActions .capstonePrimaryButton {
+  min-height: 36px;
+  margin: 0;
+}
+
+.evaluationLaunchActions .capstoneConfigureButton,
+.evaluationCloseButton {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-control);
+  color: var(--muted-strong);
+  background: var(--dashboard-surface-inset);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 760;
+}
+
+.evaluationLaunchActions .capstoneConfigureButton:hover,
+.evaluationCloseButton:hover {
+  border-color: var(--dashboard-border-strong);
+  color: var(--foreground);
+}
+
+.evaluationLabMetrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.evaluationLaneClassification {
+  width: fit-content;
+  margin-top: auto;
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.08);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+}
+
+.evaluationRetrievalOverview {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(0, 2fr);
+  gap: var(--dashboard-space-2);
+}
+
+.retrievalOverallScore.dashboardInnerCard {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 8px;
+  padding: 16px;
+  border-color: color-mix(in srgb, var(--status-color) 46%, var(--dashboard-border));
+  background: color-mix(in srgb, var(--status-color) 5%, var(--dashboard-surface-inset));
+}
+
+.retrievalOverallScore > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 820;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.retrievalOverallScore > strong {
+  color: var(--status-color);
+  font-size: 34px;
+  letter-spacing: -0.04em;
+}
+
+.retrievalOverallScore > p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.48;
+}
+
+.evaluationRetrievalBoundaries .evaluationBoundaryCard {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  align-content: start;
+  gap: 7px;
+  padding: 14px;
+}
+
+.evaluationBoundaryCard > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 820;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.evaluationBoundaryCard > strong {
+  color: var(--foreground);
+  font-size: 16px;
+}
+
+.evaluationBoundaryCard > p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.evaluationRagasMetricGrid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.evaluationRagasMetricCard {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 8px;
+  min-height: 170px;
+  padding: 14px;
+  border-color: color-mix(in srgb, var(--status-color) 32%, var(--dashboard-border));
+}
+
+.evaluationRagasMetricCard > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+}
+
+.evaluationRagasMetricCard > header > span:first-child {
+  color: var(--muted-strong);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.evaluationRagasMetricCard > strong {
+  overflow-wrap: anywhere;
+  color: var(--status-color);
+  font-size: 20px;
+  line-height: 1.12;
+}
+
+.evaluationRagasMetricCard > p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.43;
+}
+
+.evaluationRagasMetricCard > small {
+  margin-top: auto;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.evaluationDeepDisclosure > .dashboardDisclosureBody,
+.evaluationWorkspaceDisclosure > .dashboardDisclosureBody,
+.evaluationSupportingEvidence > .dashboardDisclosureBody {
+  padding: var(--dashboard-space-3);
+}
+
+.evaluationResultsContent,
+.evaluationHistoryContent,
+.evaluationCoverageContent {
+  display: grid;
+  gap: var(--dashboard-space-3);
+}
+
+.evaluationResultsContent > .dashboardSectionHeader,
+.evaluationHistoryContent > .dashboardSectionHeader,
+.evaluationCoverageContent > .dashboardSectionHeader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 11px;
+  padding-bottom: var(--dashboard-space-3);
+  border-bottom: 1px solid var(--section-divider);
+}
+
+.evaluationRunControls .evaluationScopeGrid {
+  margin: 0;
+}
+
+.evaluationRunActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--dashboard-space-3);
+}
+
+.evaluationRunActions > span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.evaluationSupportingEvidence .evaluationDashboardSplit {
+  padding: 0;
+}
+
+.dashboardEmptyState {
+  min-height: 180px;
+  place-content: center;
+  text-align: center;
+}
+
+.domainsDashboardSurface > .domainExperienceSurface {
+  gap: var(--dashboard-space-4);
+  padding: 0;
+}
+
+.domainExperienceGroupSummary {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--dashboard-space-3);
+}
+
+.domainExperienceGroupSummary > span {
+  display: grid;
+  gap: 3px;
+}
+
+.domainExperienceGroupSummary strong {
+  color: var(--foreground);
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.domainExperienceGroupSummary small {
+  color: var(--muted-strong);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.domainExperienceGroupSummary em {
+  display: grid;
+  min-width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.1);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.domainExperienceGroupDisclosure > .dashboardDisclosureBody {
+  padding: var(--dashboard-space-3);
+}
+
+.domainExperienceGroupDisclosure .domainExperienceGroup {
+  display: grid;
+}
+
+.domainCapabilityDetails.dashboardDisclosure {
+  margin-top: 0;
+  border-radius: var(--dashboard-radius-control);
+  background: color-mix(in srgb, var(--surface-0) 32%, transparent);
+}
+
+.domainCapabilityDetails.dashboardDisclosure > summary {
+  padding-block: 11px;
+}
+
+.domainCapabilityDetails.dashboardDisclosure > .dashboardDisclosureBody {
+  padding: 12px;
+}
+
+.technicalKnowledgeSurface .kbInventorySurface[data-header-mode="embedded"] {
+  padding: 0;
+}
+
+.technicalKnowledgeSurface .kbInventoryMetrics {
+  margin: 0;
+}
+
+.creativeKnowledgeBase > :is(
+  .creativeKnowledgeMetrics,
+  .creativeKnowledgeFilters,
+  .creativeKnowledgeRecordGrid
+) {
+  padding: 0;
+}
+
+.creativeKnowledgeBase .creativeKnowledgeRecordGrid {
+  padding: 0;
+}
+
+.creativeKnowledgeBase :is(.creativeStudyShelf, .artifactCreativeDirection) {
+  margin: 0;
+}
+
+.aiAgentContextMetrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sessionRegistry .sessionRegistryTable {
+  padding: 0;
+}
+
+.sessionRegistryTable > div {
+  border-radius: 0;
+}
+
+.sessionRegistryTable > div:not(:last-child) {
+  border-bottom: 1px solid var(--section-divider);
+}
+
+.sessionRegistryTable div[role="cell"]:last-child button:last-child {
+  color: var(--coral);
+}
+
+@media (max-width: 900px) {
+  .dashboardCardGrid[data-layout="equal"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .telemetryReviewerHero,
+  .browserUsageOverview .userUsageMetrics,
+  .evaluationLabMetrics,
+  .evaluationRetrievalOverview,
+  .evaluationRagasMetricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboardPage > .dashboardPageHero {
+    margin: 12px 12px 0;
+  }
+
+  .dashboardSettings .dashboardThemeChoices,
+  .dashboardSettings .dashboardGenerationRows {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboardCardGrid,
+  .dashboardCardGrid[data-layout="compact"],
+  .dashboardMetricGrid,
+  .aiAgentContextMetrics,
+  .telemetryReviewerHero,
+  .telemetryRunMetrics,
+  .telemetrySignalMetrics,
+  .browserUsageOverview .userUsageMetrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .evaluationLabMetrics,
+  .evaluationRetrievalOverview,
+  .evaluationRagasMetricGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .evaluationLaunchActions,
+  .evaluationRunActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .telemetryRunMetrics > :first-child {
+    grid-column: auto;
+  }
+
+  .dashboardInfoCard {
+    min-height: 0;
+  }
+}

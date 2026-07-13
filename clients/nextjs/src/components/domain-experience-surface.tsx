@@ -13,16 +13,25 @@ import {
   writeKnowledgeBaseSmartUpdateSnapshot,
   type KnowledgeBaseSmartUpdateSnapshot
 } from "@/lib/kb-smart-update";
+import {
+  DashboardCardGrid,
+  DashboardDisclosure,
+  DashboardMetricGrid
+} from "./dashboard-page-primitives";
 
 export function DomainExperienceSurface({
   activeDomainId,
   catalog,
+  collapseSecondary = false,
   detailed = false,
+  embedded = false,
   includeKnowledgeBase = true
 }: {
   activeDomainId?: string | null;
   catalog: DomainExperienceCatalog;
+  collapseSecondary?: boolean;
   detailed?: boolean;
+  embedded?: boolean;
   includeKnowledgeBase?: boolean;
 }) {
   if (catalog.state === "loading") {
@@ -78,43 +87,52 @@ export function DomainExperienceSurface({
       {includeKnowledgeBase ? (
         <KnowledgeBaseInventorySurface inventory={catalog.knowledgeBase} detailed={detailed} />
       ) : null}
-      <header className="domainExperienceHeader">
-        <div>
-          <span>{detailed ? "Domain registry" : "Domain contract"}</span>
-          <strong>
-            {activeDomain
-              ? activeDomain.displayName
-              : `${catalog.domains.length} registered creative domains`}
-          </strong>
-          <p>
-            {detailed
-              ? "Each card distinguishes browser preview, source export, and external-tool handoff."
-              : "The current artifact’s delivery boundary is kept separate from retrieval for this run."}
-          </p>
-        </div>
-      </header>
+      {!embedded ? (
+        <header className="domainExperienceHeader">
+          <div>
+            <span>{detailed ? "Domain registry" : "Domain contract"}</span>
+            <strong>
+              {activeDomain
+                ? activeDomain.displayName
+                : `${catalog.domains.length} registered creative domains`}
+            </strong>
+            <p>
+              {detailed
+                ? "Each card distinguishes browser preview, source export, and external-tool handoff."
+                : "The current artifact’s delivery boundary is kept separate from retrieval for this run."}
+            </p>
+          </div>
+        </header>
+      ) : null}
       {detailed ? (
         <div className="domainExperienceGroups">
-          {groups.map((group) => (
-            <section aria-label={group.label} key={group.id}>
-              <header>
-                <div>
-                  <strong>{group.label}</strong>
-                  <p>{group.detail}</p>
-                </div>
-                <span>{group.records.length}</span>
-              </header>
-              <div className="domainExperienceGrid" role="list">
-                {group.records.map((record) => (
-                  <DomainCapabilityCard
-                    active={record.id === activeDomain?.id}
-                    detailed
-                    key={record.id}
-                    record={record}
-                  />
-                ))}
-              </div>
-            </section>
+          {groups.map((group) => collapseSecondary && group.id !== "live" ? (
+            <DashboardDisclosure
+              className="domainExperienceGroupDisclosure"
+              key={group.id}
+              summary={(
+                <span className="domainExperienceGroupSummary">
+                  <span>
+                    <strong>{group.label}</strong>
+                    <small>{group.detail}</small>
+                  </span>
+                  <em>{group.records.length}</em>
+                </span>
+              )}
+            >
+              <DomainExperienceGroup
+                activeDomainId={activeDomain?.id}
+                group={group}
+                showHeader={false}
+              />
+            </DashboardDisclosure>
+          ) : (
+            <DomainExperienceGroup
+              activeDomainId={activeDomain?.id}
+              group={group}
+              key={group.id}
+              showHeader
+            />
           ))}
         </div>
       ) : (
@@ -128,20 +146,63 @@ export function DomainExperienceSurface({
   );
 }
 
+function DomainExperienceGroup({
+  activeDomainId,
+  group,
+  showHeader
+}: {
+  activeDomainId?: string;
+  group: {
+    detail: string;
+    id: string;
+    label: string;
+    records: DomainExperienceRecord[];
+  };
+  showHeader: boolean;
+}) {
+  return (
+    <section aria-label={group.label} className="domainExperienceGroup">
+      {showHeader ? (
+        <header>
+          <div>
+            <strong>{group.label}</strong>
+            <p>{group.detail}</p>
+          </div>
+          <span>{group.records.length}</span>
+        </header>
+      ) : null}
+      <DashboardCardGrid className="domainExperienceGrid" label={`${group.label} domain contracts`} role="list">
+        {group.records.map((record) => (
+          <DomainCapabilityCard
+            active={record.id === activeDomainId}
+            detailed
+            key={record.id}
+            record={record}
+          />
+        ))}
+      </DashboardCardGrid>
+    </section>
+  );
+}
+
 export function KnowledgeBaseInventorySurface({
   detailed = false,
   headerMode = "default",
-  inventory
+  inventory,
+  progressive = false
 }: {
   detailed?: boolean;
   headerMode?: "default" | "embedded";
   inventory: KnowledgeBaseInventory;
+  progressive?: boolean;
 }) {
   const [currentInventory, setCurrentInventory] = useState(inventory);
 
   useEffect(() => {
     setCurrentInventory(inventory);
   }, [inventory]);
+
+  const inventoryEvidence = <KnowledgeBaseInventoryEvidence inventory={currentInventory} />;
 
   return (
     <article
@@ -160,36 +221,53 @@ export function KnowledgeBaseInventorySurface({
           </div>
         </header>
       ) : null}
-      <div aria-label="Knowledge Base inventory metrics" className="kbInventoryMetrics" role="list">
-        <Metric label="Registered" value={`${currentInventory.registeredSourceCount} sources`} />
-        <Metric label="Indexed" value={`${currentInventory.indexedSourceCount} sources`} />
-        <Metric label="Chunks" value={`${currentInventory.indexedChunkCount}`} />
-        {detailed ? (
-          <>
-            <Metric label="Registered domains" value={`${currentInventory.registeredDomainCount}`} />
-            <Metric label="Indexed domains" value={`${currentInventory.indexedDomainCount}`} />
-            <Metric label="Last indexed" value={formatIndexedAt(currentInventory.lastIndexedAt)} />
-          </>
-        ) : null}
-      </div>
+      <DashboardMetricGrid
+        className="kbInventoryMetrics"
+        label="Knowledge Base inventory metrics"
+        metrics={[
+          { label: "Registered", value: `${currentInventory.registeredSourceCount} sources` },
+          { label: "Indexed", value: `${currentInventory.indexedSourceCount} sources` },
+          { label: "Chunks", value: `${currentInventory.indexedChunkCount}` },
+          ...(detailed ? [
+            { label: "Registered domains", value: `${currentInventory.registeredDomainCount}` },
+            { label: "Indexed domains", value: `${currentInventory.indexedDomainCount}` },
+            { label: "Last indexed", value: formatIndexedAt(currentInventory.lastIndexedAt) }
+          ] : [])
+        ]}
+      />
       {detailed ? (
         <>
-          <dl aria-label="Knowledge Base metric guide" className="kbInventoryLegend">
-            <div><dt>Registered</dt><dd>Official sources listed in the product registry.</dd></div>
-            <div><dt>Indexed</dt><dd>Registered sources available in the local search index.</dd></div>
-            <div><dt>Chunks</dt><dd>Searchable passages created from indexed sources.</dd></div>
-            <div><dt>Domains</dt><dd>Creative domains with at least one registered or indexed source.</dd></div>
-            <div><dt>Last indexed</dt><dd>The local index timestamp, not a claim that an upstream site is unchanged.</dd></div>
-          </dl>
-          <footer>
-            <p>{currentInventory.freshnessDetail}</p>
-            <p>{currentInventory.updateHint}</p>
-            <p>{currentInventory.provenanceBoundary}</p>
-          </footer>
+          {progressive ? (
+            <DashboardDisclosure
+              className="kbInventoryEvidenceDisclosure"
+              summary="Metric definitions, freshness, and provenance"
+            >
+              {inventoryEvidence}
+            </DashboardDisclosure>
+          ) : inventoryEvidence}
           <KnowledgeBaseSourceExplorer inventory={currentInventory} onInventoryChange={setCurrentInventory} />
         </>
       ) : null}
     </article>
+  );
+}
+
+function KnowledgeBaseInventoryEvidence({ inventory }: { inventory: KnowledgeBaseInventory }) {
+  return (
+    <>
+      <dl aria-label="Knowledge Base metric guide" className="kbInventoryLegend">
+        <div><dt>Registered</dt><dd>Official sources listed in the product registry.</dd></div>
+        <div><dt>Indexed</dt><dd>Registered sources available in the local search index.</dd></div>
+        <div><dt>Chunks</dt><dd>Searchable passages created from indexed sources.</dd></div>
+        <div><dt>Domains</dt><dd>Creative domains with at least one registered or indexed source.</dd></div>
+        <div><dt>Last indexed</dt><dd>The local index timestamp, not a claim that an upstream site is unchanged.</dd></div>
+      </dl>
+      <footer>
+        <p>{inventory.freshnessDetail}</p>
+        <p>{inventory.updateHint}</p>
+        <p>{inventory.provenanceBoundary}</p>
+      </footer>
+    </>
   );
 }
 
@@ -748,7 +826,7 @@ function DomainCapabilityCard({
   return (
     <article
       aria-label={`${record.displayName} capability contract`}
-      className="domainCapabilityCard"
+      className="dashboardInnerCard domainCapabilityCard"
       data-active={active ? "true" : "false"}
       data-delivery={record.deliveryKind}
       role="listitem"
@@ -778,15 +856,14 @@ function DomainCapabilityCard({
         </div>
       </dl>
       {detailed ? (
-        <details className="domainCapabilityDetails">
-          <summary>Technical contract</summary>
+        <DashboardDisclosure className="domainCapabilityDetails" summary="Technical contract">
           <div>
             <Detail label="Use for" values={record.intentTriggers} />
             <Detail label="Runtime" values={record.runtimeRequirements} />
             <Detail label="Fallback" values={[record.fallback]} />
             <Detail label="Sources" values={record.knowledgeSourceIds} />
           </div>
-        </details>
+        </DashboardDisclosure>
       ) : null}
     </article>
   );
@@ -802,15 +879,6 @@ function Detail({ label, values }: { label: string; values: string[] }) {
         ))}
       </ul>
     </div>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <span role="listitem">
-      <small>{label}</small>
-      <strong>{value}</strong>
-    </span>
   );
 }
 

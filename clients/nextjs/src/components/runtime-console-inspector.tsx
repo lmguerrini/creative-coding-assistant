@@ -3,6 +3,7 @@ import type {
   RuntimeConsoleModel
 } from "@/lib/runtime-console";
 import type { WorkflowRuntimeModel } from "@/lib/workflow-runtime";
+import { DashboardDisclosure } from "./dashboard-page-primitives";
 
 export function RuntimeConsoleInspector({
   console,
@@ -53,7 +54,8 @@ export function RuntimeConsoleInspector({
           <p>{console.emptyDetail}</p>
         </article>
       ) : (
-        <div className="runtimeConsoleGrid">
+        <>
+          <div className="runtimeConsoleGrid">
           <article
             aria-label="Runtime health"
             className="runtimeConsoleCard runtimeConsoleCard--wide runtimeConsoleHealth"
@@ -100,113 +102,32 @@ export function RuntimeConsoleInspector({
             </div>
           </article>
 
-          <article
-            aria-label="Runtime diagnostics"
-            className="runtimeConsoleCard"
-            role="group"
-          >
-            <header>
-              <span>Diagnostics</span>
-              <strong>{formatDiagnosticCount(console)}</strong>
-            </header>
-            {console.errors.length > 0 ? (
-              <DiagnosticList
-                items={console.errors}
-                label="Runtime errors"
-                tone="danger"
-              />
-            ) : null}
-            {console.warnings.length > 0 ? (
-              <DiagnosticList
-                items={console.warnings}
-                label="Runtime warnings"
-                tone="warning"
-              />
-            ) : null}
-            {console.errors.length === 0 && console.warnings.length === 0 ? (
-              <p className="runtimeConsoleMuted">
-                No runtime warnings or errors are active.
-              </p>
-            ) : null}
-          </article>
-
-          <article
-            aria-label="Runtime context"
-            className="runtimeConsoleCard"
-            role="group"
-          >
-            <header>
-              <span>Context</span>
-              <strong>{console.context.runtimeTypeLabel}</strong>
-            </header>
-            <dl className="runtimeConsoleDetails">
-              <div>
-                <dt>Artifact</dt>
-                <dd>{console.context.artifactName}</dd>
-              </div>
-              <div>
-                <dt>Source</dt>
-                <dd>{console.context.sourceName}</dd>
-              </div>
-              <div>
-                <dt>Target</dt>
-                <dd>{console.context.targetLabel}</dd>
-              </div>
-              <div>
-                <dt>Renderer</dt>
-                <dd>{console.context.rendererLabel}</dd>
-              </div>
-              <div>
-                <dt>Support</dt>
-                <dd>{console.context.supportLabel}</dd>
-              </div>
-              <div>
-                <dt>Fingerprint</dt>
-                <dd>{console.context.fingerprint}</dd>
-              </div>
-              <div>
-                <dt>Source size</dt>
-                <dd>{console.context.lineCountLabel}</dd>
-              </div>
-            </dl>
-          </article>
-
-          <article
-            aria-label="Runtime reload history"
-            className="runtimeConsoleCard runtimeConsoleCard--wide"
-            role="group"
-          >
-            <header>
-              <span>Reload history</span>
-              <strong>{formatReloadCount(console.reloadHistory.length)}</strong>
-            </header>
-            {console.reloadHistory.length > 0 ? (
-              <RuntimeEventList events={console.reloadHistory} />
-            ) : (
-              <p className="runtimeConsoleMuted">
-                No preview runtime reloads have been requested.
-              </p>
-            )}
-          </article>
-
-          <article
-            aria-label="Runtime event history"
-            className="runtimeConsoleCard runtimeConsoleCard--wide"
-            role="group"
-          >
-            <header>
-              <span>Event history</span>
-              <strong>{console.events.length} chronological events</strong>
-            </header>
-            {console.events.length > 0 ? (
-              <RuntimeEventList events={console.events} />
-            ) : (
-              <p className="runtimeConsoleMuted">
-                Runtime events are captured after the live preview renderer starts.
-              </p>
-            )}
-          </article>
-        </div>
+          {presentation === "inspector" ? (
+            <>
+              <RuntimeDiagnosticsCard console={console} />
+              <RuntimeContextCard console={console} />
+              <RuntimeReloadHistoryCard console={console} />
+              <RuntimeEventHistoryCard console={console} />
+            </>
+          ) : null}
+          </div>
+          {presentation === "dashboard" ? (
+            <div className="runtimeConsoleDashboardDetails">
+              <DashboardDisclosure summary={`Diagnostics and context · ${formatDiagnosticCount(console)}`}>
+                <div className="runtimeConsoleGrid runtimeConsoleGrid--secondary">
+                  <RuntimeDiagnosticsCard console={console} />
+                  <RuntimeContextCard console={console} />
+                </div>
+              </DashboardDisclosure>
+              <DashboardDisclosure summary={`Runtime history · ${formatReloadCount(console.reloadHistory.length)} · ${console.events.length} events`}>
+                <div className="runtimeConsoleGrid runtimeConsoleGrid--secondary">
+                  <RuntimeReloadHistoryCard console={console} />
+                  <RuntimeEventHistoryCard console={console} />
+                </div>
+              </DashboardDisclosure>
+            </div>
+          ) : null}
+        </>
       )}
     </section>
   );
@@ -249,6 +170,62 @@ function ProductOutcomeRuntimeCard({
           <strong>{productOutcome.recovery_action || "None required"}</strong>
         </div>
       </div>
+    </article>
+  );
+}
+
+function RuntimeDiagnosticsCard({ console }: { console: RuntimeConsoleModel }) {
+  return (
+    <article aria-label="Runtime diagnostics" className="runtimeConsoleCard" role="group">
+      <header><span>Diagnostics</span><strong>{formatDiagnosticCount(console)}</strong></header>
+      {console.errors.length > 0 ? <DiagnosticList items={console.errors} label="Runtime errors" tone="danger" /> : null}
+      {console.warnings.length > 0 ? <DiagnosticList items={console.warnings} label="Runtime warnings" tone="warning" /> : null}
+      {console.errors.length === 0 && console.warnings.length === 0 ? (
+        <p className="runtimeConsoleMuted">No runtime warnings or errors are active.</p>
+      ) : null}
+    </article>
+  );
+}
+
+function RuntimeContextCard({ console }: { console: RuntimeConsoleModel }) {
+  return (
+    <article aria-label="Runtime context" className="runtimeConsoleCard" role="group">
+      <header><span>Context</span><strong>{console.context.runtimeTypeLabel}</strong></header>
+      <dl className="runtimeConsoleDetails">
+        <div><dt>Artifact</dt><dd>{console.context.artifactName}</dd></div>
+        <div><dt>Source</dt><dd>{console.context.sourceName}</dd></div>
+        <div><dt>Target</dt><dd>{console.context.targetLabel}</dd></div>
+        <div><dt>Renderer</dt><dd>{console.context.rendererLabel}</dd></div>
+        <div><dt>Support</dt><dd>{console.context.supportLabel}</dd></div>
+        <div><dt>Fingerprint</dt><dd>{console.context.fingerprint}</dd></div>
+        <div><dt>Source size</dt><dd>{console.context.lineCountLabel}</dd></div>
+      </dl>
+    </article>
+  );
+}
+
+function RuntimeReloadHistoryCard({ console }: { console: RuntimeConsoleModel }) {
+  return (
+    <article aria-label="Runtime reload history" className="runtimeConsoleCard runtimeConsoleCard--wide" role="group">
+      <header><span>Reload history</span><strong>{formatReloadCount(console.reloadHistory.length)}</strong></header>
+      {console.reloadHistory.length > 0 ? (
+        <RuntimeEventList events={console.reloadHistory} />
+      ) : (
+        <p className="runtimeConsoleMuted">No preview runtime reloads have been requested.</p>
+      )}
+    </article>
+  );
+}
+
+function RuntimeEventHistoryCard({ console }: { console: RuntimeConsoleModel }) {
+  return (
+    <article aria-label="Runtime event history" className="runtimeConsoleCard runtimeConsoleCard--wide" role="group">
+      <header><span>Event history</span><strong>{console.events.length} chronological events</strong></header>
+      {console.events.length > 0 ? (
+        <RuntimeEventList events={console.events} />
+      ) : (
+        <p className="runtimeConsoleMuted">Runtime events are captured after the live preview renderer starts.</p>
+      )}
     </article>
   );
 }

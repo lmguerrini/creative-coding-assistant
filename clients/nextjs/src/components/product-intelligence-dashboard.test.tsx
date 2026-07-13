@@ -78,10 +78,27 @@ describe("Product Intelligence surfaces", () => {
       .toHaveTextContent("User Guide");
     expect(navigation)
       .toHaveTextContent("Knowledge Base");
+    expect(within(navigation).getByRole("heading", { name: "Workspace flow" }))
+      .toBeVisible();
+    expect(within(navigation).getByRole("heading", { name: "Knowledge & systems" }))
+      .toBeVisible();
+    expect(within(navigation).getByRole("heading", { name: "Review & configure" }))
+      .toBeVisible();
+    expect(within(navigation).getAllByRole("list")).toHaveLength(3);
+    expect(
+      screen.getByRole("button", { name: "Settings" })
+        .querySelector(".dashboardNavItemIcon")
+    ).not.toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Settings" })
+        .querySelector(".dashboardNavItemStatus")
+    ).not.toBeNull();
     expect(navigation).not.toHaveTextContent("Current workspace outcome and selected artifact.");
     expect(screen.getByRole("heading", { name: "Overview" })).toBeVisible();
-    expect(screen.getByLabelText("Overview live signal board")).toBeVisible();
-    expect(screen.getByLabelText("Help with Overview live signal board")).toBeVisible();
+    expect(screen.getByLabelText("Overview decision snapshot")).toBeVisible();
+    expect(screen.getByLabelText("Help with Overview decision snapshot")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Read the current workspace in one glance" }))
+      .toBeVisible();
 
     fireEvent.click(screen.getAllByLabelText("Help with Overview")[0]!);
     expect(screen.getAllByRole("note")[0]).toHaveTextContent(
@@ -117,6 +134,9 @@ describe("Product Intelligence surfaces", () => {
     expect(screen.queryByText("Knowledge Base inventory")).not.toBeInTheDocument();
     expect(screen.getAllByText("Creative Knowledge Base")[0]).toBeVisible();
     expect(screen.getByText("Live visual runtime triage")).toBeVisible();
+    const creativeStudiesDisclosure = screen.getByText(/Curated creative studies ·/).closest("details");
+    expect(creativeStudiesDisclosure).not.toHaveAttribute("open");
+    fireEvent.click(screen.getByText(/Curated creative studies ·/));
     expect(screen.getByLabelText("Curated creative studies")).toBeVisible();
     expect(screen.getByText("Published request, source, chunk, quality, and freshness signals for this run.")).toBeVisible();
 
@@ -128,6 +148,12 @@ describe("Product Intelligence surfaces", () => {
     expect(screen.getByRole("heading", { name: "User Guide" })).toBeVisible();
     expect(screen.getByRole("region", { name: "User Guide" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "Your first run" })).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "Your first run" }).closest("header")
+    ).toHaveClass("dashboardSectionHeader");
+    expect(
+      screen.getByText("A result has three separate truths").closest("aside")
+    ).toHaveClass("dashboardCallout");
     expect(screen.getByRole("heading", { name: "Every Dashboard page" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "Workflows and Demo Mode" })).toBeVisible();
     expect(screen.getAllByText("Knowledge Base").length).toBeGreaterThan(0);
@@ -305,6 +331,14 @@ describe("Product Intelligence surfaces", () => {
     );
 
     expect(screen.getByText("Headings")).toBeVisible();
+    expect(
+      screen.getByRole("heading", {
+        name: "Tune the workspace without changing your work"
+      }).closest("header")
+    ).toHaveClass("dashboardPageHero");
+    const appearanceHeading = screen.getByRole("heading", { name: "Theme and colour" });
+    expect(appearanceHeading.closest("header")).toHaveClass("dashboardSectionHeader");
+    expect(appearanceHeading.closest("article")).toHaveClass("dashboardVisualSection");
     expect(screen.getAllByText("Body text")).toHaveLength(2);
     expect(screen.getByText("Labels and controls")).toBeVisible();
     expect(screen.getByText("Code text")).toBeVisible();
@@ -316,13 +350,14 @@ describe("Product Intelligence surfaces", () => {
       "DarkLight"
     );
     expect(screen.getByRole("group", { name: "Generation defaults" })).toHaveTextContent(
-      /Workflow.*AI Providers.*OpenAI.*Creativity/
+      /Workflow.*AI provider.*OpenAI.*Creativity/
     );
-    expect(screen.getByRole("group", { name: "AI Providers" })).toHaveTextContent(
-      "OpenAI"
+    expect(screen.getByRole("group", { name: "AI provider" })).toHaveTextContent(
+      /OpenAI.*Configured server-side/
     );
-    fireEvent.click(screen.getByLabelText("Selected AI provider: OpenAI"));
-    expect(screen.getByText("Selected provider")).toBeVisible();
+    expect(screen.getByRole("group", { name: "Headings scale" })).toBeVisible();
+    expect(screen.getByRole("button", { name: /Display mode.*Developer/i }))
+      .toHaveAttribute("aria-pressed", "true");
 
     const largeChoices = screen.getAllByRole("button", { name: "large" });
     fireEvent.click(largeChoices[0]!);
@@ -346,6 +381,85 @@ describe("Product Intelligence surfaces", () => {
     expect(onPreferencesChange).toHaveBeenLastCalledWith({
       creativity: "exploratory"
     });
+  });
+
+  it("uses the User Guide visual system for Telemetry evidence", () => {
+    const model = buildModel();
+    model.details = {
+      telemetryDashboard: {
+        evaluation: {
+          state: "unavailable",
+          statusLabel: "No evaluation run"
+        },
+        observability: { state: "unavailable" },
+        preview: {
+          detail: "No preview evidence was published.",
+          error: null,
+          healthLabel: "Unavailable",
+          state: "unavailable"
+        },
+        provider: {
+          summary: {
+            costLabel: "Cost pending",
+            tokenLabel: "Usage pending"
+          }
+        },
+        runtime: {
+          activity: { label: "Partial", state: "partial" },
+          productOutcome: {
+            product_outcome: "PARTIAL",
+            recovery_action: "Open Code to use the artifact.",
+            summary: "A usable artifact was produced."
+          },
+          reachedNodes: 3,
+          retryCount: 0,
+          totalNodes: 4
+        },
+        signals: [
+          { detail: "Three nodes reached.", id: "workflow", label: "Workflow", tone: "warning", value: "Partial" },
+          { detail: "Renderer pending.", id: "preview", label: "Preview", tone: "warning", value: "Unavailable" },
+          { detail: "No chunks.", id: "retrieval", label: "Retrieval", tone: "good", value: "Ready" },
+          { detail: "No provider usage.", id: "provider", label: "Provider", tone: "warning", value: "Pending" }
+        ],
+        status: "degraded",
+        stream: {
+          errorCount: 0,
+          eventCount: 0,
+          latestEventLabel: "No stream events",
+          state: "idle"
+        },
+        summary: {
+          coverageLabel: "1/6 telemetry domains populated",
+          operatorStatus: "Degraded telemetry",
+          runtimeLabel: "Runtime timing pending"
+        }
+      }
+    } as unknown as NonNullable<ProductIntelligenceModel["details"]>;
+
+    render(
+      <ProductIntelligenceDashboard
+        activeCategory="Telemetry"
+        model={model}
+        onCategoryChange={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "One run, four evidence checkpoints" })
+        .closest("header")
+    ).toHaveClass("dashboardPageHero");
+    const observatoryHeading = screen.getByRole("heading", {
+      name: "Outcome and measurement facts"
+    });
+    expect(observatoryHeading.closest("section")).toHaveClass("dashboardVisualSection");
+    expect(screen.getByText("Published evidence only").closest("footer"))
+      .toHaveClass("dashboardCallout");
+    expect(
+      within(screen.getByLabelText("Run measurement facts"))
+        .getByText("Operator state")
+        .closest("div")
+    ).toHaveClass("dashboardInnerCard");
   });
 
   it("uses the same model for a compact Inspector category", () => {

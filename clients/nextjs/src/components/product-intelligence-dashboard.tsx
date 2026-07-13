@@ -3,12 +3,32 @@
 import { useEffect, useState } from "react";
 import {
   Activity,
+  AlertTriangle,
+  BookOpen,
+  Bot,
+  Boxes,
+  Brain,
   CircleHelp,
+  Database,
   Eye,
+  FileCode2,
   FileOutput,
+  Gauge,
+  GitBranch,
+  History,
+  LayoutDashboard,
+  MonitorPlay,
+  Network,
+  Palette,
+  PanelLeft,
   Radio,
+  Settings2,
   ShieldCheck,
-  X
+  Shapes,
+  SlidersHorizontal,
+  Type,
+  X,
+  type LucideIcon
 } from "lucide-react";
 import {
   DomainExperienceSurface,
@@ -46,6 +66,16 @@ import { CapstoneEvaluationWorkspace } from "./capstone-evaluation-workspace";
 import type { EvaluationRunRequest } from "@/lib/evaluation-benchmark";
 import { buildMultiPreviewComparisonModel } from "@/lib/multi-preview-comparison";
 import { PreviewRendererSurface } from "./preview-renderer-surface";
+import {
+  DashboardPage,
+  DashboardCallout,
+  DashboardCardGrid,
+  DashboardDisclosure,
+  DashboardInfoCard,
+  DashboardMetricGrid,
+  DashboardSection,
+  DashboardTableFrame
+} from "./dashboard-page-primitives";
 
 type DashboardFeedback = {
   artifactTitle: string;
@@ -112,123 +142,244 @@ type DashboardGroup = {
   label: string;
   detail: string;
   categories: ProductIntelligenceCategory[];
-  secondary?: boolean;
+  icon: LucideIcon;
+  navSection: "workspace" | "knowledge" | "review";
 };
+
+const dashboardNavigationSections = [
+  { id: "workspace", label: "Workspace flow" },
+  { id: "knowledge", label: "Knowledge & systems" },
+  { id: "review", label: "Review & configure" }
+] as const;
 
 const dashboardGroups: DashboardGroup[] = [
   {
     id: "overview",
     label: "Overview",
     detail: "Current workspace outcome and selected artifact.",
-    categories: ["Overview"]
+    categories: ["Overview"],
+    icon: LayoutDashboard,
+    navSection: "workspace"
   },
   {
     id: "architecture",
     label: "Architecture",
     detail: "How route selection maps to the published run topology.",
-    categories: ["Architecture"]
+    categories: ["Architecture"],
+    icon: Network,
+    navSection: "workspace"
   },
   {
     id: "workflow",
     label: "Workflow",
     detail: "Live progress, transitions, and recovery state.",
-    categories: ["Workflow"]
+    categories: ["Workflow"],
+    icon: GitBranch,
+    navSection: "workspace"
   },
   {
     id: "workspace",
     label: "Workspace",
     detail: "Generated source and the active creative document.",
-    categories: ["Code"]
+    categories: ["Code"],
+    icon: FileCode2,
+    navSection: "workspace"
   },
   {
     id: "runtime",
     label: "Runtime",
     detail: "Renderer health, diagnostics, and recovery state.",
-    categories: ["Runtime"]
+    categories: ["Runtime"],
+    icon: Activity,
+    navSection: "workspace"
   },
   {
     id: "preview",
     label: "Preview",
     detail: "Browser output, renderer route, and ready state.",
-    categories: ["Preview"]
+    categories: ["Preview"],
+    icon: MonitorPlay,
+    navSection: "workspace"
   },
   {
     id: "artifacts",
     label: "Artifacts",
     detail: "Every generated deliverable, source excerpt, and session.",
-    categories: ["Artifacts"]
+    categories: ["Artifacts"],
+    icon: Boxes,
+    navSection: "workspace"
   },
   {
     id: "domains",
     label: "Domains",
     detail: "What can run live, export source, or hand off externally.",
-    categories: ["Domains"]
+    categories: ["Domains"],
+    icon: Shapes,
+    navSection: "knowledge"
   },
   {
     id: "knowledge",
     label: "Knowledge Base",
     detail: "Official sources, index coverage, and freshness controls.",
-    categories: ["Knowledge Base", "Retrieval"]
+    categories: ["Knowledge Base", "Retrieval"],
+    icon: Database,
+    navSection: "knowledge"
   },
   {
     id: "ai_agents",
     label: "AI & agents",
     detail: "Provider route, model context, and agent responsibilities.",
-    categories: ["Agents", "Providers"]
+    categories: ["Agents", "Providers"],
+    icon: Bot,
+    navSection: "knowledge"
   },
   {
     id: "memory",
     label: "Memory",
     detail: "Published context counts and privacy-safe session history.",
-    categories: ["Memory"]
+    categories: ["Memory"],
+    icon: Brain,
+    navSection: "knowledge"
   },
   {
     id: "sessions",
     label: "Sessions",
     detail: "Manage saved creative sessions and their artifacts.",
-    categories: ["Sessions"]
+    categories: ["Sessions"],
+    icon: History,
+    navSection: "review"
   },
   {
     id: "telemetry",
     label: "Telemetry",
     detail: "Usage, token accounting, cost estimates, and runtime signals.",
-    categories: ["Telemetry", "Metrics"]
+    categories: ["Telemetry", "Metrics"],
+    icon: Radio,
+    navSection: "review"
   },
   {
     id: "evaluation",
     label: "Evaluation",
     detail: "Benchmark runs, defensible RAGAS evidence, and product validation.",
-    categories: ["Validation", "Product Bugs", "LangSmith"]
+    categories: ["Validation", "Product Bugs", "LangSmith"],
+    icon: Gauge,
+    navSection: "review"
   },
   {
     id: "manual",
     label: "User Guide",
     detail: "Canonical documentation for the complete product workflow.",
     categories: [],
-    secondary: true
+    icon: BookOpen,
+    navSection: "review"
   },
   {
     id: "settings",
     label: "Settings",
     detail: "Workspace display, density, focus, and provider configuration.",
     categories: ["Settings"],
-    secondary: true
+    icon: Settings2,
+    navSection: "review"
   }
 ];
 
-const dashboardGroupsWithSignalBoard = new Set<DashboardGroupId>([
-  "overview",
+const dashboardPageCopy: Record<DashboardGroupId, {
+  detail: string;
+  eyebrow: string;
+  title: string;
+}> = {
+  overview: {
+    eyebrow: "Workspace pulse",
+    title: "Read the current workspace in one glance",
+    detail: "Outcome, selected artifact, and the strongest published signals for the active creative session."
+  },
+  architecture: {
+    eyebrow: "Execution architecture",
+    title: "Trace route decisions to the real run topology",
+    detail: "Separate requested policy, resolved route, agent responsibilities, and published workflow nodes."
+  },
+  workflow: {
+    eyebrow: "Live orchestration",
+    title: "Follow every published execution step",
+    detail: "See progress, transitions, timing, retries, and recovery without inferring unpublished runtime state."
+  },
+  workspace: {
+    eyebrow: "Creative document",
+    title: "Inspect the active source and its delivery boundary",
+    detail: "Keep the retained artifact, its metadata, preview eligibility, and source excerpt in one focused view."
+  },
+  runtime: {
+    eyebrow: "Runtime health",
+    title: "Separate renderer evidence from generated source",
+    detail: "Inspect lifecycle, diagnostics, events, and recovery signals published by the current runtime."
+  },
+  preview: {
+    eyebrow: "Visible output",
+    title: "Know exactly what can render now",
+    detail: "Review artifact selection, renderer route, browser mount state, and health as separate readiness gates."
+  },
+  artifacts: {
+    eyebrow: "Saved deliverables",
+    title: "Review every retained artifact and handoff",
+    detail: "Compare visual output, source boundaries, status, session provenance, and available delivery actions."
+  },
+  domains: {
+    eyebrow: "Capability map",
+    title: "Match creative domains to truthful delivery routes",
+    detail: "Distinguish live browser runtimes from code, export, and external-tool handoffs."
+  },
+  knowledge: {
+    eyebrow: "Evidence foundation",
+    title: "Audit sources, retrieval, and creative knowledge",
+    detail: "Keep registered technical sources, inspectable creative guidance, and current-run retrieval evidence distinct."
+  },
+  ai_agents: {
+    eyebrow: "AI system",
+    title: "Inspect provider and agent responsibilities",
+    detail: "Review provider identity, model context, execution route, published roles, and observability boundaries."
+  },
+  memory: {
+    eyebrow: "Context boundary",
+    title: "Understand what the current run remembers",
+    detail: "Use privacy-safe counts and published context facts without exposing conversation text or private reasoning."
+  },
+  sessions: {
+    eyebrow: "Local workspaces",
+    title: "Manage saved creative sessions with confidence",
+    detail: "Open, rename, create, or remove browser-profile sessions and review their retained usage evidence."
+  },
+  telemetry: {
+    eyebrow: "Run telemetry",
+    title: "One run, four evidence checkpoints",
+    detail: "Connect stream, workflow, preview, and evaluation signals while unknown values remain visibly unavailable."
+  },
+  evaluation: {
+    eyebrow: "AI engineering lab",
+    title: "Measure each quality claim with defensible evidence",
+    detail: "Keep RAG, creative artifact, workflow, and product reliability criteria separate and reviewer-ready."
+  },
+  manual: {
+    eyebrow: "Canonical product documentation",
+    title: "From idea to inspected, previewed, and saved output",
+    detail: "Follow the five-step path first, then open focused reference cards only when deeper product detail is needed."
+  },
+  settings: {
+    eyebrow: "Workspace preferences",
+    title: "Tune the workspace without changing your work",
+    detail: "Choose the visual language, reading scale, workspace layout, and prompt defaults for this saved session."
+  }
+};
+
+const dashboardGroupsWithDedicatedSurface = new Set<DashboardGroupId>([
   "architecture",
+  "overview",
   "workflow",
   "workspace",
   "runtime",
   "preview",
-  "memory"
-]);
-
-const dashboardGroupsWithDedicatedSurface = new Set<DashboardGroupId>([
-  ...dashboardGroupsWithSignalBoard,
+  "domains",
   "ai_agents",
+  "memory",
   "artifacts",
   "telemetry"
 ]);
@@ -252,6 +403,12 @@ export function ProductIntelligenceDashboard({
   const primarySection = activeGroup.categories[0]
     ? getProductIntelligenceSection(model, activeGroup.categories[0])
     : null;
+  const activeStatusLabel = activeGroup.id === "sessions" && sessions
+    ? `${sessions.sessions.length} session${sessions.sessions.length === 1 ? "" : "s"}`
+    : getDashboardGroupStatus(activeGroup, model, primarySection);
+  const activeTone = activeGroup.id === "sessions" && sessions
+    ? "ready"
+    : getDashboardGroupTone(activeGroup, model, primarySection);
   const [evaluationRunning, setEvaluationRunning] = useState(false);
 
   async function runEvaluation(request: EvaluationRunRequest) {
@@ -282,28 +439,47 @@ export function ProductIntelligenceDashboard({
   return (
     <section aria-label="Advanced Dashboard" className="productDashboard">
       <nav aria-label="Dashboard categories" className="productDashboardNav">
-        <header>
-          <span>Advanced Dashboard</span>
-          <strong>Workspace intelligence</strong>
+        <header className="dashboardNavHeader">
+          <div aria-hidden="true" className="dashboardNavHeaderIcon">
+            <LayoutDashboard size={19} />
+          </div>
+          <div>
+            <span>Advanced Dashboard</span>
+            <strong>Workspace intelligence</strong>
+            <p>Create, inspect, and review the current workspace.</p>
+          </div>
         </header>
-        <div role="list">
-          {dashboardGroups.map((group) => {
-            const item = group.categories[0]
-              ? getProductIntelligenceSection(model, group.categories[0])
-              : null;
-            return (
-              <button
-                aria-current={group.id === activeGroup.id ? "page" : undefined}
-                className={group.secondary ? "productDashboardSecondary" : undefined}
-                data-tone={item?.tone ?? "empty"}
-                key={group.id}
-                onClick={() => selectGroup(group)}
-                type="button"
-              >
-                <span>{group.label}</span>
-              </button>
-            );
-          })}
+        <div className="dashboardNavSections">
+          {dashboardNavigationSections.map((navSection) => (
+            <section aria-labelledby={`dashboard-nav-${navSection.id}`} className="dashboardNavSection" key={navSection.id}>
+              <h2 id={`dashboard-nav-${navSection.id}`}>{navSection.label}</h2>
+              <ul>
+                {dashboardGroups.filter((group) => group.navSection === navSection.id).map((group) => {
+                  const item = group.categories[0]
+                    ? getProductIntelligenceSection(model, group.categories[0])
+                    : null;
+                  const GroupIcon = group.icon;
+                  return (
+                    <li key={group.id}>
+                      <button
+                        aria-current={group.id === activeGroup.id ? "page" : undefined}
+                        aria-label={group.label}
+                        data-tone={group.id === "sessions" && sessions
+                          ? "ready"
+                          : getDashboardGroupTone(group, model, item)}
+                        onClick={() => selectGroup(group)}
+                        type="button"
+                      >
+                        <span aria-hidden="true" className="dashboardNavItemIcon"><GroupIcon size={15} /></span>
+                        <span className="dashboardNavItemLabel">{group.label}</span>
+                        <span aria-hidden="true" className="dashboardNavItemStatus" />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ))}
         </div>
       </nav>
       <div className="productDashboardContent">
@@ -313,8 +489,8 @@ export function ProductIntelligenceDashboard({
             <h1>{activeGroup.label}</h1>
           </div>
           {primarySection ? <ProductIntelligenceHelp section={primarySection} /> : null}
-          <div className="productDashboardStatus" data-tone={primarySection?.tone ?? "empty"}>
-            {formatUiStatusLabel(primarySection?.summary ?? "Guide")}
+          <div className="productDashboardStatus" data-tone={activeTone}>
+            {activeStatusLabel}
           </div>
           <button
             aria-label="Close dashboard"
@@ -359,6 +535,44 @@ function DashboardGroupView({
   settings?: DashboardSettingsControls;
   sessions?: DashboardSessionControls;
 }) {
+  return (
+    <DashboardPage
+      hero={getDashboardPageHero(group, model, sessions)}
+      label={`${group.label} dashboard page`}
+    >
+      <DashboardGroupBody
+        evaluationHistory={evaluationHistory}
+        evaluationRunning={evaluationRunning}
+        feedback={feedback}
+        group={group}
+        model={model}
+        onRunEvaluation={onRunEvaluation}
+        sessions={sessions}
+        settings={settings}
+      />
+    </DashboardPage>
+  );
+}
+
+function DashboardGroupBody({
+  evaluationRunning,
+  group,
+  model,
+  onRunEvaluation,
+  evaluationHistory,
+  feedback,
+  settings,
+  sessions
+}: {
+  evaluationRunning: boolean;
+  group: DashboardGroup;
+  model: ProductIntelligenceModel;
+  onRunEvaluation?: (request: EvaluationRunRequest) => Promise<void>;
+  evaluationHistory: EvaluationHistoryRecord[];
+  feedback?: DashboardFeedback;
+  settings?: DashboardSettingsControls;
+  sessions?: DashboardSessionControls;
+}) {
   if (group.id === "manual") {
     return <UserGuide />;
   }
@@ -375,36 +589,18 @@ function DashboardGroupView({
     return (
       <div className="productDashboardGroup" aria-label="Evaluation details">
         <EvaluationDashboardSurface
+          categories={group.categories}
           evaluationHistory={evaluationHistory}
           evaluationRunning={evaluationRunning}
           model={model}
           onRunEvaluation={onRunEvaluation}
         />
-        <details className="dashboardFeature evaluationEvidenceDisclosure">
-          <summary>Supporting validation, Product Bug, and LangSmith signals</summary>
-          <p>These current-workspace signals remain separate from benchmark results.</p>
-          {group.categories.map((category) => {
-            const section = getProductIntelligenceSection(model, category);
-            return (
-              <section className="productDashboardGroupSection" key={category}>
-                <header>
-                  <div><span>{category}</span><strong>{formatUiStatusLabel(section.summary)}</strong><p>{section.detail}</p></div>
-                  <ProductIntelligenceHelp section={section} />
-                </header>
-                <ProductIntelligenceSectionView detailed model={model} section={section} />
-              </section>
-            );
-          })}
-        </details>
       </div>
     );
   }
 
   return (
     <div className="productDashboardGroup" aria-label={`${group.label} details`}>
-      {dashboardGroupsWithSignalBoard.has(group.id) ? (
-        <DashboardSignalBoard group={group} model={model} />
-      ) : null}
       {!dashboardGroupsWithDedicatedSurface.has(group.id) &&
       !(group.id === "sessions" && sessions) ? group.categories.map((category) => {
         const section = getProductIntelligenceSection(model, category);
@@ -423,10 +619,12 @@ function DashboardGroupView({
         );
       }) : null}
       {group.id === "architecture" ? <ArchitectureRouteGuide model={model} /> : null}
+      {group.id === "overview" ? <OverviewDashboardSurface model={model} /> : null}
       {group.id === "workflow" ? <WorkflowLiveMap model={model} /> : null}
       {group.id === "workspace" ? <ActiveDocumentBoard model={model} /> : null}
       {group.id === "runtime" ? <RuntimeDashboardSurface model={model} /> : null}
       {group.id === "preview" ? <PreviewReadinessBoard model={model} /> : null}
+      {group.id === "domains" ? <DomainsDashboardSurface model={model} /> : null}
       {group.id === "ai_agents" ? <AiAgentSystemMap model={model} /> : null}
       {group.id === "ai_agents" ? <ProviderDashboardSurface model={model} /> : null}
       {group.id === "memory" ? <MemoryDashboardSurface model={model} /> : null}
@@ -435,93 +633,233 @@ function DashboardGroupView({
       {group.id === "telemetry" ? <TelemetryObservatory model={model} /> : null}
       {group.id === "telemetry" && sessions ? <UserUsageOverview usage={sessions.usage} /> : null}
       {group.id === "ai_agents" && feedback ? (
-        <section className="productDashboardGroupSection productDashboardFeedback">
-          <header>
-            <div>
-              <span>Feedback</span>
-              <strong>Shape future creative requests</strong>
-              <p>Explicit feedback stays in this local workspace profile.</p>
-            </div>
-            <DashboardPanelHelp detail="Feedback records an explicit local response to the current artifact. It is not silently sent to an external provider." label="Output feedback" />
-          </header>
+        <DashboardSection
+          action={<DashboardPanelHelp detail="Feedback records an explicit local response to the current artifact. It is not silently sent to an external provider." label="Output feedback" />}
+          className="productDashboardFeedback"
+          detail="Mark the selected artifact helpful or in need of work; an optional note remains in this local workspace profile."
+          eyebrow="Explicit feedback"
+          icon={History}
+          label="Feedback workspace"
+          title="Shape future creative requests"
+        >
           <OutputFeedbackPanel
             artifactTitle={feedback.artifactTitle}
             onSubmit={feedback.onSubmit}
           />
-        </section>
+        </DashboardSection>
       ) : null}
     </div>
   );
 }
 
-function DashboardSignalBoard({
-  group,
-  model
-}: {
-  group: DashboardGroup;
-  model: ProductIntelligenceModel;
-}) {
-  const sections = group.categories.map((category) => getProductIntelligenceSection(model, category));
-  const primary = sections[0]!;
-  const metrics = sections.flatMap((section) => section.metrics.map((metric) => ({
-    ...metric,
-    category: section.category
-  })));
-  const evidence = sections.flatMap((section) => section.notes.map((note) => ({
-    category: section.category,
-    note
-  }))).slice(0, 3);
-  const signalMetrics = [
-    ...metrics,
-    { category: "Live board", label: "Published metrics", value: String(metrics.length) },
-    { category: "Live board", label: "Evidence cues", value: String(evidence.length) }
-  ].slice(0, 6);
+function getDashboardPageHero(
+  group: DashboardGroup,
+  model: ProductIntelligenceModel,
+  sessions?: DashboardSessionControls
+) {
+  const copy = dashboardPageCopy[group.id];
+  const primary = group.categories[0]
+    ? getProductIntelligenceSection(model, group.categories[0])
+    : null;
+  const status = group.id === "sessions" && sessions
+    ? `${sessions.sessions.length} session${sessions.sessions.length === 1 ? "" : "s"}`
+    : getDashboardGroupStatus(group, model, primary);
+  const scope = group.id === "manual"
+    ? "2-minute start"
+    : group.id === "settings"
+      ? "Immediately applied"
+      : group.id === "telemetry"
+        ? "Published values only"
+        : `${Math.max(group.categories.length, 1)} evidence ${group.categories.length === 1 ? "stream" : "streams"}`;
+  const boundary = group.id === "manual"
+    ? "Current product only"
+    : group.id === "settings"
+      ? "Artifact-safe"
+      : "Current workspace";
+
+  return {
+    badgeLabel: `${group.label} reading summary`,
+    badges: [status, scope, boundary],
+    className: `dashboardPageHero--${group.id}`,
+    detail: copy.detail,
+    eyebrow: copy.eyebrow,
+    icon: group.icon,
+    title: copy.title,
+    tone: group.id === "sessions" && sessions ? "ready" : getDashboardGroupTone(group, model, primary)
+  };
+}
+
+function getDashboardGroupStatus(
+  group: DashboardGroup,
+  model: ProductIntelligenceModel,
+  section: ProductIntelligenceSection | null
+) {
+  const details = model.details;
+  if (group.id === "manual") return "Complete reference";
+  if (group.id === "settings") return "Session scoped";
+  if (group.id === "overview" && details?.workflowRuntime) {
+    return formatUiStatusLabel(details.workflowRuntime.summary.productOutcome.product_outcome.toLowerCase());
+  }
+  if (group.id === "architecture") {
+    return details?.workflowExecution?.state === "available" ? "Published" : "Evidence pending";
+  }
+  if (group.id === "workflow" && details?.workflowRuntime) {
+    return formatUiStatusLabel(details.workflowRuntime.summary.activity.label);
+  }
+  if (group.id === "workspace") {
+    return getDashboardActiveArtifact(model) ? "Source ready" : "No source";
+  }
+  if (group.id === "runtime" && details?.runtimeConsole) return details.runtimeConsole.health.label;
+  if (group.id === "preview" && details?.telemetryDashboard?.preview) return details.telemetryDashboard.preview.healthLabel;
+  if (group.id === "artifacts") {
+    return `${model.artifactRegistry.length} artifact${model.artifactRegistry.length === 1 ? "" : "s"}`;
+  }
+  if (group.id === "domains") {
+    return model.domainExperience.state === "available"
+      ? `${model.domainExperience.domains.length} contracts`
+      : "Registry unavailable";
+  }
+  if (group.id === "ai_agents" && details?.workflowExecution) {
+    return details.workflowExecution.resolvedMode
+      ? `${formatRoute(details.workflowExecution.resolvedMode)} route`
+      : "Route pending";
+  }
+  if (group.id === "memory" && details?.conversationContext) {
+    return details.conversationContext.source === "stream" ? "Counts published" : "Evidence pending";
+  }
+  if (group.id === "telemetry" && details?.telemetryDashboard) return details.telemetryDashboard.summary.operatorStatus;
+  return formatDashboardStatus(section, "Current workspace");
+}
+
+function getDashboardGroupTone(
+  group: DashboardGroup,
+  model: ProductIntelligenceModel,
+  section: ProductIntelligenceSection | null
+) {
+  const details = model.details;
+  if (group.id === "manual" || group.id === "settings") return "ready";
+  if (group.id === "runtime" && details?.runtimeConsole) {
+    return details.runtimeConsole.health.signal === "healthy" ? "ready" : "attention";
+  }
+  if (group.id === "preview" && details?.telemetryDashboard?.preview) {
+    const preview = details.telemetryDashboard.preview;
+    const ready = preview.state === "ready" &&
+      preview.active &&
+      preview.available &&
+      !preview.error &&
+      !/(pending|unavailable|failed)/i.test(preview.healthLabel);
+    return ready ? "ready" : "attention";
+  }
+  if (group.id === "domains") {
+    return model.domainExperience.state === "available" ? "ready" : "attention";
+  }
+  if (group.id === "ai_agents" && details?.workflowExecution) {
+    return details.workflowExecution.resolvedMode ? "ready" : "attention";
+  }
+  if (group.id === "memory" && details?.conversationContext) {
+    return details.conversationContext.source === "stream" ? "ready" : "attention";
+  }
+  return section?.tone ?? "empty";
+}
+
+function formatDashboardStatus(
+  section: ProductIntelligenceSection | null,
+  fallback: string
+) {
+  if (!section) return fallback;
+  const summary = formatUiStatusLabel(section.summary);
+  if (summary.length <= 28) return summary;
+  return {
+    active: "Active",
+    attention: "Needs attention",
+    empty: "Evidence pending",
+    ready: "Ready"
+  }[section.tone];
+}
+
+function OverviewDashboardSurface({ model }: { model: ProductIntelligenceModel }) {
+  const section = getProductIntelligenceSection(model, "Overview");
+  const details = model.details;
+  const outcome = details?.workflowRuntime.summary.productOutcome;
+  const artifact = getDashboardActiveArtifact(model);
+  const preview = details?.telemetryDashboard.preview;
+  const runtime = details?.runtimeConsole.health;
+  const retrieval = details?.retrievalRuntime.summary;
+  const resolvedRoute = details?.workflowExecution.resolvedMode ?? null;
+  const requestedRoute = details?.workflowExecution.requestedMode ?? null;
+  const sectionMetric = (label: string) =>
+    section.metrics.find((metric) => metric.label === label)?.value ?? "Not published";
+  const outcomeLabel = outcome
+    ? formatUiStatusLabel(outcome.product_outcome.toLowerCase().replace(/_/g, " "))
+    : formatUiStatusLabel(section.summary);
+  const outcomeDetail = outcome?.summary ?? section.detail;
+  const recovery = outcome?.recovery_action ?? section.notes[0] ?? null;
+  const previewLabel = preview?.healthLabel ?? sectionMetric("Preview");
+  const previewDetail = preview?.detail ?? "Preview state has not been published for this workspace.";
+  const visiblePreviewConfirmed = Boolean(
+    preview?.available &&
+    !preview.error &&
+    preview.healthLabel.toLowerCase() !== "unavailable"
+  );
+  const runtimeLabel = runtime?.label ?? "Not published";
+  const runtimeDetail = runtime?.explanation ?? "Runtime health appears after a renderer publishes evidence.";
+  const artifactTitle = artifact?.title ?? sectionMetric("Artifact");
+  const artifactDetail = artifact
+    ? `${artifact.language} · ${artifact.status} · ${artifact.previewEligible ? "Preview eligible" : "Code or export only"}`
+    : "Generate an artifact to establish a retained source and delivery boundary.";
+  const needsAttention = section.tone === "attention" ||
+    (preview != null && !visiblePreviewConfirmed) ||
+    runtime?.signal === "degraded" ||
+    runtime?.signal === "failed";
 
   return (
-    <section
-      aria-label={`${group.label} live signal board`}
-      className="dashboardFeature dashboardSignalBoard"
-      data-tone={primary.tone}
-    >
-      <header>
-        <div>
-          <span>Live signal board</span>
-          <strong>{formatUiStatusLabel(primary.summary)}</strong>
-          <p>Current workspace evidence for {group.label.toLowerCase()}.</p>
-        </div>
+    <DashboardSection
+      action={(
         <DashboardPanelHelp
-          detail={`This board visualizes published ${group.label.toLowerCase()} state from the shared workspace model. It never infers private provider reasoning or unpublished runtime data.`}
-          label={`${group.label} live signal board`}
+          detail="This snapshot uses the published workflow outcome, selected artifact, Preview, Runtime, Retrieval, and route models. Conflicting or absent values stay explicit instead of being normalized into a generic success state."
+          label="Overview decision snapshot"
         />
-      </header>
-      <div className="dashboardSignalBoardGrid">
-        <article className="dashboardSignalLead" data-tone={primary.tone}>
-          <span>Current state</span>
-          <strong>{formatUiStatusLabel(primary.summary)}</strong>
-          <p>{primary.detail}</p>
-          <small>{primary.category} · {formatUiStatusLabel(primary.tone)}</small>
+      )}
+      className="overviewDecisionSurface"
+      detail="The few signals a reviewer needs before opening a deeper Dashboard page."
+      eyebrow="Decision snapshot"
+      icon={LayoutDashboard}
+      label="Overview decision snapshot"
+      title="Current result and readiness"
+      tone={section.tone}
+    >
+      <div className="overviewDecisionGrid">
+        <article className="dashboardInnerCard overviewOutcomeCard" data-tone={section.tone}>
+          <span>Current product outcome</span>
+          <strong>{outcomeLabel}</strong>
+          <p>{outcomeDetail}</p>
+          {recovery ? <small>{recovery}</small> : null}
         </article>
-        <dl aria-label={`${group.label} signal metrics`} className="dashboardSignalMetrics">
-          {signalMetrics.map((metric) => (
-            <div key={`${metric.category}-${metric.label}`}>
-              <dt>{metric.label}</dt>
-              <dd title={metric.value}>{metric.value}</dd>
-              <small>{metric.category}</small>
-            </div>
-          ))}
-        </dl>
+        <DashboardMetricGrid
+          label="Overview facts"
+          metrics={[
+            { label: "Execution route", value: formatRoute(resolvedRoute ?? requestedRoute), detail: resolvedRoute ? "Published resolved route" : requestedRoute ? "Requested policy; resolution pending" : "No route published" },
+            { label: "Artifacts", value: model.artifactRegistry.length, detail: model.session.title },
+            { label: "Preview", value: previewLabel, detail: visiblePreviewConfirmed ? "Visible output confirmed" : "No visible output confirmed" },
+            { label: "Runtime", value: runtimeLabel, detail: runtime?.signal ?? "Evidence pending" },
+            { label: "Retrieval", value: retrieval ? retrieval.sourceCount === 0 ? "Not used" : retrieval.status : "Not published", detail: retrieval ? `${retrieval.sourceCount} sources · ${retrieval.chunkCount} chunks` : "No run evidence" }
+          ]}
+        />
       </div>
-      {evidence.length > 0 ? (
-        <ul aria-label={`${group.label} evidence cues`} className="dashboardEvidenceCues">
-          {evidence.map((item) => (
-            <li key={`${item.category}-${item.note}`}>
-              <span>{item.category}</span>
-              <p>{item.note}</p>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </section>
+      <DashboardCardGrid label="Overview reviewer gates" layout="equal" role="list">
+        <DashboardInfoCard detail={artifactDetail} icon={FileCode2} role="listitem" title={artifactTitle} />
+        <DashboardInfoCard detail={previewDetail} icon={MonitorPlay} role="listitem" title={`Preview · ${previewLabel}`} tone={preview?.available ? "success" : "warning"} />
+        <DashboardInfoCard detail={runtimeDetail} icon={Activity} role="listitem" title={`Runtime · ${runtimeLabel}`} tone={runtime?.signal === "healthy" ? "success" : "warning"} />
+      </DashboardCardGrid>
+      <DashboardCallout
+        detail={needsAttention
+          ? "The source artifact can still be usable, but visible Preview and Runtime health must be confirmed independently before calling the result ready."
+          : "Artifact, Preview, and Runtime evidence are aligned for this workspace snapshot."}
+        icon={needsAttention ? AlertTriangle : ShieldCheck}
+        title={needsAttention ? "Readiness still needs one explicit check" : "Published readiness signals agree"}
+        tone={needsAttention ? "warning" : "success"}
+      />
+    </DashboardSection>
   );
 }
 
@@ -533,78 +871,80 @@ function ArchitectureRouteGuide({ model }: { model: ProductIntelligenceModel }) 
     {
       title: "Single agent",
       detail: "A focused orchestration contract for contained requests.",
+      icon: Bot,
       selected: executionPublished && execution.resolvedMode === "single_agent",
       selectionLabel: "Resolved route"
     },
     {
       title: "Multi-agent",
       detail: "A specialist coordination contract used when the published plan requires additional roles.",
+      icon: Network,
       selected: executionPublished && execution.resolvedMode === "multi_agent",
       selectionLabel: "Resolved route"
     },
     {
       title: "Auto",
       detail: "A routing policy that resolves to a published execution route; it is not a third hidden node sequence.",
+      icon: SlidersHorizontal,
       selected: executionPublished && execution.requestedMode === "auto",
       selectionLabel: "Requested policy"
     }
   ];
 
   return (
-    <section aria-label="Workflow route guide" className="dashboardFeature architectureRouteGuide">
-      <header>
-        <div>
-          <span>Route guide</span>
-          <strong>Selection policy and executed topology stay separate</strong>
-          <p>{executionPublished
-            ? `This run resolved to ${formatRoute(execution.resolvedMode)} from ${formatRoute(execution.requestedMode)}.`
-            : "Run a request to inspect its published route, roles, and workflow topology."}</p>
-        </div>
+    <DashboardSection
+      action={(
         <DashboardPanelHelp
-          detail="The three cards explain route-selection contracts only. The topology below comes from published workflow steps for the current run, so illustrative labels are never presented as executed nodes."
+          detail="Route cards describe selection contracts. Decision facts come from the published execution model, while the expandable topology comes from workflow runtime steps; one never substitutes for the other."
           label="Workflow route guide"
         />
-      </header>
-      <div className="architectureRouteGrid">
+      )}
+      className="architectureRouteGuide"
+      detail={executionPublished
+        ? `This run resolved to ${formatRoute(execution.resolvedMode)} from ${formatRoute(execution.requestedMode)}.`
+        : "The requested policy is visible, but a resolved execution route has not been published for this run."}
+      eyebrow="Route architecture"
+      icon={Network}
+      label="Workflow route guide"
+      title="Selection policy and executed topology stay separate"
+    >
+      <DashboardCardGrid className="architectureRouteGrid" layout="equal" role="list">
         {routes.map((route) => (
-          <article data-selected={route.selected ? "true" : "false"} key={route.title}>
-            <span>{route.selected ? route.selectionLabel : "Route contract"}</span>
-            <strong>{route.title}</strong>
-            <p>{route.detail}</p>
-          </article>
+          <DashboardInfoCard
+            detail={route.detail}
+            eyebrow={route.selected ? route.selectionLabel : "Route contract"}
+            icon={route.icon}
+            key={route.title}
+            role="listitem"
+            selected={route.selected}
+            title={route.title}
+            tone={route.selected ? "success" : undefined}
+          />
         ))}
-      </div>
-      <div className="architectureExecutionFacts" aria-label="Published execution decision">
-        <div>
-          <span>Requested route</span>
-          <strong>{formatRoute(execution?.requestedMode)}</strong>
-        </div>
-        <div>
-          <span>Resolved route</span>
-          <strong>{execution?.resolvedMode ? formatRoute(execution.resolvedMode) : "Not published"}</strong>
-        </div>
-        <div>
-          <span>Research</span>
-          <strong>{execution?.researcherRequired == null ? "Not published" : execution.researcherRequired ? "Required" : "Skipped"}</strong>
-        </div>
-        <div>
-          <span>Refinement limit</span>
-          <strong>{execution?.maxRefinementLoops == null ? "Not published" : execution.maxRefinementLoops}</strong>
-        </div>
-      </div>
+      </DashboardCardGrid>
+      <DashboardMetricGrid
+        className="architectureExecutionFacts"
+        label="Published execution decision"
+        metrics={[
+          { label: "Requested policy", value: formatRoute(execution?.requestedMode), detail: "Input routing policy" },
+          { label: "Resolved route", value: execution?.resolvedMode ? formatRoute(execution.resolvedMode) : "Not published", detail: "Executed orchestration path" },
+          { label: "Research", value: execution?.researcherRequired == null ? "Not published" : execution.researcherRequired ? "Required" : "Skipped", detail: execution?.researcherReason ?? "No decision evidence" },
+          { label: "Refinement limit", value: execution?.maxRefinementLoops == null ? "Not published" : execution.maxRefinementLoops, detail: "Published maximum loops" }
+        ]}
+      />
       {execution?.agentRoles.length ? (
         <div className="architectureRoleRail" aria-label="Published agent responsibilities">
           <span>Published responsibilities</span>
           {execution.agentRoles.map((role) => <strong key={role}>{role}</strong>)}
         </div>
       ) : null}
-      <div className="architectureTopology" aria-label="Published workflow topology">
-        <header>
-          <span>Current run topology</span>
-          <strong>{runtime?.steps.length
-            ? `${runtime.steps.length} published workflow node${runtime.steps.length === 1 ? "" : "s"}`
-            : "No workflow topology published"}</strong>
-        </header>
+      <DashboardDisclosure
+        className="architectureTopologyDisclosure"
+        summary={runtime?.steps.length
+          ? `Current run topology · ${runtime.steps.length} published workflow node${runtime.steps.length === 1 ? "" : "s"}`
+          : "Current run topology · no workflow nodes published"}
+      >
+        <div className="architectureTopology" aria-label="Published workflow topology">
         {runtime?.steps.length ? (
           <ol>
             {runtime.steps.map((step, index) => (
@@ -621,51 +961,88 @@ function ArchitectureRouteGuide({ model }: { model: ProductIntelligenceModel }) 
         ) : (
           <p>The Dashboard will draw the real nodes after the runtime publishes a plan. No illustrative sequence is substituted.</p>
         )}
-      </div>
-    </section>
+        </div>
+      </DashboardDisclosure>
+      <DashboardCallout
+        detail={executionPublished
+          ? "The selected route is backed by published execution evidence; expand the topology only when node-level review is needed."
+          : "Runtime nodes may exist even when the execution decision is unavailable. They describe observed workflow shape, not a resolved route claim."}
+        icon={ShieldCheck}
+        title={executionPublished ? "Architecture evidence is linked" : "Policy and topology remain separate"}
+      />
+    </DashboardSection>
   );
 }
 
 function KnowledgeDashboardView({ model }: { model: ProductIntelligenceModel }) {
   const knowledge = getProductIntelligenceSection(model, "Knowledge Base");
   const retrieval = getProductIntelligenceSection(model, "Retrieval");
+  const inventory = model.domainExperience.knowledgeBase;
+  const retrievalRuntime = model.details?.retrievalRuntime;
 
   return (
     <div className="productDashboardGroup knowledgeDashboardView" aria-label="Knowledge details">
-      <section className="productDashboardGroupSection">
-        <header>
-          <div>
-            <span>Technical knowledge</span>
-            <strong>{formatUiStatusLabel(knowledge.summary)}</strong>
-            <p>{knowledge.detail}</p>
-          </div>
-          <ProductIntelligenceHelp section={knowledge} />
-        </header>
+      <DashboardSection
+        action={<ProductIntelligenceHelp section={knowledge} />}
+        className="technicalKnowledgeSurface"
+        detail={knowledge.detail}
+        eyebrow="Technical knowledge"
+        icon={Database}
+        label="Technical Knowledge Base"
+        title={inventory.status === "available"
+          ? `${inventory.indexedSourceCount} of ${inventory.registeredSourceCount} official sources indexed`
+          : formatUiStatusLabel(knowledge.summary)}
+        tone={knowledge.tone}
+      >
         <KnowledgeBaseInventorySurface
           detailed
           headerMode="embedded"
-          inventory={model.domainExperience.knowledgeBase}
+          inventory={inventory}
+          progressive
         />
-      </section>
+        <DashboardCallout
+          detail="Persistent registry coverage and the references used by the current request are separate evidence streams. An indexed source is not proof that this run retrieved it."
+          icon={ShieldCheck}
+          title="Index inventory is not run retrieval"
+        />
+      </DashboardSection>
       <CreativeKnowledgePanel model={model} />
-      <section className="productDashboardGroupSection">
-        <header>
-          <div>
-            <span>Retrieval</span>
-            <strong>{formatUiStatusLabel(retrieval.summary)}</strong>
-            <p>Published request, source, chunk, quality, and freshness signals for this run.</p>
-          </div>
-          <ProductIntelligenceHelp section={retrieval} />
-        </header>
-        {model.details ? (
-          <RetrievalInspector
-            inventory={model.domainExperience.knowledgeBase}
-            runtime={model.details.retrievalRuntime}
-          />
-        ) : (
-          <ProductIntelligenceSectionView detailed model={model} section={retrieval} />
-        )}
-      </section>
+      <DashboardSection
+        action={<ProductIntelligenceHelp section={retrieval} />}
+        className="knowledgeRetrievalSurface"
+        detail="Published request, source, chunk, quality, and freshness signals for this run."
+        eyebrow="Current-run retrieval"
+        icon={Gauge}
+        label="Current-run retrieval"
+        title={retrievalRuntime
+          ? retrievalRuntime.summary.sourceCount
+            ? `${retrievalRuntime.summary.sourceCount} retrieved source${retrievalRuntime.summary.sourceCount === 1 ? "" : "s"} for this run`
+            : "No retrieval used for this run"
+          : formatUiStatusLabel(retrieval.summary)}
+        tone={retrieval.tone}
+      >
+        <DashboardMetricGrid
+          label="Current-run retrieval facts"
+          metrics={[
+            { label: "Sources", value: retrievalRuntime?.summary.sourceCount ?? "Not published", detail: "References returned" },
+            { label: "Chunks", value: retrievalRuntime?.summary.chunkCount ?? "Not published", detail: "Passages returned" },
+            { label: "Context used", value: retrievalRuntime?.summary.usedChunkLabel ?? "Not published", detail: "Generation grounding" },
+            { label: "Quality", value: retrievalRuntime?.summary.qualityLabel ?? "Not published", detail: "Published score band" },
+            { label: "Freshness", value: retrievalRuntime?.summary.freshnessLabel ?? "Not published", detail: "Run evidence only" }
+          ]}
+        />
+        <DashboardCallout
+          detail={retrievalRuntime?.summary.detail ?? retrieval.detail}
+          icon={retrievalRuntime?.summary.sourceCount ? ShieldCheck : AlertTriangle}
+          title={retrievalRuntime?.summary.headline ?? formatUiStatusLabel(retrieval.summary)}
+          tone={retrievalRuntime?.summary.sourceCount ? "success" : "warning"}
+        />
+        {retrievalRuntime ? (
+          <DashboardDisclosure summary="Open current-run retrieval evidence">
+            <RetrievalInspector inventory={inventory} runtime={retrievalRuntime} />
+          </DashboardDisclosure>
+        ) : null}
+      </DashboardSection>
     </div>
   );
 }
@@ -694,32 +1071,33 @@ function CreativeKnowledgePanel({ model }: { model: ProductIntelligenceModel }) 
     { label: "Workflows", value: inventory.records.filter((record) => record.kind === "workflow").length },
     { label: "Best practices", value: inventory.records.filter((record) => record.kind === "best_practice").length }
   ];
+  const featuredRecords = selectedKind === "all" ? visibleRecords.slice(0, 3) : visibleRecords;
+  const remainingRecords = selectedKind === "all" ? visibleRecords.slice(3) : [];
 
   return (
-    <section aria-label="Creative Knowledge Base" className="dashboardFeature creativeKnowledgeBase">
-      <header>
-        <div>
-          <span>Creative Knowledge Base</span>
-          <strong>{inventory.status === "available" ? "Explicit techniques, workflows, patterns, and practical safeguards" : "Curated creative studies are available while the local inventory loads"}</strong>
-          <p>Inspectable guidance only: source-backed patterns and browser boundaries, never hidden provider reasoning.</p>
-        </div>
+    <DashboardSection
+      action={(
         <DashboardPanelHelp
           detail="Creative Knowledge Base exposes deterministic records from the existing creative-distillation architecture, plus the product's curated studies. It is separate from Technical Knowledge and contains no private prompt, memory, or model chain-of-thought."
           label="Creative Knowledge Base"
         />
-      </header>
-      <div aria-label="Creative Knowledge Base summary" className="creativeKnowledgeMetrics">
-        {inventoryMetrics.map((metric) => (
-          <div key={metric.label}>
-            <span>{metric.label}</span>
-            <strong>{metric.value}</strong>
-          </div>
-        ))}
-        <div>
-          <span>Boundary</span>
-          <strong>{inventory.status === "available" ? "Inspectable" : "Loading"}</strong>
-        </div>
-      </div>
+      )}
+      className="creativeKnowledgeBase"
+      detail="Source-backed techniques, workflows, patterns, and browser boundaries—never hidden provider reasoning."
+      eyebrow="Creative Knowledge Base"
+      icon={Brain}
+      label="Creative Knowledge Base"
+      title={inventory.status === "available" ? `${inventory.recordCount} inspectable creative guidance records` : "Curated creative studies remain available"}
+      tone={inventory.status === "available" ? "ready" : "attention"}
+    >
+      <DashboardMetricGrid
+        className="creativeKnowledgeMetrics"
+        label="Creative Knowledge Base summary"
+        metrics={[
+          ...inventoryMetrics.map((metric) => ({ ...metric, detail: "Published record count" })),
+          { label: "Boundary", value: inventory.status === "available" ? "Inspectable" : "Loading", detail: "No private reasoning" }
+        ]}
+      />
       {inventory.records.length ? (
         <>
           <div aria-label="Creative Knowledge filters" className="creativeKnowledgeFilters" role="group">
@@ -730,76 +1108,101 @@ function CreativeKnowledgePanel({ model }: { model: ProductIntelligenceModel }) 
               </button>
             ))}
           </div>
-          <div aria-label="Creative knowledge records" className="creativeKnowledgeRecordGrid" role="list">
-            {visibleRecords.map((record) => (
-              <article data-kind={record.kind} key={record.id} role="listitem">
-                <header>
-                  <span>{formatCreativeKnowledgeKind(record.kind)}</span>
-                  <strong>{record.title}</strong>
-                </header>
-                <p>{record.summary}</p>
-                <div className="creativeKnowledgeDomainChips" aria-label={`${record.title} domains`}>
-                  {record.domains.map((domain) => <span key={domain}>{formatCreativeDomain(model, domain)}</span>)}
-                </div>
-                <dl>
-                  <div><dt>Confidence</dt><dd>{Math.round(record.confidence.score * 100)}% · {record.confidence.band}</dd></div>
-                  <div><dt>Provenance</dt><dd>{record.provenanceCount} record{record.provenanceCount === 1 ? "" : "s"}</dd></div>
-                </dl>
-                {record.techniqueTags.length || record.patternTags.length ? (
-                  <div className="creativeKnowledgeTagRow">
-                    {[...record.techniqueTags, ...record.patternTags].slice(0, 5).map((tag) => <span key={tag}>{formatCreativeTag(tag)}</span>)}
-                  </div>
-                ) : null}
-                {record.workflowSteps.length ? (
-                  <ol aria-label={`${record.title} workflow`}>
-                    {record.workflowSteps.slice(0, 3).map((step, index) => <li key={step}><span>{index + 1}</span>{step}</li>)}
-                  </ol>
-                ) : null}
-              </article>
-            ))}
-          </div>
+          <DashboardCardGrid className="creativeKnowledgeRecordGrid" label="Featured creative knowledge records" role="list">
+            {featuredRecords.map((record) => <CreativeKnowledgeCard key={record.id} model={model} record={record} />)}
+          </DashboardCardGrid>
+          {remainingRecords.length ? (
+            <DashboardDisclosure summary={`${remainingRecords.length} more creative knowledge records`}>
+              <DashboardCardGrid className="creativeKnowledgeRecordGrid creativeKnowledgeRecordGrid--more" label="Additional creative knowledge records" role="list">
+                {remainingRecords.map((record) => <CreativeKnowledgeCard key={record.id} model={model} record={record} />)}
+              </DashboardCardGrid>
+            </DashboardDisclosure>
+          ) : null}
         </>
       ) : null}
-      <section aria-label="Curated creative studies" className="creativeStudyShelf">
-        <header>
-          <div>
-            <span>Curated creative studies</span>
-            <strong>Browser-aware pattern starters</strong>
-          </div>
-          <DashboardPanelHelp
-            detail="These are existing curated prompt-library studies. They are deterministic starter briefs and honest runtime boundaries, not a claim of a new generative or semantic system."
-            label="Curated creative studies"
-          />
-        </header>
-        <div role="list">
-          {morphogenesisPromptLibrary.map((study) => (
-            <article key={study.id} role="listitem">
-              <div>
-                <strong>{study.title}</strong>
-                <span>{study.concept}</span>
-              </div>
-              <p>{study.description}</p>
-              <dl>
-                <div><dt>Runtime</dt><dd>{study.runtime}</dd></div>
-                <div><dt>Boundary</dt><dd>{study.previewBoundary}</dd></div>
-              </dl>
-            </article>
-          ))}
-        </div>
-      </section>
-      {artifactGroups.length ? (
-        <section aria-label="Selected artifact creative direction" className="artifactCreativeDirection">
+      <DashboardDisclosure summary={`Curated creative studies · ${morphogenesisPromptLibrary.length} browser-aware starters`}>
+        <section aria-label="Curated creative studies" className="creativeStudyShelf">
           <header>
-            <div><span>Selected artifact direction</span><strong>Published with the current artifact</strong></div>
-            <DashboardPanelHelp detail="These fields are structured creative metadata retained with the selected artifact. They are useful for follow-up refinement but do not replace the persistent Creative Knowledge Base." label="Selected artifact direction" />
+            <div>
+              <span>Curated creative studies</span>
+              <strong>Deterministic starter briefs with honest runtime boundaries</strong>
+            </div>
+            <DashboardPanelHelp
+              detail="These are existing curated prompt-library studies. They are deterministic starter briefs and honest runtime boundaries, not a claim of a new generative or semantic system."
+              label="Curated creative studies"
+            />
           </header>
-          <ul>
-            {artifactGroups.map((group) => <li key={group.label}><strong>{group.label}</strong><span>{group.values.slice(0, 4).join(" · ")}</span></li>)}
-          </ul>
+          <DashboardCardGrid className="creativeStudyGrid" label="Curated study cards" role="list">
+            {morphogenesisPromptLibrary.map((study) => (
+              <article className="dashboardInnerCard" key={study.id} role="listitem">
+                <div>
+                  <strong>{study.title}</strong>
+                  <span>{study.concept}</span>
+                </div>
+                <p>{study.description}</p>
+                <dl>
+                  <div><dt>Runtime</dt><dd>{study.runtime}</dd></div>
+                  <div><dt>Boundary</dt><dd>{study.previewBoundary}</dd></div>
+                </dl>
+              </article>
+            ))}
+          </DashboardCardGrid>
         </section>
+      </DashboardDisclosure>
+      {artifactGroups.length ? (
+        <DashboardDisclosure summary="Selected artifact creative direction">
+          <section aria-label="Selected artifact creative direction" className="artifactCreativeDirection">
+            <header>
+              <div><span>Selected artifact direction</span><strong>Published with the current artifact</strong></div>
+              <DashboardPanelHelp detail="These fields are structured creative metadata retained with the selected artifact. They are useful for follow-up refinement but do not replace the persistent Creative Knowledge Base." label="Selected artifact direction" />
+            </header>
+            <ul>
+              {artifactGroups.map((group) => <li key={group.label}><strong>{group.label}</strong><span>{group.values.slice(0, 4).join(" · ")}</span></li>)}
+            </ul>
+          </section>
+        </DashboardDisclosure>
       ) : null}
-      <footer className="creativeKnowledgeBoundary">{inventory.authorityBoundary}</footer>
-    </section>
+      <DashboardCallout
+        detail="Records are typed, local, and source-backed. This view does not fetch or write the index, change provider or workflow routing, or expose private reasoning."
+        icon={ShieldCheck}
+        title="Inspectable knowledge only"
+      />
+    </DashboardSection>
+  );
+}
+
+function CreativeKnowledgeCard({
+  model,
+  record
+}: {
+  model: ProductIntelligenceModel;
+  record: ProductIntelligenceModel["domainExperience"]["creativeKnowledge"]["records"][number];
+}) {
+  return (
+    <article className="dashboardInnerCard" data-kind={record.kind} role="listitem">
+      <header>
+        <span>{formatCreativeKnowledgeKind(record.kind)}</span>
+        <strong>{record.title}</strong>
+      </header>
+      <p>{record.summary}</p>
+      <div className="creativeKnowledgeDomainChips" aria-label={`${record.title} domains`}>
+        {record.domains.map((domain) => <span key={domain}>{formatCreativeDomain(model, domain)}</span>)}
+      </div>
+      <dl>
+        <div><dt>Confidence</dt><dd>{Math.round(record.confidence.score * 100)}% · {record.confidence.band}</dd></div>
+        <div><dt>Provenance</dt><dd>{record.provenanceCount} record{record.provenanceCount === 1 ? "" : "s"}</dd></div>
+      </dl>
+      {record.techniqueTags.length || record.patternTags.length ? (
+        <div className="creativeKnowledgeTagRow">
+          {[...record.techniqueTags, ...record.patternTags].slice(0, 5).map((tag) => <span key={tag}>{formatCreativeTag(tag)}</span>)}
+        </div>
+      ) : null}
+      {record.workflowSteps.length ? (
+        <ol aria-label={`${record.title} workflow`}>
+          {record.workflowSteps.slice(0, 3).map((step, index) => <li key={step}><span>{index + 1}</span>{step}</li>)}
+        </ol>
+      ) : null}
+    </article>
   );
 }
 
@@ -823,62 +1226,90 @@ function WorkflowLiveMap({ model }: { model: ProductIntelligenceModel }) {
   }
 
   const visibleSteps = runtime.steps.filter((step) => step.state !== "queued");
-  const steps = (visibleSteps.length ? visibleSteps : runtime.steps).slice(0, 12);
+  const steps = visibleSteps.length ? visibleSteps : runtime.steps;
+  const progressSteps = steps.filter((step) => step.state !== "branch");
+  const focusedSteps = progressSteps.length <= 8
+    ? progressSteps
+    : [...progressSteps.slice(0, 3), ...progressSteps.slice(-5)];
+  const hiddenStepCount = steps.length - focusedSteps.length;
   const transitions = runtime.transitions.slice(-6);
+  const needsAttention = ["partial", "failed"].includes(runtime.summary.activity.state);
+
+  const renderSteps = (items: typeof steps) => items.map((step) => (
+    <li data-state={step.state} key={step.nodeId}>
+      <span aria-hidden="true" />
+      <div>
+        <strong>{step.displayLabel}</strong>
+        <p>{step.lastEventDetail ?? step.detail}</p>
+      </div>
+      <small>{step.durationMs == null ? formatUiStatusLabel(step.state) : formatDashboardDuration(step.durationMs)}</small>
+    </li>
+  ));
 
   return (
-    <section aria-label="Live workflow map" className="dashboardFeature workflowLiveMap" data-state={runtime.summary.activity.state}>
-      <header>
-        <div>
-          <span>Execution path</span>
-          <strong>{formatUiStatusLabel(runtime.summary.activity.label)}</strong>
-          <p>{runtime.summary.activity.detail}</p>
-        </div>
+    <DashboardSection
+      action={(
         <DashboardPanelHelp
-          detail="This map follows workflow events published by the current run. Nodes and timings appear only after the runtime emitted them; queued nodes are not shown as completed work."
+          detail="This path uses workflow events published by the current run. The default view keeps the opening context and latest nodes visible; the complete ordered path remains expandable without presenting queued work as completed."
           label="Live workflow map"
         />
-      </header>
-      <div className="workflowLiveSummary">
-        <div>
-          <span>Route</span>
-          <strong>
-            {execution
-              ? formatWorkflowGraphRoute({
-                  execution,
-                  requestedMode: execution.requestedMode
-                })
-              : "Not published"}
-          </strong>
-        </div>
-        <div><span>Reached</span><strong>{runtime.summary.reached}/{runtime.summary.total}</strong></div>
-        <div><span>Runtime</span><strong>{formatDashboardDuration(runtime.summary.totalRuntimeMs)}</strong></div>
-        <div><span>Retries</span><strong>{runtime.summary.retryCount}</strong></div>
-      </div>
-      <ol className="workflowLivePath" aria-label="Published workflow nodes">
-        {steps.map((step) => (
-          <li data-state={step.state} key={step.nodeId}>
-            <span aria-hidden="true" />
-            <div>
-              <strong>{step.displayLabel}</strong>
-              <p>{step.lastEventDetail ?? step.detail}</p>
-            </div>
-            <small>{step.durationMs == null ? formatUiStatusLabel(step.state) : formatDashboardDuration(step.durationMs)}</small>
-          </li>
-        ))}
+      )}
+      className="workflowLiveMap"
+      detail={runtime.summary.activity.detail}
+      eyebrow="Execution path"
+      icon={GitBranch}
+      label="Live workflow map"
+      state={runtime.summary.activity.state}
+      title={formatUiStatusLabel(runtime.summary.activity.label)}
+    >
+      <DashboardMetricGrid
+        className="workflowLiveSummary"
+        label="Workflow run facts"
+        metrics={[
+          {
+            label: "Route",
+            value: execution
+              ? formatWorkflowGraphRoute({ execution, requestedMode: execution.requestedMode })
+              : "Not published",
+            detail: execution?.resolvedMode ? "Resolved execution route" : "Resolution pending"
+          },
+          { label: "Reached", value: `${runtime.summary.reached}/${runtime.summary.total}`, detail: "Published nodes" },
+          { label: "Runtime", value: formatDashboardDuration(runtime.summary.totalRuntimeMs), detail: "Published total" },
+          { label: "Retries", value: runtime.summary.retryCount, detail: "Reported attempts" }
+        ]}
+      />
+      <ol className="workflowLivePath" aria-label="Focused workflow path">
+        {renderSteps(focusedSteps)}
       </ol>
-      {transitions.length ? (
-        <ul aria-label="Recent workflow transitions" className="workflowTransitionRail">
-          {transitions.map((transition) => (
-            <li key={`${transition.sequence}-${transition.fromNodeId}-${transition.toNodeId}`} data-kind={transition.kind}>
-              <span>{transition.label}</span>
-              <strong>{transition.fromNodeId} → {transition.toNodeId}</strong>
-              {transition.reason ? <small>{transition.reason}</small> : null}
-            </li>
-          ))}
-        </ul>
+      {hiddenStepCount > 0 ? (
+        <DashboardDisclosure summary={`Complete workflow path · ${steps.length} published nodes`}>
+          <ol className="workflowLivePath workflowLivePath--all" aria-label="All published workflow nodes">
+            {renderSteps(steps)}
+          </ol>
+        </DashboardDisclosure>
       ) : null}
-    </section>
+      {transitions.length ? (
+        <DashboardDisclosure summary={`Recent transitions · ${transitions.length}`}>
+          <ul aria-label="Recent workflow transitions" className="workflowTransitionRail">
+            {transitions.map((transition) => (
+              <li key={`${transition.sequence}-${transition.fromNodeId}-${transition.toNodeId}`} data-kind={transition.kind}>
+                <span>{transition.label}</span>
+                <strong>{transition.fromNodeId} → {transition.toNodeId}</strong>
+                {transition.reason ? <small>{transition.reason}</small> : null}
+              </li>
+            ))}
+          </ul>
+        </DashboardDisclosure>
+      ) : null}
+      <DashboardCallout
+        detail={needsAttention
+          ? "The workflow reached a terminal product state, but downstream Preview or Runtime readiness still needs review. Workflow completion alone is not visual readiness."
+          : "The published path, route, and retry evidence are aligned for this run."}
+        icon={needsAttention ? AlertTriangle : ShieldCheck}
+        title={needsAttention ? "Execution and product readiness differ" : "Workflow evidence is aligned"}
+        tone={needsAttention ? "warning" : "success"}
+      />
+    </DashboardSection>
   );
 }
 
@@ -889,38 +1320,65 @@ function AiAgentSystemMap({ model }: { model: ProductIntelligenceModel }) {
   }
   const { conversationContext, providerTelemetry, workflowExecution } = details;
   const roles = workflowExecution.agentRoles;
+  const resolvedRoute = workflowExecution.resolvedMode ?? null;
 
   return (
-    <section aria-label="AI and agent system map" className="dashboardFeature aiAgentSystemMap">
-      <header>
-        <div>
-          <span>AI system map</span>
-          <strong>{providerTelemetry.summary.providerLabel} · {providerTelemetry.summary.modelLabel}</strong>
-          <p>Provider, execution route, and published context counts remain separate so each boundary is easy to inspect.</p>
-        </div>
+    <DashboardSection
+      action={(
         <DashboardPanelHelp
           detail="This panel reports the provider identity and telemetry emitted for the run, the selected execution route, and context counts. It deliberately does not display prompts, private memory, or model chain-of-thought."
           label="AI system map"
         />
-      </header>
-      <div className="aiAgentRoute" aria-label="Execution and provider route">
-        <article><span>Provider</span><strong>{providerTelemetry.summary.providerLabel}</strong><p>{providerTelemetry.summary.generationModeLabel}</p></article>
-        <article><span>Model</span><strong>{providerTelemetry.summary.modelLabel}</strong><p>{providerTelemetry.summary.streamingStatusLabel}</p></article>
-        <article><span>Route</span><strong>{formatRoute(workflowExecution.resolvedMode ?? workflowExecution.requestedMode)}</strong><p>{workflowExecution.rationale}</p></article>
-      </div>
-      <div className="aiAgentSplit">
-        <section>
-          <header><span>Responsibilities</span><strong>{roles.length ? `${roles.length} published role${roles.length === 1 ? "" : "s"}` : "No role list published"}</strong></header>
-          {roles.length ? <div className="aiAgentRoleChips">{roles.map((role) => <span key={role}>{role}</span>)}</div> : <p>Run a request to inspect the responsibilities selected for that route.</p>}
-        </section>
-        <section>
-          <header><span>Context boundary</span><strong>{conversationContext.source === "stream" ? "Published context counts" : "No context counts published"}</strong></header>
-          <dl>
-            {conversationContext.diagnostics.slice(0, 4).map((diagnostic) => <div key={diagnostic.id}><dt>{diagnostic.label}</dt><dd>{diagnostic.value}</dd></div>)}
-          </dl>
-        </section>
-      </div>
-    </section>
+      )}
+      className="aiAgentSystemMap"
+      detail="Provider identity, route policy, agent responsibilities, and privacy-safe context counts remain separate evidence."
+      eyebrow="AI system map"
+      icon={Bot}
+      label="AI and agent system map"
+      title={resolvedRoute ? `${formatRoute(resolvedRoute)} route published` : "Agent route evidence is pending"}
+      tone={resolvedRoute ? "ready" : "attention"}
+    >
+      <DashboardMetricGrid
+        label="Execution and provider route"
+        metrics={[
+          { label: "Provider", value: providerTelemetry.summary.providerLabel, detail: providerTelemetry.summary.generationModeLabel },
+          { label: "Model", value: providerTelemetry.summary.modelLabel, detail: providerTelemetry.summary.streamingStatusLabel },
+          { label: "Route", value: formatRoute(resolvedRoute ?? workflowExecution.requestedMode), detail: resolvedRoute ? "Resolved execution route" : "Requested policy only" }
+        ]}
+      />
+      <DashboardCardGrid className="aiAgentEvidenceGrid" label="Agent responsibility and context evidence" role="list">
+        <DashboardInfoCard
+          detail={roles.length ? "Responsibilities published for the resolved route." : "Run a request to publish the responsibilities selected for a resolved route."}
+          eyebrow="Responsibilities"
+          icon={Bot}
+          role="listitem"
+          title={roles.length ? `${roles.length} published role${roles.length === 1 ? "" : "s"}` : "No role list published"}
+        >
+          {roles.length ? <div className="aiAgentRoleChips">{roles.map((role) => <span key={role}>{role}</span>)}</div> : null}
+        </DashboardInfoCard>
+        <DashboardInfoCard
+          detail="Only counts and injection states are exposed; conversation text and private memory remain outside this view."
+          eyebrow="Context boundary"
+          icon={ShieldCheck}
+          role="listitem"
+          title={conversationContext.source === "stream" ? "Published context counts" : "No context counts published"}
+        >
+          <DashboardMetricGrid
+            className="aiAgentContextMetrics"
+            label="Published context facts"
+            metrics={conversationContext.diagnostics.slice(0, 4).map((diagnostic) => ({
+              label: diagnostic.label,
+              value: diagnostic.value
+            }))}
+          />
+        </DashboardInfoCard>
+      </DashboardCardGrid>
+      <DashboardCallout
+        detail="Requested route policy, resolved agent roles, provider telemetry, and model-visible context are separate claims. Missing provider or context fields remain visibly unpublished."
+        icon={ShieldCheck}
+        title="No private reasoning is exposed"
+      />
+    </DashboardSection>
   );
 }
 
@@ -929,9 +1387,16 @@ function TelemetryObservatory({ model }: { model: ProductIntelligenceModel }) {
   if (!telemetry) {
     return null;
   }
-  const primarySignals = telemetry.signals.filter((signal) =>
-    ["workflow", "preview", "retrieval"].includes(signal.id)
-  );
+  const primarySignals = telemetry.signals
+    .filter((signal) => ["workflow", "preview", "retrieval"].includes(signal.id))
+    .map((signal) => signal.id === "retrieval" && telemetry.retrieval?.sourceCount === 0
+      ? {
+          ...signal,
+          detail: "No retrieval sources or chunks were published for this run.",
+          tone: "info" as const,
+          value: "Not used this run"
+        }
+      : signal);
   const evidenceSignals = telemetry.signals.filter((signal) =>
     !["workflow", "preview", "retrieval"].includes(signal.id)
   );
@@ -968,70 +1433,84 @@ function TelemetryObservatory({ model }: { model: ProductIntelligenceModel }) {
   ];
 
   return (
-    <section aria-label="Telemetry observatory" className="dashboardFeature telemetryObservatory" data-state={telemetry.status}>
-      <header>
-        <div>
-          <span><Activity aria-hidden="true" size={14} /> Run observatory</span>
-          <strong>One run, four evidence checkpoints</strong>
-          <p>{telemetry.summary.coverageLabel}. Unpublished values remain unavailable.</p>
-        </div>
+    <DashboardSection
+      action={(
         <DashboardPanelHelp
           detail="The observatory groups published stream, workflow, preview, retrieval, evaluation, and observability signals. Unreported provider usage and cost values stay visibly unavailable."
           label="Telemetry observatory"
         />
-      </header>
-      <div className="telemetryReviewerHero">
-        <article className="telemetryOutcomeCard" data-state={telemetry.status}>
-          <span>Current product outcome</span>
-          <strong>{formatUiStatusLabel(outcome.product_outcome.toLowerCase().replace(/_/g, " "))}</strong>
-          <p>{outcome.summary}</p>
-          {outcome.recovery_action ? <small>{outcome.recovery_action}</small> : null}
-        </article>
-        <dl className="telemetryRunFacts" aria-label="Run measurement facts">
-          <div><dt>Operator state</dt><dd>{telemetry.summary.operatorStatus}</dd></div>
-          <div><dt>Runtime</dt><dd>{telemetry.summary.runtimeLabel}</dd></div>
-          <div><dt>Events / errors</dt><dd>{telemetry.stream.eventCount} / {telemetry.stream.errorCount}</dd></div>
-          <div><dt>Tokens</dt><dd>{telemetry.provider.summary.tokenLabel}</dd></div>
-          <div><dt>Estimated cost</dt><dd>{telemetry.provider.summary.costLabel}</dd></div>
-        </dl>
-      </div>
-      <ol aria-label="Run evidence checkpoints" className="telemetryLifecycleRail">
-        {lifecycle.map((step, index) => (
-          <li data-state={step.state} key={step.label}>
-            <span>{index + 1}</span>
-            <div><strong>{step.label}</strong><small>{step.detail}</small></div>
-            <em>{step.value}</em>
-          </li>
-        ))}
-      </ol>
-      <div aria-label="Primary telemetry signals" className="telemetrySignalGrid">
-        {primarySignals.map((signal) => (
-          <article data-tone={signal.tone} key={signal.id}>
-            <span>{signal.label}</span>
-            <strong>{signal.value}</strong>
-            <p>{signal.detail}</p>
+      )}
+      className="telemetryObservatory"
+      detail="Current outcome, run facts, lifecycle, and supporting evidence for this workspace run."
+      eyebrow="Run observatory"
+      icon={Radio}
+      label="Telemetry observatory"
+      state={telemetry.status}
+      title="Outcome and measurement facts"
+    >
+        <div className="telemetryReviewerHero">
+          <article className="dashboardInnerCard telemetryOutcomeCard" data-state={telemetry.status}>
+            <span>Current product outcome</span>
+            <strong>{formatUiStatusLabel(outcome.product_outcome.toLowerCase().replace(/_/g, " "))}</strong>
+            <p>{outcome.summary}</p>
+            {outcome.recovery_action ? <small>{outcome.recovery_action}</small> : null}
           </article>
-        ))}
-      </div>
-      {evidenceSignals.length ? (
-        <details className="telemetryEvidenceDisclosure">
-          <summary><Radio aria-hidden="true" size={14} /> Provider, observability, and evaluation evidence</summary>
-          <div className="telemetrySignalGrid">
-            {evidenceSignals.map((signal) => (
-              <article data-tone={signal.tone} key={signal.id}>
-                <span>{signal.label}</span>
-                <strong>{signal.value}</strong>
-                <p>{signal.detail}</p>
-              </article>
-            ))}
-          </div>
-        </details>
-      ) : null}
-      <footer className="telemetryTruthBoundary">
-        <ShieldCheck aria-hidden="true" size={15} />
-        <span><strong>Published evidence only.</strong> Telemetry describes this workspace run; it does not expose provider reasoning or turn missing usage into an estimate.</span>
-      </footer>
-    </section>
+          <DashboardMetricGrid
+            className="telemetryRunMetrics"
+            label="Run measurement facts"
+            metrics={[
+              { label: "Operator state", value: telemetry.summary.operatorStatus },
+              { label: "Runtime", value: telemetry.summary.runtimeLabel },
+              { label: "Events / errors", value: `${telemetry.stream.eventCount} / ${telemetry.stream.errorCount}` },
+              { label: "Tokens", value: telemetry.provider.summary.tokenLabel },
+              { label: "Estimated cost", value: telemetry.provider.summary.costLabel }
+            ]}
+          />
+        </div>
+        <ol aria-label="Run evidence checkpoints" className="telemetryLifecycleRail">
+          {lifecycle.map((step, index) => (
+            <li className="dashboardInnerCard" data-state={step.state} key={step.label}>
+              <span>{index + 1}</span>
+              <div><strong>{step.label}</strong><small>{step.detail}</small></div>
+              <em>{step.value}</em>
+            </li>
+          ))}
+        </ol>
+        <DashboardMetricGrid
+          className="telemetrySignalMetrics"
+          label="Primary telemetry signals"
+          metrics={primarySignals.map((signal) => ({
+            detail: signal.detail,
+            label: signal.label,
+            tone: signal.tone,
+            value: signal.value
+          }))}
+        />
+        {evidenceSignals.length ? (
+          <DashboardDisclosure
+            className="telemetryEvidenceDetails"
+            summary="Provider, observability, and evaluation evidence"
+          >
+            <DashboardMetricGrid
+              className="telemetrySignalMetrics"
+              label="Supporting telemetry signals"
+              metrics={evidenceSignals.map((signal) => ({
+                detail: signal.detail,
+                label: signal.label,
+                tone: signal.tone,
+                value: signal.value
+              }))}
+            />
+          </DashboardDisclosure>
+        ) : null}
+        <DashboardCallout
+          as="footer"
+          className="telemetryEvidenceBoundary"
+          detail="Telemetry describes this workspace run; it does not expose provider reasoning or turn missing usage into an estimate."
+          icon={ShieldCheck}
+          title="Published evidence only"
+        />
+    </DashboardSection>
   );
 }
 
@@ -1039,33 +1518,59 @@ function ActiveDocumentBoard({ model }: { model: ProductIntelligenceModel }) {
   const artifact = getDashboardActiveArtifact(model);
   if (!artifact) {
     return (
-      <section aria-label="Active document" className="dashboardFeature dashboardEmptyState">
-        <header>
-          <div><span>Active document</span><strong>No generated source yet</strong><p>Generate an artifact to inspect its source, delivery boundary, and preview eligibility here.</p></div>
-          <DashboardPanelHelp detail="This Dashboard view reports the current saved artifact. Source, preview capability, and delivery boundary remain separate product signals." label="Active document" />
-        </header>
-      </section>
+      <DashboardSection
+        action={<DashboardPanelHelp detail="This view reports the current saved artifact. Source, Preview capability, and delivery boundary remain separate product signals." label="Active document" />}
+        className="activeDocumentBoard dashboardEmptyState"
+        detail="Generate an artifact to inspect its source, delivery boundary, and Preview eligibility here."
+        eyebrow="Active document"
+        icon={FileCode2}
+        label="Active document"
+        title="No generated source yet"
+      >
+        <DashboardCallout
+          detail="Workspace will populate this page only from a retained artifact; it never fabricates source or Preview evidence."
+          icon={ShieldCheck}
+          title="Waiting for published source"
+        />
+      </DashboardSection>
     );
   }
 
+  const lineCount = artifact.content?.trim()
+    ? artifact.content.trim().split("\n").length
+    : 0;
+
   return (
-    <section aria-label="Active document" className="dashboardFeature activeDocumentBoard">
-      <header>
-        <div>
-          <span>Active document</span>
-          <strong>{artifact.title}</strong>
-          <p>{artifact.summary}</p>
-        </div>
-        <DashboardPanelHelp detail="The active document is the retained source artifact selected by the workspace. Preview status is reported separately because a saved artifact is not necessarily runnable in this browser." label="Active document" />
-      </header>
-      <dl>
-        <div><dt>Language</dt><dd>{artifact.language}</dd></div>
-        <div><dt>Artifact status</dt><dd>{artifact.status}</dd></div>
-        <div><dt>Preview</dt><dd>{artifact.previewEligible ? "Eligible" : "Not eligible"}</dd></div>
-        <div><dt>Domain</dt><dd>{artifact.domain ? formatCreativeDomain(model, artifact.domain) : "Not published"}</dd></div>
-      </dl>
-      <pre aria-label="Active document source excerpt"><code>{artifactSnippet(artifact.content)}</code></pre>
-    </section>
+    <DashboardSection
+      action={<DashboardPanelHelp detail="The active document is the retained source artifact selected by the workspace. Preview status is reported separately because saved source is not proof of a runnable browser output." label="Active document" />}
+      className="activeDocumentBoard"
+      detail={artifact.summary}
+      eyebrow="Active document"
+      icon={FileCode2}
+      label="Active document"
+      title={artifact.title}
+    >
+      <DashboardMetricGrid
+        className="activeDocumentFacts"
+        label="Active document facts"
+        metrics={[
+          { label: "Language", value: artifact.language, detail: `${lineCount} source line${lineCount === 1 ? "" : "s"}` },
+          { label: "Artifact status", value: artifact.status, detail: "Retained workspace state" },
+          { label: "Preview", value: artifact.previewEligible ? "Eligible" : "Not eligible", detail: "Separate renderer contract" },
+          { label: "Domain", value: artifact.domain ? formatCreativeDomain(model, artifact.domain) : "Not published", detail: "Creative runtime classification" }
+        ]}
+      />
+      <DashboardDisclosure summary={`Source excerpt · ${lineCount} line${lineCount === 1 ? "" : "s"}`}>
+        <pre aria-label="Active document source excerpt"><code>{artifactSnippet(artifact.content)}</code></pre>
+      </DashboardDisclosure>
+      <DashboardCallout
+        detail={artifact.previewEligible
+          ? "The artifact advertises a supported Preview route, but visible output and Runtime health still require their own published evidence."
+          : "The source remains usable in Code or export workflows even though this artifact does not currently advertise an internal Preview route."}
+        icon={ShieldCheck}
+        title="Saved source and visible output are separate"
+      />
+    </DashboardSection>
   );
 }
 
@@ -1078,29 +1583,54 @@ function getDashboardActiveArtifact(model: ProductIntelligenceModel) {
 function PreviewReadinessBoard({ model }: { model: ProductIntelligenceModel }) {
   const preview = model.details?.telemetryDashboard.preview;
   if (!preview) return null;
+  const rendererPublished = Boolean(
+    preview.renderer && !/(pending|unavailable)/i.test(preview.renderer)
+  );
+  const mountReady = preview.available && preview.active && preview.state === "ready";
+  const healthReady = mountReady &&
+    rendererPublished &&
+    !preview.error &&
+    !/(pending|unavailable|failed)/i.test(preview.healthLabel);
   const stages = [
     { label: "Artifact", value: preview.artifactName ? "Ready" : "Pending", complete: Boolean(preview.artifactName) },
-    { label: "Route", value: preview.renderer || "Pending", complete: Boolean(preview.renderer) },
-    { label: "Mount", value: preview.available ? "Available" : preview.active ? "Starting" : "Waiting", complete: preview.available },
-    { label: "Health", value: preview.healthLabel, complete: !preview.error && preview.available }
+    { label: "Route", value: preview.renderer || "Pending", complete: rendererPublished },
+    { label: "Mount", value: mountReady ? "Ready" : preview.state === "generating" ? "Starting" : preview.state === "unavailable" || preview.state === "error" ? "Unavailable" : "Waiting", complete: mountReady },
+    { label: "Health", value: preview.healthLabel, complete: healthReady }
   ];
+  const ready = stages.every((stage) => stage.complete);
   return (
-    <section aria-label="Preview readiness" className="dashboardFeature previewReadinessBoard" data-state={preview.state}>
-      <header>
-        <div><span>Preview readiness</span><strong>{preview.healthLabel}</strong><p>{preview.detail}</p></div>
-        <DashboardPanelHelp detail="Preview readiness separates the selected artifact, renderer route, browser mount state, and runtime health. A saved artifact or renderer label alone does not claim that a visible preview is running." label="Preview readiness" />
-      </header>
-      <div className="previewReadinessMetrics">
-        <div><span>State</span><strong>{formatUiStatusLabel(preview.state)}</strong></div>
-        <div><span>Renderer</span><strong>{preview.renderer || "Pending"}</strong></div>
-        <div><span>Target</span><strong>{preview.target}</strong></div>
-        <div><span>Artifact</span><strong>{preview.artifactName || "No artifact"}</strong></div>
-      </div>
+    <DashboardSection
+      action={<DashboardPanelHelp detail="Preview readiness separates selected artifact, renderer route, browser mount, and Runtime health. Saved source or a renderer label alone never claims that visible output is running." label="Preview readiness" />}
+      className="previewReadinessBoard"
+      detail={preview.detail}
+      eyebrow="Preview readiness"
+      icon={MonitorPlay}
+      label="Preview readiness"
+      state={preview.state}
+      title={preview.healthLabel}
+    >
+      <DashboardMetricGrid
+        className="previewReadinessMetrics"
+        label="Preview readiness facts"
+        metrics={[
+          { label: "State", value: formatUiStatusLabel(preview.state), detail: mountReady ? "Visible mount confirmed" : "Visible mount unconfirmed" },
+          { label: "Renderer", value: preview.renderer || "Pending", detail: "Selected runtime route" },
+          { label: "Target", value: preview.target, detail: "Delivery surface" },
+          { label: "Artifact", value: preview.artifactName || "No artifact", detail: "Selected source" }
+        ]}
+      />
       <ol aria-label="Preview lifecycle" className="previewLifecycle">
         {stages.map((stage, index) => <li data-complete={stage.complete ? "true" : "false"} key={stage.label}><span>{index + 1}</span><div><strong>{stage.label}</strong><small>{stage.value}</small></div></li>)}
       </ol>
-      {preview.error ? <p className="previewReadinessError">{preview.error}</p> : null}
-    </section>
+      <DashboardCallout
+        detail={preview.error ?? (ready
+          ? "Artifact, renderer, browser mount, and Runtime health are all published as ready."
+          : "At least one readiness gate is still pending. Use the lifecycle above to identify the exact missing contract before reviewing visible output.")}
+        icon={ready ? ShieldCheck : AlertTriangle}
+        title={ready ? "Visible Preview is confirmed" : "Preview is not yet reviewer-ready"}
+        tone={ready ? "success" : "warning"}
+      />
+    </DashboardSection>
   );
 }
 
@@ -1108,50 +1638,106 @@ function RuntimeDashboardSurface({ model }: { model: ProductIntelligenceModel })
   const details = model.details;
   if (!details) return null;
   return (
-    <section aria-label="Runtime health console" className="dashboardFeature dashboardComponentSurface">
-      <header>
-        <div><span>Runtime health</span><strong>Renderer, diagnostics, and recovery evidence</strong><p>Current runtime state is separate from the generated source and preview availability.</p></div>
-        <DashboardPanelHelp detail="The runtime console presents published renderer health, metric signals, diagnostics, context, and events. It never treats a source artifact as proof that a runtime executed successfully." label="Runtime health console" />
-      </header>
+    <DashboardSection
+      action={<DashboardPanelHelp detail="The runtime console presents published renderer health, metric signals, diagnostics, context, and events. It never treats saved source as proof that a runtime executed successfully." label="Runtime health console" />}
+      className="dashboardComponentSurface runtimeDashboardSurface"
+      detail="Current Runtime evidence stays separate from generated source and Preview availability."
+      eyebrow="Runtime console"
+      icon={Activity}
+      label="Runtime health console"
+      state={details.runtimeConsole.health.signal}
+      title="Renderer, diagnostics, and recovery evidence"
+    >
       <RuntimeConsoleInspector console={details.runtimeConsole} presentation="dashboard" productOutcome={details.workflowRuntime.summary.productOutcome} />
-    </section>
+    </DashboardSection>
   );
 }
 
 function ProviderDashboardSurface({ model }: { model: ProductIntelligenceModel }) {
   const telemetry = model.details?.providerTelemetry;
   if (!telemetry) return null;
+  const evidencePending = telemetry.status === "idle" || /pending|unavailable/i.test(telemetry.summary.providerLabel);
   return (
-    <section aria-label="Provider observability" className="dashboardFeature dashboardComponentSurface">
-      <header>
-        <div><span>Provider observability</span><strong>Usage, latency, configuration, and recovery path</strong><p>Only provider-published identifiers, usage fields, and configuration provenance are shown.</p></div>
-        <DashboardPanelHelp detail="Provider observability distinguishes known values from unavailable values. It does not reveal prompts, private memory, or internal model reasoning." label="Provider observability" />
-      </header>
-      <ProviderObservabilityDeepDive telemetry={telemetry} />
-    </section>
+    <DashboardSection
+      action={<DashboardPanelHelp detail="Provider observability distinguishes known values from unavailable values. It does not reveal prompts, private memory, or internal model reasoning." label="Provider observability" />}
+      className="dashboardComponentSurface providerDashboardSurface"
+      detail="Only provider-published identity, usage, timing, configuration provenance, issues, retries, and fallback evidence are shown."
+      eyebrow="Provider observability"
+      icon={Radio}
+      label="Provider observability"
+      state={telemetry.status}
+      title={evidencePending ? "Provider execution evidence is pending" : `${telemetry.summary.providerLabel} · ${telemetry.summary.modelLabel}`}
+      tone={evidencePending ? "attention" : "ready"}
+    >
+      <DashboardMetricGrid
+        label="Provider execution facts"
+        metrics={[
+          { label: "Generation", value: telemetry.summary.generationModeLabel, detail: telemetry.summary.streamingStatusLabel },
+          { label: "Duration", value: telemetry.summary.requestDurationLabel, detail: "Provider-published timing" },
+          { label: "Tokens", value: telemetry.summary.tokenLabel, detail: "No estimated usage" },
+          { label: "Estimated cost", value: telemetry.summary.costLabel, detail: "Published metadata only" },
+          { label: "Issues", value: telemetry.summary.issueLabel, detail: "Errors and warnings" }
+        ]}
+      />
+      <DashboardCallout
+        detail={evidencePending
+          ? "No provider run metadata is attached to the current workspace snapshot. Unknown identity, usage, timing, and configuration values remain unavailable."
+          : "Provider identity, usage, timing, and recovery evidence were published for this run; expand the deep dive for field-level review."}
+        icon={evidencePending ? AlertTriangle : ShieldCheck}
+        title={evidencePending ? "Unknown provider values stay unknown" : "Provider evidence is inspectable"}
+        tone={evidencePending ? "warning" : "success"}
+      />
+      <DashboardDisclosure className="providerObservabilityDisclosure" summary="Open provider execution evidence">
+        <ProviderObservabilityDeepDive telemetry={telemetry} />
+      </DashboardDisclosure>
+    </DashboardSection>
   );
 }
 
 function MemoryDashboardSurface({ model }: { model: ProductIntelligenceModel }) {
   const context = model.details?.conversationContext;
   if (!context) return null;
+  const contextPublished = context.source === "stream";
   return (
-    <section aria-label="Memory and context" className="dashboardFeature dashboardComponentSurface">
-      <header>
-        <div><span>Context boundary</span><strong>What the current run explicitly published</strong><p>Counts make the session context inspectable without exposing conversation or private memory content.</p></div>
-        <DashboardPanelHelp detail="This panel is privacy-safe: it exposes only counts and context-boundary facts published by the runtime. No private session text, embeddings, or provider prompt is shown." label="Memory and context" />
-      </header>
-      <ConversationContextInspector context={context} />
-    </section>
+    <DashboardSection
+      action={<DashboardPanelHelp detail="This panel is privacy-safe: it exposes only counts and context-boundary facts published by the runtime. No private session text, embeddings, or provider prompt is shown." label="Memory and context" />}
+      className="dashboardComponentSurface memoryDashboardSurface"
+      detail="Counts make context assembly inspectable without exposing conversation content, embeddings, provider prompts, or private reasoning."
+      eyebrow="Context boundary"
+      icon={Brain}
+      label="Memory and context"
+      state={context.source}
+      title={contextPublished ? "Published context counts for this run" : "No context-assembly evidence published"}
+      tone={contextPublished ? "ready" : "attention"}
+    >
+      <DashboardMetricGrid
+        label="Published memory and context facts"
+        metrics={context.diagnostics.slice(0, 4).map((diagnostic) => ({
+          label: diagnostic.label,
+          value: diagnostic.value,
+          detail: diagnostic.detail
+        }))}
+      />
+      <DashboardCallout
+        detail="Visible conversation history is a workspace fact, not proof that those turns, project memory, a running summary, or retrieval context were injected into the model."
+        icon={ShieldCheck}
+        title="Visible history is not model-visible context"
+      />
+      <DashboardDisclosure summary={`Open all ${context.diagnostics.length} privacy-safe context diagnostics`}>
+        <ConversationContextInspector context={context} />
+      </DashboardDisclosure>
+    </DashboardSection>
   );
 }
 
 function EvaluationDashboardSurface({
+  categories,
   evaluationHistory,
   evaluationRunning,
   model,
   onRunEvaluation
 }: {
+  categories: ProductIntelligenceCategory[];
   evaluationHistory: EvaluationHistoryRecord[];
   evaluationRunning: boolean;
   model: ProductIntelligenceModel;
@@ -1168,14 +1754,32 @@ function EvaluationDashboardSurface({
         onRun={onRunEvaluation}
         running={evaluationRunning}
       />
-      <details className="dashboardFeature evaluationEvidenceDisclosure">
-        <summary>Current trace and workstation evidence</summary>
-        <p>Session evaluation lineage and workstation health are supporting evidence, not a replacement for benchmark results.</p>
+      <DashboardDisclosure
+        className="evaluationSupportingEvidence"
+        summary="Supporting validation, trace, Product Bug, and LangSmith signals"
+      >
+        <DashboardCallout
+          detail="Session lineage, workstation health, validation, Product Bug, and LangSmith signals remain separate from benchmark results."
+          icon={ShieldCheck}
+          title="Supporting evidence does not replace measured results"
+        />
         <div className="evaluationDashboardSplit">
           <EvaluationSessionDashboard evaluation={telemetry.evaluation} />
           <WorkstationDashboardSurface dashboard={workstation} />
         </div>
-      </details>
+        {categories.map((category) => {
+          const section = getProductIntelligenceSection(model, category);
+          return (
+            <section className="productDashboardGroupSection" key={category}>
+              <header>
+                <div><span>{category}</span><strong>{formatUiStatusLabel(section.summary)}</strong><p>{section.detail}</p></div>
+                <ProductIntelligenceHelp section={section} />
+              </header>
+              <ProductIntelligenceSectionView detailed model={model} section={section} />
+            </section>
+          );
+        })}
+      </DashboardDisclosure>
     </>
   );
 }
@@ -1193,13 +1797,74 @@ function formatDashboardDuration(value: number | null) {
   return `${(value / 1_000).toFixed(value >= 10_000 ? 0 : 1)} s`;
 }
 
+function DomainsDashboardSurface({ model }: { model: ProductIntelligenceModel }) {
+  const catalog = model.domainExperience;
+  const liveCount = catalog.domains.filter((domain) => domain.livePreview).length;
+  const exportCount = catalog.domains.filter((domain) => domain.deliveryKind === "code_export").length;
+  const handoffCount = catalog.domains.filter((domain) => domain.deliveryKind === "external_handoff").length;
+  const available = catalog.state === "available";
+
+  return (
+    <DashboardSection
+      action={(
+        <DashboardPanelHelp
+          detail="Domain contracts publish three mutually exclusive delivery routes: a validated browser runtime, retained source for another runtime, or a documented external-tool handoff."
+          label="Domain capability map"
+        />
+      )}
+      className="domainsDashboardSurface"
+      detail="Start with the four validated browser runtimes; expand the larger export registries only when a delivery decision requires them."
+      eyebrow="Delivery capability map"
+      icon={Shapes}
+      label="Domain capability map"
+      title={available ? `${liveCount} live runtimes across ${catalog.domains.length} domain contracts` : "Domain registry unavailable"}
+      tone={available ? "ready" : "attention"}
+    >
+      <DashboardMetricGrid
+        label="Domain delivery totals"
+        metrics={[
+          { label: "Registered", value: catalog.domains.length, detail: "Published domain contracts" },
+          { label: "Live in browser", value: liveCount, detail: "Validated internal runtimes" },
+          { label: "Source export", value: exportCount, detail: "Code without runtime claim" },
+          { label: "External handoff", value: handoffCount, detail: "Named tool packages" }
+        ]}
+      />
+      <DomainExperienceSurface
+        activeDomainId={model.activeDomainId}
+        catalog={catalog}
+        collapseSecondary
+        detailed
+        embedded
+        includeKnowledgeBase={false}
+      />
+      <DashboardCallout
+        detail="Only cards in Live in this browser claim executable output inside the workspace. Source exports and external handoffs remain usable deliverables without implying an internal runtime."
+        icon={ShieldCheck}
+        title="Delivery labels are product boundaries"
+        tone="success"
+      />
+    </DashboardSection>
+  );
+}
+
 function ArtifactRegistry({ model }: { model: ProductIntelligenceModel }) {
   if (model.artifactRegistry.length === 0) {
     return (
-      <section aria-label="Artifact registry" className="dashboardFeature dashboardEmptyState">
-        <strong>No artifacts in this session yet</strong>
-        <p>Generated source and export handoffs will appear here with their session and code excerpt.</p>
-      </section>
+      <DashboardSection
+        action={<DashboardPanelHelp detail="This registry is populated only by artifacts retained in the active workspace snapshot." label="Artifact registry" />}
+        className="artifactRegistry dashboardEmptyState"
+        detail="Generate or retain an artifact to review its source, delivery boundary, and Preview evidence here."
+        eyebrow="Artifact registry"
+        icon={FileOutput}
+        label="Artifact registry"
+        title="No saved deliverables yet"
+      >
+        <DashboardCallout
+          detail="The Dashboard does not invent a deliverable or simulate a visual result before the workspace publishes one."
+          icon={ShieldCheck}
+          title="Waiting for a retained artifact"
+        />
+      </DashboardSection>
     );
   }
 
@@ -1217,19 +1882,21 @@ function ArtifactRegistry({ model }: { model: ProductIntelligenceModel }) {
   );
 
   return (
-    <section aria-label="Artifact registry" className="dashboardFeature artifactRegistry">
-      <header>
-        <div>
-          <span>Artifact registry</span>
-          <strong>{model.artifactRegistry.length} saved deliverable{model.artifactRegistry.length === 1 ? "" : "s"}</strong>
-          <p>Each deliverable exposes its visual output when a supported runtime can render it; code-only work states its export boundary instead.</p>
-        </div>
+    <DashboardSection
+      action={
         <DashboardPanelHelp
           detail="This registry lists artifacts retained by the active workspace snapshot. A live visual is mounted only through a supported preview contract. Otherwise the card explains the code or external-tool handoff without simulating output."
           label="Artifact registry"
         />
-      </header>
-      <div role="list">
+      }
+      className="artifactRegistry"
+      detail="Each deliverable exposes a real visual only when a supported runtime can render it; every other artifact states its handoff boundary instead."
+      eyebrow="Artifact registry"
+      icon={FileOutput}
+      label="Artifact registry"
+      title={`${model.artifactRegistry.length} saved deliverable${model.artifactRegistry.length === 1 ? "" : "s"}`}
+    >
+      <DashboardCardGrid className="artifactRegistryList" label="Saved deliverables" role="list">
         {model.artifactRegistry.map((artifact) => {
           const candidate = previewCandidates.get(artifact.id) ?? null;
           const previewLabel = candidate?.canRender
@@ -1238,7 +1905,12 @@ function ArtifactRegistry({ model }: { model: ProductIntelligenceModel }) {
               ? "Preview evidence unavailable"
               : "Code / export only";
           return (
-          <article aria-current={artifact.id === activeArtifact?.id ? "true" : undefined} key={artifact.id} role="listitem">
+          <article
+            aria-current={artifact.id === activeArtifact?.id ? "true" : undefined}
+            className="dashboardInnerCard artifactRegistryCard"
+            key={artifact.id}
+            role="listitem"
+          >
             <header>
               <div>
                 <span>{artifact.type}{artifact.id === activeArtifact?.id ? " · selected" : ""}</span>
@@ -1253,15 +1925,19 @@ function ArtifactRegistry({ model }: { model: ProductIntelligenceModel }) {
               <div><dt>Language</dt><dd>{artifact.language}</dd></div>
               <div><dt>Delivery</dt><dd>{previewLabel}</dd></div>
             </dl>
-            <details>
-              <summary>View source excerpt</summary>
+            <DashboardDisclosure className="artifactSourceDisclosure" summary="View source excerpt">
               <pre><code>{artifactSnippet(artifact.content)}</code></pre>
-            </details>
+            </DashboardDisclosure>
           </article>
           );
         })}
-      </div>
-    </section>
+      </DashboardCardGrid>
+      <DashboardCallout
+        detail="A retained source file, a supported Preview route, and a visible browser runtime are separate facts. Each card reports only the delivery evidence available for that artifact."
+        icon={ShieldCheck}
+        title="Artifact truth stays attached to the deliverable"
+      />
+    </DashboardSection>
   );
 }
 
@@ -1335,6 +2011,12 @@ function artifactSnippet(content: string | undefined) {
 function SessionRegistry({ controls }: { controls: DashboardSessionControls }) {
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
+  const totalArtifacts = controls.sessions.reduce((total, session) => total + session.artifactCount, 0);
+  const registeredSessionIds = new Set(controls.sessions.map((session) => session.sessionId));
+  const registeredUsage = controls.usage.filter((usage) => registeredSessionIds.has(usage.sessionId));
+  const totalRuns = registeredUsage.reduce((total, usage) => total + usage.runCount, 0);
+  const knownTokenSessions = registeredUsage.filter((usage) => usage.totalTokens != null);
+  const totalKnownTokens = knownTokenSessions.reduce((total, usage) => total + (usage.totalTokens ?? 0), 0);
 
   function beginRename(session: WorkspaceSessionSummary) {
     setEditingSessionId(session.sessionId);
@@ -1351,13 +2033,8 @@ function SessionRegistry({ controls }: { controls: DashboardSessionControls }) {
   }
 
   return (
-    <section aria-label="Session registry" className="dashboardFeature sessionRegistry">
-      <header>
-        <div>
-          <span>Session registry</span>
-          <strong>{controls.sessions.length} local creative session{controls.sessions.length === 1 ? "" : "s"}</strong>
-          <p>Sessions are stored for this browser profile. Rename, open, or remove them here.</p>
-        </div>
+    <DashboardSection
+      action={(
         <div className="dashboardFeatureActions">
           <DashboardPanelHelp
             detail="Sessions are isolated to this browser profile. Tokens and cost are shown only when the provider published them for the retained runs."
@@ -1365,49 +2042,72 @@ function SessionRegistry({ controls }: { controls: DashboardSessionControls }) {
           />
           <button onClick={controls.onCreate} type="button">New session</button>
         </div>
-      </header>
-      <div className="sessionRegistryTable" role="table" aria-label="Saved sessions">
-        <div role="row">
-          <span role="columnheader">Session</span>
-          <span role="columnheader">Artifacts</span>
-          <span role="columnheader">Tokens</span>
-          <span role="columnheader">Last activity</span>
-          <span role="columnheader">Actions</span>
+      )}
+      className="sessionRegistry"
+      detail="Open, rename, create, or remove browser-profile sessions while retained usage remains explicitly reported or unknown."
+      eyebrow="Session registry"
+      icon={History}
+      label="Session registry"
+      title={`${controls.sessions.length} local creative session${controls.sessions.length === 1 ? "" : "s"}`}
+    >
+      <DashboardMetricGrid
+        label="Local session totals"
+        metrics={[
+          { label: "Sessions", value: controls.sessions.length, detail: "This browser profile" },
+          { label: "Artifacts", value: totalArtifacts, detail: "Retained deliverables" },
+          { label: "Runs", value: totalRuns, detail: "Retained usage records" },
+          { label: "Known tokens", value: knownTokenSessions.length ? formatCompactUsage(totalKnownTokens) : "Not reported", detail: `${knownTokenSessions.length}/${registeredUsage.length} sessions reported` }
+        ]}
+      />
+      <DashboardTableFrame className="sessionRegistryTableFrame">
+        <div className="sessionRegistryTable" role="table" aria-label="Saved sessions">
+          <div role="row">
+            <span role="columnheader">Session</span>
+            <span role="columnheader">Artifacts</span>
+            <span role="columnheader">Tokens</span>
+            <span role="columnheader">Last activity</span>
+            <span role="columnheader">Actions</span>
+          </div>
+          {controls.sessions.map((session) => {
+            const isEditing = editingSessionId === session.sessionId;
+            const isActive = session.sessionId === controls.activeSessionId;
+            const usage = controls.usage.find((entry) => entry.sessionId === session.sessionId);
+            return (
+              <div data-active={isActive ? "true" : "false"} key={session.sessionId} role="row">
+                <div role="cell">
+                  {isEditing ? (
+                    <form onSubmit={(event) => { event.preventDefault(); saveRename(session.sessionId); }}>
+                      <input aria-label={`Session name for ${session.title}`} autoFocus onChange={(event) => setTitle(event.currentTarget.value)} value={title} />
+                      <button type="submit">Save</button>
+                    </form>
+                  ) : (
+                    <button onClick={() => controls.onSelect(session.sessionId)} type="button">
+                      {session.title}{isActive ? " · Current" : ""}
+                    </button>
+                  )}
+                </div>
+                <span role="cell">{session.artifactCount}</span>
+                <span role="cell">
+                  {usage?.totalTokens != null
+                    ? `${formatCompactUsage(usage.totalTokens)} · ${usage.knownTokenRunCount}/${usage.runCount} runs`
+                    : "Not reported"}
+                </span>
+                <time dateTime={session.updatedAt ?? undefined} role="cell">{formatSessionTimestamp(session.updatedAt)}</time>
+                <div role="cell">
+                  <button onClick={() => beginRename(session)} type="button">Rename</button>
+                  <button onClick={() => controls.onDelete(session.sessionId)} type="button">Delete</button>
+                </div>
+              </div>
+            );
+          })}
         </div>
-        {controls.sessions.map((session) => {
-          const isEditing = editingSessionId === session.sessionId;
-          const isActive = session.sessionId === controls.activeSessionId;
-          const usage = controls.usage.find((entry) => entry.sessionId === session.sessionId);
-          return (
-            <div data-active={isActive ? "true" : "false"} key={session.sessionId} role="row">
-              <div role="cell">
-                {isEditing ? (
-                  <form onSubmit={(event) => { event.preventDefault(); saveRename(session.sessionId); }}>
-                    <input aria-label={`Session name for ${session.title}`} autoFocus onChange={(event) => setTitle(event.currentTarget.value)} value={title} />
-                    <button type="submit">Save</button>
-                  </form>
-                ) : (
-                  <button onClick={() => controls.onSelect(session.sessionId)} type="button">
-                    {session.title}{isActive ? " · Current" : ""}
-                  </button>
-                )}
-              </div>
-              <span role="cell">{session.artifactCount}</span>
-              <span role="cell">
-                {usage?.totalTokens != null
-                  ? `${formatCompactUsage(usage.totalTokens)} · ${usage.knownTokenRunCount}/${usage.runCount} runs`
-                  : "Not reported"}
-              </span>
-              <time dateTime={session.updatedAt ?? undefined} role="cell">{formatSessionTimestamp(session.updatedAt)}</time>
-              <div role="cell">
-                <button onClick={() => beginRename(session)} type="button">Rename</button>
-                <button onClick={() => controls.onDelete(session.sessionId)} type="button">Delete</button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </section>
+      </DashboardTableFrame>
+      <DashboardCallout
+        detail="Session records are isolated to this browser profile. Unknown tokens or cost never enter totals, and a damaged local record is skipped instead of replacing the active workspace."
+        icon={ShieldCheck}
+        title="Local session boundaries stay explicit"
+      />
+    </DashboardSection>
   );
 }
 
@@ -1425,25 +2125,31 @@ function UserUsageOverview({ usage }: { usage: SessionUsageSummary[] }) {
   const runCount = usage.reduce((total, entry) => total + entry.runCount, 0);
 
   return (
-    <section aria-label="Browser profile usage" className="dashboardFeature userUsageOverview">
-      <header>
-        <div>
-          <span>Browser profile totals</span>
-          <strong>Usage retained across local sessions</strong>
-          <p>Only provider-published token and cost data is counted. Missing provider fields remain visibly unreported.</p>
-        </div>
+    <DashboardSection
+      action={(
         <DashboardPanelHelp
           detail="These totals aggregate only local-session records with provider-published usage fields. Unknown token or cost values are deliberately kept out of the totals."
           label="Browser profile usage"
         />
-      </header>
-      <dl>
-        <div><dt>Sessions</dt><dd>{usage.length}</dd></div>
-        <div><dt>Completed runs</dt><dd>{runCount}</dd></div>
-        <div><dt>Known tokens</dt><dd>{knownTokenSessions.length ? formatCompactUsage(totalTokens) : "Not reported"}</dd></div>
-        <div><dt>Known cost</dt><dd>{knownCostSessions.length ? `$${totalCost.toFixed(4)}` : "Not reported"}</dd></div>
-      </dl>
-    </section>
+      )}
+      className="browserUsageOverview"
+      detail="Only provider-published token and cost data is counted. Missing provider fields remain visibly unreported."
+      eyebrow="Browser profile totals"
+      icon={Database}
+      label="Browser profile usage"
+      title="Usage retained across local sessions"
+    >
+      <DashboardMetricGrid
+        className="userUsageMetrics"
+        label="Browser profile usage totals"
+        metrics={[
+          { label: "Sessions", value: usage.length },
+          { label: "Completed runs", value: runCount },
+          { label: "Known tokens", value: knownTokenSessions.length ? formatCompactUsage(totalTokens) : "Not reported" },
+          { label: "Known cost", value: knownCostSessions.length ? `$${totalCost.toFixed(4)}` : "Not reported" }
+        ]}
+      />
+    </DashboardSection>
   );
 }
 
@@ -1494,15 +2200,18 @@ function DashboardSettings({ controls }: { controls: DashboardSettingsControls }
   const scales: WorkspacePreferences["uiFontSize"][] = ["small", "medium", "large"];
 
   return (
-    <section aria-label="Dashboard settings" className="dashboardSettings">
-      <article>
-        <header>
-          <div><span>Appearance</span><strong>Theme and colour</strong><p>The selected theme controls the accessible text, surface, and accent colours for this saved session.</p></div>
-          <DashboardPanelHelp detail="Theme changes the saved visual palette for this browser workspace. It does not change the generated artifact or workflow configuration." label="Appearance settings" />
-        </header>
-        <div className="dashboardThemeChoices" role="group" aria-label="Theme options">
+    <section aria-label="Dashboard settings" className="productDashboardGroup dashboardSettings">
+      <DashboardSection
+        action={<DashboardPanelHelp detail="Theme changes the saved visual palette for this browser workspace. It does not change the generated artifact or workflow configuration." label="Appearance settings" />}
+        as="article"
+        detail="The selected theme controls the accessible text, surface, and accent colours for this saved session."
+        eyebrow="Appearance"
+        icon={Palette}
+        title="Theme and colour"
+      >
+        <DashboardCardGrid className="dashboardThemeChoices" label="Theme options" role="group">
           {themeGroups.map((group) => (
-            <div className="dashboardThemeChoiceGroup" data-group={group.id} key={group.id}>
+            <div className="dashboardInnerCard dashboardThemeChoiceGroup" data-group={group.id} key={group.id}>
               <span>{group.label}</span>
               <div role="group" aria-label={group.label}>
                 {group.themes.map((theme) => (
@@ -1511,42 +2220,51 @@ function DashboardSettings({ controls }: { controls: DashboardSettingsControls }
               </div>
             </div>
           ))}
-        </div>
-      </article>
-      <article>
-        <header>
-          <div><span>Typography</span><strong>Comfortable reading</strong><p>Set headings, body copy, labels and controls, and code independently. These settings are restored with this session.</p></div>
-          <DashboardPanelHelp detail="Heading, body, label, control, and code scales are saved per local workspace session, so the reading preference returns when that session is reopened." label="Typography settings" />
-        </header>
-        <div className="dashboardSettingRows">
+        </DashboardCardGrid>
+      </DashboardSection>
+      <DashboardSection
+        action={<DashboardPanelHelp detail="Heading, body, label, control, and code scales are saved per local workspace session, so the reading preference returns when that session is reopened." label="Typography settings" />}
+        as="article"
+        detail="Set headings, body copy, labels and controls, and code independently. These settings are restored with this session."
+        eyebrow="Typography"
+        icon={Type}
+        title="Comfortable reading"
+      >
+        <DashboardCardGrid className="dashboardSettingRows" label="Typography scales" role="group">
           <DashboardScaleControl label="Headings" onChange={(headingFontSize) => controls.onPreferencesChange({ headingFontSize })} preview="Heading" previewKind="heading" scales={scales} value={preferences.headingFontSize} />
           <DashboardScaleControl label="Body text" onChange={(uiFontSize) => controls.onPreferencesChange({ uiFontSize })} preview="Body text" previewKind="body" scales={scales} value={preferences.uiFontSize} />
           <DashboardScaleControl label="Labels and controls" onChange={(labelFontSize) => controls.onPreferencesChange({ labelFontSize })} preview="Label" previewKind="label" scales={scales} value={preferences.labelFontSize} />
           <DashboardScaleControl label="Code text" onChange={(codeFontSize) => controls.onPreferencesChange({ codeFontSize })} preview="Code" previewKind="code" scales={scales} value={preferences.codeFontSize} />
-        </div>
-      </article>
-      <article>
-        <header>
-          <div><span>Workspace</span><strong>Layout and focus</strong><p>Bring back the compact, focus, preview, and developer controls that are intentionally removed from the top bar.</p></div>
-          <DashboardPanelHelp detail="These controls restore the workspace, preview, inspector, density, and display choices that are saved for this local session." label="Workspace settings" />
-        </header>
-        <div className="dashboardSettingRows">
-          <DashboardToggle label="Density" onClick={() => controls.onDensityChange(layoutState.density === "cozy" ? "compact" : "cozy")} value={layoutState.density === "cozy" ? "Cozy" : "Compact"} />
-          <DashboardToggle label="Focus" onClick={controls.onFocusModeToggle} value={controls.isFocusMode ? "On" : "Off"} />
-          <DashboardToggle label="Sessions rail" onClick={controls.onSidebarToggle} value={layoutState.sidebarCollapsed ? "Collapsed" : "Open"} />
-          <DashboardToggle label="Inspector" onClick={controls.onInspectorToggle} value={layoutState.inspectorCollapsed ? "Collapsed" : "Open"} />
-          <DashboardToggle label="Preview shelf" onClick={controls.onPreviewToggle} value={controls.isPreviewOpen ? "Open" : "Closed"} />
-          <DashboardToggle label="Display mode" onClick={() => controls.onPreferencesChange({ showDebugPanels: !preferences.showDebugPanels })} value={preferences.showDebugPanels ? "Developer" : "User"} />
-          <DashboardToggle label="Preview behavior" onClick={() => controls.onPreferencesChange({ autoOpenPreview: !preferences.autoOpenPreview })} value={preferences.autoOpenPreview ? "Automatic" : "Manual"} />
-        </div>
-      </article>
-      <article>
-        <header>
-          <div><span>Generation</span><strong>Prompt defaults</strong><p>Set the workflow route and creative profile used for new prompts. Provider routing remains securely configured for this workspace.</p></div>
-          <DashboardPanelHelp detail="These settings mirror the composer controls. Workflow and creativity apply to the next prompt, while the selected provider is shown for clarity and remains server-configured." label="Generation settings" />
-        </header>
-        <div className="dashboardGenerationRows" role="group" aria-label="Generation defaults">
-          <label className="dashboardGenerationControl">
+        </DashboardCardGrid>
+      </DashboardSection>
+      <DashboardSection
+        action={<DashboardPanelHelp detail="These controls restore the workspace, preview, inspector, density, and display choices that are saved for this local session." label="Workspace settings" />}
+        as="article"
+        detail="Bring back the compact, focus, preview, and developer controls that are intentionally removed from the top bar."
+        eyebrow="Workspace"
+        icon={PanelLeft}
+        title="Layout and focus"
+      >
+        <DashboardCardGrid className="dashboardSettingRows" label="Workspace layout controls" role="group">
+          <DashboardToggle label="Density" onClick={() => controls.onDensityChange(layoutState.density === "cozy" ? "compact" : "cozy")} pressed={layoutState.density === "compact"} value={layoutState.density === "cozy" ? "Cozy" : "Compact"} />
+          <DashboardToggle label="Focus" onClick={controls.onFocusModeToggle} pressed={controls.isFocusMode} value={controls.isFocusMode ? "On" : "Off"} />
+          <DashboardToggle label="Sessions rail" onClick={controls.onSidebarToggle} pressed={!layoutState.sidebarCollapsed} value={layoutState.sidebarCollapsed ? "Collapsed" : "Open"} />
+          <DashboardToggle label="Inspector" onClick={controls.onInspectorToggle} pressed={!layoutState.inspectorCollapsed} value={layoutState.inspectorCollapsed ? "Collapsed" : "Open"} />
+          <DashboardToggle label="Preview shelf" onClick={controls.onPreviewToggle} pressed={controls.isPreviewOpen} value={controls.isPreviewOpen ? "Open" : "Closed"} />
+          <DashboardToggle label="Display mode" onClick={() => controls.onPreferencesChange({ showDebugPanels: !preferences.showDebugPanels })} pressed={preferences.showDebugPanels} value={preferences.showDebugPanels ? "Developer" : "User"} />
+          <DashboardToggle label="Preview behavior" onClick={() => controls.onPreferencesChange({ autoOpenPreview: !preferences.autoOpenPreview })} pressed={preferences.autoOpenPreview} value={preferences.autoOpenPreview ? "Automatic" : "Manual"} />
+        </DashboardCardGrid>
+      </DashboardSection>
+      <DashboardSection
+        action={<DashboardPanelHelp detail="These settings mirror the composer controls. Workflow and creativity apply to the next prompt, while the selected provider is shown for clarity and remains server-configured." label="Generation settings" />}
+        as="article"
+        detail="Set the workflow route and creative profile used for new prompts. Provider routing remains securely configured for this workspace."
+        eyebrow="Generation"
+        icon={SlidersHorizontal}
+        title="Prompt defaults"
+      >
+        <DashboardCardGrid className="dashboardGenerationRows" label="Generation defaults" layout="equal" role="group">
+          <label className="dashboardGenerationControl dashboardInnerCard">
             <span>Workflow</span>
             <select
               aria-label="Default workflow"
@@ -1559,19 +2277,16 @@ function DashboardSettings({ controls }: { controls: DashboardSettingsControls }
             </select>
             <small>Choose the bounded route for each new request.</small>
           </label>
-          <div className="dashboardGenerationControl" role="group" aria-label="AI Providers">
-            <span>AI Providers</span>
-            <details className="dashboardProviderDisclosure">
-              <summary aria-label="Selected AI provider: OpenAI">OpenAI</summary>
-              <div className="dashboardProviderAvailability">
-                <span>Selected provider</span>
-                <strong>OpenAI</strong>
-                <small>Configured server-side.</small>
-              </div>
-            </details>
-            <small>Review the configured provider for new prompts.</small>
-          </div>
-          <label className="dashboardGenerationControl">
+          <DashboardInfoCard
+            className="dashboardGenerationControl dashboardProviderCard"
+            detail="Configured server-side and shown here for clarity. Provider credentials and routing cannot be changed from this workspace."
+            eyebrow="AI provider"
+            icon={Bot}
+            label="AI provider"
+            role="group"
+            title="OpenAI"
+          />
+          <label className="dashboardGenerationControl dashboardInnerCard">
             <span>Creativity</span>
             <select
               aria-label="Default creativity"
@@ -1588,18 +2303,18 @@ function DashboardSettings({ controls }: { controls: DashboardSettingsControls }
             </select>
             <small>Balance exploration with a reliable implementation path.</small>
           </label>
-        </div>
-      </article>
+        </DashboardCardGrid>
+      </DashboardSection>
     </section>
   );
 }
 
 function DashboardScaleControl({ label, onChange, preview, previewKind, scales, value }: { label: string; onChange: (value: WorkspacePreferences["uiFontSize"]) => void; preview: string; previewKind: "heading" | "body" | "label" | "code"; scales: WorkspacePreferences["uiFontSize"][]; value: WorkspacePreferences["uiFontSize"]; }) {
-  return <div className="dashboardScaleControl"><strong>{label}</strong><div>{scales.map((scale) => <button aria-pressed={value === scale} key={scale} onClick={() => onChange(scale)} type="button">{scale}</button>)}</div><span className="dashboardTypographyPreview" data-kind={previewKind}>{preview}</span></div>;
+  return <div aria-label={`${label} scale`} className="dashboardInnerCard dashboardScaleControl" role="group"><strong>{label}</strong><div>{scales.map((scale) => <button aria-pressed={value === scale} key={scale} onClick={() => onChange(scale)} type="button">{scale}</button>)}</div><span className="dashboardTypographyPreview" data-kind={previewKind}>{preview}</span></div>;
 }
 
-function DashboardToggle({ label, onClick, value }: { label: string; onClick: () => void; value: string }) {
-  return <button className="dashboardToggle" onClick={onClick} type="button"><span>{label}</span><strong>{value}</strong></button>;
+function DashboardToggle({ label, onClick, pressed, value }: { label: string; onClick: () => void; pressed: boolean; value: string }) {
+  return <button aria-pressed={pressed} className="dashboardInnerCard dashboardToggle" onClick={onClick} type="button"><span>{label}</span><strong>{value}</strong></button>;
 }
 
 function getDashboardGroup(category: ProductIntelligenceCategory) {

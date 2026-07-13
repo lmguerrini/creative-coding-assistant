@@ -91,11 +91,13 @@ describe("Capstone Evaluation workspace", () => {
     expect(evolution).toHaveTextContent("b64323bf1424");
     expect(evolution).toHaveTextContent("74acf5d62f66");
     expect(evolution).toHaveTextContent(/not answer quality, evidence completeness, or an overall product score/i);
+    fireEvent.click(screen.getByText("Evidence lineage and evaluation execution timeline"));
     expect(screen.getByText("Evidence lineage")).toBeVisible();
     expect(screen.getByLabelText("Retrieval evaluation execution timeline")).toHaveTextContent("MISSING_EVIDENCE");
     expect(screen.getByLabelText("Retrieval evaluation execution timeline")).toHaveTextContent("19/23 RAW ANCHORS → 15/23 SUBSTANTIVE → 16/23 FINAL");
     const scoreContract = screen.getByText("Retrieval score contract").closest("details");
     expect(scoreContract).not.toBeNull();
+    fireEvent.click(screen.getByText("Retrieval score contract"));
     expect(within(scoreContract as HTMLElement).getByLabelText("Included retrieval metrics")).toHaveTextContent("Equal weight inside Retrieval Quality only");
     expect(within(scoreContract as HTMLElement).getByText("MISSING_EVIDENCE")).toBeVisible();
     expect(within(scoreContract as HTMLElement).getByText("BLOCKED_BY_EXECUTION_ENVIRONMENT")).toBeVisible();

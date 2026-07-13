@@ -74,9 +74,15 @@ test.describe("V9.7 Phase 3 product exploration", () => {
     await expect(creativeKnowledge).toBeVisible();
     await expect(
       creativeKnowledge
-        .getByRole("list", { name: "Creative knowledge records" })
+        .getByRole("list", { exact: true, name: "Featured creative knowledge records" })
         .locator(':scope > [role="listitem"]')
-    ).toHaveCount(7);
+    ).toHaveCount(3);
+    await creativeKnowledge.getByText("4 more creative knowledge records", { exact: true }).click();
+    await expect(
+      creativeKnowledge
+        .getByRole("list", { exact: true, name: "Additional creative knowledge records" })
+        .locator(':scope > [role="listitem"]')
+    ).toHaveCount(4);
     await expect(creativeKnowledge).toContainText("Live visual runtime triage");
     await page.screenshot({
       fullPage: true,
@@ -239,6 +245,43 @@ test.describe("V9.7 Phase 3 product exploration", () => {
         await page.getByRole("button", { name: "Collapse session sidebar" }).click();
         await expect(inspector).toHaveAttribute("data-state", "open");
         await page.getByRole("button", { name: "Expand session sidebar" }).click();
+      }
+
+      consoleGate.assertClean();
+    });
+  }
+
+  for (const viewport of [
+    { height: 980, name: "desktop", width: 1440 },
+    { height: 900, name: "laptop", width: 1024 },
+    { height: 900, name: "compact", width: 720 }
+  ]) {
+    test(`keeps the canonical ${viewport.name} Dashboard responsive`, async ({ page }) => {
+      const consoleGate = installConsoleGate(page);
+      await installApiMocks(page, "success");
+      await page.setViewportSize({ height: viewport.height, width: viewport.width });
+      await expectLoadedWorkstation(page);
+      await page.getByRole("button", { name: "Open Product Intelligence Dashboard" }).click();
+
+      const dashboard = page.getByRole("region", { name: "Advanced Dashboard" });
+      const navigation = dashboard.getByRole("navigation", { name: "Dashboard categories" });
+
+      for (const label of ["User Guide", "Settings"]) {
+        await navigation.getByRole("button", { exact: true, name: label }).click();
+        await expect(dashboard.getByRole("heading", { exact: true, name: label })).toBeVisible();
+        const layout = await page.evaluate(() => {
+          const dashboardElement = document.querySelector('[aria-label="Advanced Dashboard"]');
+          const content = dashboardElement?.querySelector(".productDashboardContent");
+          return {
+            contentClientWidth: content?.clientWidth ?? 0,
+            contentScrollWidth: content?.scrollWidth ?? 0,
+            documentClientWidth: document.documentElement.clientWidth,
+            documentScrollWidth: document.documentElement.scrollWidth
+          };
+        });
+
+        expect(layout.documentScrollWidth).toBeLessThanOrEqual(layout.documentClientWidth);
+        expect(layout.contentScrollWidth).toBeLessThanOrEqual(layout.contentClientWidth);
       }
 
       consoleGate.assertClean();

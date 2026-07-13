@@ -1,7 +1,6 @@
 import {
   Activity,
   AlertTriangle,
-  BookOpen,
   Boxes,
   Braces,
   CheckCircle2,
@@ -24,6 +23,15 @@ import {
   creativePreviewRendererRegistry,
   type CreativePreviewRendererKind
 } from "@/lib/preview-renderers";
+import {
+  DashboardCallout,
+  DashboardCardGrid,
+  DashboardDisclosure,
+  DashboardInfoCard,
+  DashboardSection,
+  DashboardTableFrame,
+  DashboardTabs
+} from "./dashboard-page-primitives";
 
 type GuideCard = {
   detail: string;
@@ -213,38 +221,19 @@ const troubleshooting = [
 export function UserGuide() {
   return (
     <section aria-label="User Guide" className="productDashboardManual userGuide">
-      <header className="userGuideHero">
-        <div className="userGuideHeroIcon" aria-hidden="true">
-          <BookOpen size={24} />
-        </div>
-        <div>
-          <span>Canonical product documentation</span>
-          <h2>From idea to inspected, previewed, and saved output</h2>
-          <p>
-            Follow the five-step path for a first run, then open the focused
-            reference cards only when you need deeper product detail.
-          </p>
-        </div>
-        <div className="userGuideHeroBadges" aria-label="Guide reading summary">
-          <span>2-minute start</span>
-          <span>Complete reference</span>
-          <span>Current product only</span>
-        </div>
-      </header>
+      <DashboardTabs
+        items={guideChapters.map(([id, label]) => ({ href: `#${id}`, label }))}
+        label="User Guide contents"
+      />
 
-      <nav aria-label="User Guide contents" className="userGuideContents">
-        {guideChapters.map(([id, label]) => (
-          <a href={`#${id}`} key={id}>{label}</a>
-        ))}
-      </nav>
-
-      <section aria-labelledby="guide-start-title" className="userGuideSection" id="guide-start">
-        <GuideSectionHeader
-          detail="The shortest reliable path through the product."
-          icon={Play}
-          title="Your first run"
-          titleId="guide-start-title"
-        />
+      <DashboardSection
+        className="userGuideSection"
+        detail="The shortest reliable path through the product."
+        icon={Play}
+        id="guide-start"
+        title="Your first run"
+        titleId="guide-start-title"
+      >
         <ol aria-label="First run workflow" className="userGuideJourney">
           {quickStartSteps.map((step, index) => (
             <li key={step.title}>
@@ -258,37 +247,28 @@ export function UserGuide() {
             </li>
           ))}
         </ol>
-        <aside className="userGuideCallout" data-tone="success">
-          <CheckCircle2 aria-hidden="true" size={19} />
-          <div>
-            <strong>A result has three separate truths</strong>
-            <p>
-              The saved artifact, its visible Preview, and Runtime health are
-              related but independent. Check all three before calling a visual ready.
-            </p>
-          </div>
-        </aside>
-      </section>
-
-      <section aria-labelledby="guide-workspace-title" className="userGuideSection" id="guide-workspace">
-        <GuideSectionHeader
-          detail="Five areas carry the entire end-user workflow."
-          icon={LayoutDashboard}
-          title="Workspace map"
-          titleId="guide-workspace-title"
+        <DashboardCallout
+          detail="The saved artifact, its visible Preview, and Runtime health are related but independent. Check all three before calling a visual ready."
+          icon={CheckCircle2}
+          title="A result has three separate truths"
+          tone="success"
         />
-        <div className="userGuideCardGrid userGuideCardGrid--areas">
+      </DashboardSection>
+
+      <DashboardSection
+        className="userGuideSection"
+        detail="Five areas carry the entire end-user workflow."
+        icon={LayoutDashboard}
+        id="guide-workspace"
+        title="Workspace map"
+        titleId="guide-workspace-title"
+      >
+        <DashboardCardGrid layout="compact">
           {workspaceAreas.map((area) => (
-            <article key={area.title}>
-              <area.icon aria-hidden="true" size={19} />
-              <strong>{area.title}</strong>
-              <p>{area.detail}</p>
-            </article>
+            <DashboardInfoCard detail={area.detail} icon={area.icon} key={area.title} title={area.title} />
           ))}
-        </div>
-        <details className="userGuideDisclosure">
-          <summary>Composer controls and attachments</summary>
-          <div className="userGuideDisclosureBody">
+        </DashboardCardGrid>
+        <DashboardDisclosure summary="Composer controls and attachments">
             <dl className="userGuideDefinitionGrid">
               <div><dt>Workflow</dt><dd>Auto, Single-Agent, or Multi-Agent for the next request.</dd></div>
               <div><dt>AI provider</dt><dd>Shows the active server-configured OpenAI route and availability; credentials are not edited here.</dd></div>
@@ -297,11 +277,8 @@ export function UserGuide() {
               <div><dt>Audio input</dt><dd>Audio upload and audio analysis are not implemented. Compatible Tone.js artifacts can play only after an explicit start.</dd></div>
               <div><dt>Send</dt><dd>Runs the normal streamed assistant workflow; Demo Mode also enters through this same path.</dd></div>
             </dl>
-          </div>
-        </details>
-        <details className="userGuideDisclosure">
-          <summary>Inspector tabs, layout, and Fullscreen Creative Session</summary>
-          <div className="userGuideDisclosureBody">
+        </DashboardDisclosure>
+        <DashboardDisclosure summary="Inspector tabs, layout, and Fullscreen Creative Session">
             <ul className="userGuideBullets">
               <li><strong>Open a tab</strong> from the Inspector add menu or Settings quick actions. Close tabs you do not need; they can be re-added later.</li>
               <li><strong>Open in Dashboard</strong> carries the current Inspector category into the larger evidence view.</li>
@@ -309,39 +286,28 @@ export function UserGuide() {
               <li><strong>Fullscreen Creative Session</strong> collapses Sessions, Inspector, and Preview, then restores their exact prior state when you exit.</li>
               <li><strong>Preview auto-open</strong> can open the shelf when a ready supported artifact arrives, or remain Manual in Settings.</li>
             </ul>
-          </div>
-        </details>
-      </section>
+        </DashboardDisclosure>
+      </DashboardSection>
 
-      <section aria-labelledby="guide-workflows-title" className="userGuideSection" id="guide-workflows">
-        <GuideSectionHeader
-          detail="Route choice changes orchestration, not the workspace safety boundary."
-          icon={Sparkles}
-          title="Workflows and Demo Mode"
-          titleId="guide-workflows-title"
-        />
-        <div className="userGuideModeGrid">
+      <DashboardSection
+        className="userGuideSection"
+        detail="Route choice changes orchestration, not the workspace safety boundary."
+        icon={Sparkles}
+        id="guide-workflows"
+        title="Workflows and Demo Mode"
+        titleId="guide-workflows-title"
+      >
+        <DashboardCardGrid layout="equal">
           {workflowModes.map((mode) => (
-            <article key={mode.label}>
-              <span>{mode.use}</span>
-              <strong>{mode.label}</strong>
-              <p>{mode.detail}</p>
-            </article>
+            <DashboardInfoCard detail={mode.detail} eyebrow={mode.use} key={mode.label} title={mode.label} />
           ))}
-        </div>
-        <aside className="userGuideCallout">
-          <MessageSquare aria-hidden="true" size={19} />
-          <div>
-            <strong>Ambiguous briefs can pause for clarification</strong>
-            <p>
-              Choose a suggested option or type its number in the composer. The
-              answer continues as a new, explicit run rather than silently guessing.
-            </p>
-          </div>
-        </aside>
-        <details className="userGuideDisclosure">
-          <summary>How to use Demo Mode · {demoModeScenarioCatalog.length} curated flows</summary>
-          <div className="userGuideDisclosureBody">
+        </DashboardCardGrid>
+        <DashboardCallout
+          detail="Choose a suggested option or type its number in the composer. The answer continues as a new, explicit run rather than silently guessing."
+          icon={MessageSquare}
+          title="Ambiguous briefs can pause for clarification"
+        />
+        <DashboardDisclosure summary={<>How to use Demo Mode · {demoModeScenarioCatalog.length} curated flows</>}>
             <ol className="userGuideCompactSteps">
               <li><strong>Open Demo Mode</strong><span>Use the Play control in the top bar.</span></li>
               <li><strong>Select a scenario</strong><span>Read its runtime, input, expected artifact, preview, interaction, validation, and fallback before running.</span></li>
@@ -363,48 +329,26 @@ export function UserGuide() {
               workflow, validation, and fallback evidence. Prepared fallbacks are
               evidence, not a new live provider, retrieval, or preview result.
             </p>
-          </div>
-        </details>
-      </section>
+        </DashboardDisclosure>
+      </DashboardSection>
 
-      <section aria-labelledby="guide-results-title" className="userGuideSection" id="guide-results">
-        <GuideSectionHeader
-          detail="Keep source, visible output, and runtime evidence distinct."
-          icon={Braces}
-          title="Code, Saved outputs, Preview, and Runtime"
-          titleId="guide-results-title"
-        />
-        <div className="userGuideCardGrid">
-          <article>
-            <Braces aria-hidden="true" size={19} />
-            <strong>Code</strong>
-            <p>Reads the selected artifact with language, type, status, line count, source, copy, and supported transfer actions. Provenance belongs to Workflow evidence.</p>
-          </article>
-          <article>
-            <Boxes aria-hidden="true" size={19} />
-            <strong>Saved / Artifacts</strong>
-            <p>Select among outputs; inspect metadata, creative translation, critique, and plan; refine code; rename; delete; or use available actions.</p>
-          </article>
-          <article>
-            <MonitorPlay aria-hidden="true" size={19} />
-            <strong>Preview</strong>
-            <p>Shows the selected previewable artifact. Fullscreen and Reload act on the view; checkpointed Restart and Clear act on the preview session, not the saved source.</p>
-          </article>
-          <article>
-            <TerminalSquare aria-hidden="true" size={19} />
-            <strong>Runtime</strong>
-            <p>Reports published lifecycle, renderer, frame, reload, and error signals. It does not infer hidden runtime state.</p>
-          </article>
-          <article>
-            <Download aria-hidden="true" size={19} />
-            <strong>Copy, download, and export</strong>
-            <p>Actions appear only when supported. File download and ZIP project-bundle export require an explicit operator checkpoint.</p>
-          </article>
-        </div>
-        <details className="userGuideDisclosure">
-          <summary>Supported live Preview runtimes and their boundaries</summary>
-          <div className="userGuideDisclosureBody">
-            <div className="userGuideTableWrap">
+      <DashboardSection
+        className="userGuideSection"
+        detail="Keep source, visible output, and runtime evidence distinct."
+        icon={Braces}
+        id="guide-results"
+        title="Code, Saved outputs, Preview, and Runtime"
+        titleId="guide-results-title"
+      >
+        <DashboardCardGrid>
+          <DashboardInfoCard detail="Reads the selected artifact with language, type, status, line count, source, copy, and supported transfer actions. Provenance belongs to Workflow evidence." icon={Braces} title="Code" />
+          <DashboardInfoCard detail="Select among outputs; inspect metadata, creative translation, critique, and plan; refine code; rename; delete; or use available actions." icon={Boxes} title="Saved / Artifacts" />
+          <DashboardInfoCard detail="Shows the selected previewable artifact. Fullscreen and Reload act on the view; checkpointed Restart and Clear act on the preview session, not the saved source." icon={MonitorPlay} title="Preview" />
+          <DashboardInfoCard detail="Reports published lifecycle, renderer, frame, reload, and error signals. It does not infer hidden runtime state." icon={TerminalSquare} title="Runtime" />
+          <DashboardInfoCard detail="Actions appear only when supported. File download and ZIP project-bundle export require an explicit operator checkpoint." icon={Download} title="Copy, download, and export" />
+        </DashboardCardGrid>
+        <DashboardDisclosure summary="Supported live Preview runtimes and their boundaries">
+            <DashboardTableFrame>
               <table>
                 <thead><tr><th>Runtime</th><th>Preview surface</th><th>Important boundary</th></tr></thead>
                 <tbody>
@@ -417,7 +361,7 @@ export function UserGuide() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </DashboardTableFrame>
             <p className="userGuideFinePrint">
               The canonical generation-domain catalog advertises internal
               preview delivery for p5.js, Three.js, GLSL, and Tone.js. Hydra,
@@ -426,24 +370,14 @@ export function UserGuide() {
               generation-domain guarantees. Runtime FPS is a short-window
               browser-frame health sample, not a display or production benchmark.
             </p>
-            <aside className="userGuideCallout" data-tone="warning">
-              <AlertTriangle aria-hidden="true" size={19} />
-              <div>
-                <strong>Preview support belongs to the artifact, not the idea</strong>
-                <p>
-                  Images, audio/video assets, JSON, and text may route to surface
-                  foundations or placeholders with metadata; this does not mean
-                  their bytes or playback are rendered. React applications,
-                  standalone HTML, and external tools remain code/export or handoff
-                  outputs unless a supported runtime artifact is also present.
-                </p>
-              </div>
-            </aside>
-          </div>
-        </details>
-        <details className="userGuideDisclosure">
-          <summary>Artifact lifecycle and project-bundle export</summary>
-          <div className="userGuideDisclosureBody">
+            <DashboardCallout
+              detail="Images, audio/video assets, JSON, and text may route to surface foundations or placeholders with metadata; this does not mean their bytes or playback are rendered. React applications, standalone HTML, and external tools remain code/export or handoff outputs unless a supported runtime artifact is also present."
+              icon={AlertTriangle}
+              title="Preview support belongs to the artifact, not the idea"
+              tone="warning"
+            />
+        </DashboardDisclosure>
+        <DashboardDisclosure summary="Artifact lifecycle and project-bundle export">
             <ul className="userGuideBullets">
               <li><strong>Open</strong> selects the artifact in Code; <strong>Preview</strong> selects its supported renderer route.</li>
               <li><strong>Copy</strong> writes the current document text to the browser clipboard. <strong>Download</strong> saves that document.</li>
@@ -453,17 +387,17 @@ export function UserGuide() {
               <li><strong>Refine</strong> sends an explicit instruction through a new workflow pass and creates a new version. Parameter controls and quick suggestions are guidance only: they do not mutate saved source or the running Preview until submitted. The targeted flow defaults to a two-pass limit.</li>
               <li><strong>Delete</strong> asks for confirmation and offers Undo/Redo while the session remains open. Rename changes the saved display/file title after validation.</li>
             </ul>
-          </div>
-        </details>
-      </section>
+        </DashboardDisclosure>
+      </DashboardSection>
 
-      <section aria-labelledby="guide-knowledge-title" className="userGuideSection" id="guide-knowledge">
-        <GuideSectionHeader
-          detail="Three evidence layers answer different questions."
-          icon={Database}
-          title="Knowledge Base, Retrieval, and Memory"
-          titleId="guide-knowledge-title"
-        />
+      <DashboardSection
+        className="userGuideSection"
+        detail="Three evidence layers answer different questions."
+        icon={Database}
+        id="guide-knowledge"
+        title="Knowledge Base, Retrieval, and Memory"
+        titleId="guide-knowledge-title"
+      >
         <div className="userGuideKnowledgeFlow" aria-label="Knowledge evidence flow">
           <article>
             <span>1 · Inventory</span>
@@ -483,20 +417,12 @@ export function UserGuide() {
             <p>The request, selected sources and chunks, quality, freshness, and boundaries published for this run only.</p>
           </article>
         </div>
-        <aside className="userGuideCallout">
-          <Database aria-hidden="true" size={19} />
-          <div>
-            <strong>Memory is not provider reasoning</strong>
-            <p>
-              Memory reports published, privacy-safe context and session-history
-              signals. The product never presents private model reasoning as memory,
-              retrieval evidence, or provenance.
-            </p>
-          </div>
-        </aside>
-        <details className="userGuideDisclosure">
-          <summary>Maintain the local Technical Knowledge index</summary>
-          <div className="userGuideDisclosureBody">
+        <DashboardCallout
+          detail="Memory reports published, privacy-safe context and session-history signals. The product never presents private model reasoning as memory, retrieval evidence, or provenance."
+          icon={Database}
+          title="Memory is not provider reasoning"
+        />
+        <DashboardDisclosure summary="Maintain the local Technical Knowledge index">
             <ol className="userGuideCompactSteps userGuideCompactSteps--four">
               <li><strong>Check</strong><span>Compare selected registered sources with local fingerprints and reachability.</span></li>
               <li><strong>Update</strong><span>Fetch changed reachable sources after the explicit write confirmation.</span></li>
@@ -510,17 +436,17 @@ export function UserGuide() {
               local index is restored. Index validation does not itself prove
               Retrieval quality for a future prompt.
             </p>
-          </div>
-        </details>
-      </section>
+        </DashboardDisclosure>
+      </DashboardSection>
 
-      <section aria-labelledby="guide-dashboard-title" className="userGuideSection" id="guide-dashboard">
-        <GuideSectionHeader
-          detail="Use the Dashboard when you need evidence or configuration, not to run the creative conversation."
-          icon={LayoutDashboard}
-          title="Every Dashboard page"
-          titleId="guide-dashboard-title"
-        />
+      <DashboardSection
+        className="userGuideSection"
+        detail="Use the Dashboard when you need evidence or configuration, not to run the creative conversation."
+        icon={LayoutDashboard}
+        id="guide-dashboard"
+        title="Every Dashboard page"
+        titleId="guide-dashboard-title"
+      >
         <div aria-label="Dashboard page reference" className="userGuideDashboardGrid" role="list">
           {dashboardPages.map(([title, detail], index) => (
             <article key={title} role="listitem">
@@ -534,26 +460,25 @@ export function UserGuide() {
           missing value stays “Not published” or equivalent; the UI does not guess
           provider usage, cost, retrieval, execution, or runtime state.
         </p>
-      </section>
+      </DashboardSection>
 
-      <section aria-labelledby="guide-settings-title" className="userGuideSection" id="guide-settings">
-        <GuideSectionHeader
-          detail="Preferences are local to the current browser workspace."
-          icon={Settings}
-          title="Settings, sessions, and privacy"
-          titleId="guide-settings-title"
-        />
-        <div className="userGuideCardGrid">
-          <article><Settings aria-hidden="true" size={19} /><strong>Appearance</strong><p>Choose Aqua, Deep Blue, Dark, Light, Matrix, Terminal, Horizon, Zen, or Blueprint themes and separate heading, body, label/control, and code scales.</p></article>
-          <article><LayoutDashboard aria-hidden="true" size={19} /><strong>Layout</strong><p>Use Cozy or Compact density; collapse either sidebar; open the Preview shelf; resize panels; or enter Fullscreen Creative Session.</p></article>
-          <article><Gauge aria-hidden="true" size={19} /><strong>Display mode</strong><p>User Mode presents the quiet creative path. Developer Mode exposes detailed workflow, runtime, retrieval, telemetry, and evaluation evidence.</p></article>
-          <article><Sparkles aria-hidden="true" size={19} /><strong>Generation defaults</strong><p>Set workflow and creativity for the next prompt. Provider selection is shown for clarity and remains server-configured.</p></article>
-          <article><Database aria-hidden="true" size={19} /><strong>Personalization</strong><p>Only explicit local helpful/needs-work signals are retained. Enable, remove, or clear them from top-bar Settings.</p></article>
-          <article><Boxes aria-hidden="true" size={19} /><strong>Sessions</strong><p>Create, open, rename, or delete sessions from the rail or Dashboard. Token and cost totals include only provider-published values.</p></article>
-        </div>
-        <details className="userGuideDisclosure">
-          <summary>Local storage, privacy, evaluation, and safety boundaries</summary>
-          <div className="userGuideDisclosureBody">
+      <DashboardSection
+        className="userGuideSection"
+        detail="Preferences are local to the current browser workspace."
+        icon={Settings}
+        id="guide-settings"
+        title="Settings, sessions, and privacy"
+        titleId="guide-settings-title"
+      >
+        <DashboardCardGrid>
+          <DashboardInfoCard detail="Choose Aqua, Deep Blue, Dark, Light, Matrix, Terminal, Horizon, Zen, or Blueprint themes and separate heading, body, label/control, and code scales." icon={Settings} title="Appearance" />
+          <DashboardInfoCard detail="Use Cozy or Compact density; collapse either sidebar; open the Preview shelf; resize panels; or enter Fullscreen Creative Session." icon={LayoutDashboard} title="Layout" />
+          <DashboardInfoCard detail="User Mode presents the quiet creative path. Developer Mode exposes detailed workflow, runtime, retrieval, telemetry, and evaluation evidence." icon={Gauge} title="Display mode" />
+          <DashboardInfoCard detail="Set workflow and creativity for the next prompt. Provider selection is shown for clarity and remains server-configured." icon={Sparkles} title="Generation defaults" />
+          <DashboardInfoCard detail="Only explicit local helpful/needs-work signals are retained. Enable, remove, or clear them from top-bar Settings." icon={Database} title="Personalization" />
+          <DashboardInfoCard detail="Create, open, rename, or delete sessions from the rail or Dashboard. Token and cost totals include only provider-published values." icon={Boxes} title="Sessions" />
+        </DashboardCardGrid>
+        <DashboardDisclosure summary="Local storage, privacy, evaluation, and safety boundaries">
             <ul className="userGuideBullets">
               <li>Sessions and preferences are isolated to this browser profile. “Local” does not mean a claim of absolute security.</li>
               <li>Image references stay browser-local until explicit submission, then the backend includes accepted pixels in the provider request payload. Provider receipt, use, and influence are not claimed without live evidence. The images leave the composer and are excluded from session persistence. A bundle exported before Send can include queued pixels, so review it before sharing.</li>
@@ -564,64 +489,33 @@ export function UserGuide() {
               <li>Deleting a session asks for confirmation and is not the same as session-scoped artifact Undo/Redo.</li>
               <li>Potentially destructive reset, transfer, export, or other guarded actions use an operator checkpoint where implemented.</li>
             </ul>
-          </div>
-        </details>
-      </section>
+        </DashboardDisclosure>
+      </DashboardSection>
 
-      <section aria-labelledby="guide-help-title" className="userGuideSection" id="guide-help">
-        <GuideSectionHeader
-          detail="Start with the visible product signal before repeating a run."
-          icon={AlertTriangle}
-          title="Troubleshooting"
-          titleId="guide-help-title"
-        />
+      <DashboardSection
+        className="userGuideSection"
+        detail="Start with the visible product signal before repeating a run."
+        icon={AlertTriangle}
+        id="guide-help"
+        title="Troubleshooting"
+        titleId="guide-help-title"
+      >
         <div className="userGuideTroubleshooting">
           {troubleshooting.map((topic) => (
-            <details className="userGuideDisclosure" key={topic.title}>
-              <summary>{topic.title}</summary>
-              <div className="userGuideDisclosureBody">
+            <DashboardDisclosure key={topic.title} summary={topic.title}>
                 <ol>
                   {topic.checks.map((check) => <li key={check}>{check}</li>)}
                 </ol>
-              </div>
-            </details>
+            </DashboardDisclosure>
           ))}
         </div>
-        <aside className="userGuideCallout" data-tone="warning">
-          <AlertTriangle aria-hidden="true" size={19} />
-          <div>
-            <strong>Know the product boundary</strong>
-            <p>
-              The application generates, inspects, previews, evaluates, and
-              exports bounded creative-coding artifacts. It does not install or
-              run Blender, Houdini, TouchDesigner, Unity, Unreal, remote DCC tools,
-              venue scanning, deployment infrastructure, or autonomous external agents.
-            </p>
-          </div>
-        </aside>
-      </section>
+        <DashboardCallout
+          detail="The application generates, inspects, previews, evaluates, and exports bounded creative-coding artifacts. It does not install or run Blender, Houdini, TouchDesigner, Unity, Unreal, remote DCC tools, venue scanning, deployment infrastructure, or autonomous external agents."
+          icon={AlertTriangle}
+          title="Know the product boundary"
+          tone="warning"
+        />
+      </DashboardSection>
     </section>
-  );
-}
-
-function GuideSectionHeader({
-  detail,
-  icon: Icon,
-  title,
-  titleId
-}: {
-  detail: string;
-  icon: LucideIcon;
-  title: string;
-  titleId: string;
-}) {
-  return (
-    <header className="userGuideSectionHeader">
-      <div aria-hidden="true"><Icon size={19} /></div>
-      <div>
-        <h2 id={titleId}>{title}</h2>
-        <p>{detail}</p>
-      </div>
-    </header>
   );
 }
