@@ -120,6 +120,37 @@ class PromptTemplateFoundationTests(unittest.TestCase):
             "PerspectiveCamera controls field of view and aspect ratio.",
             response.sections[3].content,
         )
+        self.assertIn("Retrieval Grounding Contract:", response.sections[0].content)
+        self.assertIn(
+            "Cite the supporting source id in square brackets",
+            response.sections[0].content,
+        )
+        self.assertIn(
+            "do not silently fill evidence gaps",
+            response.sections[0].content,
+        )
+
+    def test_jinja_prompt_renderer_omits_retrieval_contract_without_context(self) -> None:
+        prompt_input = StructuredPromptInputBuilder().build(
+            build_prompt_input_request(
+                assistant_request=AssistantRequest(query="Explain a p5.js loop."),
+                route_decision=RouteDecision(
+                    route=RouteName.EXPLAIN,
+                    mode=AssistantMode.EXPLAIN,
+                    capabilities=(RouteCapability.OFFICIAL_DOCS,),
+                ),
+                assembled_context=None,
+            )
+        )
+
+        response = JinjaPromptRenderer().render(
+            build_rendered_prompt_request(
+                route_decision=RouteName.EXPLAIN,
+                prompt_input=prompt_input,
+            )
+        )
+
+        self.assertNotIn("Retrieval Grounding Contract:", response.sections[0].content)
 
     def test_jinja_prompt_renderer_lists_image_references_without_payloads(
         self,

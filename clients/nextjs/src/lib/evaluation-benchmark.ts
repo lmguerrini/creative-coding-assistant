@@ -144,10 +144,14 @@ export type RagasCaseEvidence = {
   sampleId: string;
   metrics: Record<string, number | null>;
   metricErrors: Record<string, string>;
+  sourceIds: string[];
+  domains: string[];
 };
 
 export type RagasExecutionEvidence = {
   state: "not_requested" | "prepared" | "completed" | "blocked" | "failed";
+  runId: string | null;
+  evaluatedAt: string | null;
   datasetId: string;
   datasetVersion: string;
   privacyClass: string;
@@ -161,6 +165,8 @@ export type RagasExecutionEvidence = {
   provider: string | null;
   model: string | null;
   embeddingModel: string | null;
+  ragasVersion: string | null;
+  metricContract: string | null;
   durationMs: number | null;
   detail: string;
   caseRows: RagasCaseEvidence[];
@@ -411,7 +417,7 @@ export function buildEvaluationBenchmarkRun({
     caseResults.push(reliabilityEvidenceCase(model));
   }
 
-  const previousComparable = previousRun && comparableRuns(previousRun, request, dataset)
+  const previousComparable = previousRun && comparableRuns(previousRun, request, dataset, ragas)
     ? previousRun
     : null;
   const categoryResults = evaluationCategoriesForScope(request.scope).map((category) =>
@@ -427,7 +433,10 @@ export function buildEvaluationBenchmarkRun({
   const measuredMetrics = allMetrics.filter((item) => item.score != null).length;
   const evidenceCompleteness = applicableMetrics ? measuredMetrics / applicableMetrics : 0;
   const counts = countCaseStatuses(caseResults);
-  const measuredScore = defensibleAggregateScore(categoryResults, caseCoverage);
+  // Category scores measure different constructs and are never averaged into a
+  // cross-category product score. Keep the legacy field null for persisted-run
+  // schema compatibility.
+  const measuredScore = null;
   const recommendations = uniqueRecommendations(caseResults);
   const completedAt = new Date(now.getTime() + 1).toISOString();
   const providerTelemetry = model.details?.providerTelemetry;
@@ -454,7 +463,7 @@ export function buildEvaluationBenchmarkRun({
       ragas.state === "blocked"
         ? measuredMetrics > 0 ? "partially_available" : "blocked"
         : missingMetricIds.length ? "partially_available" : "ready",
-    statusLabel: statusLabelForRun({ counts, evidenceCompleteness, measuredScore }),
+    statusLabel: statusLabelForRun({ counts, evidenceCompleteness }),
     measuredScore,
     targetThreshold: EVALUATION_TARGET_THRESHOLD,
     evidenceCompleteness,
@@ -514,10 +523,17 @@ export function createEvaluationCandidate({
 export function emptyRagasEvidence(): RagasExecutionEvidence {
   return {
     state: "not_requested",
+    runId: null,
+    evaluatedAt: null,
     datasetId: "not_selected",
     datasetVersion: "ragas-live-session.v1",
     privacyClass: "not_selected",
-    metrics: ["context_precision", "faithfulness", "answer_relevancy"],
+    metrics: [
+      "context_precision",
+      "faithfulness",
+      "answer_relevancy",
+      "context_relevancy"
+    ],
     metricScores: {},
     resultRows: 0,
     totalSamples: 0,
@@ -527,6 +543,8 @@ export function emptyRagasEvidence(): RagasExecutionEvidence {
     provider: null,
     model: null,
     embeddingModel: null,
+    ragasVersion: null,
+    metricContract: null,
     durationMs: null,
     detail: "RAGAS was not requested for this evaluation scope.",
     caseRows: []
@@ -861,9 +879,6 @@ function ragasEvidenceCase(ragas: RagasExecutionEvidence): EvaluationCaseResult 
     if (metricId === "context_recall") {
       return missingMetric(metricId, "Context Recall", "rag", "Not implemented: approved datasets have no justified reference answers.", "ragas");
     }
-    if (metricId === "context_relevancy") {
-      return missingMetric(metricId, "Context Relevancy", "rag", "This equivalent metric is not integrated in the current RAGAS adapter.", "ragas");
-    }
     const score = ragas.metricScores[metricId];
     if (score != null) {
       return metricResult({
@@ -983,7 +998,7 @@ function recommend(result: EvaluationCaseResult): EvaluationRecommendation | nul
 }
 
 function recommendationForMetric(metricId: string, result: EvaluationCaseResult) {
-  if (["context_precision", "faithfulness", "answer_relevancy", "retrieval_evidence"].includes(metricId)) {
+  if (["context_precision", "faithfulness", "answer_relevancy", "context_relevancy", "retrieval_evidence"].includes(metricId)) {
     return { title: "Improve retrieval query and context selection", detail: "Inspect query specificity, domain filters, and which chunks were used before changing the answer prompt.", candidateConstraint: "Use current-run retrieval only when sources are published; state the source boundary and exclude irrelevant contexts." };
   }
   if (metricId === "route_correctness") {
@@ -1160,35 +1175,38 @@ function evaluationCategoriesForScope(scope: EvaluationScope): EvaluationCategor
 function comparableRuns(
   previous: EvaluationBenchmarkRun,
   request: EvaluationRunRequest,
-  dataset: GoldenEvaluationDataset
+  dataset: GoldenEvaluationDataset,
+  ragas: RagasExecutionEvidence
 ) {
   const selected = selectEvaluationCases(dataset, request).map((item) => item.id);
-  return previous.datasetFingerprint === dataset.fingerprint &&
+  const ragasComparable = !scopeIncludes(request.scope, "rag") || (
+    previous.ragas.datasetId === ragas.datasetId &&
+    previous.ragas.datasetVersion === ragas.datasetVersion &&
+    previous.ragas.privacyClass === ragas.privacyClass &&
+    [...previous.ragas.metrics].sort().join("|") === [...ragas.metrics].sort().join("|") &&
+    previous.ragas.model === ragas.model &&
+    previous.ragas.provider === ragas.provider &&
+    previous.ragas.embeddingModel === ragas.embeddingModel &&
+    previous.ragas.ragasVersion === ragas.ragasVersion &&
+    previous.ragas.metricContract === ragas.metricContract
+  );
+  return ragasComparable &&
+    previous.datasetFingerprint === dataset.fingerprint &&
     previous.scope === request.scope &&
     previous.selectedCaseIds.join("|") === selected.join("|");
 }
 
-function defensibleAggregateScore(categoryResults: EvaluationCategoryResult[], caseCoverage: number) {
-  if (caseCoverage < 0.8 || categoryResults.length !== 4 || categoryResults.some((item) => item.score == null)) {
-    return null;
-  }
-  return average(categoryResults.map((item) => item.score!));
-}
-
 function statusLabelForRun({
   counts,
-  evidenceCompleteness,
-  measuredScore
+  evidenceCompleteness
 }: {
   counts: EvaluationStatusCounts;
   evidenceCompleteness: number;
-  measuredScore: number | null;
 }): EvaluationBenchmarkRun["statusLabel"] {
   if (counts.blocked > 0 && counts.pass + counts.partial + counts.fail === 0) return "Blocked";
-  if (measuredScore == null || evidenceCompleteness < 0.8) return "Incomplete Evidence";
-  if (measuredScore >= 0.9) return "Excellent";
-  if (measuredScore >= EVALUATION_TARGET_THRESHOLD) return "Demo Ready";
-  return "Needs Improvement";
+  if (evidenceCompleteness < 1 || counts.missing > 0 || counts.notRun > 0 || counts.blocked > 0) return "Incomplete Evidence";
+  if (counts.fail > 0 || counts.partial > 0) return "Needs Improvement";
+  return "Demo Ready";
 }
 
 function statusFromMetrics(metrics: EvaluationMetricResult[]): EvaluationMetricStatus {

@@ -4,10 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable
 from http import HTTPStatus
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from time import perf_counter
 from typing import Any, Literal
+from uuid import uuid4
 
+from openai import APIConnectionError, APITimeoutError, AuthenticationError, RateLimitError
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from creative_coding_assistant.api.contracts import (
@@ -28,7 +31,7 @@ from creative_coding_assistant.eval import (
     run_ragas_live_eval,
 )
 
-EVALUATION_CONTRACT_VERSION = "evaluation.v1"
+EVALUATION_CONTRACT_VERSION = "evaluation.v2"
 EVALUATION_CONTRACT_HEADER = "X-CCA-Evaluation-Contract-Version"
 DEFAULT_EVALUATION_PATH = "/api/evaluation/run"
 EVALUATION_METHODS = "POST, OPTIONS"
@@ -165,8 +168,9 @@ class EvaluationApplication:
         dataset_contract = APPROVED_EVALUATION_DATASETS[request.approved_dataset]
         repository_root = Path(__file__).resolve().parents[3]
         input_path = repository_root / dataset_contract["path"]
+        run_id = uuid4().hex
         output_path = settings.eval_ragas_results_path.with_name(
-            f"dashboard-{request.approved_dataset}-ragas-results.jsonl"
+            f"dashboard-{request.approved_dataset}-{run_id}-ragas-results.jsonl"
         )
         started_at = perf_counter()
         try:
@@ -177,6 +181,7 @@ class EvaluationApplication:
                     "context_precision",
                     "faithfulness",
                     "answer_relevancy",
+                    "context_relevancy",
                 ),
                 evaluator_config=RagasEvaluatorConfig(
                     model=settings.eval_ragas_model,
@@ -188,6 +193,7 @@ class EvaluationApplication:
                 ),
                 dry_run=request.dry_run,
                 allow_provider_calls=request.allow_provider_calls,
+                run_id=run_id,
             )
         except RagasProviderCostBoundaryError:
             return error_response(
@@ -200,7 +206,16 @@ class EvaluationApplication:
                 allow_origin=allow_origin,
                 extra_headers=[(EVALUATION_CONTRACT_HEADER, EVALUATION_CONTRACT_VERSION)],
             )
-        except RagasDependencyError:
+        except (
+            RagasDependencyError,
+            APIConnectionError,
+            APITimeoutError,
+            AuthenticationError,
+            RateLimitError,
+            ConnectionError,
+            TimeoutError,
+            OSError,
+        ):
             return _blocked_environment_response(
                 start_response,
                 request_id=request_id,
@@ -208,11 +223,15 @@ class EvaluationApplication:
                 message="BLOCKED_BY_EXECUTION_ENVIRONMENT: optional RAGAS dependencies are unavailable.",
             )
         except Exception:
-            return _blocked_environment_response(
+            return error_response(
                 start_response,
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                error="evaluation_failed",
+                message="Evaluation returned an unexpected dataset or evaluator error. No score was fabricated.",
                 request_id=request_id,
+                allow_methods=EVALUATION_METHODS,
                 allow_origin=allow_origin,
-                message="BLOCKED_BY_EXECUTION_ENVIRONMENT: evaluator execution is unavailable.",
+                extra_headers=[(EVALUATION_CONTRACT_HEADER, EVALUATION_CONTRACT_VERSION)],
             )
 
         metric_scores = _aggregate_metric_scores(result.result_rows, result.metrics)
@@ -254,6 +273,8 @@ class EvaluationApplication:
                 "provider": "OpenAI evaluator" if not result.dry_run else None,
                 "model": settings.eval_ragas_model if not result.dry_run else None,
                 "embeddingModel": settings.openai_embedding_model if not result.dry_run else None,
+                "ragasVersion": _package_version("ragas"),
+                "metricContract": "ragas-supported.v2",
                 "durationMs": round((perf_counter() - started_at) * 1000),
                 "evaluatedAt": result.manifest.evaluated_at.isoformat(),
             },
@@ -275,6 +296,13 @@ def _aggregate_metric_scores(result_rows: Any, metrics: Any) -> dict[str, float]
         if values:
             aggregates[str(metric)] = sum(values) / len(values)
     return aggregates
+
+
+def _package_version(package: str) -> str | None:
+    try:
+        return version(package)
+    except PackageNotFoundError:
+        return None
 
 
 def _blocked_environment_response(

@@ -56,6 +56,17 @@ class V97EvaluationApiTests(unittest.TestCase):
         self.assertNotIn("score", response)
         self.assertTrue(run.call_args.kwargs["dry_run"])
         self.assertFalse(run.call_args.kwargs["allow_provider_calls"])
+        self.assertEqual(
+            run.call_args.kwargs["metric_names"],
+            (
+                "context_precision",
+                "faithfulness",
+                "answer_relevancy",
+                "context_relevancy",
+            ),
+        )
+        self.assertIn("sanitized_public", run.call_args.kwargs["output_path"].name)
+        self.assertEqual(len(run.call_args.kwargs["run_id"]), 32)
 
     def test_live_evaluation_requires_explicit_provider_authorization(self) -> None:
         app = EvaluationApplication(settings_factory=lambda: Settings(_env_file=None))
@@ -157,6 +168,22 @@ class V97EvaluationApiTests(unittest.TestCase):
         response = json.loads(body)
         self.assertEqual(response["error"], "blocked_by_execution_environment")
         self.assertIn("BLOCKED_BY_EXECUTION_ENVIRONMENT", response["message"])
+
+    def test_unexpected_evaluator_error_is_not_mislabeled_as_environment_block(self) -> None:
+        app = EvaluationApplication(settings_factory=lambda: Settings(_env_file=None))
+        headers: dict[str, object] = {}
+        payload = json.dumps({"dryRun": True, "allowProviderCalls": False}).encode()
+
+        with patch(
+            "creative_coding_assistant.api.evaluation.run_ragas_live_eval",
+            side_effect=RuntimeError("invalid evaluator result shape"),
+        ):
+            body = b"".join(app(_environ(payload), _capture_response(headers)))
+
+        response = json.loads(body)
+        self.assertEqual(headers["status"], "500 Internal Server Error")
+        self.assertEqual(response["error"], "evaluation_failed")
+        self.assertNotIn("BLOCKED_BY_EXECUTION_ENVIRONMENT", response["message"])
 
 
 def _capture_response(target: dict[str, object]):

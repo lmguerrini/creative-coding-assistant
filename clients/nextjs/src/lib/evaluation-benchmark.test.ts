@@ -95,4 +95,70 @@ describe("canonical evaluation benchmark", () => {
     expect(candidate?.delta).toBeNull();
     expect(caseResult.prompt).toBe("Draw a quiet field.");
   });
+
+  it("never creates a cross-category score and compares RAG trends only under one evaluator contract", () => {
+    const request = {
+      scope: "rag" as const,
+      caseIds: [],
+      allowProviderCalls: true,
+      approvedRagasDataset: "sanitized_public" as const
+    };
+    const first = buildEvaluationBenchmarkRun({
+      model: emptyModel,
+      now: new Date("2026-07-13T12:00:00Z"),
+      ragas: {
+        ...emptyRagasEvidence(),
+        state: "completed",
+        datasetId: "sanitized_public",
+        datasetVersion: "sanitized-ragas.v1",
+        privacyClass: "committed_synthetic_public",
+        metrics: ["context_precision", "faithfulness", "answer_relevancy", "context_relevancy"],
+        metricScores: { context_precision: .9, faithfulness: .8, answer_relevancy: .7, context_relevancy: .8 },
+        resultRows: 4,
+        totalSamples: 4,
+        eligibleSamples: 4,
+        provider: "OpenAI evaluator",
+        model: "gpt-4o-mini",
+        embeddingModel: "text-embedding-3-small",
+        ragasVersion: "0.4.3",
+        metricContract: "ragas-supported.v2"
+      },
+      request
+    });
+    const second = buildEvaluationBenchmarkRun({
+      model: emptyModel,
+      now: new Date("2026-07-13T13:00:00Z"),
+      previousRun: first,
+      ragas: {
+        ...first.ragas,
+        datasetId: "redacted_public",
+        datasetVersion: "redacted-live-latest4.v1",
+        privacyClass: "committed_redacted_public"
+      },
+      request: { ...request, approvedRagasDataset: "redacted_public" }
+    });
+
+    expect(first.categoryResults[0]?.score).not.toBeNull();
+    expect(first.measuredScore).toBeNull();
+    expect(second.categoryResults[0]?.previousScore).toBeNull();
+    expect(second.categoryResults[0]?.delta).toBeNull();
+
+    const changedProvider = buildEvaluationBenchmarkRun({
+      model: emptyModel,
+      now: new Date("2026-07-13T14:00:00Z"),
+      previousRun: first,
+      ragas: { ...first.ragas, provider: "Another evaluator" },
+      request
+    });
+    const changedContract = buildEvaluationBenchmarkRun({
+      model: emptyModel,
+      now: new Date("2026-07-13T15:00:00Z"),
+      previousRun: first,
+      ragas: { ...first.ragas, metricContract: "ragas-supported.v3" },
+      request
+    });
+
+    expect(changedProvider.categoryResults[0]?.delta).toBeNull();
+    expect(changedContract.categoryResults[0]?.delta).toBeNull();
+  });
 });

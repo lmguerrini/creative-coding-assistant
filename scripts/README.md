@@ -8,6 +8,13 @@ Evaluation helpers are local/manual by design:
   evaluation runs.
 - `run_eval_latest.sh` runs the latest eligible live-session samples and
   explicitly opts into provider calls.
+- `report_canonical_retrieval.py` reads the configured local KB, runs the seven
+  canonical Capstone retrieval queries through the configured query-embedding
+  provider, and prints per-case source/domain coverage plus non-text chunk
+  lineage (record, title, index, length, and distance) as JSON without changing
+  the index or evaluation datasets. It also fingerprints the complete non-text
+  KB metadata snapshot and selected report lineage. Retrieved excerpt text
+  remains local.
 
 Use `eval_live_sessions.py --dry-run` to prepare the dataset manifest without
 calling evaluator LLM or embedding providers.

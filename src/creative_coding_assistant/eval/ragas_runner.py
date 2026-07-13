@@ -188,6 +188,7 @@ class DefaultRagasEvaluationBackend:
             from langchain_openai import ChatOpenAI, OpenAIEmbeddings
             from ragas import EvaluationDataset, SingleTurnSample, evaluate
             from ragas.metrics import (
+                ContextRelevance,
                 Faithfulness,
                 LLMContextPrecisionWithoutReference,
                 ResponseRelevancy,
@@ -220,6 +221,7 @@ class DefaultRagasEvaluationBackend:
             "faithfulness": Faithfulness,
             "answer_relevancy": ResponseRelevancy,
             "context_precision": LLMContextPrecisionWithoutReference,
+            "context_relevancy": ContextRelevance,
         }
         metrics = [metric_factories[name]() for name in metric_names]
         samples = [SingleTurnSample(**row.ragas_payload()) for row in rows]
@@ -530,4 +532,5 @@ def _coerce_score(value: object) -> float | None:
 _RAGAS_RESULT_KEY_ALIASES: Mapping[str, tuple[str, ...]] = {
     "answer_relevancy": ("response_relevancy",),
     "context_precision": ("llm_context_precision_without_reference",),
+    "context_relevancy": ("context_relevance", "nv_context_relevance"),
 }

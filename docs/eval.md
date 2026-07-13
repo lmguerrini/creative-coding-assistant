@@ -76,10 +76,14 @@ Additional supported opt-in metrics are:
 
 - faithfulness
 - answer relevancy
+- context relevancy
 
 `faithfulness` can be slow and brittle for long code-heavy answers because
 RAGAs asks an evaluator model to extract many statements. `answer_relevancy`
-uses evaluator embeddings and may increase cost.
+uses evaluator embeddings and may increase cost. `context_relevancy` measures
+whether the retrieved excerpts contain information useful for the query.
+Context recall is not supported for the approved fixtures because they do not
+contain independently justified reference answers.
 
 Failed metric scores are written as `null` with `metric_errors` metadata in the
 local result rows. Detailed evaluator exceptions come from RAGAs logs.
@@ -99,3 +103,55 @@ Runtime result files under `data/eval/` remain local and ignored by git.
 Public sanitized result files under `demo/evaluation/` may be tracked when they
 contain no private session text, workspace paths, secrets, or local Chroma
 content.
+
+## Canonical retrieval engineering loop
+
+Use the fixed seven-query, read-only retrieval report:
+
+```bash
+PYTHONPATH=src .venv/bin/python scripts/report_canonical_retrieval.py --limit 5
+```
+
+It sends only
+the committed public query strings to the configured embedding provider; local
+retrieved excerpts remain local. Each selected result includes non-text lineage
+(record id, document title, chunk index, character count, distance, and score)
+so source-diversity choices can be audited without publishing excerpt text. The
+2026-07-13 loop improved expected-source overlap from 9/23 to a final 16/23 and
+requested-domain coverage from 7/19 to 18/19. All seven queries returned five
+results. These coverage ratios measure retrieval selection, not RAGAS quality
+or overall product quality.
+
+The complete verified progression was 9/23 + 7/19, 12/23 + 11/19 after intent
+and result diversity, 15/23 + 17/19 after balanced per-domain candidate search,
+15/23 + 18/19 after bounded requested-domain fallback, 17/23 + 18/19 after a
+two-chunk source cap, and 19/23 + 18/19 after chunk-level Three.js manual
+filtering plus unseen-source priority. Lineage inspection proved that the
+19/23 peak included three title-only `p5_reference` chunks and a
+`tone_js_docs` API-name index. Structural heading removal reduced the report to
+16/23 + 18/19; excluding the verified index-only Tone.js source reduced it to
+15/23 + 18/19; bounded post-filter candidate headroom then recovered substantive
+Three.js manual evidence for the final 16/23 + 18/19 result.
+
+The final result deliberately prefers lower truthful coverage to inflated raw
+anchor overlap. It keeps substantive `three_manual` chunks, prefers unseen
+sources before repeated chunks, and returns no evidence instead of
+reintroducing filtered navigation/index material. No query, expected source,
+fixture, score rule, top-k value, or source weight was changed to raise the
+report. The remaining requested-domain gap is Shadertoy: the approved source has
+no local chunks and returned HTTP 403 during focused sync, so that gap is
+`BLOCKED_BY_EXECUTION_ENVIRONMENT` rather than scored as product failure.
+
+`demo/evaluation/canonical_retrieval_report.json` records every selected
+non-text lineage row for the final run. Its full-index metadata fingerprint
+binds the report to the exact 1,445-chunk KB snapshot, while a separate selection
+fingerprint binds the fixed benchmark, model, top-k, summary, and ranked result
+lineage. Re-running against a changed index therefore produces visibly different
+evidence rather than silently replacing history.
+
+Do not run current local knowledge-base excerpts through an external generation
+or evaluator provider. Current-product end-to-end RAGAS remains
+`BLOCKED_BY_EXECUTION_ENVIRONMENT` until a reviewed committed sanitized/redacted
+dataset represents that path. The latest defensible provider score remains the
+committed approved-fixture run; `MISSING_EVIDENCE` and blocked dimensions are
+never converted to zero.

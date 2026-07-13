@@ -87,6 +87,18 @@ _HYDRA_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
     (re.compile(r"\bhydra(?:-synth|\s+synth|\s+video\s+synth)\b"), 3),
     (re.compile(r"\bhydra\.ojack\b"), 3),
     (re.compile(r"\bhydra\s+(?:osc|src|modulate|live\s+coding|sketch)\b"), 3),
+    (
+        re.compile(
+            r"(?:"
+            r"\bhydra\b(?=[^.!?\n]{0,120}\b(?:p5(?:\.js|js)?|runtime|"
+            r"visuals?|oscillators?|textures?|live\s+coding)\b)"
+            r"|"
+            r"\b(?:p5(?:\.js|js)?|runtime|visuals?|oscillators?|textures?|"
+            r"live\s+coding)\b[^.!?\n]{0,120}\bhydra\b"
+            r")"
+        ),
+        3,
+    ),
 )
 _SHADERTOY_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
     (re.compile(r"\bshadertoy\b"), 3),

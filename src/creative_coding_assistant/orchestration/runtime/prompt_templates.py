@@ -205,6 +205,15 @@ Detected Query Domains:
 - {{ domain.value }}
 {% endfor %}
 {% endif %}
+{% if prompt_input.retrieval_input is not none -%}
+Retrieval Grounding Contract:
+- Answer the user's question directly from the supplied Official Knowledge Base excerpts.
+- Treat factual, API, runtime, compatibility, and product-boundary claims as
+  supported only when an excerpt substantiates them.
+- Cite the supporting source id in square brackets for source-grounded claims.
+- Label design recommendations or inference as recommendations rather than sourced facts.
+- State when the excerpts do not establish an answer; do not silently fill evidence gaps.
+{% endif %}
 {% if show_ui_selected_domains(prompt_input.user_input) -%}
 UI Selected Domains:
 {% for domain in prompt_input.user_input.ui_selected_domains -%}

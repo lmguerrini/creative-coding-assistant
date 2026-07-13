@@ -142,6 +142,195 @@ class RetrievalFoundationTests(unittest.TestCase):
                 },
             )
 
+    def test_multi_domain_retrieval_balances_the_candidate_pool(self) -> None:
+        with _kb_client() as client:
+            indexer = OfficialKnowledgeBaseIndexer(client=client)
+            p5_chunks = tuple(
+                _chunk(
+                    source_id=f"p5_ranked_{index}",
+                    domain=CreativeCodingDomain.P5_JS,
+                    source_type=OfficialSourceType.GUIDE,
+                    publisher="p5.js",
+                    registry_title=f"p5 ranked guide {index}",
+                    source_url=f"https://p5js.org/tutorials/ranked-{index}/",
+                    text=f"p5.js animation guidance for ranked result {index}.",
+                )
+                for index in range(7)
+            )
+            hydra_chunk = _chunk(
+                source_id="hydra_balanced_candidate",
+                domain=CreativeCodingDomain.HYDRA,
+                source_type=OfficialSourceType.GUIDE,
+                publisher="Hydra",
+                registry_title="Hydra balanced candidate",
+                source_url="https://hydra.ojack.xyz/docs/",
+                text="Hydra oscillator guidance for live-coded visuals.",
+            )
+            indexer.upsert_chunks(
+                (*p5_chunks, hydra_chunk),
+                (
+                    *([1.0, 0.0, 0.0] for _ in p5_chunks),
+                    [0.75, 0.25, 0.0],
+                ),
+            )
+            retriever = KnowledgeBaseRetriever(
+                client=client,
+                embedder=_FakeQueryEmbedder(
+                    {"Compare p5.js and Hydra animation": [1.0, 0.0, 0.0]}
+                ),
+            )
+
+            response = retriever.search(
+                KnowledgeBaseRetrievalRequest(
+                    query="Compare p5.js and Hydra animation",
+                    limit=2,
+                    filters=KnowledgeBaseRetrievalFilter(
+                        domains=(
+                            CreativeCodingDomain.P5_JS,
+                            CreativeCodingDomain.HYDRA,
+                        )
+                    ),
+                )
+            )
+
+            self.assertEqual(
+                {result.domain for result in response.results},
+                {CreativeCodingDomain.P5_JS, CreativeCodingDomain.HYDRA},
+            )
+
+    def test_multi_domain_selection_keeps_the_best_relevant_result_per_domain(
+        self,
+    ) -> None:
+        results = (
+            _result(
+                source_id="p5_tutorials",
+                source_type=OfficialSourceType.GUIDE,
+                registry_title="p5.js Tutorials",
+                document_title="Animation",
+                text="p5.js draw updates animated visuals every frame.",
+                score=0.96,
+                distance=0.04,
+                domain=CreativeCodingDomain.P5_JS,
+            ),
+            _result(
+                source_id="p5_reference",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="p5.js Reference",
+                document_title="draw()",
+                text="The draw function repeats after setup completes.",
+                score=0.95,
+                distance=0.05,
+                domain=CreativeCodingDomain.P5_JS,
+            ),
+            _result(
+                source_id="hydra_docs",
+                source_type=OfficialSourceType.GUIDE,
+                registry_title="Hydra Docs",
+                document_title="Getting started",
+                text="Hydra composes oscillator textures for live browser visuals.",
+                score=0.88,
+                distance=0.12,
+                domain=CreativeCodingDomain.HYDRA,
+            ),
+        )
+
+        selected = select_retrieval_results(
+            results,
+            limit=3,
+            query="Should I use Hydra or p5.js for live visuals?",
+            requested_domains=(
+                CreativeCodingDomain.HYDRA,
+                CreativeCodingDomain.P5_JS,
+            ),
+        )
+
+        self.assertEqual(
+            [result.source_id for result in selected],
+            ["p5_tutorials", "hydra_docs", "p5_reference"],
+        )
+
+    def test_single_domain_selection_preserves_relevance_order(self) -> None:
+        results = (
+            _result(
+                source_id="p5_tutorials",
+                source_type=OfficialSourceType.GUIDE,
+                registry_title="p5.js Tutorials",
+                document_title="Animation",
+                text="p5.js draw updates animated visuals every frame.",
+                score=0.96,
+                distance=0.04,
+                domain=CreativeCodingDomain.P5_JS,
+            ),
+            _result(
+                source_id="p5_reference",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="p5.js Reference",
+                document_title="draw()",
+                text="The draw function repeats after setup completes.",
+                score=0.95,
+                distance=0.05,
+                domain=CreativeCodingDomain.P5_JS,
+            ),
+        )
+
+        selected = select_retrieval_results(
+            results,
+            limit=2,
+            query="How does draw work in p5.js?",
+            requested_domains=(CreativeCodingDomain.P5_JS,),
+        )
+
+        self.assertEqual(
+            [result.source_id for result in selected],
+            ["p5_tutorials", "p5_reference"],
+        )
+
+    def test_selection_limits_repeated_chunks_before_source_fallback(self) -> None:
+        repeated = tuple(
+            _result(
+                source_id="web_audio_visualization_guide",
+                source_type=OfficialSourceType.GUIDE,
+                registry_title="Web Audio visualization guide",
+                document_title=f"Visualization section {index}",
+                text=(
+                    "Frequency visualization maps analyser bins into bars."
+                    if index == 0
+                    else "Time-domain samples can drive an oscilloscope line."
+                    if index == 1
+                    else "Canvas colors can encode normalized audio energy."
+                ),
+                score=0.98 - index * 0.01,
+                distance=0.02 + index * 0.01,
+                domain=CreativeCodingDomain.WEB_AUDIO_API,
+            ).model_copy(update={"record_id": f"visualization:{index}"})
+            for index in range(3)
+        )
+        distinct = _result(
+            source_id="web_audio_analyser_node",
+            source_type=OfficialSourceType.API_REFERENCE,
+            registry_title="AnalyserNode",
+            document_title="AnalyserNode API",
+            text="AnalyserNode exposes time-domain and frequency-domain data.",
+            score=0.94,
+            distance=0.06,
+            domain=CreativeCodingDomain.WEB_AUDIO_API,
+        )
+
+        selected = select_retrieval_results(
+            (*repeated, distinct),
+            limit=3,
+            requested_domains=(CreativeCodingDomain.WEB_AUDIO_API,),
+        )
+
+        self.assertEqual(
+            [result.source_id for result in selected],
+            [
+                "web_audio_visualization_guide",
+                "web_audio_analyser_node",
+                "web_audio_visualization_guide",
+            ],
+        )
+
     def test_retriever_applies_source_filter(self) -> None:
         with _kb_client() as client:
             _seed_kb_records(client)
@@ -195,6 +384,18 @@ class RetrievalFoundationTests(unittest.TestCase):
                     detect_explicit_query_domains(query),
                     expected_domains,
                 )
+
+    def test_detects_plain_hydra_in_a_creative_runtime_comparison(self) -> None:
+        self.assertEqual(
+            detect_explicit_query_domains(
+                "Should I use Hydra or p5.js first for layered oscillator visuals?"
+            ),
+            (CreativeCodingDomain.P5_JS, CreativeCodingDomain.HYDRA),
+        )
+        self.assertEqual(
+            detect_explicit_query_domains("Explain the Hydra from Greek mythology."),
+            (),
+        )
 
     def test_query_detection_avoids_broad_first_v2_false_positives(self) -> None:
         cases = (
@@ -476,7 +677,9 @@ class RetrievalFoundationTests(unittest.TestCase):
         self.assertEqual(len(filtered), 1)
         self.assertEqual(filtered[0].source_id, "three_box_geometry")
 
-    def test_filter_falls_back_to_original_results_when_all_are_filtered(self) -> None:
+    def test_filter_returns_no_evidence_when_every_chunk_is_low_value(
+        self,
+    ) -> None:
         results = (
             _result(
                 source_id="three_examples",
@@ -503,8 +706,7 @@ class RetrievalFoundationTests(unittest.TestCase):
 
         filtered = select_retrieval_results(results, limit=1)
 
-        self.assertEqual(len(filtered), 1)
-        self.assertEqual(filtered[0].source_id, "three_examples")
+        self.assertEqual(filtered, ())
 
     def test_filter_removes_generic_p5_examples_navigation_chunks(self) -> None:
         results = (
@@ -536,7 +738,42 @@ class RetrievalFoundationTests(unittest.TestCase):
         self.assertEqual(len(filtered), 1)
         self.assertEqual(filtered[0].source_id, "p5_reference")
 
-    def test_hard_filter_removes_known_low_value_source_ids_when_alternatives_exist(
+    def test_filter_removes_heading_only_chunk_and_keeps_substantive_source_text(
+        self,
+    ) -> None:
+        heading = _result(
+            source_id="p5_sound_reference",
+            source_type=OfficialSourceType.API_REFERENCE,
+            registry_title="p5.sound Reference",
+            document_title="p5.sound Reference userStartAudio getAudioContext",
+            text="p5.sound Reference",
+            score=0.96,
+            distance=0.04,
+            domain=CreativeCodingDomain.P5_SOUND,
+        )
+        guidance = _result(
+            source_id="p5_sound_reference",
+            source_type=OfficialSourceType.API_REFERENCE,
+            registry_title="p5.sound Reference",
+            document_title="p5.sound Reference userStartAudio getAudioContext",
+            text=(
+                "userStartAudio starts browser audio processing from a user "
+                "interaction such as mousePressed()."
+            ),
+            score=0.91,
+            distance=0.09,
+            domain=CreativeCodingDomain.P5_SOUND,
+        ).model_copy(update={"record_id": "p5-sound-guidance", "chunk_index": 1})
+
+        filtered = select_retrieval_results(
+            (heading, guidance),
+            limit=2,
+            requested_domains=(CreativeCodingDomain.P5_SOUND,),
+        )
+
+        self.assertEqual(filtered, (guidance,))
+
+    def test_source_filter_keeps_substantive_manual_guidance_beside_precise_sources(
         self,
     ) -> None:
         results = (
@@ -585,10 +822,14 @@ class RetrievalFoundationTests(unittest.TestCase):
 
         self.assertEqual(
             [result.source_id for result in filtered],
-            ["three_box_geometry", "r3f_hooks_api"],
+            [
+                "three_manual",
+                "three_box_geometry",
+                "r3f_hooks_api",
+            ],
         )
 
-    def test_hard_filter_falls_back_to_pre_filter_candidates_when_all_are_removed(
+    def test_source_filter_returns_no_evidence_when_only_index_sources_remain(
         self,
     ) -> None:
         results = (
@@ -602,11 +843,11 @@ class RetrievalFoundationTests(unittest.TestCase):
                 distance=0.05,
             ),
             _result(
-                source_id="three_manual",
-                source_type=OfficialSourceType.GUIDE,
-                registry_title="three.js manual",
-                document_title="three.js manual",
-                text="three.js manual docs manual en fr ru 中文 日本語",
+                source_id="three_examples",
+                source_type=OfficialSourceType.EXAMPLES,
+                registry_title="three.js examples",
+                document_title="three.js examples three.js examples",
+                text="Select an example from the sidebar",
                 score=0.94,
                 distance=0.06,
             ),
@@ -614,8 +855,90 @@ class RetrievalFoundationTests(unittest.TestCase):
 
         filtered = select_retrieval_results(results, limit=2)
 
-        self.assertEqual(len(filtered), 1)
-        self.assertEqual(filtered[0].source_id, "three_docs")
+        self.assertEqual(filtered, ())
+
+    def test_source_filter_removes_tone_index_but_keeps_explanatory_reference(
+        self,
+    ) -> None:
+        results = (
+            _result(
+                source_id="tone_js_docs",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="Tone.js",
+                document_title="Tone.js",
+                text=(
+                    "Preparing search index. The search index is not available. "
+                    "Classes Core Source Instrument Effect Component."
+                ),
+                score=0.95,
+                distance=0.05,
+                domain=CreativeCodingDomain.TONE_JS,
+            ),
+            _result(
+                source_id="tone_js_analysis_reference",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="Tone.js Analysis and Playback Reference",
+                document_title="Tone.js Analysis and Playback Reference",
+                text=(
+                    "Tone.Analyser exposes waveform or FFT values while Transport "
+                    "coordinates scheduled playback."
+                ),
+                score=0.91,
+                distance=0.09,
+                domain=CreativeCodingDomain.TONE_JS,
+            ),
+        )
+
+        filtered = select_retrieval_results(
+            results,
+            limit=2,
+            requested_domains=(CreativeCodingDomain.TONE_JS,),
+        )
+
+        self.assertEqual(
+            [result.source_id for result in filtered],
+            ["tone_js_analysis_reference"],
+        )
+
+    def test_chunk_filter_preserves_an_explicitly_requested_domain_result(
+        self,
+    ) -> None:
+        results = (
+            _result(
+                source_id="p5_reference",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="p5.js Reference",
+                document_title="draw()",
+                text="draw() runs repeatedly to animate a p5.js sketch.",
+                score=0.96,
+                distance=0.04,
+                domain=CreativeCodingDomain.P5_JS,
+            ),
+            _result(
+                source_id="three_manual",
+                source_type=OfficialSourceType.GUIDE,
+                registry_title="three.js manual",
+                document_title="Animation system",
+                text="The animation loop renders each Three.js scene update.",
+                score=0.89,
+                distance=0.11,
+                domain=CreativeCodingDomain.THREE_JS,
+            ),
+        )
+
+        filtered = select_retrieval_results(
+            results,
+            limit=2,
+            requested_domains=(
+                CreativeCodingDomain.P5_JS,
+                CreativeCodingDomain.THREE_JS,
+            ),
+        )
+
+        self.assertEqual(
+            [result.source_id for result in filtered],
+            ["p5_reference", "three_manual"],
+        )
 
     def test_three_js_query_prioritizes_three_js_candidates(self) -> None:
         results = (
@@ -997,7 +1320,7 @@ class RetrievalFoundationTests(unittest.TestCase):
         self.assertEqual(len(deduplicated), 3)
         self.assertEqual(
             [result.source_id for result in deduplicated],
-            ["r3f_hooks_api", "r3f_hooks_api", "r3f_canvas_api"],
+            ["r3f_hooks_api", "r3f_canvas_api", "r3f_hooks_api"],
         )
 
     def test_dedup_removes_typed_and_untyped_variants_from_same_source(self) -> None:

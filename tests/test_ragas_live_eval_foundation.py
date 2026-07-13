@@ -176,12 +176,18 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
 
     def test_resolve_ragas_metric_names_deduplicates_and_validates(self) -> None:
         self.assertIn("answer_relevancy", SUPPORTED_RAGAS_METRICS)
+        self.assertIn("context_relevancy", SUPPORTED_RAGAS_METRICS)
         self.assertEqual(resolve_ragas_metric_names(None), DEFAULT_RAGAS_METRICS)
         self.assertEqual(
             resolve_ragas_metric_names(
-                ("faithfulness", "context_precision", "faithfulness")
+                (
+                    "faithfulness",
+                    "context_precision",
+                    "context_relevancy",
+                    "faithfulness",
+                )
             ),
-            ("faithfulness", "context_precision"),
+            ("faithfulness", "context_precision", "context_relevancy"),
         )
         with self.assertRaises(ValueError):
             resolve_ragas_metric_names(("not-a-metric",))

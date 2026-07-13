@@ -18,6 +18,7 @@ SUPPORTED_RAGAS_METRICS: tuple[str, ...] = (
     "context_precision",
     "faithfulness",
     "answer_relevancy",
+    "context_relevancy",
 )
 DEFAULT_RAGAS_METRICS: tuple[str, ...] = ("context_precision",)
 

@@ -3389,7 +3389,9 @@ export function WorkstationShell({
         const responsePayload: unknown = await response.json();
         payload = isUnknownRecord(responsePayload) ? responsePayload : {};
         if (!response.ok) {
-          ragas = blockedRagasEvidence(request, payload);
+          ragas = payload.error === "blocked_by_execution_environment"
+            ? blockedRagasEvidence(request, payload)
+            : failedRagasEvidence(request, payload);
         } else {
           ragas = parseRagasExecutionEvidence(payload, request);
         }
@@ -3430,12 +3432,18 @@ export function WorkstationShell({
       event_type: "eval_update",
       sequence: localRuntimeSequenceRef.current++,
       payload: {
-        code: ragas.state === "blocked" ? "evaluation_blocked" : "evaluation_run_completed",
+        code: ragas.state === "blocked"
+          ? "evaluation_blocked"
+          : ragas.state === "failed" ? "evaluation_failed" : "evaluation_run_completed",
         message: ragas.state === "blocked"
           ? "Provider evidence was blocked by the execution environment; local evidence was retained."
-          : "Evaluation run completed.",
+          : ragas.state === "failed"
+            ? "Evaluator evidence was unavailable after an unexpected error; local evidence was retained."
+            : "Evaluation run completed.",
         evaluation: payload,
-        status: ragas.state === "blocked" ? "BLOCKED_BY_EXECUTION_ENVIRONMENT" : "completed"
+        status: ragas.state === "blocked"
+          ? "BLOCKED_BY_EXECUTION_ENVIRONMENT"
+          : ragas.state === "failed" ? "MISSING_EVIDENCE" : "completed"
       }
     });
   }
@@ -9037,16 +9045,22 @@ function parseRagasExecutionEvidence(
         return [{
           sampleId: value.sampleId,
           metrics: nullableNumberRecord(value.metrics),
-          metricErrors: stringRecord(value.metricErrors)
+          metricErrors: stringRecord(value.metricErrors),
+          sourceIds: stringArray(value.sourceIds),
+          domains: stringArray(value.domains)
         }];
       })
     : [];
   return {
     state: record.dryRun === true ? "prepared" : "completed",
+    runId: typeof record.runId === "string" ? record.runId : null,
+    evaluatedAt: typeof record.evaluatedAt === "string" ? record.evaluatedAt : null,
     datasetId: typeof record.datasetId === "string" ? record.datasetId : request.approvedRagasDataset,
     datasetVersion: typeof record.datasetVersion === "string" ? record.datasetVersion : "ragas-approved.v1",
     privacyClass: typeof record.privacyClass === "string" ? record.privacyClass : "public_safe",
-    metrics: Array.isArray(record.metrics) ? record.metrics.filter((value): value is string => typeof value === "string") : ["context_precision", "faithfulness", "answer_relevancy"],
+    metrics: Array.isArray(record.metrics)
+      ? record.metrics.filter((value): value is string => typeof value === "string")
+      : ["context_precision", "faithfulness", "answer_relevancy", "context_relevancy"],
     metricScores,
     resultRows: numberValue(record.resultRows),
     totalSamples: numberValue(record.totalSamples),
@@ -9056,6 +9070,8 @@ function parseRagasExecutionEvidence(
     provider: typeof record.provider === "string" ? record.provider : null,
     model: typeof record.model === "string" ? record.model : null,
     embeddingModel: typeof record.embeddingModel === "string" ? record.embeddingModel : null,
+    ragasVersion: typeof record.ragasVersion === "string" ? record.ragasVersion : null,
+    metricContract: typeof record.metricContract === "string" ? record.metricContract : null,
     durationMs: typeof record.durationMs === "number" ? record.durationMs : null,
     detail: typeof record.detail === "string" ? record.detail : "Approved RAGAS evidence recorded.",
     caseRows
@@ -9074,6 +9090,21 @@ function blockedRagasEvidence(
     detail: typeof record.message === "string"
       ? record.message
       : "BLOCKED_BY_EXECUTION_ENVIRONMENT: provider evaluation was unavailable."
+  };
+}
+
+function failedRagasEvidence(
+  request: EvaluationRunRequest,
+  record: Record<string, unknown>
+): RagasExecutionEvidence {
+  return {
+    ...emptyRagasEvidence(),
+    state: "failed",
+    datasetId: request.approvedRagasDataset,
+    privacyClass: "public_safe",
+    detail: typeof record.message === "string"
+      ? record.message
+      : "MISSING_EVIDENCE: the evaluator returned no defensible result."
   };
 }
 
@@ -9098,6 +9129,12 @@ function nullableNumberRecord(value: unknown) {
 function stringRecord(value: unknown) {
   if (!isUnknownRecord(value)) return {};
   return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string"));
+}
+
+function stringArray(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }
 
 function formatMessageTime() {

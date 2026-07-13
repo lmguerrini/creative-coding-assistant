@@ -141,7 +141,7 @@ const dashboardPages = [
   ["Memory", "Published context counts and privacy-safe session-memory signals; never hidden provider reasoning."],
   ["Sessions", "Create, select, rename, and delete saved sessions, with artifact and reported-usage summaries."],
   ["Telemetry", "Published stream, provider, retrieval, Preview, Runtime, usage, and event evidence for the current workspace."],
-  ["Evaluation", "A versioned 31-case console for separate RAG, Creative Artifact, Workflow, and Product Reliability evidence, with filters, history, trends, candidates, and Capstone mapping."],
+  ["Evaluation", "An AI Engineering Lab for separate RAG, Creative Artifact, Workflow, and Product Reliability evidence. It explains RAGAS metrics, lineage, engineering deltas, blocked reruns, and why benchmark coverage is not product quality."],
   ["User Guide", "This canonical end-user reference and its implementation boundaries."],
   ["Settings", "Theme, typography, layout, display mode, preview behavior, workflow, provider, and creativity defaults."]
 ] as const;
