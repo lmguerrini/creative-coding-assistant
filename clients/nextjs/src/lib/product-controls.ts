@@ -1,4 +1,5 @@
 import type { ArtifactSummary } from "./assistant-client";
+import type { EvaluationBenchmarkRun } from "./evaluation-benchmark";
 
 export type CreativityProfile = "controlled" | "balanced" | "exploratory";
 export type FontScale = "small" | "medium" | "large";
@@ -65,6 +66,7 @@ export type EvaluationHistoryRecord = {
   metricFailures: number | null;
   dryRun: boolean | null;
   providerCallsAllowed: boolean | null;
+  benchmark?: EvaluationBenchmarkRun | null;
 };
 
 const profileControls: Record<CreativityProfile, Omit<GenerationControls, "profile">> = {

@@ -14,6 +14,8 @@ import {
 } from "./workspace-persistence";
 import { getP5RuntimeSourceSupportIssue } from "./preview-source-classification";
 import { buildPreviewRuntimeSummary } from "./preview-runtime";
+import { buildEvaluationBenchmarkRun, emptyRagasEvidence } from "./evaluation-benchmark";
+import type { ProductIntelligenceModel } from "./product-intelligence";
 
 describe("workspace persistence client", () => {
   it("builds a typed session record from the workspace snapshot", () => {
@@ -439,6 +441,40 @@ describe("workspace persistence client", () => {
     expect(normalizeWorkspacePreferences({ theme: "codex_white" }).theme).toBe(
       "codex_white"
     );
+  });
+
+  it("round-trips rich evaluation history and rejects malformed nested runs", () => {
+    const benchmark = buildEvaluationBenchmarkRun({
+      model: { artifactRegistry: [], details: null } as unknown as ProductIntelligenceModel,
+      now: new Date("2026-07-13T12:00:00Z"),
+      ragas: emptyRagasEvidence(),
+      request: { scope: "full", caseIds: [], allowProviderCalls: false, approvedRagasDataset: "sanitized_public" }
+    });
+    const base = {
+      id: benchmark.id,
+      runId: benchmark.id,
+      datasetId: "sanitized_public",
+      metrics: benchmark.ragas.metrics,
+      status: benchmark.statusLabel,
+      detail: benchmark.ragas.detail,
+      evaluatedAt: benchmark.completedAt,
+      resultRows: 0,
+      metricFailures: 0,
+      dryRun: true,
+      providerCallsAllowed: false
+    };
+
+    const restored = normalizeWorkspacePreferences({
+      evaluationHistory: [{ ...base, benchmark }]
+    });
+    expect(restored.evaluationHistory[0]?.benchmark?.datasetFingerprint).toBe(
+      benchmark.datasetFingerprint
+    );
+
+    const malformed = normalizeWorkspacePreferences({
+      evaluationHistory: [{ ...base, benchmark: { schemaVersion: 2, id: "broken" } } as never]
+    });
+    expect(malformed.evaluationHistory[0]?.benchmark).toBeNull();
   });
 
   it("restores messages, active tab, artifact, and preview state", () => {

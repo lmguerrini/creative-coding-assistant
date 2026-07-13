@@ -20,7 +20,7 @@ const dashboardPages = [
   "Sessions",
   "Telemetry",
   "Evaluation",
-  "Manual guide",
+  "User Guide",
   "Settings"
 ];
 

@@ -32,6 +32,9 @@ import type {
   FeedbackSentiment
 } from "@/lib/product-controls";
 import { OutputFeedbackPanel } from "./output-feedback-panel";
+import { UserGuide } from "./user-guide";
+import { CapstoneEvaluationWorkspace } from "./capstone-evaluation-workspace";
+import type { EvaluationRunRequest } from "@/lib/evaluation-benchmark";
 
 type DashboardFeedback = {
   artifactTitle: string;
@@ -68,7 +71,7 @@ type ProductIntelligenceDashboardProps = {
   model: ProductIntelligenceModel;
   onCategoryChange: (category: ProductIntelligenceCategory) => void;
   onClose: () => void;
-  onRunEvaluation?: () => Promise<void>;
+  onRunEvaluation?: (request: EvaluationRunRequest) => Promise<void>;
   evaluationHistory?: EvaluationHistoryRecord[];
   feedback?: DashboardFeedback;
   settings?: DashboardSettingsControls;
@@ -188,8 +191,8 @@ const dashboardGroups: DashboardGroup[] = [
   },
   {
     id: "manual",
-    label: "Manual guide",
-    detail: "A concise guide to inspecting a creative run.",
+    label: "User Guide",
+    detail: "Canonical documentation for the complete product workflow.",
     categories: [],
     secondary: true
   },
@@ -233,13 +236,13 @@ export function ProductIntelligenceDashboard({
     : null;
   const [evaluationRunning, setEvaluationRunning] = useState(false);
 
-  async function runEvaluation() {
+  async function runEvaluation(request: EvaluationRunRequest) {
     if (!onRunEvaluation || evaluationRunning) {
       return;
     }
     setEvaluationRunning(true);
     try {
-      await onRunEvaluation();
+      await onRunEvaluation(request);
     } finally {
       setEvaluationRunning(false);
     }
@@ -332,47 +335,14 @@ function DashboardGroupView({
   evaluationRunning: boolean;
   group: DashboardGroup;
   model: ProductIntelligenceModel;
-  onRunEvaluation?: () => Promise<void>;
+  onRunEvaluation?: (request: EvaluationRunRequest) => Promise<void>;
   evaluationHistory: EvaluationHistoryRecord[];
   feedback?: DashboardFeedback;
   settings?: DashboardSettingsControls;
   sessions?: DashboardSessionControls;
 }) {
   if (group.id === "manual") {
-    return (
-      <section aria-label="Workspace manual" className="productDashboardManual">
-        <article>
-          <header>
-            <div>
-              <span>Start a run</span>
-              <strong>Describe a visual system, then choose a workflow route.</strong>
-              <p>Use the workspace for the conversation; open Preview, Code, or Saved only when they add context.</p>
-            </div>
-            <DashboardPanelHelp detail="A first prompt establishes the creative brief. Workflow selection changes orchestration, not the proven runtime boundaries of the workspace." label="Start a run" />
-          </header>
-        </article>
-        <article>
-          <header>
-            <div>
-              <span>Read the result</span>
-              <strong>Check the artifact, visible output, and runtime health separately.</strong>
-              <p>Advanced Dashboard keeps diagnostics, source evidence, and workflow detail together without crowding the creative session.</p>
-            </div>
-            <DashboardPanelHelp detail="An artifact, its browser preview, and its runtime health are related but distinct signals. Review each before deciding whether to refine." label="Read the result" />
-          </header>
-        </article>
-        <article>
-          <header>
-            <div>
-              <span>Read knowledge in order</span>
-              <strong>Technical Knowledge → Creative Knowledge Base → Retrieval.</strong>
-              <p>Official sources establish the local index; published artifact guidance records creative direction; Retrieval reports the current run’s selected evidence and boundaries.</p>
-            </div>
-            <DashboardPanelHelp detail="Technical Knowledge is the official-source inventory. Creative Knowledge Base is explicit, published creative guidance attached to an artifact. Retrieval is the current-run evidence path. None of these surfaces expose private provider reasoning." label="Knowledge flow" />
-          </header>
-        </article>
-      </section>
-    );
+    return <UserGuide />;
   }
 
   if (group.id === "settings" && settings) {
@@ -381,6 +351,35 @@ function DashboardGroupView({
 
   if (group.id === "knowledge") {
     return <KnowledgeDashboardView model={model} />;
+  }
+
+  if (group.id === "evaluation" && onRunEvaluation) {
+    return (
+      <div className="productDashboardGroup" aria-label="Evaluation details">
+        <EvaluationDashboardSurface
+          evaluationHistory={evaluationHistory}
+          evaluationRunning={evaluationRunning}
+          model={model}
+          onRunEvaluation={onRunEvaluation}
+        />
+        <details className="dashboardFeature evaluationEvidenceDisclosure">
+          <summary>Supporting validation, Product Bug, and LangSmith signals</summary>
+          <p>These current-workspace signals remain separate from benchmark results.</p>
+          {group.categories.map((category) => {
+            const section = getProductIntelligenceSection(model, category);
+            return (
+              <section className="productDashboardGroupSection" key={category}>
+                <header>
+                  <div><span>{category}</span><strong>{formatUiStatusLabel(section.summary)}</strong><p>{section.detail}</p></div>
+                  <ProductIntelligenceHelp section={section} />
+                </header>
+                <ProductIntelligenceSectionView detailed model={model} section={section} />
+              </section>
+            );
+          })}
+        </details>
+      </div>
+    );
   }
 
   return (
@@ -400,19 +399,6 @@ function DashboardGroupView({
               </div>
               <ProductIntelligenceHelp section={section} />
             </header>
-            {category === "Metrics" && onRunEvaluation ? (
-              <>
-                <button
-                  className="evaluationRunButton"
-                  disabled={evaluationRunning}
-                  onClick={() => void onRunEvaluation()}
-                  type="button"
-                >
-                  {evaluationRunning ? "Preparing evaluation…" : "Run Evaluation"}
-                </button>
-                <EvaluationHistory history={evaluationHistory} />
-              </>
-            ) : null}
             <ProductIntelligenceSectionView detailed model={model} section={section} />
           </section>
         );
@@ -429,7 +415,6 @@ function DashboardGroupView({
       {group.id === "sessions" && sessions ? <SessionRegistry controls={sessions} /> : null}
       {group.id === "telemetry" ? <TelemetryObservatory model={model} /> : null}
       {group.id === "telemetry" && sessions ? <UserUsageOverview usage={sessions.usage} /> : null}
-      {group.id === "evaluation" ? <EvaluationDashboardSurface model={model} /> : null}
       {group.id === "ai_agents" && feedback ? (
         <section className="productDashboardGroupSection productDashboardFeedback">
           <header>
@@ -1033,21 +1018,37 @@ function MemoryDashboardSurface({ model }: { model: ProductIntelligenceModel }) 
   );
 }
 
-function EvaluationDashboardSurface({ model }: { model: ProductIntelligenceModel }) {
+function EvaluationDashboardSurface({
+  evaluationHistory,
+  evaluationRunning,
+  model,
+  onRunEvaluation
+}: {
+  evaluationHistory: EvaluationHistoryRecord[];
+  evaluationRunning: boolean;
+  model: ProductIntelligenceModel;
+  onRunEvaluation: (request: EvaluationRunRequest) => Promise<void>;
+}) {
   const telemetry = model.details?.telemetryDashboard;
   const workstation = model.details?.workstationDashboard;
   if (!telemetry || !workstation) return null;
   return (
-    <section aria-label="Evaluation and validation" className="dashboardFeature dashboardComponentSurface">
-      <header>
-        <div><span>Evaluation and validation</span><strong>Session evidence and workstation health</strong><p>Evaluation outcomes, trace lineage, and local workstation checks remain visibly separate.</p></div>
-        <DashboardPanelHelp detail="Evaluation records result quality when it exists; workstation signals describe current product health. Neither surface upgrades an unscored or unavailable signal into success." label="Evaluation and validation" />
-      </header>
-      <div className="evaluationDashboardSplit">
-        <EvaluationSessionDashboard evaluation={telemetry.evaluation} />
-        <WorkstationDashboardSurface dashboard={workstation} />
-      </div>
-    </section>
+    <>
+      <CapstoneEvaluationWorkspace
+        history={evaluationHistory}
+        model={model}
+        onRun={onRunEvaluation}
+        running={evaluationRunning}
+      />
+      <details className="dashboardFeature evaluationEvidenceDisclosure">
+        <summary>Current trace and workstation evidence</summary>
+        <p>Session evaluation lineage and workstation health are supporting evidence, not a replacement for benchmark results.</p>
+        <div className="evaluationDashboardSplit">
+          <EvaluationSessionDashboard evaluation={telemetry.evaluation} />
+          <WorkstationDashboardSurface dashboard={workstation} />
+        </div>
+      </details>
+    </>
   );
 }
 
@@ -1389,45 +1390,6 @@ function DashboardScaleControl({ label, onChange, preview, previewKind, scales, 
 
 function DashboardToggle({ label, onClick, value }: { label: string; onClick: () => void; value: string }) {
   return <button className="dashboardToggle" onClick={onClick} type="button"><span>{label}</span><strong>{value}</strong></button>;
-}
-
-function EvaluationHistory({ history }: { history: EvaluationHistoryRecord[] }) {
-  if (history.length === 0) {
-    return (
-      <p className="evaluationHistoryEmpty">
-        No explicit evaluation attempt has been stored for this session.
-      </p>
-    );
-  }
-  return (
-    <section aria-label="Evaluation history" className="evaluationHistory">
-      <header>
-        <strong>Evaluation history</strong>
-        <span>{history.length} retained</span>
-      </header>
-      <ul>
-        {[...history].reverse().map((entry) => (
-          <li key={entry.id}>
-            <div>
-              <strong>{entry.status.replace(/_/g, " ")}</strong>
-              <span>{entry.datasetId ?? "Dataset not recorded"}</span>
-              <small>{entry.metrics.length > 0 ? entry.metrics.join(", ") : entry.detail}</small>
-            </div>
-            <time dateTime={entry.evaluatedAt}>
-              {formatHistoryTimestamp(entry.evaluatedAt)}
-            </time>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function formatHistoryTimestamp(value: string) {
-  const timestamp = new Date(value);
-  return Number.isNaN(timestamp.getTime())
-    ? value
-    : timestamp.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
 function getDashboardGroup(category: ProductIntelligenceCategory) {

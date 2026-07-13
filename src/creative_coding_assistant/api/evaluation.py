@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable
 from http import HTTPStatus
-from typing import Any
+from pathlib import Path
+from time import perf_counter
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -20,6 +22,7 @@ from creative_coding_assistant.api.contracts import (
 from creative_coding_assistant.api.cors import resolve_cors_allow_origin
 from creative_coding_assistant.core.config import Settings, load_settings
 from creative_coding_assistant.eval import (
+    RagasDependencyError,
     RagasEvaluatorConfig,
     RagasProviderCostBoundaryError,
     run_ragas_live_eval,
@@ -39,6 +42,23 @@ class EvaluationRunRequest(BaseModel):
 
     dry_run: bool = Field(default=True, alias="dryRun")
     allow_provider_calls: bool = Field(default=False, alias="allowProviderCalls")
+    approved_dataset: Literal["sanitized_public", "redacted_public"] = Field(
+        default="sanitized_public", alias="approvedDataset"
+    )
+
+
+APPROVED_EVALUATION_DATASETS = {
+    "sanitized_public": {
+        "path": Path("demo/evaluation/sanitized_ragas_live_sessions.jsonl"),
+        "version": "sanitized-ragas.v1",
+        "privacy_class": "committed_synthetic_public",
+    },
+    "redacted_public": {
+        "path": Path("demo/evaluation/redacted_live_session_ragas_latest4.jsonl"),
+        "version": "redacted-live-latest4.v1",
+        "privacy_class": "committed_redacted_public",
+    },
+}
 
 
 class EvaluationApplication:
@@ -135,10 +155,29 @@ class EvaluationApplication:
                 allow_origin=allow_origin,
                 extra_headers=[(EVALUATION_CONTRACT_HEADER, EVALUATION_CONTRACT_VERSION)],
             )
+        if not request.dry_run and not settings.has_openai_api_key:
+            return _blocked_environment_response(
+                start_response,
+                request_id=request_id,
+                allow_origin=allow_origin,
+                message="BLOCKED_BY_EXECUTION_ENVIRONMENT: evaluator provider credentials are unavailable.",
+            )
+        dataset_contract = APPROVED_EVALUATION_DATASETS[request.approved_dataset]
+        repository_root = Path(__file__).resolve().parents[3]
+        input_path = repository_root / dataset_contract["path"]
+        output_path = settings.eval_ragas_results_path.with_name(
+            f"dashboard-{request.approved_dataset}-ragas-results.jsonl"
+        )
+        started_at = perf_counter()
         try:
             result = run_ragas_live_eval(
-                input_path=settings.eval_data_path,
-                output_path=settings.eval_ragas_results_path,
+                input_path=input_path,
+                output_path=output_path,
+                metric_names=(
+                    "context_precision",
+                    "faithfulness",
+                    "answer_relevancy",
+                ),
                 evaluator_config=RagasEvaluatorConfig(
                     model=settings.eval_ragas_model,
                     embedding_model=settings.openai_embedding_model,
@@ -161,27 +200,50 @@ class EvaluationApplication:
                 allow_origin=allow_origin,
                 extra_headers=[(EVALUATION_CONTRACT_HEADER, EVALUATION_CONTRACT_VERSION)],
             )
-        except Exception:
-            return error_response(
+        except RagasDependencyError:
+            return _blocked_environment_response(
                 start_response,
-                HTTPStatus.SERVICE_UNAVAILABLE,
-                error="evaluation_unavailable",
-                message="Evaluation could not run with the current local dataset.",
                 request_id=request_id,
-                allow_methods=EVALUATION_METHODS,
                 allow_origin=allow_origin,
-                extra_headers=[(EVALUATION_CONTRACT_HEADER, EVALUATION_CONTRACT_VERSION)],
+                message="BLOCKED_BY_EXECUTION_ENVIRONMENT: optional RAGAS dependencies are unavailable.",
             )
+        except Exception:
+            return _blocked_environment_response(
+                start_response,
+                request_id=request_id,
+                allow_origin=allow_origin,
+                message="BLOCKED_BY_EXECUTION_ENVIRONMENT: evaluator execution is unavailable.",
+            )
+
+        metric_scores = _aggregate_metric_scores(result.result_rows, result.metrics)
+        case_results = [
+            {
+                "sampleId": row.sample_id,
+                "metrics": dict(row.metrics),
+                "metricErrors": dict(row.metric_errors),
+                "sourceIds": list(row.source_ids),
+                "domains": list(row.domains),
+            }
+            for row in result.result_rows
+        ]
 
         return json_response(
             start_response,
             HTTPStatus.OK,
             {
                 "runId": result.run_id,
-                "datasetId": result.manifest.dataset.dataset_id,
+                "datasetId": request.approved_dataset,
+                "approvedDataset": request.approved_dataset,
+                "datasetVersion": dataset_contract["version"],
+                "privacyClass": dataset_contract["privacy_class"],
                 "metrics": list(result.metrics),
                 "resultRows": len(result.result_rows),
+                "totalSamples": getattr(result, "total_samples", 0),
+                "eligibleSamples": getattr(result, "eligible_samples", 0),
+                "skippedSamples": getattr(result, "skipped_samples", 0),
                 "metricFailures": result.metric_failures,
+                "metricScores": metric_scores,
+                "caseResults": case_results,
                 "dryRun": result.dry_run,
                 "providerCallsAllowed": result.provider_calls_allowed,
                 "status": "evaluation_prepared"
@@ -189,6 +251,10 @@ class EvaluationApplication:
                 else "evaluation_completed",
                 "detail": result.cost_warning,
                 "evaluationType": "RAGAs",
+                "provider": "OpenAI evaluator" if not result.dry_run else None,
+                "model": settings.eval_ragas_model if not result.dry_run else None,
+                "embeddingModel": settings.openai_embedding_model if not result.dry_run else None,
+                "durationMs": round((perf_counter() - started_at) * 1000),
                 "evaluatedAt": result.manifest.evaluated_at.isoformat(),
             },
             request_id=request_id,
@@ -196,6 +262,39 @@ class EvaluationApplication:
             allow_origin=allow_origin,
             extra_headers=[(EVALUATION_CONTRACT_HEADER, EVALUATION_CONTRACT_VERSION)],
         )
+
+
+def _aggregate_metric_scores(result_rows: Any, metrics: Any) -> dict[str, float]:
+    aggregates: dict[str, float] = {}
+    for metric in metrics:
+        values = [
+            row.metrics.get(metric)
+            for row in result_rows
+            if isinstance(row.metrics.get(metric), (int, float))
+        ]
+        if values:
+            aggregates[str(metric)] = sum(values) / len(values)
+    return aggregates
+
+
+def _blocked_environment_response(
+    start_response: StartResponse,
+    *,
+    request_id: str,
+    allow_origin: str | None,
+    message: str,
+) -> Iterable[bytes]:
+    return error_response(
+        start_response,
+        HTTPStatus.SERVICE_UNAVAILABLE,
+        error="blocked_by_execution_environment",
+        message=message,
+        request_id=request_id,
+        allow_methods=EVALUATION_METHODS,
+        allow_origin=allow_origin,
+        details={"status": "BLOCKED_BY_EXECUTION_ENVIRONMENT"},
+        extra_headers=[(EVALUATION_CONTRACT_HEADER, EVALUATION_CONTRACT_VERSION)],
+    )
 
 
 def create_evaluation_app(

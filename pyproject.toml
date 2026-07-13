@@ -30,6 +30,10 @@ dev = [
 server = [
   "gunicorn>=22,<24",
 ]
+evaluation = [
+  "langchain-openai>=1.2,<2",
+  "ragas>=0.4.3,<0.5",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

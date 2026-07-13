@@ -1550,8 +1550,48 @@ function normalizeEvaluationHistoryRecord(value: unknown): EvaluationHistoryReco
     metricFailures: typeof value.metricFailures === "number" ? value.metricFailures : null,
     dryRun: typeof value.dryRun === "boolean" ? value.dryRun : null,
     providerCallsAllowed:
-      typeof value.providerCallsAllowed === "boolean" ? value.providerCallsAllowed : null
+      typeof value.providerCallsAllowed === "boolean" ? value.providerCallsAllowed : null,
+    benchmark: normalizeEvaluationBenchmark(value.benchmark)
   };
+}
+
+function normalizeEvaluationBenchmark(
+  value: unknown
+): NonNullable<EvaluationHistoryRecord["benchmark"]> | null {
+  if (
+    !isRecord(value) ||
+    value.schemaVersion !== 2 ||
+    typeof value.id !== "string" ||
+    typeof value.datasetVersion !== "string" ||
+    typeof value.datasetFingerprint !== "string" ||
+    typeof value.promptVersion !== "string" ||
+    typeof value.scope !== "string" ||
+    !Array.isArray(value.selectedCaseIds) ||
+    !value.selectedCaseIds.every((item) => typeof item === "string") ||
+    typeof value.completedAt !== "string" ||
+    !isRecord(value.counts) ||
+    !Array.isArray(value.categoryResults) ||
+    !value.categoryResults.every((item) =>
+      isRecord(item) && typeof item.category === "string" && typeof item.status === "string"
+    ) ||
+    !Array.isArray(value.caseResults) ||
+    !value.caseResults.every((item) =>
+      isRecord(item) &&
+      typeof item.caseId === "string" &&
+      typeof item.title === "string" &&
+      typeof item.status === "string" &&
+      Array.isArray(item.categories) &&
+      Array.isArray(item.metrics) &&
+      item.metrics.every((metric) =>
+        isRecord(metric) && typeof metric.id === "string" && typeof metric.status === "string"
+      )
+    ) ||
+    !Array.isArray(value.recommendations) ||
+    !isRecord(value.ragas)
+  ) {
+    return null;
+  }
+  return value as unknown as NonNullable<EvaluationHistoryRecord["benchmark"]>;
 }
 
 function clampLayoutValue(

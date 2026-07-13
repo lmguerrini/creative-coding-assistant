@@ -261,6 +261,13 @@ import {
   type EvaluationHistoryRecord,
   type FeedbackSentiment
 } from "@/lib/product-controls";
+import {
+  buildEvaluationBenchmarkRun,
+  buildGoldenEvaluationDataset,
+  emptyRagasEvidence,
+  type EvaluationRunRequest,
+  type RagasExecutionEvidence
+} from "@/lib/evaluation-benchmark";
 import { PreviewRendererSurface } from "./preview-renderer-surface";
 import { AudioReactiveMappingSummaryCard } from "./audio-reactive-mapping-summary";
 import { ArtifactRefinementPanel } from "./artifact-refinement-panel";
@@ -3359,64 +3366,78 @@ export function WorkstationShell({
     });
   }
 
-  async function handleRunEvaluation() {
-    try {
-      const response = await fetch("http://localhost:8000/api/evaluation/run", {
-        body: JSON.stringify({ allowProviderCalls: false, dryRun: true }),
-        headers: { "Content-Type": "application/json" },
-        method: "POST"
-      });
-      const payload: unknown = await response.json();
-      if (!response.ok || typeof payload !== "object" || payload === null) {
-        throw new Error("Evaluation is unavailable for the current local dataset.");
+  async function handleRunEvaluation(request: EvaluationRunRequest) {
+    const selectedHasRag = request.scope === "full" || request.scope === "rag" || (
+      request.scope === "cases" && buildGoldenEvaluationDataset().cases.some(
+        (item) => request.caseIds.includes(item.id) && item.categories.includes("rag")
+      )
+    );
+    let payload: Record<string, unknown> = {};
+    let ragas = emptyRagasEvidence();
+
+    if (selectedHasRag) {
+      try {
+        const response = await fetch("http://localhost:8000/api/evaluation/run", {
+          body: JSON.stringify({
+            allowProviderCalls: request.allowProviderCalls,
+            approvedDataset: request.approvedRagasDataset,
+            dryRun: !request.allowProviderCalls
+          }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST"
+        });
+        const responsePayload: unknown = await response.json();
+        payload = isUnknownRecord(responsePayload) ? responsePayload : {};
+        if (!response.ok) {
+          ragas = blockedRagasEvidence(request, payload);
+        } else {
+          ragas = parseRagasExecutionEvidence(payload, request);
+        }
+      } catch {
+        ragas = blockedRagasEvidence(request, {
+          message: "BLOCKED_BY_EXECUTION_ENVIRONMENT: the local evaluation service is unavailable."
+        });
       }
-      const evaluationRecord = buildEvaluationHistoryRecord(payload);
-      updateWorkspacePreferences({
-        evaluationHistory: [
-          ...workspacePreferences.evaluationHistory,
-          evaluationRecord
-        ].slice(-24)
-      });
-      appendLocalRuntimeEvent({
-        event_type: "eval_update",
-        sequence: localRuntimeSequenceRef.current++,
-        payload: {
-          code: "evaluation_run_completed",
-          message: "Evaluation run completed.",
-          evaluation: payload
-        }
-      });
-    } catch {
-      updateWorkspacePreferences({
-        evaluationHistory: [
-          ...workspacePreferences.evaluationHistory,
-          {
-            id: `evaluation-failed-${Date.now()}`,
-            runId: null,
-            datasetId: null,
-            metrics: [],
-            status: "failed",
-            detail:
-              "Evaluation could not run with the current local dataset. No score was fabricated.",
-            evaluatedAt: new Date().toISOString(),
-            resultRows: null,
-            metricFailures: null,
-            dryRun: true,
-            providerCallsAllowed: false
-          }
-        ].slice(-24)
-      });
-      appendLocalRuntimeEvent({
-        event_type: "eval_update",
-        sequence: localRuntimeSequenceRef.current++,
-        payload: {
-          code: "evaluation_failed",
-          message:
-            "Evaluation could not run with the current local dataset. No score was fabricated.",
-          status: "failed"
-        }
-      });
     }
+
+    const previousRun = [...workspacePreferences.evaluationHistory]
+      .reverse()
+      .find((entry) => entry.benchmark)?.benchmark ?? null;
+    const benchmark = buildEvaluationBenchmarkRun({
+      model: productIntelligence,
+      previousRun,
+      ragas,
+      request
+    });
+    const evaluationRecord: EvaluationHistoryRecord = {
+      id: benchmark.id,
+      runId: typeof payload.runId === "string" ? payload.runId : benchmark.id,
+      datasetId: ragas.datasetId,
+      metrics: ragas.metrics,
+      status: benchmark.statusLabel,
+      detail: ragas.detail,
+      evaluatedAt: benchmark.completedAt,
+      resultRows: ragas.resultRows,
+      metricFailures: ragas.metricFailures,
+      dryRun: !request.allowProviderCalls,
+      providerCallsAllowed: request.allowProviderCalls,
+      benchmark
+    };
+    updateWorkspacePreferences({
+      evaluationHistory: [...workspacePreferences.evaluationHistory, evaluationRecord].slice(-24)
+    });
+    appendLocalRuntimeEvent({
+      event_type: "eval_update",
+      sequence: localRuntimeSequenceRef.current++,
+      payload: {
+        code: ragas.state === "blocked" ? "evaluation_blocked" : "evaluation_run_completed",
+        message: ragas.state === "blocked"
+          ? "Provider evidence was blocked by the execution environment; local evidence was retained."
+          : "Evaluation run completed.",
+        evaluation: payload,
+        status: ragas.state === "blocked" ? "BLOCKED_BY_EXECUTION_ENVIRONMENT" : "completed"
+      }
+    });
   }
 
   function handleArtifactSelect(artifact: ArtifactSummary) {
@@ -9005,36 +9026,78 @@ function readPayloadText(
   return typeof value === "string" ? value : undefined;
 }
 
-function buildEvaluationHistoryRecord(payload: object): EvaluationHistoryRecord {
-  const record = payload as Record<string, unknown>;
-  const evaluatedAt =
-    typeof record.evaluatedAt === "string"
-      ? record.evaluatedAt
-      : new Date().toISOString();
-  const metrics = Array.isArray(record.metrics)
-    ? record.metrics.filter((metric): metric is string => typeof metric === "string")
+function parseRagasExecutionEvidence(
+  record: Record<string, unknown>,
+  request: EvaluationRunRequest
+): RagasExecutionEvidence {
+  const metricScores = numberRecord(record.metricScores);
+  const caseRows = Array.isArray(record.caseResults)
+    ? record.caseResults.flatMap((value) => {
+        if (!isUnknownRecord(value) || typeof value.sampleId !== "string") return [];
+        return [{
+          sampleId: value.sampleId,
+          metrics: nullableNumberRecord(value.metrics),
+          metricErrors: stringRecord(value.metricErrors)
+        }];
+      })
     : [];
-  const runId = typeof record.runId === "string" ? record.runId : null;
   return {
-    id: runId ?? `evaluation-${evaluatedAt}`,
-    runId,
-    datasetId: typeof record.datasetId === "string" ? record.datasetId : null,
-    metrics,
-    status: typeof record.status === "string" ? record.status : "completed",
-    detail:
-      typeof record.detail === "string"
-        ? record.detail
-        : "Evaluation response recorded without a fabricated score.",
-    evaluatedAt,
-    resultRows: typeof record.resultRows === "number" ? record.resultRows : null,
-    metricFailures:
-      typeof record.metricFailures === "number" ? record.metricFailures : null,
-    dryRun: typeof record.dryRun === "boolean" ? record.dryRun : null,
-    providerCallsAllowed:
-      typeof record.providerCallsAllowed === "boolean"
-        ? record.providerCallsAllowed
-        : null
+    state: record.dryRun === true ? "prepared" : "completed",
+    datasetId: typeof record.datasetId === "string" ? record.datasetId : request.approvedRagasDataset,
+    datasetVersion: typeof record.datasetVersion === "string" ? record.datasetVersion : "ragas-approved.v1",
+    privacyClass: typeof record.privacyClass === "string" ? record.privacyClass : "public_safe",
+    metrics: Array.isArray(record.metrics) ? record.metrics.filter((value): value is string => typeof value === "string") : ["context_precision", "faithfulness", "answer_relevancy"],
+    metricScores,
+    resultRows: numberValue(record.resultRows),
+    totalSamples: numberValue(record.totalSamples),
+    eligibleSamples: numberValue(record.eligibleSamples),
+    skippedSamples: numberValue(record.skippedSamples),
+    metricFailures: numberValue(record.metricFailures),
+    provider: typeof record.provider === "string" ? record.provider : null,
+    model: typeof record.model === "string" ? record.model : null,
+    embeddingModel: typeof record.embeddingModel === "string" ? record.embeddingModel : null,
+    durationMs: typeof record.durationMs === "number" ? record.durationMs : null,
+    detail: typeof record.detail === "string" ? record.detail : "Approved RAGAS evidence recorded.",
+    caseRows
   };
+}
+
+function blockedRagasEvidence(
+  request: EvaluationRunRequest,
+  record: Record<string, unknown>
+): RagasExecutionEvidence {
+  return {
+    ...emptyRagasEvidence(),
+    state: "blocked",
+    datasetId: request.approvedRagasDataset,
+    privacyClass: "public_safe",
+    detail: typeof record.message === "string"
+      ? record.message
+      : "BLOCKED_BY_EXECUTION_ENVIRONMENT: provider evaluation was unavailable."
+  };
+}
+
+function isUnknownRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function numberValue(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function numberRecord(value: unknown) {
+  if (!isUnknownRecord(value)) return {};
+  return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, number] => typeof entry[1] === "number"));
+}
+
+function nullableNumberRecord(value: unknown) {
+  if (!isUnknownRecord(value)) return {};
+  return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, number | null] => entry[1] === null || typeof entry[1] === "number"));
+}
+
+function stringRecord(value: unknown) {
+  if (!isUnknownRecord(value)) return {};
+  return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string"));
 }
 
 function formatMessageTime() {

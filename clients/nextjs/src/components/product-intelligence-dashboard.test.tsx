@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import {
   productIntelligenceCategories,
@@ -75,7 +75,7 @@ describe("Product Intelligence surfaces", () => {
 
     const navigation = screen.getByRole("navigation", { name: "Dashboard categories" });
     expect(navigation)
-      .toHaveTextContent("Manual guide");
+      .toHaveTextContent("User Guide");
     expect(navigation)
       .toHaveTextContent("Knowledge Base");
     expect(navigation).not.toHaveTextContent("Current workspace outcome and selected artifact.");
@@ -119,6 +119,37 @@ describe("Product Intelligence surfaces", () => {
     expect(screen.getByText("Live visual runtime triage")).toBeVisible();
     expect(screen.getByLabelText("Curated creative studies")).toBeVisible();
     expect(screen.getByText("Published request, source, chunk, quality, and freshness signals for this run.")).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "User Guide" }));
+    expect(screen.getByRole("button", { name: "User Guide" })).toHaveAttribute(
+      "aria-current",
+      "page"
+    );
+    expect(screen.getByRole("heading", { name: "User Guide" })).toBeVisible();
+    expect(screen.getByRole("region", { name: "User Guide" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Your first run" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Every Dashboard page" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Workflows and Demo Mode" })).toBeVisible();
+    expect(screen.getAllByText("Knowledge Base").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Retrieval").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Sessions").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Artifacts").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Preview").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Runtime").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Settings").length).toBeGreaterThan(0);
+    expect(screen.getByRole("heading", { name: "Troubleshooting" })).toBeVisible();
+    expect(
+      within(screen.getByRole("list", { name: "Dashboard page reference" }))
+        .getAllByRole("listitem")
+    ).toHaveLength(16);
+
+    const previewDisclosure = screen.getByText(
+      "Supported live Preview runtimes and their boundaries"
+    ).closest("details");
+    expect(previewDisclosure).not.toHaveAttribute("open");
+    fireEvent.click(screen.getByText("Supported live Preview runtimes and their boundaries"));
+    expect(previewDisclosure).toHaveAttribute("open");
+    expect(screen.getByRole("row", { name: /Tone.js/ })).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "Close dashboard" }));
     expect(onClose).toHaveBeenCalledOnce();
