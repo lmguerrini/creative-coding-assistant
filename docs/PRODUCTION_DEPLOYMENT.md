@@ -1,8 +1,10 @@
 # Production Deployment
 
-V7.7 adds a deployment foundation for the browser-facing backend bridge without
-changing creative generation, provider routing, persistence semantics, or local
-development behavior.
+Creative Coding Assistant includes a local two-process workstation and a
+production WSGI packaging foundation. Current evidence supports the local
+review/demo target; it does not establish a hosted public deployment,
+authentication, rate limiting, managed storage, backup, or operational service
+ownership.
 
 ## Local Development
 
@@ -12,16 +14,18 @@ Use the existing WSGI development bridge for local Next.js smoke work:
 .venv/bin/python -m creative_coding_assistant.api.dev_server --host 127.0.0.1 --port 8000
 ```
 
-The development bridge keeps permissive local CORS defaults and refuses to run
-when `CCA_ENVIRONMENT=production` unless an operator passes the explicit
+The development bridge allows only `http://127.0.0.1:3000` and
+`http://localhost:3000` by default. Other local ports or origins require an
+explicit `CCA_CORS_ALLOWED_ORIGINS` value. The bridge refuses to run when
+`CCA_ENVIRONMENT=production` unless an operator passes the explicit
 `--allow-production-dev-server` override.
 
-## V8 Capstone Demo Target
+## Current Local Review Target
 
-The realistic V8 Capstone target is a local workstation demo, not a public
+The reviewed Capstone target is a local workstation demo, not a public
 deployment. The presenter runs the backend API on `127.0.0.1:8000` and the
-Next.js workstation on the local Next dev server. Public deployment, public
-showcase upload, merge, push, tag, and final freeze remain maintainer-gated.
+Next.js workstation on the local Next.js development server. Showcase upload
+and any release/deployment decision remain separate human actions.
 
 Local demo startup path:
 
@@ -39,8 +43,8 @@ npm run dev
 Before the demo, verify:
 
 ```bash
-curl http://127.0.0.1:8000/api/health
-curl http://127.0.0.1:8000/api/health/ready
+curl --fail http://127.0.0.1:8000/api/health
+curl --fail http://127.0.0.1:8000/api/health/ready
 ```
 
 Then open the primary in-app demo target:
@@ -49,49 +53,40 @@ Then open the primary in-app demo target:
 http://127.0.0.1:3000
 ```
 
-Use the `Demo Mode` button inside Creative Coding Assistant to select one of
-the 8 curated scenarios. The selected scenario loads its prompt into the normal
-assistant composer and shows expected behavior, fallback, evidence, source
-boundaries, and output guidance inside the workstation.
+Use **Demo Mode** inside Creative Coding Assistant to select one of the ten
+current scenarios. Four are the canonical browser showcase sequence:
+Polyrhythmic constellation, Recursive aurora garden, Kinetic orbit sculpture,
+and Fractal solar bloom. The selected scenario loads its prompt into the normal
+assistant composer and keeps input, runtime, expected artifact, validation, and
+fallback boundaries visible.
 
-Golden artifact browser QA, when needed:
+Run the deterministic browser path from the repository when a local proof is
+needed:
 
 ```bash
-QA_WORKDIR="$(mktemp -d)"
-cd "$QA_WORKDIR"
-npm install p5 three hydra-synth
-test -e demo || ln -s /path/to/creative_coding_assistant/demo demo
-/path/to/creative_coding_assistant/.venv/bin/python -m http.server 8126 --bind 127.0.0.1
+npm run test:e2e --prefix clients/nextjs -- e2e/demo-showcase-smoke.spec.js
 ```
 
-The static local launcher remains a fallback/reviewer evidence path:
+That gate proves the asserted workstation, artifact, interaction, preview,
+fullscreen, refinement, and persistence contracts with deterministic fixtures.
+It is not a configured-provider generation or human-quality result.
 
-```text
-http://127.0.0.1:8126/demo/final_demo_launcher.html
-```
+Current fallback path:
 
-For direct artifact QA, open:
+- Frontend or provider failure: show a preflight-approved product artifact or
+  the separately labelled deterministic browser fixture; do not imply a new
+  provider response.
+- Backend failure: use the [System Overview](SYSTEM_OVERVIEW.md) and current
+  [Capstone Demo and Showcase Guide](CAPSTONE_DEMO_SHOWCASE.md); do not imply a
+  live API response.
+- Retrieval failure: use
+  `demo/evaluation/canonical_retrieval_report.json` and state its date,
+  fingerprint, and local-selection boundary; do not invent current citations.
+- Preview failure: show source and the explicit code/export boundary rather
+  than calling the renderer successful.
 
-```text
-http://127.0.0.1:8126/demo/golden_artifacts/browser_full_runtime_qa.html
-```
-
-Demo fallback path:
-
-- Frontend failure: use `demo/golden_demo_dataset.json`,
-  `demo/demo_prompt_library.md`, `assets/preview_current.png`, and the docs as
-  an offline walkthrough.
-- Backend failure: show the architecture and API evidence from
-  `docs/V8_GRAND_ENGINEERING_REVIEW.md`; do not imply a live API response.
-- Provider failure: switch to prepared prompts and the provider-smoke evidence;
-  do not imply a new provider call happened.
-- Retrieval failure: use the retrieval demo pack evidence, sanitized RAGAs
-  result, and redacted latest-live RAGAs result.
-- Preview/artifact failure: show `demo/golden_artifacts/qa_manifest.json` and
-  `demo/golden_artifacts/browser_full_runtime_qa_results.json`; be explicit
-  that p5.js, Three.js, and Hydra rendered through real temporary QA runtime
-  packages, GLSL rendered through WebGL, and the frame timing is uncapped local
-  draw-loop timing rather than display FPS.
+The retired V8 static launcher and eight-flow files remain historical evidence
+only and are not a current fallback authority.
 
 ## Production Backend
 
@@ -141,9 +136,10 @@ The container persists Chroma, artifacts, and workspace sessions under
 
 ## CORS
 
-Local and test environments keep the existing wildcard behavior for browser
-smoke compatibility. Production disables wildcard CORS and requires explicit
-origins:
+Local defaults allow the two loopback workstation origins on port 3000; they do
+not grant wildcard access. Set an explicit comma-separated value for other
+local origins. Production requires explicit deployed origins and rejects the
+wildcard:
 
 ```text
 CCA_ENVIRONMENT=production

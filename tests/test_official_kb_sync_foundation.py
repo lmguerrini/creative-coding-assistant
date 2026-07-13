@@ -2,8 +2,11 @@ import ssl
 import tempfile
 import unittest
 from datetime import UTC, datetime
+from email.message import Message
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+from urllib.error import URLError
+from urllib.request import HTTPSHandler, Request
 
 from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.rag.sources import (
@@ -23,6 +26,9 @@ from creative_coding_assistant.rag.sync import (
     TransportResponse,
     UrllibSourceTransport,
 )
+from creative_coding_assistant.rag.sync.fetcher import (
+    _SameOriginHttpsRedirectHandler,
+)
 from creative_coding_assistant.vectorstore import create_chroma_client
 
 
@@ -37,20 +43,115 @@ class OfficialKnowledgeBaseSyncFoundationTests(unittest.TestCase):
         response.geturl.return_value = "https://p5js.org/reference/"
         response.status = 200
 
-        with patch(
-            "creative_coding_assistant.rag.sync.fetcher.urlopen",
-            return_value=response,
-        ) as urlopen_mock:
+        opener = MagicMock()
+        opener.open.return_value = response
+        with (
+            patch(
+                "creative_coding_assistant.rag.sync.fetcher._validate_public_https_target"
+            ) as validate_target_mock,
+            patch(
+                "creative_coding_assistant.rag.sync.fetcher.build_opener",
+                return_value=opener,
+            ) as build_opener_mock,
+        ):
             result = UrllibSourceTransport().fetch("https://p5js.org/reference/")
 
-        request = urlopen_mock.call_args.args[0]
+        request = opener.open.call_args.args[0]
         self.assertIn("Mozilla/5.0", request.headers["User-agent"])
         self.assertIn("text/html", request.headers["Accept"])
         self.assertEqual(request.headers["Accept-language"], "en-US,en;q=0.9")
-        self.assertIsInstance(urlopen_mock.call_args.kwargs["context"], ssl.SSLContext)
-        self.assertEqual(urlopen_mock.call_args.kwargs["timeout"], 10.0)
+        self.assertEqual(opener.open.call_args.kwargs["timeout"], 10.0)
+        validate_target_mock.assert_called_once_with("https://p5js.org/reference/")
+        handlers = build_opener_mock.call_args.args
+        self.assertTrue(
+            any(isinstance(handler, _SameOriginHttpsRedirectHandler) for handler in handlers)
+        )
+        https_handler = next(
+            handler for handler in handlers if isinstance(handler, HTTPSHandler)
+        )
+        self.assertIsInstance(https_handler._context, ssl.SSLContext)
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.content_type, "text/html")
+
+    def test_urllib_transport_rejects_oversized_source_responses(self) -> None:
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.__exit__.return_value = None
+        response.headers.get_content_charset.return_value = "utf-8"
+        response.read.return_value = b"x" * (UrllibSourceTransport.MAX_RESPONSE_BYTES + 1)
+
+        opener = MagicMock()
+        opener.open.return_value = response
+        with (
+            patch(
+                "creative_coding_assistant.rag.sync.fetcher._validate_public_https_target"
+            ),
+            patch(
+                "creative_coding_assistant.rag.sync.fetcher.build_opener",
+                return_value=opener,
+            ),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "5 MiB safety limit"):
+                UrllibSourceTransport().fetch("https://p5js.org/reference/")
+
+        response.read.assert_called_once_with(
+            UrllibSourceTransport.MAX_RESPONSE_BYTES + 1
+        )
+
+    def test_redirect_handler_rejects_cross_origin_before_target_resolution(self) -> None:
+        handler = _SameOriginHttpsRedirectHandler(origin=("threejs.org", 443))
+
+        with patch(
+            "creative_coding_assistant.rag.sync.fetcher._validate_public_https_target"
+        ) as validate_target_mock:
+            with self.assertRaisesRegex(URLError, "safe network scope"):
+                handler.redirect_request(
+                    Request("https://threejs.org/docs/"),
+                    None,
+                    302,
+                    "Found",
+                    Message(),
+                    "https://127.0.0.1/private",
+                )
+
+        validate_target_mock.assert_not_called()
+
+    def test_redirect_handler_allows_public_same_origin_redirect(self) -> None:
+        handler = _SameOriginHttpsRedirectHandler(origin=("threejs.org", 443))
+
+        with patch(
+            "creative_coding_assistant.rag.sync.fetcher._validate_public_https_target"
+        ) as validate_target_mock:
+            redirected = handler.redirect_request(
+                Request("https://threejs.org/docs/"),
+                None,
+                302,
+                "Found",
+                Message(),
+                "https://threejs.org/docs/index.html",
+            )
+
+        self.assertIsNotNone(redirected)
+        assert redirected is not None
+        self.assertEqual(redirected.full_url, "https://threejs.org/docs/index.html")
+        validate_target_mock.assert_called_once_with(
+            "https://threejs.org/docs/index.html"
+        )
+
+    def test_urllib_transport_rejects_private_dns_before_opening_connection(self) -> None:
+        with (
+            patch(
+                "creative_coding_assistant.rag.sync.fetcher.getaddrinfo",
+                return_value=((2, 1, 6, "", ("127.0.0.1", 443)),),
+            ),
+            patch(
+                "creative_coding_assistant.rag.sync.fetcher.build_opener"
+            ) as build_opener_mock,
+        ):
+            with self.assertRaisesRegex(RuntimeError, "target was rejected"):
+                UrllibSourceTransport().fetch("https://threejs.org/docs/")
+
+        build_opener_mock.assert_not_called()
 
     def test_fetcher_requires_registered_source_id(self) -> None:
         fetcher = OfficialSourceFetcher(transport=_FakeTransport({}))

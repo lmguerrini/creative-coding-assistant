@@ -268,10 +268,10 @@ export const demoModeScenarioCatalog = [
     expectedPreview: "One self-contained p5.js canvas; the source must not fetch or embed the uploaded image.",
     expectedInteraction: "Attach the reference, inspect the image-reference status, then move the pointer over the generated canvas.",
     expectedValidation:
-      "Attachment acceptance, real multimodal provider input, request-scoped metadata cleared after submission, exact prompt source contract, visible p5 canvas, and no attachment/session persistence. Reference metadata can enter a bundle only when export is explicitly requested before Send.",
+      "Attachment acceptance, image bytes included in the backend provider request payload, request-scoped metadata cleared after submission, exact prompt source contract, visible p5 canvas, and no attachment/session persistence. Provider receipt, use, and influence require separate live evidence. Reference metadata can enter a bundle only when export is explicitly requested before Send.",
     fallback: "Run the same palette-study prompt without an attachment and state that the result is text-guided rather than reference-guided.",
     estimatedGenerationTime: "Target: 90 seconds for generation and 45 seconds for attachment and canvas inspection.",
-    providerRequirement: "Configured provider that accepts the supplied image reference",
+    providerRequirement: "Configured image-capable provider for live receipt, use, and influence evidence; local validation proves bounded request construction only",
     retrievalRequirement: "Not required; image-reference context remains separate from retrieval sources",
     sourceBoundary:
       "The attachment is request-scoped creative guidance and is cleared after submission rather than persisted in the session. The generated preview does not fetch or expose the original image as a runtime asset; an export can include reference metadata only if requested before Send."

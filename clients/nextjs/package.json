@@ -2,11 +2,14 @@
   "name": "@creative-coding-assistant/nextjs-client",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "^22.13.0 || >=24.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint src e2e",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "test": "vitest run",
     "test:ci": "npm run typecheck && npm run test && npm run test:e2e",
@@ -16,7 +19,7 @@
   },
   "dependencies": {
     "lucide-react": "0.468.0",
-    "next": "14.2.35",
+    "next": "15.5.20",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
@@ -24,13 +27,17 @@
     "@playwright/test": "^1.61.1",
     "@testing-library/jest-dom": "6.6.3",
     "@testing-library/react": "16.1.0",
-    "@types/node": "22.10.2",
+    "@types/node": "22.20.1",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
     "eslint": "8.57.1",
-    "eslint-config-next": "14.2.5",
-    "jsdom": "25.0.1",
+    "eslint-config-next": "15.5.20",
+    "jsdom": "29.1.1",
     "typescript": "5.7.2",
-    "vitest": "2.1.8"
+    "vitest": "4.1.10"
+  },
+  "overrides": {
+    "js-yaml": "4.3.0",
+    "postcss": "8.5.18"
   }
 }

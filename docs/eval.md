@@ -1,21 +1,29 @@
-# Live Session RAGAs Evaluation
+# Recorded-Session RAGAS Evaluation
 
-Run local evaluation over real recorded Streamlit chat sessions:
+Prepare a local evaluation over recorded assistant sessions without making
+provider calls:
 
 ```bash
-.venv/bin/python scripts/eval_live_sessions.py --limit 1
+.venv/bin/python scripts/eval_live_sessions.py --limit 1 --dry-run
 ```
 
 The command reads `data/eval/live_sessions.jsonl` by default and writes result
-rows to `data/eval/ragas_results.jsonl`.
+metadata to `data/eval/ragas_results.jsonl`. A real RAGAS run requires the
+separate `--allow-provider-calls` flag.
 
 ## Requirements
 
-Install RAGAs in the active virtual environment before running:
+Install the version-bounded evaluation extra before running:
 
 ```bash
-.venv/bin/python -m pip install ragas
+.venv/bin/python -m pip install -e ".[evaluation]"
 ```
+
+The optional evaluation stack has two no-fix advisories in the dated local
+dependency audit. Use it only with trusted local inputs and protected cache
+directories; review the
+[Installation Guide](INSTALLATION_GUIDE.md#optional-evaluation-dependencies)
+before installing or scoring.
 
 Running RAGAs may call evaluator LLM APIs and can incur provider cost. Keep
 `OPENAI_API_KEY` or the evaluator provider configuration available when the
@@ -27,10 +35,12 @@ approval.
 
 ## Examples
 
-Run a low-cost smoke evaluation over the first eligible sample:
+After reviewing the selected local row, provider boundary, model, cost, and
+output path, run a low-volume provider-scored evaluation over the first
+eligible sample:
 
 ```bash
-.venv/bin/python scripts/eval_live_sessions.py --limit 1
+.venv/bin/python scripts/eval_live_sessions.py --limit 1 --allow-provider-calls
 ```
 
 Run selected metrics explicitly:
@@ -39,15 +49,17 @@ Run selected metrics explicitly:
 .venv/bin/python scripts/eval_live_sessions.py \
   --limit 2 \
   --metric context_precision \
-  --metric faithfulness
+  --metric faithfulness \
+  --allow-provider-calls
 ```
 
-Run the V8 release-candidate sanitized fixture:
+Run the approved synthetic/public fixture without overwriting committed
+evidence:
 
 ```bash
 .venv/bin/python scripts/eval_live_sessions.py \
   --input-path demo/evaluation/sanitized_ragas_live_sessions.jsonl \
-  --output-path demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl \
+  --output-path /tmp/cca-ragas-context-precision-results.jsonl \
   --metric context_precision \
   --allow-provider-calls
 ```

@@ -1,5 +1,7 @@
 """HTTP API helpers for browser-facing assistant clients."""
 
+from importlib import import_module
+
 from creative_coding_assistant.api.contracts import (
     API_CONTRACT_VERSION,
     ERROR_CONTRACT_VERSION,
@@ -12,12 +14,6 @@ from creative_coding_assistant.api.cors import (
     CorsPolicyReport,
     build_cors_policy_report,
     resolve_cors_allow_origin,
-)
-from creative_coding_assistant.api.dev_server import (
-    BackendDevApplication,
-    MountedWsgiApp,
-    create_backend_dev_app,
-    run_backend_dev_server,
 )
 from creative_coding_assistant.api.domain_experience import (
     DOMAIN_EXPERIENCE_CONTRACT_VERSION,
@@ -69,6 +65,30 @@ from creative_coding_assistant.api.workspace_sessions import (
     WorkspaceSessionApplication,
     create_workspace_session_app,
 )
+
+_DEV_SERVER_MODULE = "creative_coding_assistant.api.dev_server"
+_DEV_SERVER_EXPORTS = frozenset(
+    {
+        "BackendDevApplication",
+        "MountedWsgiApp",
+        "create_backend_dev_app",
+        "run_backend_dev_server",
+    }
+)
+
+
+def __getattr__(name: str) -> object:
+    """Load dev-server exports lazily so ``python -m`` stays warning-free."""
+
+    if name not in _DEV_SERVER_EXPORTS:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    value = getattr(import_module(_DEV_SERVER_MODULE), name)
+    globals()[name] = value
+    return value
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | _DEV_SERVER_EXPORTS)
 
 __all__ = [
     "API_CONTRACT_VERSION",

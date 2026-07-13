@@ -74,6 +74,10 @@ At the audited baseline, the following tracked families retain earlier release
 framing or earlier demo catalogs:
 
 - `docs/V8_*.md`
+- `docs/eval_pipeline.md`
+- `architecture/demo_showcase_experience.md`
+- `demo/README.md`
+- `demo/demo_prompt_library.md`
 - `demo/final_demo_suite.json`
 - `demo/golden_demo_dataset.json`
 - `demo/final_demo_launcher.html`
@@ -84,6 +88,10 @@ They may be kept for provenance, but they must not be the default current
 reviewer route. An older “pass,” scenario count, provider timing, runtime
 version, or release-ready statement does not override current source or current
 evaluation evidence.
+
+The human-readable historical files above carry explicit banners on the V9
+review branch. The machine-readable V8 files retain dated schema/branch fields;
+current guides do not route reviewers through them.
 
 At baseline, `README.md`, `docs/CAPSTONE_DEMO_SHOWCASE.md`, and related demo
 checklists still described an eight-scenario catalog. This current-branch

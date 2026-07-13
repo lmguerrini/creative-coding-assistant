@@ -71,7 +71,7 @@ describe("Capstone Evaluation workspace", () => {
       expect(screen.getAllByText(label).length).toBeGreaterThan(0);
     }
     expect(screen.getByText(/not an overall product or project score/i)).toBeVisible();
-    expect(screen.getByText(/latest scored approved baseline/i)).toBeVisible();
+    expect(screen.getByText(/committed transcribed baseline summary/i)).toBeVisible();
     const baselineOverall = screen.getByText("Approved-fixture Overall Retrieval Score").closest("article");
     expect(within(baselineOverall as HTMLElement).getByText("61.44%")).toBeVisible();
     expect(screen.getByText("Benchmark coverage").closest("article")).toHaveTextContent("7/7 retrieval queries7/7 canonical retrieval-pack queries");

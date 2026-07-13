@@ -92,6 +92,54 @@ class OfficialKnowledgeBaseSyncRunnerTests(unittest.TestCase):
             self.assertEqual(first_result.record_ids, second_result.record_ids)
             self.assertEqual(len(stored_records), len(first_result.chunks))
 
+    def test_runner_removes_records_superseded_by_a_new_source_snapshot(self) -> None:
+        with _kb_client() as client:
+            indexer = OfficialKnowledgeBaseIndexer(client=client)
+            transport = _MutableFakeTransport()
+            runner = OfficialKnowledgeBaseSyncRunner(
+                fetcher=OfficialSourceFetcher(transport=transport),
+                chunker=OfficialSourceChunker(
+                    policy=ChunkingPolicy(max_chars=200, min_chunk_chars=50)
+                ),
+                embedder=_FakeChunkEmbedder(),
+                indexer=indexer,
+            )
+            request = _sync_request()
+
+            first_result = runner.run(request)
+            transport.use_compact_snapshot = True
+            second_result = runner.run(request)
+            stored_records = indexer.list_source_chunks(source_id="three_docs")
+
+            self.assertGreater(len(first_result.record_ids), len(second_result.record_ids))
+            self.assertTrue(set(first_result.record_ids).isdisjoint(second_result.record_ids))
+            self.assertEqual(
+                {record.id for record in stored_records},
+                set(second_result.record_ids),
+            )
+
+    def test_indexer_clears_stale_snapshot_when_new_source_has_no_chunks(self) -> None:
+        with _kb_client() as client:
+            indexer = OfficialKnowledgeBaseIndexer(client=client)
+            runner = OfficialKnowledgeBaseSyncRunner(
+                fetcher=OfficialSourceFetcher(transport=_FakeTransport()),
+                chunker=OfficialSourceChunker(
+                    policy=ChunkingPolicy(max_chars=200, min_chunk_chars=50)
+                ),
+                embedder=_FakeChunkEmbedder(),
+                indexer=indexer,
+            )
+            first_result = runner.run(_sync_request())
+
+            cleared_ids = indexer.replace_source_records(
+                (),
+                source_id="three_docs",
+            )
+
+            self.assertGreater(len(first_result.record_ids), 0)
+            self.assertEqual(cleared_ids, ())
+            self.assertEqual(indexer.list_source_chunks(source_id="three_docs"), ())
+
 
 def _sync_request() -> OfficialSourceSyncRequest:
     return OfficialSourceSyncRequest(
@@ -129,6 +177,37 @@ class _FakeTransport:
               </body>
             </html>
             """,
+        )
+
+
+class _MutableFakeTransport:
+    def __init__(self) -> None:
+        self.use_compact_snapshot = False
+
+    def fetch(self, url: str) -> TransportResponse:
+        if url != "https://threejs.org/docs/":
+            raise KeyError(url)
+        content = (
+            """
+            <html><head><title>Three.js Docs</title></head><body>
+              <p>Camera setup covers perspective cameras and scene framing.</p>
+              <p>Lighting setup explains ambient, directional, and point lights.</p>
+              <p>Renderer setup covers canvas sizing, pixel ratio, and animation loops.</p>
+              <p>Interaction guidance covers raycasting, resizing, cleanup, and recovery.</p>
+            </body></html>
+            """
+            if not self.use_compact_snapshot
+            else """
+            <html><head><title>Three.js Docs</title></head><body>
+              <p>Updated camera setup covers framing and resize recovery in one maintained example.</p>
+            </body></html>
+            """
+        )
+        return TransportResponse(
+            resolved_url=url,
+            status_code=200,
+            content_type="text/html",
+            content=content,
         )
 
 

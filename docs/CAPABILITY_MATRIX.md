@@ -20,7 +20,7 @@ capability to Implemented.
 
 | Capability | Status | Observable evidence | Boundary |
 |---|---|---|---|
-| Next.js creative workstation | **Implemented** | Root page loads the workstation; composer, workspace, Dashboard, Inspector, and sessions have component/integration coverage | Canonical UI is Next.js 14; packaged Streamlit foundations are not the primary review path |
+| Next.js creative workstation | **Implemented** | Root page loads the workstation; composer, workspace, Dashboard, Inspector, and sessions have component/integration coverage | Canonical UI is the pinned Next.js 15 backport; packaged Streamlit foundations are not the primary review path |
 | Streaming assistant response | **Implemented** | `/api/assistant/stream` emits versioned NDJSON status, node, token, artifact, preview, error, and final events | Local WSGI endpoint; no WebSocket or public service claim |
 | Task modes | **Implemented** | Generate, Explain, Debug, Design, Review, and Preview map to explicit routes | A mode changes prompt/routing contracts; it does not install or call arbitrary tools |
 | Domain selection | **Implemented** | Explicit and query-detected domains are published in route evidence | Selecting a domain does not prove its knowledge is indexed or its runtime is previewable |

@@ -1,5 +1,9 @@
 # V8 Final Smoke Coverage Matrix
 
+> **Historical V8 record.** This matrix preserves a dated eight-scenario V8
+> validation pass. It does not describe the current ten-flow product or replace
+> the current [Capstone Demo and Showcase Guide](CAPSTONE_DEMO_SHOWCASE.md).
+
 Date: 2026-07-09
 Branch: `version-review/v8`
 

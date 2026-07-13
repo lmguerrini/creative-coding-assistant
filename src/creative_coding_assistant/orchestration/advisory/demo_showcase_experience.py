@@ -1044,7 +1044,10 @@ def _checklist_items() -> tuple[DemoChecklistItem, ...]:
             category="showcase_upload",
             status="blocked_until_hitl",
             action="Stop for HITL review before merge, push, tag, freeze, or public showcase upload.",
-            evidence_refs=(".runtime_pack/active/capabilities/v8_8_demo_showcase/CAPABILITY_SPEC.md",),
+            evidence_refs=(
+                "docs/CAPSTONE_DEMO_SHOWCASE.md",
+                "demo/showcase_upload_preparation.md",
+            ),
         ),
     )
 

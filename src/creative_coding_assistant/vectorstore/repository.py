@@ -135,5 +135,13 @@ class ChromaRepository:
             for index, record_id in enumerate(ids)
         )
 
+    def delete(self, record_ids: Sequence[str]) -> None:
+        """Delete an explicit set of records without broad collection mutation."""
+
+        resolved_ids = tuple(record_id for record_id in record_ids if record_id)
+        if not resolved_ids:
+            return
+        self.collection.delete(ids=list(resolved_ids))
+
     def count(self) -> int:
         return int(self.collection.count())

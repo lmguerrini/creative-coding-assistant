@@ -15,8 +15,9 @@ ERROR_CONTRACT_VERSION = "api-error.v1"
 STREAM_CONTRACT_VERSION = "assistant-stream.v1"
 WORKSPACE_SESSION_CONTRACT_VERSION = "workspace-session.v1"
 HEALTH_CONTRACT_VERSION = "health.v1"
-DEFAULT_CORS_ALLOW_ORIGIN = "*"
+DEFAULT_CORS_ALLOW_ORIGIN: str | None = None
 REQUEST_ID_HEADER = "X-Request-Id"
+MAX_REQUEST_ID_LENGTH = 128
 API_CONTRACT_HEADER = "X-CCA-API-Contract-Version"
 ERROR_CONTRACT_HEADER = "X-CCA-Error-Contract-Version"
 STREAM_CONTRACT_HEADER = "X-CCA-Stream-Contract-Version"
@@ -65,7 +66,13 @@ def request_id_from_environ(environ: dict[str, Any]) -> str:
     """Resolve or create a stable request id for API responses."""
 
     incoming = str(environ.get("HTTP_X_REQUEST_ID", "")).strip()
-    return incoming or str(uuid4())
+    if (
+        incoming
+        and len(incoming) <= MAX_REQUEST_ID_LENGTH
+        and all(" " <= character <= "~" for character in incoming)
+    ):
+        return incoming
+    return str(uuid4())
 
 
 def cors_headers(
@@ -81,7 +88,7 @@ def cors_headers(
     ]
     if allow_origin is not None:
         headers.insert(0, ("Access-Control-Allow-Origin", allow_origin))
-        if allow_origin != DEFAULT_CORS_ALLOW_ORIGIN:
+        if allow_origin != "*":
             headers.append(("Vary", "Origin"))
     return headers
 

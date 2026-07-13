@@ -31,6 +31,20 @@ Monthly commit counts:
 | 2026-06 | 501 |
 | 2026-07 through July 13 | 271 |
 
+## Current V9 reviewer checkpoint
+
+At the dated 2026-07-13 review checkpoint, `version-review/v9` and
+`feature/reviewer-experience` both point to `eb525ed569e6` (`Complete
+reviewer-ready capstone documentation`). The merge base is that same commit.
+The reachable history therefore contains 1,107 commits and still only one
+merge commit.
+
+The visible tag sequence ends at `v8.8.0`; no V9 tag exists. That is the
+correct pre-release posture while Grand Review, independent/human acceptance,
+release-candidate approval, merge, push, and `v9.0.0` tagging remain separate
+maintainer gates. Branch equality and clean ancestry do not grant any of those
+approvals.
+
 ## Representative milestones
 
 | Date | Commit | Milestone |

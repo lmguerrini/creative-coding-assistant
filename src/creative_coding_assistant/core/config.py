@@ -9,6 +9,11 @@ from typing import Literal
 from pydantic import AliasChoices, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+DEFAULT_LOCAL_CORS_ORIGINS = (
+    "http://127.0.0.1:3000",
+    "http://localhost:3000",
+)
+
 
 class GenerationProviderName(StrEnum):
     OPENAI = "openai"
@@ -29,7 +34,7 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO")
     log_format: Literal["text", "json"] = Field(default="text")
     cors_allowed_origins: tuple[str, ...] = Field(
-        default=("*",),
+        default=DEFAULT_LOCAL_CORS_ORIGINS,
         validation_alias=AliasChoices(
             "CCA_CORS_ALLOWED_ORIGINS",
             "CCA_CORS_ALLOW_ORIGINS",
@@ -138,13 +143,13 @@ class Settings(BaseSettings):
         value: str | tuple[str, ...] | list[str] | None,
     ) -> tuple[str, ...]:
         if value is None:
-            return ("*",)
+            return DEFAULT_LOCAL_CORS_ORIGINS
         if isinstance(value, str):
             origins = tuple(origin.strip() for origin in value.split(","))
         else:
             origins = tuple(str(origin).strip() for origin in value)
         normalized = tuple(origin for origin in origins if origin)
-        return normalized or ("*",)
+        return normalized or DEFAULT_LOCAL_CORS_ORIGINS
 
     @field_validator("openai_model")
     @classmethod

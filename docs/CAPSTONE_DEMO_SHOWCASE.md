@@ -23,9 +23,9 @@ The prepared slide deck is
 
 ## Start locally
 
-Prerequisites are Python 3.11+, the project environment, Node.js 22, and
-installed frontend dependencies. A configured generation service is optional
-for the deterministic reviewer route.
+Prerequisites are Python 3.11+, the project environment, Node.js 22.13+ (22.x) or
+24+, and installed frontend dependencies. A configured generation service is
+optional for the deterministic reviewer route.
 
 Backend:
 

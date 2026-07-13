@@ -14,27 +14,48 @@ from creative_coding_assistant.core import Settings
 
 
 class V77ProductionDeploymentFoundationTests(unittest.TestCase):
-    def test_local_cors_preserves_wildcard_for_smoke_compatibility(self) -> None:
+    def test_local_cors_allows_expected_ui_and_blocks_untrusted_web_origins(self) -> None:
         settings = Settings(_env_file=None, environment="local")
         app = AssistantStreamingApplication(settings_factory=lambda: settings)
-        status_headers: dict[str, object] = {}
+        allowed_headers: dict[str, object] = {}
+        blocked_headers: dict[str, object] = {}
 
-        body = b"".join(
+        allowed_body = b"".join(
             app(
                 {
                     "PATH_INFO": "/api/assistant/stream",
                     "REQUEST_METHOD": "OPTIONS",
                     "HTTP_ORIGIN": "http://localhost:3000",
                 },
-                _capture_start_response(status_headers),
+                _capture_start_response(allowed_headers),
+            )
+        )
+        blocked_body = b"".join(
+            app(
+                {
+                    "PATH_INFO": "/api/assistant/stream",
+                    "REQUEST_METHOD": "OPTIONS",
+                    "HTTP_ORIGIN": "https://untrusted.example",
+                },
+                _capture_start_response(blocked_headers),
             )
         )
 
-        headers = dict(status_headers["headers"])
-        self.assertEqual(status_headers["status"], "204 No Content")
-        self.assertEqual(body, b"")
-        self.assertEqual(headers["Access-Control-Allow-Origin"], "*")
-        self.assertEqual(build_cors_policy_report(settings).status, "ready")
+        resolved_allowed_headers = dict(allowed_headers["headers"])
+        resolved_blocked_headers = dict(blocked_headers["headers"])
+        policy = build_cors_policy_report(settings)
+        self.assertEqual(allowed_headers["status"], "204 No Content")
+        self.assertEqual(blocked_headers["status"], "204 No Content")
+        self.assertEqual(allowed_body, b"")
+        self.assertEqual(blocked_body, b"")
+        self.assertEqual(
+            resolved_allowed_headers["Access-Control-Allow-Origin"],
+            "http://localhost:3000",
+        )
+        self.assertEqual(resolved_allowed_headers["Vary"], "Origin")
+        self.assertNotIn("Access-Control-Allow-Origin", resolved_blocked_headers)
+        self.assertEqual(policy.status, "ready")
+        self.assertFalse(policy.wildcard_allowed)
 
     def test_production_cors_echoes_explicit_allowed_origin(self) -> None:
         settings = Settings(

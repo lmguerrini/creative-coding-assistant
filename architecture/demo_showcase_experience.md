@@ -1,5 +1,10 @@
 # V8.8 Demo Showcase Experience
 
+> **Historical architecture record.** This file describes the documentation-
+> only V8.8 showcase layer. It is not the current product/demo contract; use
+> [System Overview](../docs/SYSTEM_OVERVIEW.md) and
+> [Capstone Demo and Showcase Guide](../docs/CAPSTONE_DEMO_SHOWCASE.md).
+
 V8.8 adds a capstone-facing demo and showcase preparation layer over existing
 Creative Coding Assistant surfaces.
 

@@ -1,5 +1,11 @@
 # V8 Grand Engineering Review
 
+> **Historical V8 record.** This evidence describes the 2026-07-08/09 V8
+> checkout and its then-current private engineering process. It is not current
+> V9 authority. Start with the current [Reviewer Guide](REVIEWER_GUIDE.md),
+> [Capability Matrix](CAPABILITY_MATRIX.md), and
+> [Public Documentation Boundary Audit](PUBLIC_DOCUMENTATION_BOUNDARY_AUDIT.md).
+
 Date: 2026-07-08
 Branch: `version-review/v8`
 

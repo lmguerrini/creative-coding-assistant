@@ -626,10 +626,12 @@ function snapshotWithIgnoredRetrievalSource(): AssistantWorkspaceSnapshot {
 function installAnimationFrameMock() {
   Object.defineProperty(window, "requestAnimationFrame", {
     configurable: true,
+    writable: true,
     value: vi.fn(() => 1)
   });
   Object.defineProperty(window, "cancelAnimationFrame", {
     configurable: true,
+    writable: true,
     value: vi.fn()
   });
 }
@@ -639,6 +641,7 @@ function installAnimationFrameStepper() {
 
   Object.defineProperty(window, "requestAnimationFrame", {
     configurable: true,
+    writable: true,
     value: vi.fn((callback: FrameRequestCallback) => {
       callbacks.push(callback);
       return callbacks.length;
@@ -646,6 +649,7 @@ function installAnimationFrameStepper() {
   });
   Object.defineProperty(window, "cancelAnimationFrame", {
     configurable: true,
+    writable: true,
     value: vi.fn()
   });
 
@@ -1043,10 +1047,12 @@ describe("WorkstationShell", () => {
     });
     Object.defineProperty(window, "requestAnimationFrame", {
       configurable: true,
+      writable: true,
       value: originalRequestAnimationFrame
     });
     Object.defineProperty(window, "cancelAnimationFrame", {
       configurable: true,
+      writable: true,
       value: originalCancelAnimationFrame
     });
     Object.defineProperty(URL, "createObjectURL", {

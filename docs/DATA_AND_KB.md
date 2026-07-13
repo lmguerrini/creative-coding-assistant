@@ -83,6 +83,19 @@ failures in review evidence. Network restrictions, source changes, HTTP
 responses, parsing, provider credentials, embedding compatibility, and quotas
 can all affect a refresh.
 
+The official-source transport accepts registered absolute HTTPS targets only.
+It requires every resolved address to be globally routable, caps each response
+at 5 MiB, permits only same-host-and-port HTTPS redirects, and rejects a
+cross-origin redirect before following it. These controls reduce local-network
+and oversized-response risk; they do not turn arbitrary URLs into approved
+sources.
+
+A successful source update replaces that source's prior Chroma snapshot:
+current records are upserted, then superseded record IDs are deleted. If the
+new normalized source legitimately yields zero chunks, the prior snapshot is
+cleared instead of leaving stale retrieval evidence behind. A failed higher-
+level rebuild continues to use the documented backup/restore path.
+
 The current report's remaining Shadertoy gap is an honest example: its source
 could not be indexed because retrieval encountered HTTP 403. It remains a gap,
 not a zero-scored source and not a successful refresh.

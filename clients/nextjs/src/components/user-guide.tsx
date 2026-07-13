@@ -293,7 +293,7 @@ export function UserGuide() {
               <div><dt>Workflow</dt><dd>Auto, Single-Agent, or Multi-Agent for the next request.</dd></div>
               <div><dt>AI provider</dt><dd>Shows the active server-configured OpenAI route and availability; credentials are not edited here.</dd></div>
               <div><dt>Creativity</dt><dd>Controlled, Balanced, or Exploratory changes the requested generation profile; provider application is reported only when published.</dd></div>
-              <div><dt>Image reference</dt><dd>Attach up to four PNG, JPEG, WebP, or GIF files of 1 MB each. On Send, the configured provider receives the selected pixels as visual input for that request; the composer then clears them and session persistence excludes them.</dd></div>
+              <div><dt>Image reference</dt><dd>Attach up to four PNG, JPEG, WebP, or GIF files of 1 MB each. On Send, the backend includes accepted pixels in the provider request payload; provider receipt, use, and influence need separate live evidence. The composer then clears the images and session persistence excludes them.</dd></div>
               <div><dt>Audio input</dt><dd>Audio upload and audio analysis are not implemented. Compatible Tone.js artifacts can play only after an explicit start.</dd></div>
               <div><dt>Send</dt><dd>Runs the normal streamed assistant workflow; Demo Mode also enters through this same path.</dd></div>
             </dl>
@@ -556,7 +556,7 @@ export function UserGuide() {
           <div className="userGuideDisclosureBody">
             <ul className="userGuideBullets">
               <li>Sessions and preferences are isolated to this browser profile. “Local” does not mean a claim of absolute security.</li>
-              <li>Image references stay browser-local until explicit submission, are sent to the configured provider for that request, then leave the composer and are excluded from session persistence. A bundle exported before Send can include queued pixels, so review it before sharing.</li>
+              <li>Image references stay browser-local until explicit submission, then the backend includes accepted pixels in the provider request payload. Provider receipt, use, and influence are not claimed without live evidence. The images leave the composer and are excluded from session persistence. A bundle exported before Send can include queued pixels, so review it before sharing.</li>
               <li>Raw output-feedback comments and titles stay local. When personalization is enabled, up to three relevant derived preference categories and a signal count can shape a later request.</li>
               <li>Evaluation always supports deterministic local evidence. Provider-assisted RAGAS is optional, requires explicit authorization, and can use only the committed sanitized or redacted fixture—never raw local sessions.</li>
               <li>Provider calls depend on server configuration. The interface does not expose or edit provider credentials.</li>

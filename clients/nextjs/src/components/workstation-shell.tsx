@@ -391,6 +391,9 @@ type PendingArtifactRefinement = AssistantArtifactRefinementRequest & {
 
 const localWorkflowIntervalMs = 850;
 const artifactFeedbackDurationMs = 1400;
+const evaluationRunEndpoint =
+  process.env.NEXT_PUBLIC_EVALUATION_RUN_URL ??
+  "http://localhost:8000/api/evaluation/run";
 const defaultWorkspacePersistenceClient = createWorkspacePersistenceClient();
 const userModeInspectorTabs = new Set<ProductIntelligenceCategory>([
   "Preview",
@@ -3431,7 +3434,7 @@ export function WorkstationShell({
 
     if (selectedHasRag) {
       try {
-        const response = await fetch("http://localhost:8000/api/evaluation/run", {
+        const response = await fetch(evaluationRunEndpoint, {
           body: JSON.stringify({
             allowProviderCalls: request.allowProviderCalls,
             approvedDataset: request.approvedRagasDataset,
@@ -4356,8 +4359,9 @@ function ImageReferenceShelf({
         </div>
       ) : null}
       <p className="imageReferenceBoundary">
-        Image pixels are sent only with the next explicit request, then removed from
-        the composer and are not persisted with the session. A bundle exported before
+        Image pixels are included only in the next explicit request payload, then
+        removed from the composer and not persisted with the session. Provider receipt,
+        use, and influence require separate live evidence. A bundle exported before
         submission can include the still-queued files. Audio upload and audio analysis
         are not supported in this workspace.
       </p>
@@ -6989,6 +6993,7 @@ function WorkspaceQuickActions({
     <div aria-label="Quick actions" className="commandMenuGrid" role="group">
         {showDebugPanels ? (
           <button
+            aria-label="Overview Return to the compact session summary"
             data-active={activeTab === "Overview"}
             onClick={() => onOpenTab("Overview")}
             type="button"
@@ -6998,6 +7003,7 @@ function WorkspaceQuickActions({
           </button>
         ) : null}
         <button
+          aria-label="Preview Inspect the current visual output and preview readiness"
           data-active={activeTab === "Preview"}
           onClick={() => onOpenTab("Preview")}
           type="button"
@@ -7007,6 +7013,7 @@ function WorkspaceQuickActions({
         </button>
         {showDebugPanels ? (
           <button
+            aria-label="Runtime console Inspect live runtime status, FPS, reloads, and renderer errors"
             data-active={activeTab === "Runtime"}
             onClick={() => onOpenTab("Runtime")}
             type="button"
@@ -7016,6 +7023,7 @@ function WorkspaceQuickActions({
           </button>
         ) : null}
         <button
+          aria-label={`${showDebugPanels ? "Artifacts" : "Saved"} Inspect generated and saved results`}
           data-active={activeTab === "Artifacts"}
           onClick={() => onOpenTab("Artifacts")}
           type="button"
@@ -7024,6 +7032,7 @@ function WorkspaceQuickActions({
           <span>Inspect generated and saved results.</span>
         </button>
         <button
+          aria-label="Code Open generated code"
           data-active={activeTab === "Code"}
           onClick={() => onOpenTab("Code")}
           type="button"
@@ -7034,6 +7043,7 @@ function WorkspaceQuickActions({
         {showDebugPanels ? (
           <>
             <button
+              aria-label="Workflow inspector Review the live orchestration runtime"
               data-active={activeTab === "Workflow"}
               onClick={() => onOpenTab("Workflow")}
               type="button"
@@ -7042,6 +7052,7 @@ function WorkspaceQuickActions({
               <span>Review the live orchestration runtime.</span>
             </button>
             <button
+              aria-label="Telemetry dashboard Inspect runtime, provider, retrieval, and observability signals"
               data-active={activeTab === "Telemetry"}
               onClick={() => onOpenTab("Telemetry")}
               type="button"

@@ -1,5 +1,12 @@
 # Retrieval Evaluation Pipeline
 
+> **Historical V8 workflow note.** This file preserves the Streamlit-era
+> latest-session evaluation loop and its dated baselines. It is not the current
+> reviewer runbook, and its example result paths must not be used to overwrite
+> committed evidence. Use [Evaluation Metrics Summary](EVALUATION_METRICS_SUMMARY.md),
+> [the current evaluation runner](eval.md), and [Data and Knowledge Base](DATA_AND_KB.md)
+> for current commands, evidence, and privacy boundaries.
+
 ## Overview
 
 This pipeline evaluates retrieval quality, not final answer quality.

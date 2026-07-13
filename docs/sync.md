@@ -9,6 +9,19 @@ Run the official knowledge-base sync pipeline from the project root:
 The sync CLI only ingests approved official sources and writes explicit
 embeddings into the Chroma knowledge-base collection.
 
+## Network and replacement safety
+
+Registered source fetches must use absolute HTTPS URLs whose host resolves only
+to globally routable addresses. Each response is limited to 5 MiB. Redirects
+are followed only when they preserve the original HTTPS host and port;
+cross-origin redirects are rejected before redirected I/O.
+
+After a successful fetch, normalize, and embedding pass, one source-replacement
+operation upserts current records and deletes superseded records. A valid
+zero-chunk replacement clears the old source snapshot so stale chunks cannot
+remain retrievable. Batch and rebuild failure handling still reports the source
+failure and applies the surrounding backup/restore contract where configured.
+
 ## Environment
 
 Set environment variables directly or place them in a local `.env` file.

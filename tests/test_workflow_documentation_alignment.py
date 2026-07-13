@@ -447,6 +447,48 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         for private_marker in PRIVATE_RUNTIME_PACK_PUBLIC_DOC_MARKERS:
             self.assertNotIn(private_marker, combined)
 
+    def test_public_environment_example_keeps_optional_tracing_disabled(
+        self,
+    ) -> None:
+        environment_example = (REPO_ROOT / ".env.example").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertRegex(
+            environment_example,
+            r"(?m)^LANGSMITH_TRACING=false$",
+        )
+        self.assertRegex(
+            environment_example,
+            r"(?m)^LANGSMITH_API_KEY=$",
+        )
+        self.assertRegex(
+            environment_example,
+            r"(?m)^CCA_CORS_ALLOWED_ORIGINS="
+            r"http://127\.0\.0\.1:3000,http://localhost:3000$",
+        )
+        self.assertNotRegex(
+            environment_example,
+            r"(?m)^LANGSMITH_TRACING=true$",
+        )
+
+    def test_current_deployment_guide_avoids_historical_demo_authority(
+        self,
+    ) -> None:
+        deployment = (REPO_ROOT / "docs" / "PRODUCTION_DEPLOYMENT.md").read_text(
+            encoding="utf-8"
+        )
+        normalized_deployment = re.sub(r"\s+", " ", deployment)
+
+        self.assertIn("ten current scenarios", normalized_deployment)
+        self.assertIn("deterministic browser path", deployment)
+        self.assertIn("retired V8 static launcher", deployment)
+        self.assertNotIn(
+            "select one of the 8 curated scenarios",
+            normalized_deployment,
+        )
+        self.assertNotIn("final_demo_launcher.html", deployment)
+
     def test_architecture_doc_node_order_matches_backend_node_order(self) -> None:
         architecture_doc = (REPO_ROOT / "architecture" / "workflow_graph.md").read_text(
             encoding="utf-8"

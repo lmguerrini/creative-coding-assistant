@@ -51,7 +51,7 @@ then retry once. Redact environment-specific details before sharing output.
 
 ## Frontend does not start or cannot find a package
 
-Use Node.js 22 and install from the committed lockfile:
+Use Node.js 22.13+ (22.x) or 24+ and install from the committed lockfile:
 
 ```bash
 cd clients/nextjs
@@ -177,6 +177,10 @@ Install the optional evaluation dependencies:
 ```bash
 .venv/bin/python -m pip install -e ".[dev,evaluation]"
 ```
+
+Before installing or using this optional stack, review its current no-fix
+dependency advisories in the
+[Installation Guide](INSTALLATION_GUIDE.md#optional-evaluation-dependencies).
 
 Then inspect selection without provider scoring:
 

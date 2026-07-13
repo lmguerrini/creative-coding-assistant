@@ -8,7 +8,7 @@ processes. It does not describe a hosted production deployment.
 
 - Git
 - Python 3.11 or newer
-- Node.js 22 and npm
+- Node.js 22.13+ (22.x) or 24+ and npm
 - A POSIX shell for the commands below
 - Optional: an OpenAI API key for live generation, embeddings, knowledge-base
   refresh, or provider-scored evaluation
@@ -27,12 +27,30 @@ python3 -m venv .venv
 .venv/bin/python -m pip install -e ".[dev]"
 ```
 
-The base application and development validators are now installed. Add the
-evaluation extra only when you intend to run the RAGAS pipeline:
+The base application and development validators are now installed.
+
+### Optional evaluation dependencies
+
+Add the evaluation extra only when you intend to run the RAGAS pipeline with
+trusted local inputs:
 
 ```bash
 .venv/bin/python -m pip install -e ".[dev,evaluation]"
 ```
+
+A dated 2026-07-13 isolated dependency audit found no known vulnerabilities in
+the `server` extra, but found two no-fix advisories in the optional evaluation
+environment: `diskcache` 5.6.3
+([CVE-2025-69872 / GHSA-w8v5-vhqr-4h9v](https://github.com/advisories/GHSA-w8v5-vhqr-4h9v))
+and `ragas` 0.4.3
+([CVE-2026-6587 / GHSA-95ww-475f-pr4f](https://github.com/advisories/GHSA-95ww-475f-pr4f)).
+CCA's current evaluator
+uses text metrics and approved local datasets rather than the affected RAGAS
+multimodal URL/file processing path, but the packages remain installed and
+should be treated as a residual dependency risk. Do not give untrusted users
+write access to evaluation cache directories or pass attacker-controlled URL
+or file contexts into RAGAS. Re-audit before evaluation or release; see the
+[Repository Hygiene Audit](REPOSITORY_HYGIENE_AUDIT.md#current-v9-reviewer-checkpoint).
 
 The optional `server` extra contains the production-process dependency; it is
 not needed for the local development server used in this guide.

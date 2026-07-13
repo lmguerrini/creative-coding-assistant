@@ -150,6 +150,25 @@ class DemoShowcaseExperienceTests(unittest.TestCase):
         )
         self.assertEqual(payload["fallback_triggers"], list(REQUIRED_FALLBACK_TRIGGERS))
 
+    def test_serialized_plan_does_not_expose_private_runtime_pack_paths(self) -> None:
+        plan = build_demo_showcase_plan()
+
+        serialized = json.dumps(plan.model_dump(mode="json"), sort_keys=True)
+
+        self.assertNotIn(".runtime_pack/", serialized)
+        hitl_item = next(
+            item
+            for item in plan.checklist_items
+            if item.item_id == "hitl_before_public_showcase"
+        )
+        self.assertEqual(
+            hitl_item.evidence_refs,
+            (
+                "docs/CAPSTONE_DEMO_SHOWCASE.md",
+                "demo/showcase_upload_preparation.md",
+            ),
+        )
+
     def test_plan_rejects_mismatched_coverage_or_duration(self) -> None:
         plan = build_demo_showcase_plan()
         payload = plan.model_dump(mode="json")

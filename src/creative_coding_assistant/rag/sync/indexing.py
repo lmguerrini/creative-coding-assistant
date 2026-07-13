@@ -50,6 +50,32 @@ class OfficialKnowledgeBaseIndexer:
         )
         return tuple(record.id for record in records)
 
+    def replace_source_records(
+        self,
+        records: Sequence[VectorRecord],
+        *,
+        source_id: str,
+    ) -> tuple[str, ...]:
+        """Store one source snapshot and remove records superseded by it."""
+
+        source_ids = {record.metadata.source_id for record in records}
+        if source_ids and source_ids != {source_id}:
+            raise ValueError("Replacement records must match the selected source.")
+
+        previous_ids = {
+            record.id for record in self.list_source_chunks(source_id=source_id)
+        }
+        current_ids = self.upsert_records(records)
+        superseded_ids = tuple(sorted(previous_ids - set(current_ids)))
+        self._repository.delete(superseded_ids)
+        if superseded_ids:
+            logger.info(
+                "Removed {} superseded official KB chunks for source '{}'",
+                len(superseded_ids),
+                source_id,
+            )
+        return current_ids
+
     def embed_and_upsert_chunks(
         self,
         chunks: Sequence[OfficialSourceChunk],

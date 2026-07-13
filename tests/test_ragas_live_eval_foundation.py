@@ -177,6 +177,8 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
     def test_resolve_ragas_metric_names_deduplicates_and_validates(self) -> None:
         self.assertIn("answer_relevancy", SUPPORTED_RAGAS_METRICS)
         self.assertIn("context_relevancy", SUPPORTED_RAGAS_METRICS)
+        self.assertNotIn("multi_modal_faithfulness", SUPPORTED_RAGAS_METRICS)
+        self.assertNotIn("multimodal_faithfulness", SUPPORTED_RAGAS_METRICS)
         self.assertEqual(resolve_ragas_metric_names(None), DEFAULT_RAGAS_METRICS)
         self.assertEqual(
             resolve_ragas_metric_names(
@@ -189,8 +191,8 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
             ),
             ("faithfulness", "context_precision", "context_relevancy"),
         )
-        with self.assertRaises(ValueError):
-            resolve_ragas_metric_names(("not-a-metric",))
+        with self.assertRaisesRegex(ValueError, "Unsupported RAGAs metric"):
+            resolve_ragas_metric_names(("multi_modal_faithfulness",))
 
     def test_load_live_session_samples_reads_jsonl_records(self) -> None:
         with TemporaryDirectory() as temp_dir:

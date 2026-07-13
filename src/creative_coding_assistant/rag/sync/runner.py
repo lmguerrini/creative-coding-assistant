@@ -98,7 +98,10 @@ class OfficialKnowledgeBaseSyncRunner:
         chunks = self._chunker.chunk(normalized_document)
         embeddings = self._embedder.embed_chunks(chunks)
         vector_records = self._indexer.build_vector_records(chunks, embeddings)
-        record_ids = self._indexer.upsert_records(vector_records)
+        record_ids = self._indexer.replace_source_records(
+            vector_records,
+            source_id=request.source_id,
+        )
 
         logger.info(
             "Completed official KB sync for '{}' with {} chunk(s)",

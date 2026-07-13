@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "creative-coding-assistant"
 version = "0.1.0"
-description = "Python-first Creative Coding Assistant with Streamlit V1 client."
+description = "AI-native creative coding workstation with a Python backend and Next.js client."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

@@ -1,5 +1,7 @@
 import io
 import json
+import subprocess
+import sys
 import unittest
 
 from creative_coding_assistant.api import (
@@ -23,12 +25,42 @@ from creative_coding_assistant.api.contracts import (
     HEALTH_CONTRACT_VERSION,
     STREAM_CONTRACT_HEADER,
     WORKSPACE_SESSION_CONTRACT_HEADER,
+    cors_headers,
+    request_id_from_environ,
 )
 from creative_coding_assistant.api.dev_server import run_backend_dev_server
 from creative_coding_assistant.core import Settings
 
 
 class V75ProductionApiRuntimeStabilizationTests(unittest.TestCase):
+    def test_cors_response_helpers_do_not_grant_cross_origin_access_by_default(
+        self,
+    ) -> None:
+        headers = cors_headers(allow_methods="GET, OPTIONS")
+
+        self.assertNotIn("Access-Control-Allow-Origin", dict(headers))
+
+    def test_request_ids_preserve_safe_values_and_reject_header_injection(self) -> None:
+        safe_request_id = "review-request_2026.07.13:1"
+
+        self.assertEqual(
+            request_id_from_environ({"HTTP_X_REQUEST_ID": safe_request_id}),
+            safe_request_id,
+        )
+
+        injected = request_id_from_environ(
+            {"HTTP_X_REQUEST_ID": "review-request\r\nX-Injected: true"}
+        )
+        oversized = request_id_from_environ(
+            {"HTTP_X_REQUEST_ID": "r" * 129}
+        )
+
+        self.assertNotEqual(injected, "review-request\r\nX-Injected: true")
+        self.assertNotIn("\r", injected)
+        self.assertNotIn("\n", injected)
+        self.assertEqual(len(injected), 36)
+        self.assertEqual(len(oversized), 36)
+
     def test_backend_route_manifest_includes_stable_api_and_health_paths(self) -> None:
         app = create_backend_dev_app()
 
@@ -230,6 +262,23 @@ class V75ProductionApiRuntimeStabilizationTests(unittest.TestCase):
                 settings=settings,
                 app=BackendDevApplication(mounts=()),
             )
+
+    def test_documented_dev_server_module_help_is_warning_free(self) -> None:
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "creative_coding_assistant.api.dev_server",
+                "--help",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Run the local Creative Coding Assistant backend bridge.", result.stdout)
+        self.assertNotIn("RuntimeWarning", result.stderr)
 
 
 def _capture_start_response(target: dict[str, object]):

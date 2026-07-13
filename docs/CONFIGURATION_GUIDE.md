@@ -38,7 +38,7 @@ may resolve relative to the repository.
 | `CCA_OPENAI_EMBEDDING_MODEL` | `text-embedding-3-small` | Embedding model for provider-assisted indexing/retrieval work. A model change can require a compatible rebuild. |
 | `CCA_DEFAULT_GENERATION_PROVIDER` | `openai` | Default generation provider identifier; it does not prove a call succeeded. |
 | `CCA_DEFAULT_DOMAIN` / `CCA_DEFAULT_MODE` | `three_js` / `generate` | Local runtime defaults; they do not add domain or workflow capabilities. |
-| `CCA_CORS_ALLOWED_ORIGINS` | `*` in local settings | Comma-separated browser origins. Production rejects the wildcard and requires at least one explicit origin. Aliases: `CCA_CORS_ALLOW_ORIGINS`, `CCA_ALLOWED_ORIGINS`. |
+| `CCA_CORS_ALLOWED_ORIGINS` | `http://127.0.0.1:3000,http://localhost:3000` | Comma-separated browser origins. Local settings are loopback-only by default; production requires explicit deployed origins and rejects the wildcard. Aliases: `CCA_CORS_ALLOW_ORIGINS`, `CCA_ALLOWED_ORIGINS`. |
 | `CCA_CHROMA_PERSIST_DIR` | `data/chroma` | Stores the local vector index. It may contain source and conversation excerpts and must be handled as local application data. |
 | `CCA_WORKSPACE_SESSION_DB_PATH` | `data/workspace_sessions.sqlite3` | Stores compacted workspace/session snapshots; image attachments are not restored into the composer. Alias: `CCA_WORKSPACE_DB_PATH`. |
 | `CCA_ARTIFACT_DIR` | `data/artifacts` | Stores generated/exportable artifacts. Review contents before sharing. |
@@ -52,8 +52,8 @@ may resolve relative to the repository.
 | `LANGSMITH_API_KEY` / `LANGSMITH_PROJECT` / `LANGSMITH_ENDPOINT` | unset / `creative-coding-assistant` / unset | External telemetry boundary; key is secret. `LANGCHAIN_*` and `CCA_LANGSMITH_*` aliases are supported. |
 | `CCA_LANGSMITH_TIMEOUT_MS` / `CCA_LANGSMITH_SAMPLING_RATE` | `1500` / `1.0` | Optional tracing timeout and sampling fraction (0 through 1); they matter only after tracing is intentionally authorized. |
 
-Treat `.env.example` values as placeholders; its tracing example is not the
-application default and should not be mechanically copied into a local `.env`.
+Treat `.env.example` values as placeholders. It keeps tracing disabled and its
+LangSmith key blank; copy only the settings that the local run actually needs.
 
 ## Frontend endpoint settings
 
@@ -65,11 +65,11 @@ The local UI defaults to the Python API on port 8000:
 | `NEXT_PUBLIC_WORKSPACE_SESSION_URL` | `http://localhost:8000/api/workspace/session` |
 | `NEXT_PUBLIC_DOMAIN_EXPERIENCE_URL` | `http://localhost:8000/api/domain-experience` |
 | `NEXT_PUBLIC_KNOWLEDGE_BASE_URL` | `http://localhost:8000/api/knowledge-base` |
+| `NEXT_PUBLIC_EVALUATION_RUN_URL` | `http://localhost:8000/api/evaluation/run` |
 
-The workstation Evaluation surface currently calls
-`http://localhost:8000/api/evaluation/run` directly; it has no corresponding
-`NEXT_PUBLIC_*` override. When changing hosts or ports, verify every UI route in
-the checked-out frontend rather than assuming one variable rewrites them all.
+Each endpoint has its own override. When changing hosts or ports, configure and
+verify every UI route in the checked-out frontend rather than assuming one
+variable rewrites them all.
 
 Because `NEXT_PUBLIC_*` values are delivered to the browser, they must never
 contain credentials. Restart the Next.js process after changing them.

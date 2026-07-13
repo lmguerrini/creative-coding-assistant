@@ -1,5 +1,10 @@
 # V8 Capstone Evidence Matrix
 
+> **Historical V8 record.** Counts, scenario catalogs, provider runs, and
+> readiness statements below apply only to the dated V8 checkout. Use the
+> current [Capability Matrix](CAPABILITY_MATRIX.md) and
+> [Evaluation Metrics Summary](EVALUATION_METRICS_SUMMARY.md) for V9 claims.
+
 Date: 2026-07-08
 Branch: `version-review/v8`
 

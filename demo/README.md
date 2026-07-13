@@ -1,5 +1,11 @@
 # V8.8 Demo Pack
 
+> **Historical V8 demo pack.** The eight-flow launcher and supporting files in
+> this section remain for provenance only. For the current ten-flow product,
+> start with [the root README](../README.md), the
+> [current showcase guide](../docs/CAPSTONE_DEMO_SHOWCASE.md), and the
+> [current manual checklist](manual_demo_checklist.md).
+
 This folder contains operator-facing material for the final Turing College AI
 Capstone demo and showcase. It prepares the demo; it does not execute the
 assistant, run live retrieval, or publish showcase assets. The committed

@@ -120,7 +120,7 @@ describe("multimodal attachments", () => {
       state: "ready",
       status: "1 image reference",
       detail:
-        "palette.webp stays local until you submit a generation request. The browser does not perform pixel analysis; the configured provider receives the selected pixels as visual input only for that explicit request."
+        "palette.webp stays local until you submit a generation request. The browser does not perform pixel analysis; the backend includes accepted pixels in the provider request payload for that explicit request. Provider receipt, use, and influence still need live evidence."
     });
   });
 

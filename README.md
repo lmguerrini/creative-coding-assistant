@@ -9,7 +9,8 @@ Creative Coding Assistant is an AI-native creative translation system and creati
 ### Prerequisites
 
 - Python 3.11 or newer.
-- Node.js and npm compatible with Next.js 14.
+- Node.js 22.13+ (22.x) or 24+ with npm, compatible with the pinned Next.js 15
+  backport and current development-tool engines.
 - An OpenAI API key for live generation, image-guided generation, query
   embeddings, memory embeddings, or a knowledge-base sync.
 - Network access only for the provider-backed or official-source operations you
@@ -20,10 +21,14 @@ From the repository root:
 ```bash
 python3 -m venv .venv
 .venv/bin/python -m pip install --upgrade pip
-.venv/bin/python -m pip install -e ".[dev,evaluation,server]"
+.venv/bin/python -m pip install -e ".[dev,server]"
 npm ci --prefix clients/nextjs
 cp .env.example .env
 ```
+
+The optional RAGAS evaluation extra has a separate dependency-risk boundary;
+install it only for trusted local evaluation work after reading the
+[Installation Guide](docs/INSTALLATION_GUIDE.md#optional-evaluation-dependencies).
 
 Edit `.env`, replace the placeholder `OPENAI_API_KEY`, and set
 `LANGSMITH_TRACING=false` unless you intentionally want optional external
@@ -97,7 +102,7 @@ assistant path or turn a prepared artifact into a new provider result.
 
 ```mermaid
 flowchart LR
-    user["Reviewer or creative coder"] --> ui["Next.js 14 workstation"]
+    user["Reviewer or creative coder"] --> ui["Next.js 15 workstation"]
     ui -->|"NDJSON + JSON over HTTP"| api["Local WSGI API"]
     api --> graph["Compiled LangGraph workflow"]
     graph --> memory["Local Chroma memory"]

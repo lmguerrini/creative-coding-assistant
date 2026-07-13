@@ -6,10 +6,17 @@ import html
 import re
 import ssl
 from datetime import UTC, datetime
+from ipaddress import ip_address
+from socket import SOCK_STREAM, getaddrinfo
 from typing import Protocol
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
-from urllib.request import Request, urlopen
+from urllib.request import (
+    HTTPRedirectHandler,
+    HTTPSHandler,
+    Request,
+    build_opener,
+)
 
 import certifi
 from loguru import logger
@@ -37,10 +44,36 @@ class SourceTransport(Protocol):
         """Fetch source content for a single approved URL."""
 
 
+class _SameOriginHttpsRedirectHandler(HTTPRedirectHandler):
+    """Allow redirects only when they preserve the approved HTTPS origin."""
+
+    def __init__(self, *, origin: tuple[str, int]) -> None:
+        super().__init__()
+        self._origin = origin
+
+    def redirect_request(
+        self,
+        req: Request,
+        fp: object,
+        code: int,
+        msg: str,
+        headers: object,
+        newurl: str,
+    ) -> Request | None:
+        try:
+            if _https_origin(newurl) != self._origin:
+                raise ValueError("Redirect changed the approved HTTPS origin.")
+            _validate_public_https_target(newurl)
+        except (RuntimeError, ValueError) as exc:
+            raise URLError("Official source redirect left the safe network scope.") from exc
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
 class UrllibSourceTransport:
     """Simple HTTP transport kept behind a narrow local interface."""
 
     DEFAULT_TIMEOUT_SECONDS = 10.0
+    MAX_RESPONSE_BYTES = 5 * 1024 * 1024
 
     _REQUEST_HEADERS = {
         "User-Agent": (
@@ -63,14 +96,24 @@ class UrllibSourceTransport:
 
     def fetch(self, url: str) -> TransportResponse:
         try:
+            origin = _https_origin(url)
+            _validate_public_https_target(url)
             request = Request(url, headers=self._REQUEST_HEADERS)
-            with urlopen(  # noqa: S310
+            opener = build_opener(
+                _SameOriginHttpsRedirectHandler(origin=origin),
+                HTTPSHandler(context=self._ssl_context),
+            )
+            with opener.open(  # noqa: S310
                 request,
-                context=self._ssl_context,
                 timeout=self._timeout_seconds,
             ) as response:
                 charset = response.headers.get_content_charset() or "utf-8"
-                content = response.read().decode(charset, errors="replace")
+                payload = response.read(self.MAX_RESPONSE_BYTES + 1)
+                if len(payload) > self.MAX_RESPONSE_BYTES:
+                    raise RuntimeError(
+                        "Official source response exceeded the 5 MiB safety limit."
+                    )
+                content = payload.decode(charset, errors="replace")
                 return TransportResponse(
                     resolved_url=response.geturl(),
                     status_code=response.status,
@@ -83,6 +126,41 @@ class UrllibSourceTransport:
             ) from error
         except URLError as error:
             raise RuntimeError(f"Official source fetch failed: {url}") from error
+        except ValueError as error:
+            raise RuntimeError(
+                f"Official source fetch target was rejected: {url}"
+            ) from error
+
+
+def _https_origin(url: str) -> tuple[str, int]:
+    parsed = urlparse(url)
+    if (
+        parsed.scheme.lower() != "https"
+        or parsed.hostname is None
+        or parsed.username is not None
+        or parsed.password is not None
+    ):
+        raise ValueError("Official source fetch targets must be absolute HTTPS URLs.")
+    return parsed.hostname.rstrip(".").lower(), parsed.port or 443
+
+
+def _validate_public_https_target(url: str) -> None:
+    host, port = _https_origin(url)
+    try:
+        addresses = {
+            ip_address(str(sockaddr[0]).split("%", maxsplit=1)[0])
+            for _family, _socktype, _proto, _canonname, sockaddr in getaddrinfo(
+                host,
+                port,
+                type=SOCK_STREAM,
+            )
+        }
+    except OSError as exc:
+        raise RuntimeError("Official source hostname resolution failed.") from exc
+    if not addresses or any(not address.is_global for address in addresses):
+        raise ValueError(
+            "Official source fetch targets must resolve only to public IP addresses."
+        )
 
 
 class OfficialSourceFetcher:

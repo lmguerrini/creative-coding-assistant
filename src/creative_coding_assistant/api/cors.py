@@ -6,7 +6,11 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from creative_coding_assistant.core.config import Settings, load_settings
+from creative_coding_assistant.core.config import (
+    DEFAULT_LOCAL_CORS_ORIGINS,
+    Settings,
+    load_settings,
+)
 
 CorsPolicyStatus = Literal["ready", "guarded"]
 
@@ -87,15 +91,9 @@ def resolve_cors_allow_origin(
     if request_origin in policy.allowed_origins:
         return request_origin
 
-    if request_origin:
-        return None
-
-    if policy.allowed_origins:
-        return policy.allowed_origins[0]
-
     return None
 
 
 def _normalized_origins(origins: tuple[str, ...]) -> tuple[str, ...]:
     normalized = tuple(origin.strip() for origin in origins if origin.strip())
-    return normalized or (LOCAL_CORS_WILDCARD,)
+    return normalized or DEFAULT_LOCAL_CORS_ORIGINS

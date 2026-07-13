@@ -156,7 +156,8 @@ transfer instead of silently removing the `LANGSMITH_TRACING=false` guard.
 - External-tool exports require validation in the target tool; CCA does not
   count export as execution.
 
-For pipeline details and current report provenance, see [eval.md](eval.md),
-[eval_pipeline.md](eval_pipeline.md), and
-[DATA_AND_KB.md](DATA_AND_KB.md). Ethical limits are summarized in
+For current runner details and report provenance, see [eval.md](eval.md) and
+[DATA_AND_KB.md](DATA_AND_KB.md). Historical Streamlit-era iteration notes are
+retained separately in [eval_pipeline.md](eval_pipeline.md) and are not the
+current runbook. Ethical limits are summarized in
 [ETHICS_PRIVACY_ASSESSMENT.md](ETHICS_PRIVACY_ASSESSMENT.md).

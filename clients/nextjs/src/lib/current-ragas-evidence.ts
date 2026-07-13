@@ -115,7 +115,7 @@ export const CURRENT_APPROVED_RAGAS_EVIDENCE: RagasExecutionEvidence = {
   metricContract: "ragas-supported.v2",
   durationMs: 46_880,
   detail:
-    "Latest committed approved-fixture evidence. It is separate from canonical golden-case execution coverage.",
+    "Committed transcribed summary of the approved provider-scored fixture. It is separate from canonical golden-case execution coverage.",
   caseRows: [
     {
       sampleId: "sanitized_ragas_p5_setup_draw",

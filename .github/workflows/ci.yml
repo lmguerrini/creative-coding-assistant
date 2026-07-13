@@ -7,6 +7,8 @@ on:
       - main
       - "feature/**"
       - "fix/**"
+      - "version-review/**"
+      - "version-freeze/**"
     tags:
       - "v*"
   workflow_dispatch:
@@ -141,6 +143,10 @@ jobs:
         working-directory: clients/nextjs
         run: npm ci
 
+      - name: Audit frontend dependencies
+        working-directory: clients/nextjs
+        run: npm audit --audit-level=high
+
       - name: Install Playwright browser
         working-directory: clients/nextjs
         run: npx playwright install --with-deps chromium
@@ -148,8 +154,10 @@ jobs:
       - name: Frontend unit and type gates
         working-directory: clients/nextjs
         run: |
+          npm run lint
           npm run typecheck
           npm run test
+          npm run build
 
       - name: Playwright E2E gates
         working-directory: clients/nextjs

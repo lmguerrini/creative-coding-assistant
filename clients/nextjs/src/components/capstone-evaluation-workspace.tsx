@@ -58,7 +58,7 @@ const retrievalMetricDiagnostics = {
     rootCause: "Approved baseline answers contain compound claims whose supporting excerpts do not entail every clause.",
     improvement: "Generation now requests short, direct, excerpt-grounded claims, source IDs, explicit inference labels, and visible evidence gaps.",
     delta: "NOT_COMPARABLE — the comparable current-product provider rerun is blocked.",
-    limitation: "The approved fixture remains the latest scored run; local knowledge-base excerpts cannot cross the provider boundary.",
+    limitation: "The approved provider-scored fixture summary remains the latest scored evidence; local knowledge-base excerpts cannot cross the provider boundary.",
     nextStep: "On the next eligible sanitized run, retain per-claim support verdicts and inspect unsupported clauses before making another product change."
   },
   answer_relevancy: {
@@ -380,7 +380,7 @@ function RetrievalEvaluation({ ragCaseIds, run }: { ragCaseIds: string[]; run: E
   const supportedMetricIds = ["faithfulness", "answer_relevancy", "context_precision", "context_relevancy"] as const;
   const runHasMeasuredRagas = supportedMetricIds.some((id) => run?.ragas.metricScores[id] != null);
   const evidence = runHasMeasuredRagas && run ? run.ragas : CURRENT_APPROVED_RAGAS_EVIDENCE;
-  const usingCommittedBaseline = !runHasMeasuredRagas;
+  const usingCommittedSummary = !runHasMeasuredRagas;
   const requestedSupportedIds = supportedMetricIds.filter((id) => evidence.metrics.includes(id));
   const supportedScores = requestedSupportedIds.flatMap((id) => {
     const score = evidence.metricScores[id] ?? findRetrievalMetric(run, id)?.score ?? null;
@@ -406,7 +406,7 @@ function RetrievalEvaluation({ ragCaseIds, run }: { ragCaseIds: string[]; run: E
         <div className="retrievalExecutionBadge">
           <Status status={retrievalStatus} />
           <strong>{formatRagasDataset(evidence.datasetId)}</strong>
-          <small>{usingCommittedBaseline ? `latest scored approved baseline · ${formatDate(CURRENT_APPROVED_RAGAS_EVALUATED_AT)}${run ? ` · current attempt ${run.ragas.state.replace(/_/g, " ")}` : ""}` : `${evidence.state.replace(/_/g, " ")} · ${evidence.provider ?? "provider not reported"}`}</small>
+          <small>{usingCommittedSummary ? `committed transcribed baseline summary · ${formatDate(CURRENT_APPROVED_RAGAS_EVALUATED_AT)}${run ? ` · current attempt ${run.ragas.state.replace(/_/g, " ")}` : ""}` : `${evidence.state.replace(/_/g, " ")} · ${evidence.provider ?? "provider not reported"}`}</small>
         </div>
       </header>
 
@@ -415,7 +415,7 @@ function RetrievalEvaluation({ ragCaseIds, run }: { ragCaseIds: string[]; run: E
           <span><Gauge aria-hidden="true" size={15} /> Approved-fixture Overall Retrieval Score</span>
           <strong>{formatPreciseScore(retrievalScore)}</strong>
           <div className="evaluationScoreTrack"><i style={{ width: `${(retrievalScore ?? 0) * 100}%` }} /></div>
-          <p>{supportedScores.length}/{requestedSupportedIds.length} requested, supported RAGAS dimensions measured. {supportedScores.length < requestedSupportedIds.length ? "The score is provisional until supported evidence is complete." : "Each measured dimension contributes equally."} {usingCommittedBaseline ? "Shown from the latest committed approved-fixture run." : "Shown from this workspace run."}</p>
+          <p>{supportedScores.length}/{requestedSupportedIds.length} requested, supported RAGAS dimensions measured. {supportedScores.length < requestedSupportedIds.length ? "The score is provisional until supported evidence is complete." : "Each measured dimension contributes equally."} {usingCommittedSummary ? "Shown from the committed transcribed summary of the approved provider-scored fixture." : "Shown from this workspace run."}</p>
         </article>
         <EvaluationBoundaryCard
           detail={`${CURRENT_CANONICAL_RETRIEVAL_REPORT.casesWithResults}/${CURRENT_CANONICAL_RETRIEVAL_REPORT.retrievalPackCases} canonical retrieval-pack queries returned ranked results; 0/${ragCaseIds.length} exact golden contracts have end-to-end RAGAS evidence`}

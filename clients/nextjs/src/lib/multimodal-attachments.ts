@@ -124,8 +124,8 @@ export function buildMultimodalSummary({
       detail:
         `${formatAttachmentNames(imageAttachments)} stays local until you submit ` +
         "a generation request. The browser does not perform pixel analysis; the " +
-        "configured provider receives the selected pixels as visual input only for " +
-        "that explicit request.",
+        "backend includes accepted pixels in the provider request payload for that " +
+        "explicit request. Provider receipt, use, and influence still need live evidence.",
       imageAttachments,
       error: null
     };

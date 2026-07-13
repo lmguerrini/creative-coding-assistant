@@ -1,5 +1,10 @@
 # Demo Prompt Library
 
+> **Historical V8 prompt set.** These prompts support the archived eight-flow
+> demo material. The current in-app source of truth is
+> `clients/nextjs/src/lib/demo-mode.ts`; the current operator copy is
+> [V9.5 Exact Prompt Library](v9_5_exact_prompt_library.md).
+
 Use these prompts for the 10-minute demo, Q&A recovery, and offline fallback.
 They are operator assets, not product prompt-template mutations.
 
