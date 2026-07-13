@@ -18,15 +18,22 @@ export function RuntimeConsoleInspector({
 
   return (
     <section
-      aria-label="Runtime console inspector"
+      aria-label={
+        presentation === "inspector"
+          ? "Runtime console inspector"
+          : "Runtime console dashboard"
+      }
+      aria-labelledby={
+        presentation === "inspector" ? "runtime-inspector-panel-tab" : undefined
+      }
       className={
         presentation === "inspector"
           ? "inspectorPanel runtimeConsolePanel"
           : "runtimeConsoleDashboard"
       }
       data-state={console.hero.tone}
-      id="runtime-inspector-panel"
-      role="tabpanel"
+      id={presentation === "inspector" ? "runtime-inspector-panel" : undefined}
+      role={presentation === "inspector" ? "tabpanel" : "region"}
     >
       <article
         aria-label="Runtime console status"
@@ -106,8 +113,6 @@ export function RuntimeConsoleInspector({
             <>
               <RuntimeDiagnosticsCard console={console} />
               <RuntimeContextCard console={console} />
-              <RuntimeReloadHistoryCard console={console} />
-              <RuntimeEventHistoryCard console={console} />
             </>
           ) : null}
           </div>

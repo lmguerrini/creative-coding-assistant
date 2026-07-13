@@ -817,7 +817,6 @@ a {
 
 .brandText,
 .sessionHeader div,
-.inspectorHeader div,
 .artifactDetailHeader div,
 .artifactItemHeader div,
 .codePanelHeader div {
@@ -826,7 +825,6 @@ a {
 
 .brandText strong,
 .sessionHeader h1,
-.inspectorHeader h2,
 .codePanelHeader strong,
 .retrievalItem strong,
 .overviewTile strong,
@@ -977,7 +975,7 @@ a {
 }
 
 .utilityControl:has([aria-expanded="true"]) {
-  z-index: 90;
+  z-index: var(--application-layer-dialog);
 }
 
 .iconButton {
@@ -1007,62 +1005,6 @@ a {
   box-shadow: 0 10px 24px rgba(var(--accent-rgb), 0.1);
 }
 
-.utilityPanel {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  z-index: 100;
-  display: grid;
-  gap: 12px;
-  width: min(92vw, 330px);
-  max-height: min(72vh, 560px);
-  overflow: auto;
-  padding: 14px;
-  border: 1px solid var(--line-strong);
-  border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.065), transparent 180px),
-    var(--panel-strong);
-  box-shadow: var(--shadow), var(--panel-highlight);
-  animation: revealPanel 180ms ease-out;
-}
-
-.utilityPanel--settings {
-  width: min(94vw, 360px);
-}
-
-.utilityPanel--kb {
-  position: fixed;
-  top: 74px;
-  right: 16px;
-  z-index: 1000;
-  isolation: isolate;
-  width: min(94vw, 520px);
-  max-height: calc(100vh - 92px);
-  background: rgb(var(--background-rgb));
-  box-shadow:
-    0 22px 70px rgba(0, 0, 0, 0.46),
-    var(--panel-highlight);
-  animation: none;
-  opacity: 1;
-}
-
-html[data-cca-theme] .utilityPanel.utilityPanel--kb {
-  background: rgb(var(--background-rgb));
-}
-
-.utilityPanel--kb .retrievalSummaryCard,
-.utilityPanel--kb .kbStatusSurface {
-  border-radius: 14px;
-  box-shadow: none;
-}
-
-.utilityPanelHeader {
-  display: grid;
-  gap: 5px;
-}
-
-.utilityPanelHeader strong,
 .settingsSectionHeader strong,
 .settingsToggle strong,
 .commandMenuGrid button strong,
@@ -1073,7 +1015,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   line-height: 1.25;
 }
 
-.utilityPanelHeader p,
 .settingsSectionHeader p,
 .settingsToggle p,
 .commandMenuGrid button span,
@@ -1196,97 +1137,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.settingsFontRows {
-  display: grid;
-  gap: 10px;
-}
-
-.settingsFontControl {
-  display: grid;
-  gap: 6px;
-}
-
-.settingsFontControl > strong {
-  color: var(--muted-strong);
-  font-size: 11px;
-}
-
-.settingsSecondaryAction {
-  min-height: 36px;
-  border: 1px solid rgba(255, 122, 102, 0.26);
-  border-radius: 10px;
-  background: rgba(255, 122, 102, 0.08);
-  color: var(--muted-strong);
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 760;
-}
-
-.storedPreferenceSignals {
-  display: grid;
-  gap: 0.5rem;
-  list-style: none;
-  margin: 0.75rem 0;
-  padding: 0;
-}
-
-.storedPreferenceSignals li {
-  align-items: flex-start;
-  border: 1px solid var(--line);
-  border-radius: 0.5rem;
-  display: flex;
-  gap: 0.65rem;
-  justify-content: space-between;
-  padding: 0.6rem;
-}
-
-.storedPreferenceSignals strong,
-.storedPreferenceSignals span,
-.storedPreferenceSignals small {
-  display: block;
-}
-
-.storedPreferenceSignals span,
-.storedPreferenceSignals small {
-  color: var(--muted-strong);
-  font-size: 0.72rem;
-  line-height: 1.4;
-  margin-top: 0.2rem;
-}
-
-.storedPreferenceSignals button {
-  flex: 0 0 auto;
-  font-size: 0.72rem;
-}
-
-.privacyContractSection ul {
-  display: grid;
-  gap: 7px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.privacyContractSection li {
-  display: grid;
-  gap: 3px;
-  padding: 9px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.035);
-}
-
-.privacyContractSection strong,
-.privacyContractSection span,
-.privacyContractSection small {
-  font-size: 10px;
-  line-height: 1.35;
-}
-
-.privacyContractSection strong { color: var(--foreground); }
-.privacyContractSection span { color: var(--teal); }
-.privacyContractSection small { color: var(--muted); }
-
 .settingsChoiceRow button,
 .settingsToggle button {
   min-height: 40px;
@@ -1349,8 +1199,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .sessionPanel,
-.previewShelf,
-.inspector {
+.previewShelf {
   border: 1px solid var(--line);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 160px),
@@ -1395,8 +1244,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   text-transform: uppercase;
 }
 
-.sessionHeader h1,
-.inspectorHeader h2 {
+.sessionHeader h1 {
   margin: 0;
   color: var(--foreground);
   font-size: clamp(26px, 4vw, 44px);
@@ -1406,8 +1254,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .sessionHeader p,
-.inspectorHeader p,
-.message p,
 .artifactDetailHeader p,
 .codePanelHeader p,
 .artifactItem p,
@@ -1421,10 +1267,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   color: var(--muted-strong);
   font-size: 13px;
   line-height: 1.48;
-}
-
-.message p {
-  white-space: pre-wrap;
 }
 
 .sessionHeader p {
@@ -1488,1327 +1330,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   text-transform: uppercase;
 }
 
-.operatorCheckpoint {
-  display: grid;
-  gap: 12px;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background:
-    linear-gradient(135deg, rgba(var(--accent-rgb), 0.09), transparent 72%),
-    rgba(255, 255, 255, 0.04);
-  transition:
-    border-color 180ms ease,
-    background 180ms ease,
-    box-shadow 180ms ease,
-    transform 180ms ease;
-}
-
-.operatorCheckpoint:focus-visible {
-  outline: 2px solid var(--focus-outline);
-  outline-offset: 2px;
-}
-
-.operatorCheckpoint[data-kind="destructive"] {
-  border-color: rgba(255, 122, 102, 0.28);
-  background:
-    linear-gradient(135deg, rgba(255, 122, 102, 0.12), transparent 72%),
-    rgba(255, 255, 255, 0.04);
-}
-
-.operatorCheckpoint[data-kind="transfer"] {
-  border-color: rgba(124, 167, 255, 0.28);
-  background:
-    linear-gradient(135deg, rgba(124, 167, 255, 0.12), transparent 72%),
-    rgba(255, 255, 255, 0.04);
-}
-
-.operatorCheckpoint[data-state="pending_approval"] {
-  box-shadow: 0 18px 44px rgba(243, 184, 82, 0.08);
-}
-
-.operatorCheckpoint[data-state="executing"] {
-  border-color: rgba(124, 167, 255, 0.32);
-  box-shadow: 0 18px 44px rgba(124, 167, 255, 0.08);
-}
-
-.operatorCheckpoint[data-state="completed"] {
-  border-color: rgba(121, 211, 139, 0.28);
-}
-
-.operatorCheckpoint[data-state="rejected"],
-.operatorCheckpoint[data-state="failed"] {
-  border-color: rgba(255, 122, 102, 0.3);
-}
-
-.operatorCheckpointHeader,
-.operatorCheckpointStatus,
-.operatorCheckpointFooter {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.operatorCheckpointHeader strong,
-.operatorCheckpointMeta dd {
-  color: var(--foreground);
-}
-
-.operatorCheckpointHeader strong {
-  display: block;
-  font-size: 16px;
-  line-height: 1.2;
-}
-
-.operatorCheckpointHeader p,
-.operatorCheckpoint > p,
-.operatorCheckpointMeta dt,
-.operatorCheckpointFooter small {
-  margin: 0;
-  color: var(--muted-strong);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.operatorCheckpointStatus {
-  align-items: center;
-}
-
-.operatorCheckpointStatus small,
-.operatorCheckpointFooter span {
-  width: fit-content;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--muted-strong);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.operatorCheckpoint[data-state="pending_approval"] .operatorCheckpointStatus small,
-.operatorCheckpoint[data-state="pending_approval"] .operatorCheckpointFooter span {
-  background: rgba(243, 184, 82, 0.15);
-  color: var(--amber);
-}
-
-.operatorCheckpoint[data-state="executing"] .operatorCheckpointStatus small,
-.operatorCheckpoint[data-state="executing"] .operatorCheckpointFooter span {
-  background: rgba(124, 167, 255, 0.15);
-  color: var(--blue);
-}
-
-.operatorCheckpoint[data-state="completed"] .operatorCheckpointStatus small,
-.operatorCheckpoint[data-state="completed"] .operatorCheckpointFooter span {
-  background: rgba(121, 211, 139, 0.15);
-  color: var(--green);
-}
-
-.operatorCheckpoint[data-state="rejected"] .operatorCheckpointStatus small,
-.operatorCheckpoint[data-state="failed"] .operatorCheckpointStatus small,
-.operatorCheckpoint[data-state="rejected"] .operatorCheckpointFooter span,
-.operatorCheckpoint[data-state="failed"] .operatorCheckpointFooter span {
-  background: rgba(255, 122, 102, 0.14);
-  color: var(--coral);
-}
-
-.operatorCheckpointMeta {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin: 0;
-}
-
-.operatorCheckpointMeta div {
-  display: grid;
-  gap: 3px;
-}
-
-.operatorCheckpointMeta dt {
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.operatorCheckpointMeta dd,
-.operatorCheckpointFailure {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.operatorCheckpointActions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.operatorCheckpointActions button {
-  min-height: 40px;
-  padding: 0 14px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
-    var(--surface-1);
-  box-shadow: var(--panel-highlight);
-  color: var(--muted-strong);
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  transition:
-    border-color 180ms ease,
-    background 180ms ease,
-    color 180ms ease,
-    transform 180ms ease;
-}
-
-.operatorCheckpointActions button:hover {
-  border-color: rgba(var(--accent-rgb), 0.34);
-  color: var(--foreground);
-  transform: translateY(-1px);
-}
-
-.operatorCheckpointApprove {
-  border-color: rgba(var(--accent-rgb), 0.4);
-  background:
-    linear-gradient(135deg, rgba(var(--accent-rgb), 0.12), transparent 72%),
-    rgba(255, 255, 255, 0.045);
-  color: var(--foreground);
-}
-
-.operatorCheckpointFooter {
-  align-items: center;
-}
-
-.operatorCheckpointFailure {
-  color: var(--coral);
-}
-
-.demoModePanel {
-  display: grid;
-  gap: 14px;
-  max-height: min(760px, calc(100dvh - 210px));
-  overflow: auto;
-  overscroll-behavior: contain;
-  padding: 14px;
-  border: 1px solid rgba(var(--accent-rgb), 0.26);
-  border-radius: 18px;
-  background:
-    linear-gradient(135deg, rgba(var(--accent-rgb), 0.08), transparent 68%),
-    rgba(255, 255, 255, 0.04);
-  box-shadow: var(--panel-highlight);
-}
-
-.demoModePanel[data-debug="false"] {
-  gap: 12px;
-  border-color: rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.026);
-  box-shadow: none;
-}
-
-.demoModeHeader,
-.demoScenarioDetail header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.demoModeHeader strong,
-.demoScenarioDetail header strong {
-  display: block;
-  color: var(--foreground);
-  line-height: 1.25;
-}
-
-.demoModeHeader strong {
-  font-size: 18px;
-}
-
-.demoModeHeader p {
-  max-width: 68ch;
-  margin: 6px 0 0;
-  color: var(--muted-strong);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.demoModeCount,
-.demoScenarioDetail header span,
-.demoScenarioEvidence > span {
-  width: fit-content;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: rgba(var(--accent-rgb), 0.12);
-  color: var(--teal);
-  font-size: 10px;
-  font-weight: 850;
-  letter-spacing: 0.06em;
-  line-height: 1.1;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.demoScenarioDescription {
-  max-width: 74ch;
-  margin: 0;
-  color: var(--muted-strong);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.demoModeBody {
-  display: grid;
-  grid-template-columns: minmax(220px, 0.52fr) minmax(0, 1fr);
-  gap: 14px;
-}
-
-.demoModePanel[data-debug="false"] .demoModeBody {
-  grid-template-columns: minmax(190px, 0.38fr) minmax(0, 1fr);
-  gap: 12px;
-}
-
-.demoLiveSequence {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
-  gap: 8px;
-}
-
-.demoLiveSequence button {
-  display: grid;
-  min-width: 0;
-  gap: 5px;
-  padding: 10px;
-  border: 1px solid rgba(var(--accent-rgb), 0.18);
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.12);
-  color: var(--muted-strong);
-  cursor: pointer;
-  text-align: left;
-  transition:
-    border-color 180ms ease,
-    background 180ms ease,
-    color 180ms ease,
-    transform 180ms ease;
-}
-
-.demoLiveSequence button:hover {
-  border-color: rgba(var(--accent-rgb), 0.34);
-  background: rgba(var(--accent-rgb), 0.08);
-  color: var(--foreground);
-  transform: translateY(-1px);
-}
-
-.demoLiveSequence span {
-  color: var(--teal);
-  font-size: 9px;
-  font-weight: 850;
-  letter-spacing: 0.06em;
-  line-height: 1.2;
-  text-transform: uppercase;
-}
-
-.demoLiveSequence strong {
-  color: var(--foreground);
-  font-size: 12px;
-  line-height: 1.25;
-}
-
-.demoLiveSequence small {
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 1.35;
-}
-
-.demoScenarioList {
-  display: grid;
-  align-content: start;
-  gap: 8px;
-  min-width: 0;
-}
-
-.demoScenarioButton {
-  position: relative;
-  display: grid;
-  min-width: 0;
-  min-height: 78px;
-  gap: 5px;
-  padding: 12px 34px 12px 12px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--muted-strong);
-  cursor: pointer;
-  text-align: left;
-  transition:
-    border-color 180ms ease,
-    background 180ms ease,
-    color 180ms ease,
-    transform 180ms ease;
-}
-
-.demoModePanel[data-debug="false"] .demoScenarioButton {
-  min-height: 58px;
-  padding: 10px 28px 10px 10px;
-  border-color: rgba(255, 255, 255, 0.075);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.022);
-}
-
-.demoScenarioButton:hover {
-  border-color: rgba(var(--accent-rgb), 0.34);
-  color: var(--foreground);
-  transform: translateY(-1px);
-}
-
-.demoScenarioButton[data-active="true"] {
-  border-color: rgba(var(--accent-rgb), 0.42);
-  background:
-    linear-gradient(135deg, rgba(var(--accent-rgb), 0.12), transparent 72%),
-    rgba(255, 255, 255, 0.055);
-  color: var(--foreground);
-}
-
-.demoModePanel[data-debug="false"] .demoScenarioButton[data-active="true"] {
-  border-color: rgba(var(--accent-rgb), 0.28);
-  background: rgba(var(--accent-rgb), 0.08);
-}
-
-.demoScenarioButton span,
-.demoScenarioButton small,
-.demoScenarioMeta dt {
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 850;
-  letter-spacing: 0.06em;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
-  text-transform: uppercase;
-}
-
-.demoScenarioButton strong {
-  display: block;
-  color: inherit;
-  font-size: 13px;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
-}
-
-.demoScenarioButton small {
-  overflow-wrap: anywhere;
-}
-
-.demoScenarioButton svg {
-  position: absolute;
-  right: 12px;
-  top: 14px;
-  color: var(--teal);
-}
-
-.demoScenarioDetail {
-  display: grid;
-  gap: 12px;
-  min-width: 0;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.035);
-}
-
-.demoModePanel[data-debug="false"] .demoScenarioDetail {
-  gap: 10px;
-  border-color: rgba(255, 255, 255, 0.075);
-  background: rgba(255, 255, 255, 0.018);
-  box-shadow: none;
-}
-
-.demoModeLoadButton {
-  display: inline-flex;
-  min-height: 34px;
-  align-items: center;
-  gap: 7px;
-  padding: 0 11px;
-  border: 1px solid rgba(var(--accent-rgb), 0.32);
-  border-radius: 999px;
-  background:
-    linear-gradient(135deg, rgba(var(--accent-rgb), 0.18), transparent 80%),
-    rgba(255, 255, 255, 0.05);
-  color: var(--foreground);
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 850;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.demoScenarioInputNotice {
-  margin: 0.55rem 0 0;
-  border: 1px solid color-mix(in srgb, var(--warning) 58%, var(--surface-muted));
-  border-radius: var(--radius-control);
-  background: color-mix(in srgb, var(--warning) 9%, transparent);
-  color: var(--text-secondary);
-  font-size: 0.78rem;
-  line-height: 1.4;
-  padding: 0.55rem 0.65rem;
-}
-
-.demoScenarioQuickFacts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 8px;
-  margin: 0;
-}
-
-.demoModePanel[data-debug="false"] .demoScenarioQuickFacts {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 6px;
-}
-
-.demoScenarioQuickFacts div {
-  display: grid;
-  min-width: 0;
-  gap: 4px;
-  padding: 9px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.14);
-}
-
-.demoModePanel[data-debug="false"] .demoScenarioQuickFacts div {
-  grid-template-columns: minmax(96px, 0.32fr) minmax(0, 1fr);
-  align-items: baseline;
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-
-.demoScenarioQuickFacts dt {
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 9px;
-  font-weight: 850;
-  letter-spacing: 0.06em;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.demoModePanel[data-debug="false"] .demoScenarioQuickFacts dt {
-  white-space: normal;
-}
-
-.demoScenarioQuickFacts dd {
-  margin: 0;
-  color: var(--foreground);
-  font-size: 11px;
-  line-height: 1.35;
-}
-
-.demoModePanel[data-debug="false"] .demoScenarioQuickFacts dd {
-  color: var(--muted-strong);
-  font-size: 12px;
-}
-
-.demoPromptPreview {
-  margin: 0;
-  padding: 12px;
-  border: 1px solid rgba(var(--accent-rgb), 0.18);
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.18);
-  color: var(--foreground);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.demoPromptPreview--user {
-  display: -webkit-box;
-  padding: 10px 11px;
-  border-color: rgba(255, 255, 255, 0.075);
-  background: rgba(0, 0, 0, 0.1);
-  color: var(--muted-strong);
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-}
-
-.demoScenarioMeta {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 9px;
-  margin: 0;
-}
-
-.demoScenarioMeta div {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-
-.demoScenarioMeta dd {
-  margin: 0;
-  color: var(--muted-strong);
-  font-size: 12px;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
-}
-
-.demoUserEssentials {
-  display: grid;
-  gap: 7px;
-  padding-top: 2px;
-}
-
-.demoUserEssentials p {
-  margin: 0;
-  color: var(--muted-strong);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.demoUserEssentials strong {
-  color: var(--foreground);
-  font-weight: 800;
-}
-
-.demoScenarioMeta--developer {
-  padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.demoScenarioEvidence {
-  display: grid;
-  gap: 8px;
-}
-
-.demoScenarioEvidence div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-}
-
-.demoScenarioEvidence code {
-  max-width: 100%;
-  overflow-wrap: anywhere;
-  padding: 5px 7px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.18);
-  color: var(--muted-strong);
-  font-size: 10px;
-  line-height: 1.3;
-}
-
-.chatLog {
-  display: grid;
-  min-height: 0;
-  align-content: start;
-  gap: 12px;
-  overflow: auto;
-  padding: 16px 6px 4px 0;
-  border-top: 1px solid var(--section-divider);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.022), transparent 96px);
-}
-
-.chatLog:empty {
-  min-height: 0;
-  padding: 0;
-  border-top: 0;
-  background: transparent;
-}
-
-.emptyWorkspace {
-  display: grid;
-  gap: 18px;
-  justify-self: center;
-  width: min(100%, 1120px);
-  padding: clamp(20px, 4vw, 34px);
-  border: 1px solid rgba(var(--accent-rgb), 0.2);
-  border-radius: 28px;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(var(--accent-rgb), 0.16), transparent 32%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.07), transparent 58%),
-    rgba(255, 255, 255, 0.035);
-  box-shadow: var(--panel-highlight), 0 24px 70px rgba(0, 0, 0, 0.2);
-}
-
-.emptyWorkspaceHero {
-  max-width: 68ch;
-}
-
-.emptyWorkspaceHero strong {
-  display: block;
-  max-width: 14ch;
-  color: var(--foreground);
-  font-size: clamp(30px, 5vw, 56px);
-  font-weight: 780;
-  letter-spacing: -0.06em;
-  line-height: 0.92;
-}
-
-.emptyWorkspaceHero p {
-  max-width: 60ch;
-  margin: 16px 0 0;
-  color: var(--muted-strong);
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.emptyWorkspaceValue {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.emptyWorkspaceValue article {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-  padding: 13px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  background:
-    linear-gradient(145deg, rgba(var(--accent-rgb), 0.08), transparent 72%),
-    rgba(255, 255, 255, 0.035);
-  box-shadow: var(--panel-highlight);
-}
-
-.emptyWorkspaceValue strong {
-  color: var(--foreground);
-  font-size: 12px;
-  line-height: 1.25;
-}
-
-.emptyWorkspaceValue span {
-  color: var(--muted-strong);
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-.emptyWorkspaceSuggestions {
-  display: grid;
-  gap: 10px;
-}
-
-.emptyWorkspaceSuggestions button {
-  display: grid;
-  gap: 4px;
-  width: 100%;
-  padding: 14px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 18px;
-  background:
-    linear-gradient(135deg, rgba(var(--accent-rgb), 0.08), transparent 72%),
-    rgba(255, 255, 255, 0.045);
-  color: var(--foreground);
-  font: inherit;
-  font-size: 13px;
-  line-height: 1.45;
-  text-align: left;
-  transition:
-    border-color 180ms ease,
-    transform 180ms ease,
-    background 180ms ease;
-}
-
-.emptyWorkspaceSuggestions button strong {
-  color: var(--foreground);
-  font-size: 13px;
-  line-height: 1.25;
-}
-
-.emptyWorkspaceSuggestions button span {
-  color: var(--muted-strong);
-  font-size: 12px;
-  line-height: 1.35;
-}
-
-.emptyWorkspaceSuggestions button small {
-  color: var(--teal);
-  font-size: 10px;
-  font-weight: 850;
-  letter-spacing: 0.06em;
-  line-height: 1.2;
-  text-transform: uppercase;
-}
-
-.emptyWorkspaceSuggestions button:hover {
-  border-color: rgba(var(--accent-rgb), 0.34);
-  background:
-    linear-gradient(135deg, rgba(var(--accent-rgb), 0.13), transparent 72%),
-    rgba(255, 255, 255, 0.06);
-  transform: translateY(-1px);
-}
-
-.emptyWorkspaceGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.emptyWorkspaceGrid section {
-  display: grid;
-  gap: 10px;
-  padding: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.035);
-}
-
-.emptyWorkspaceGrid section > span {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 850;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.emptyWorkspaceGrid section > div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.emptyWorkspaceGrid small {
-  padding: 6px 9px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 999px;
-  color: var(--muted-strong);
-  background: rgba(255, 255, 255, 0.04);
-  font-size: 11px;
-  line-height: 1.2;
-}
-
-.emptyWorkspaceLearnMore {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.emptyWorkspaceLearnMore summary {
-  display: flex;
-  align-items: center;
-  min-height: 42px;
-  padding: 0 14px;
-  color: var(--muted-strong);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.emptyWorkspaceLearnMore summary::marker {
-  color: var(--muted);
-}
-
-.emptyWorkspaceLearnMore p {
-  margin: 0;
-  padding: 0 14px 14px;
-  color: var(--muted-strong);
-  font-size: 12px;
-  line-height: 1.55;
-}
-
-.message {
-  display: grid;
-  gap: 7px;
-  max-width: 76ch;
-  padding: 15px 16px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent),
-    rgba(255, 255, 255, 0.04);
-  box-shadow: var(--panel-highlight);
-  transition:
-    border-color 180ms ease,
-    background 180ms ease,
-    transform 180ms ease;
-}
-
-.message[data-role="user"] {
-  justify-self: end;
-  border-color: rgba(124, 167, 255, 0.3);
-  background:
-    linear-gradient(135deg, rgba(124, 167, 255, 0.12), transparent 78%),
-    rgba(124, 167, 255, 0.08);
-}
-
-.message[data-role="assistant"] {
-  border-color: rgba(var(--accent-rgb), 0.22);
-}
-
-.message[data-role="assistant"][data-stream-phase="connecting"],
-.message[data-role="assistant"][data-stream-phase="thinking"],
-.message[data-role="assistant"][data-stream-phase="streaming"] {
-  border-color: rgba(var(--accent-rgb), 0.38);
-  background:
-    linear-gradient(135deg, rgba(var(--accent-rgb), 0.08), transparent 62%),
-    rgba(255, 255, 255, 0.045);
-}
-
-.message[data-role="assistant"][data-stream-phase="streaming"] {
-  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.12);
-}
-
-.message[data-role="assistant"][data-stream-phase="error"] {
-  border-color: rgba(255, 122, 102, 0.34);
-  background: rgba(255, 122, 102, 0.08);
-}
-
-.message[data-role="assistant"][data-stream-phase="fallback"] {
-  border-color: rgba(243, 184, 82, 0.3);
-  background:
-    linear-gradient(135deg, rgba(243, 184, 82, 0.08), transparent 62%),
-    rgba(255, 255, 255, 0.045);
-}
-
-.message[data-fresh="true"] {
-  animation: messageArrive 260ms ease-out;
-}
-
-.message[data-fresh="true"][data-role="assistant"] {
-  border-color: rgba(var(--accent-rgb), 0.46);
-  background:
-    linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), transparent 65%),
-    rgba(255, 255, 255, 0.045);
-}
-
-.message[data-fresh="true"][data-role="user"] {
-  border-color: rgba(124, 167, 255, 0.46);
-  background:
-    linear-gradient(135deg, rgba(124, 167, 255, 0.12), transparent 70%),
-    rgba(124, 167, 255, 0.08);
-}
-
-.messageMeta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.2;
-  text-transform: uppercase;
-}
-
-.messageMetaDetail {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.messageMetaDetail small,
-.messageActivity small {
-  margin: 0;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.messageMetaDetail small {
-  padding: 3px 7px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--muted-strong);
-}
-
-.messageMetaDetail small[data-phase="streaming"],
-.messageMetaDetail small[data-phase="thinking"],
-.messageMetaDetail small[data-phase="connecting"],
-.messageMetaDetail small[data-phase="planning"],
-.messageMetaDetail small[data-phase="retrieving"],
-.messageMetaDetail small[data-phase="generating"],
-.messageMetaDetail small[data-phase="reviewing"],
-.messageMetaDetail small[data-phase="refining"],
-.messageMetaDetail small[data-phase="finalizing"] {
-  background: rgba(var(--accent-rgb), 0.14);
-  color: var(--teal);
-}
-
-.messageMetaDetail small[data-phase="error"] {
-  background: rgba(255, 122, 102, 0.14);
-  color: var(--coral);
-}
-
-.messageMetaDetail small[data-phase="fallback"] {
-  background: rgba(243, 184, 82, 0.14);
-  color: var(--amber);
-}
-
-.messageActivity {
-  display: inline-flex;
-  width: fit-content;
-  align-items: center;
-  gap: 8px;
-  color: var(--muted-strong);
-}
-
-.messageActivity span {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: var(--teal);
-  box-shadow: 0 0 0 5px rgba(var(--accent-rgb), 0.12);
-  animation: pulseNode 1.8s ease-in-out infinite;
-}
-
-.message[data-stream-phase="fallback"] .messageActivity span {
-  background: var(--amber);
-  box-shadow: 0 0 0 5px rgba(243, 184, 82, 0.12);
-}
-
-.message[data-stream-phase="error"] .messageActivity span {
-  background: var(--coral);
-  box-shadow: 0 0 0 5px rgba(255, 122, 102, 0.12);
-  animation: none;
-}
-
-.messageActivity[data-activity="completed"] span {
-  background: var(--green);
-  box-shadow: 0 0 0 5px rgba(121, 211, 139, 0.14);
-  animation: none;
-}
-
-.messageActivity[data-activity="partial"] span {
-  background: var(--amber);
-  box-shadow: 0 0 0 5px rgba(243, 184, 82, 0.12);
-  animation: none;
-}
-
-.messageActivity[data-activity="failed"] span {
-  background: var(--coral);
-  box-shadow: 0 0 0 5px rgba(255, 122, 102, 0.12);
-  animation: none;
-}
-
-.streamingCaret {
-  display: inline-block;
-  width: 0.55ch;
-  height: 1.1em;
-  margin-left: 0.2ch;
-  vertical-align: -0.1em;
-  border-radius: 999px;
-  background: rgba(var(--accent-rgb), 0.86);
-  animation: blinkCaret 1s steps(1, end) infinite;
-}
-
-.imageReferenceShelf {
-  display: grid;
-  gap: 10px;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background:
-    linear-gradient(135deg, rgba(124, 167, 255, 0.08), transparent 70%),
-    rgba(255, 255, 255, 0.04);
-  box-shadow: var(--panel-highlight);
-}
-
-.imageReferenceShelf[data-state="ready"] {
-  border-color: rgba(124, 167, 255, 0.3);
-}
-
-.imageReferenceShelf[data-state="error"] {
-  border-color: rgba(255, 122, 102, 0.28);
-}
-
-.imageReferenceHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.imageReferenceHeader strong {
-  display: block;
-  color: var(--foreground);
-  font-size: 14px;
-  line-height: 1.25;
-}
-
-.imageReferenceHeader p {
-  margin: 4px 0 0;
-  color: var(--muted-strong);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.imageReferenceDismiss,
-.imageReferenceCard button {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  place-items: center;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--muted-strong);
-  cursor: pointer;
-}
-
-.imageReferenceList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.imageReferenceCard {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 9px;
-  min-width: min(100%, 230px);
-  padding: 7px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 13px;
-  background: rgba(255, 255, 255, 0.045);
-}
-
-.imageReferenceThumb {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.08);
-  background-position: center;
-  background-size: cover;
-}
-
-.imageReferenceCard strong {
-  display: block;
-  overflow: hidden;
-  color: var(--foreground);
-  font-size: 12px;
-  line-height: 1.25;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.imageReferenceCard span {
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.imageReferenceBoundary {
-  margin: 0;
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 1.45;
-}
-
-.composer {
-  position: relative;
-  display: block;
-  padding-top: 8px;
-  border-top: 0;
-}
-
-.composerInputFrame {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  gap: 7px;
-  min-width: 0;
-  border: 1px solid rgba(255, 255, 255, 0.105);
-  border-radius: 26px;
-  background: rgba(255, 255, 255, 0.04);
-  box-shadow: var(--panel-highlight);
-  padding: 7px 52px 7px 7px;
-}
-
-.composerInputFrame:focus-within {
-  border-color: rgba(var(--accent-rgb), 0.34);
-  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.08);
-}
-
-.composerAttach {
-  position: relative;
-  flex: 0 0 auto;
-}
-
-.composerAttachButton,
-.sendButton {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  place-items: center;
-  border-radius: 999px;
-  cursor: pointer;
-  transition:
-    border-color 180ms ease,
-    background 180ms ease,
-    color 180ms ease,
-    transform 180ms ease;
-}
-
-.composerAttachButton {
-  border: 0;
-  color: var(--muted-strong);
-  background: transparent;
-}
-
-.composerAttachButton:hover,
-.composerAttachButton[aria-expanded="true"] {
-  color: var(--foreground);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.composerAttachButton:disabled {
-  cursor: default;
-  opacity: 0.55;
-}
-
-.attachmentMenu {
-  position: absolute;
-  left: 0;
-  bottom: calc(100% + 8px);
-  z-index: 8;
-  min-width: 168px;
-  padding: 6px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--panel-strong);
-  box-shadow: var(--shadow);
-}
-
-.attachmentMenuItem {
-  position: relative;
-  display: flex;
-  min-height: 34px;
-  align-items: center;
-  padding: 0 10px;
-  border-radius: 9px;
-  color: var(--foreground);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 760;
-}
-
-.attachmentMenuItem:not(.attachmentMenuItem--unsupported) {
-  display: grid;
-  gap: 2px;
-  align-content: center;
-}
-
-.attachmentMenuItem small {
-  color: var(--muted);
-  font-size: 9px;
-  font-weight: 560;
-  line-height: 1.35;
-}
-
-.attachmentMenuItem--unsupported {
-  display: grid;
-  align-content: center;
-  gap: 2px;
-  margin-top: 3px;
-  color: var(--muted);
-  cursor: default;
-}
-
-.attachmentMenuItem:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.attachmentMenuItem input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-.composer textarea {
-  width: 100%;
-  min-height: 38px;
-  max-height: 168px;
-  resize: none;
-  border: 0;
-  border-radius: 14px;
-  overflow-y: hidden;
-  padding: 10px 8px;
-  background: transparent;
-  color: var(--foreground);
-  line-height: 1.45;
-  outline: none;
-}
-
-.composer textarea::placeholder {
-  color: rgba(191, 203, 207, 0.72);
-}
-
-.sendButton {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
-  margin: 0;
-  border: 0;
-  color: var(--accent-ink);
-  background: rgba(var(--accent-rgb), 0.92);
-  transition:
-    box-shadow 180ms ease,
-    opacity 180ms ease,
-    transform 180ms ease,
-    background 180ms ease;
-}
-
-.sendButton[data-ready="true"] {
-  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.18);
-}
-
-.sendButton[data-ready="true"]:hover {
-  transform: translateY(-1px);
-  background: rgba(var(--accent-rgb), 1);
-}
-
-.sendButton:disabled {
-  color: var(--muted);
-  background: rgba(255, 255, 255, 0.12);
-  opacity: 0.68;
-}
-
-.workflowExecutionSelector {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
-  gap: 5px;
-  margin: 8px 116px 0 42px;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 760;
-  white-space: nowrap;
-}
-
-.workflowExecutionSelector > span {
-  color: var(--muted);
-}
-
-.workflowExecutionSelector select {
-  min-width: 0;
-  max-width: 126px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface-1);
-  color: var(--foreground);
-  cursor: pointer;
-  font-size: 10px;
-  font-weight: 720;
-  padding: 5px 20px 5px 7px;
-}
-
 .previewZone {
   align-self: flex-end;
   min-height: 0;
@@ -2827,7 +1348,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 .previewFullscreenLayer {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: var(--application-layer-dialog);
   width: 100vw;
   height: 100vh;
   height: 100dvh;
@@ -2997,10 +1518,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   display: none;
 }
 
-.previewShelf[data-user-mode="true"] .previewToolbarActions {
-  pointer-events: auto;
-}
-
 .previewShelf[data-user-mode="true"] .previewBody {
   min-height: 0;
 }
@@ -3014,7 +1531,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   backdrop-filter: blur(10px);
 }
 
-.previewShelf[data-user-mode="true"] .previewRuntimeOverlay,
 .previewShelf[data-user-mode="true"] .previewRuntimeMeta,
 .previewShelf[data-user-mode="true"] .previewRuntimeMetrics,
 .previewShelf[data-user-mode="true"] .previewRuntimeDiagnostics {
@@ -3142,8 +1658,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewRuntimeOverlay,
-.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewRuntimeMeta,
-.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewRuntimeErrorBoundary {
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewRuntimeMeta {
   display: none;
 }
 
@@ -3187,81 +1702,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 .previewToolbarFocus small {
   color: var(--teal);
   letter-spacing: 0.04em;
-}
-
-.previewIndicators {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.previewIndicator {
-  display: inline-grid;
-  gap: 3px;
-  min-width: 92px;
-  padding: 8px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
-    rgba(255, 255, 255, 0.03);
-  box-shadow: var(--panel-highlight);
-}
-
-.previewIndicator span {
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.previewIndicator strong {
-  color: var(--muted-strong);
-  font-size: 11px;
-  line-height: 1.25;
-}
-
-.previewIndicator[data-tone="active"] {
-  border-color: rgba(var(--accent-rgb), 0.22);
-  background: rgba(var(--accent-rgb), 0.08);
-}
-
-.previewIndicator[data-tone="active"] strong {
-  color: var(--teal);
-}
-
-.previewIndicator[data-tone="success"] {
-  border-color: rgba(121, 211, 139, 0.2);
-  background: rgba(121, 211, 139, 0.08);
-}
-
-.previewIndicator[data-tone="success"] strong {
-  color: var(--green);
-}
-
-.previewIndicator[data-tone="warning"] {
-  border-color: rgba(243, 184, 82, 0.2);
-  background: rgba(243, 184, 82, 0.08);
-}
-
-.previewIndicator[data-tone="warning"] strong {
-  color: var(--amber);
-}
-
-.previewIndicator[data-tone="danger"] {
-  border-color: rgba(255, 122, 102, 0.22);
-  background: rgba(255, 122, 102, 0.08);
-}
-
-.previewIndicator[data-tone="danger"] strong {
-  color: var(--coral);
-}
-
-.previewToolbarActions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
 }
 
 .previewControlButton {
@@ -3464,7 +1904,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
     #05080b;
 }
 
-.previewRuntimeCanvas,
 .previewRuntimeFrame {
   border: 0;
   display: block;
@@ -3855,175 +2294,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   line-height: 1.35;
 }
 
-.inspector {
-  display: grid;
-  min-height: 0;
-  max-height: calc(100vh - 84px);
-  grid-template-rows: auto auto minmax(0, 1fr);
-  overflow: hidden;
-  border-radius: 22px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.065), transparent 160px),
-    linear-gradient(140deg, rgba(var(--accent-rgb), 0.06), transparent 30%),
-    var(--panel-strong);
-  transition:
-    border-color 180ms ease,
-    transform 180ms ease,
-    background 180ms ease;
-}
-
-.inspector[data-state="collapsed"] {
-  grid-template-rows: minmax(0, 1fr);
-  min-width: 0;
-  width: var(--inspector-rail-width);
-  max-width: var(--inspector-rail-width);
-  background:
-    linear-gradient(180deg, rgba(var(--accent-rgb), 0.09), transparent 100px),
-    var(--panel-strong);
-}
-
-.inspectorRail {
-  display: grid;
-  height: 100%;
-  align-content: center;
-  justify-items: center;
-  gap: 12px;
-  padding: 14px 8px;
-}
-
-.inspectorRail strong,
-.inspectorRail span {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  color: var(--muted-strong);
-  font-size: 11px;
-  font-weight: 760;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.inspectorRail span {
-  color: var(--teal);
-  font-size: 10px;
-}
-
-.inspectorHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 16px 14px;
-  border-bottom: 1px solid var(--section-divider);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent);
-}
-
-.inspectorHeader h2 {
-  font-size: clamp(24px, 2.4vw, 30px);
-  letter-spacing: -0.045em;
-}
-
-.inspectorHeader p {
-  margin-top: 8px;
-}
-
-.inspectorTabs {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  padding: 12px 14px 14px;
-  border-bottom: 1px solid var(--section-divider);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent);
-}
-
-.inspectorTabs button {
-  position: relative;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  min-width: 0;
-  align-items: center;
-  gap: 6px;
-  min-height: 54px;
-  padding: 10px 30px 10px 9px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  color: var(--muted-strong);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent),
-    rgba(255, 255, 255, 0.03);
-  box-shadow: var(--panel-highlight);
-  cursor: pointer;
-  transition:
-    border-color 180ms ease,
-    background 180ms ease,
-    box-shadow 180ms ease,
-    color 180ms ease,
-    transform 180ms ease;
-}
-
-.inspectorTabs button::after {
-  position: absolute;
-  right: 10px;
-  bottom: 6px;
-  left: 10px;
-  height: 2px;
-  border-radius: 999px;
-  content: "";
-  background: transparent;
-  transform: scaleX(0.35);
-  transition:
-    background 180ms ease,
-    transform 180ms ease;
-}
-
-.inspectorTabs button:hover {
-  border-color: rgba(var(--accent-rgb), 0.28);
-  color: var(--foreground);
-  transform: translateY(-1px);
-}
-
-.inspectorTabs button[aria-selected="true"] {
-  border-color: rgba(var(--accent-rgb), 0.42);
-  color: var(--foreground);
-  background: rgba(var(--accent-rgb), 0.12);
-  box-shadow: 0 12px 30px rgba(var(--accent-rgb), 0.12);
-}
-
-.inspectorTabs button[aria-selected="true"]::after {
-  background: var(--teal);
-  transform: scaleX(1);
-}
-
-.inspectorTabs span {
-  overflow: hidden;
-  min-width: 0;
-  font-size: 10px;
-  font-weight: 760;
-  text-align: left;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  line-height: 1.15;
-}
-
-.inspectorTabs small {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  display: block;
-  min-width: 18px;
-  padding: 2px 4px;
-  border-radius: 999px;
-  color: var(--muted);
-  background: rgba(255, 255, 255, 0.065);
-  font-size: 8px;
-  font-weight: 850;
-  line-height: 1;
-}
-
-.inspectorTabs button[aria-selected="true"] small {
-  color: var(--accent-ink);
-  background: rgb(var(--accent-rgb));
-}
-
 .layoutResizeHandle {
   position: relative;
   display: grid;
@@ -4092,13 +2362,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 .workstation[data-resizing="inspector"] .workspaceLayout,
 .workstation[data-resizing="preview"] .previewPanel {
   transition: none;
-}
-
-.inspectorPanel {
-  min-height: 0;
-  overflow: auto;
-  padding: 16px;
-  animation: revealPanel 180ms ease-out;
 }
 
 .overviewPanel {
@@ -11266,20 +9529,10 @@ html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .topbar {
 }
 
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .sessionPanel,
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .demoModePanel,
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewShelf,
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .inspector {
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewShelf {
   border-color: var(--line);
   background: var(--panel);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.024);
-}
-
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .utilityPanel {
-  border-color: var(--line);
-  background: var(--panel-strong);
-  box-shadow:
-    0 12px 34px rgba(0, 0, 0, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.026);
 }
 
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .brandMark,
@@ -11291,11 +9544,9 @@ html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .commandMenuGr
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .themePresetButton,
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .settingsChoiceRow button,
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .settingsToggle button,
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .composerInputFrame,
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .artifactActions button,
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .codePanelActions button,
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewControlButton,
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .operatorCheckpointActions button {
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewControlButton {
   border-color: var(--line);
   background: var(--surface-2);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.024);
@@ -11307,8 +9558,7 @@ html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .brandMark {
 
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .toolbarToggle,
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .iconButton,
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewControlButton,
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .composerAttachButton {
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewControlButton {
   color: var(--muted-strong);
 }
 
@@ -11320,8 +9570,7 @@ html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .settingsChoic
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .settingsToggle button:hover,
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .artifactActions button:hover,
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .codePanelActions button:hover,
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewControlButton:hover,
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .operatorCheckpointActions button:hover {
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewControlButton:hover {
   border-color: rgba(var(--accent-rgb), 0.5);
   background: rgba(var(--accent-rgb), 0.12);
   box-shadow: none;
@@ -11334,7 +9583,6 @@ html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .commandMenuGr
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .themePresetButton[data-active="true"],
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .settingsChoiceRow button[data-active="true"],
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .settingsToggle button[data-active="true"],
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .inspectorTabs button[aria-selected="true"],
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewControlButton[aria-pressed="true"] {
   border-color: rgba(var(--accent-rgb), 0.72);
   background: rgba(var(--accent-rgb), 0.16);
@@ -11342,13 +9590,7 @@ html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewContro
   color: var(--foreground);
 }
 
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .message,
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .emptyStateCard,
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .emptyPromptButton,
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .overviewTile,
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .demoScenarioButton,
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .demoScenarioDetail,
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .demoScenarioQuickFacts div,
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .workflowSummaryCard,
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .workflowTraceCard,
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .telemetryLifecycleCard,
@@ -11359,7 +9601,6 @@ html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .artifactDetai
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .retrievalSummaryCard,
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .retrievalEmptyCard,
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .retrievalInsightCard,
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewIndicator,
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewCopy,
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewSurfacePanelFrame,
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .savedOutputsHero,
@@ -11367,16 +9608,6 @@ html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .savedOutputCa
   border-color: var(--line);
   background: var(--surface-1);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
-}
-
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .sendButton {
-  background: rgb(var(--accent-rgb));
-  color: var(--accent-ink);
-  box-shadow: none;
-}
-
-html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .sendButton[data-ready="true"]:hover {
-  background: color-mix(in srgb, rgb(var(--accent-rgb)) 76%, #ffffff);
 }
 
 html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewShelf[open] {
@@ -11398,10 +9629,7 @@ html[data-cca-theme="light"] .topbar {
 }
 
 html[data-cca-theme="light"] .sessionPanel,
-html[data-cca-theme="light"] .demoModePanel,
-html[data-cca-theme="light"] .previewShelf,
-html[data-cca-theme="light"] .inspector,
-html[data-cca-theme="light"] .utilityPanel {
+html[data-cca-theme="light"] .previewShelf {
   border-color: var(--line);
   background: var(--panel);
   box-shadow:
@@ -11418,11 +9646,9 @@ html[data-cca-theme="light"] .commandMenuGrid button,
 html[data-cca-theme="light"] .themePresetButton,
 html[data-cca-theme="light"] .settingsChoiceRow button,
 html[data-cca-theme="light"] .settingsToggle button,
-html[data-cca-theme="light"] .composerInputFrame,
 html[data-cca-theme="light"] .artifactActions button,
 html[data-cca-theme="light"] .codePanelActions button,
-html[data-cca-theme="light"] .previewControlButton,
-html[data-cca-theme="light"] .operatorCheckpointActions button {
+html[data-cca-theme="light"] .previewControlButton {
   border-color: var(--line);
   background: #ffffff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76);
@@ -11436,8 +9662,7 @@ html[data-cca-theme="light"] .settingsChoiceRow button:hover,
 html[data-cca-theme="light"] .settingsToggle button:hover,
 html[data-cca-theme="light"] .artifactActions button:hover,
 html[data-cca-theme="light"] .codePanelActions button:hover,
-html[data-cca-theme="light"] .previewControlButton:hover,
-html[data-cca-theme="light"] .operatorCheckpointActions button:hover {
+html[data-cca-theme="light"] .previewControlButton:hover {
   border-color: rgba(51, 156, 255, 0.48);
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 8px 22px rgba(42, 50, 60, 0.08);
@@ -11450,7 +9675,6 @@ html[data-cca-theme="light"] .commandMenuGrid button[data-active="true"],
 html[data-cca-theme="light"] .themePresetButton[data-active="true"],
 html[data-cca-theme="light"] .settingsChoiceRow button[data-active="true"],
 html[data-cca-theme="light"] .settingsToggle button[data-active="true"],
-html[data-cca-theme="light"] .inspectorTabs button[aria-selected="true"],
 html[data-cca-theme="light"] .previewControlButton[aria-pressed="true"] {
   border-color: rgba(51, 156, 255, 0.62);
   background: rgba(51, 156, 255, 0.12);
@@ -11458,18 +9682,7 @@ html[data-cca-theme="light"] .previewControlButton[aria-pressed="true"] {
   color: #111318;
 }
 
-html[data-cca-theme="light"] .message,
-html[data-cca-theme="light"] .emptyStateCard,
-html[data-cca-theme="light"] .emptyPromptButton,
-html[data-cca-theme="light"] .emptyWorkspace,
-html[data-cca-theme="light"] .emptyWorkspaceValue article,
-html[data-cca-theme="light"] .emptyWorkspaceSuggestions button,
-html[data-cca-theme="light"] .emptyWorkspaceGrid section,
-html[data-cca-theme="light"] .emptyWorkspaceLearnMore,
 html[data-cca-theme="light"] .overviewTile,
-html[data-cca-theme="light"] .demoScenarioButton,
-html[data-cca-theme="light"] .demoScenarioDetail,
-html[data-cca-theme="light"] .demoScenarioQuickFacts div,
 html[data-cca-theme="light"] .workflowSummaryCard,
 html[data-cca-theme="light"] .workflowTraceCard,
 html[data-cca-theme="light"] .telemetryLifecycleCard,
@@ -11480,7 +9693,6 @@ html[data-cca-theme="light"] .artifactDetailCard,
 html[data-cca-theme="light"] .retrievalSummaryCard,
 html[data-cca-theme="light"] .retrievalEmptyCard,
 html[data-cca-theme="light"] .retrievalInsightCard,
-html[data-cca-theme="light"] .previewIndicator,
 html[data-cca-theme="light"] .previewCopy,
 html[data-cca-theme="light"] .previewSurfacePanelFrame,
 html[data-cca-theme="light"] .savedOutputsHero,
@@ -11490,27 +9702,11 @@ html[data-cca-theme="light"] .savedOutputCard {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
-html[data-cca-theme="light"] .chatLog {
-  border-color: rgba(35, 42, 52, 0.08);
-  background: linear-gradient(180deg, rgba(35, 42, 52, 0.024), transparent 96px);
-}
-
 html[data-cca-theme="light"] .codeViewer,
 html[data-cca-theme="light"] .previewRuntimeFrame,
-html[data-cca-theme="light"] .previewRuntimeCanvas,
 html[data-cca-theme="light"] .previewSurfaceBackdrop {
   border-color: rgba(35, 42, 52, 0.1);
   background: rgba(247, 248, 250, 0.96);
-}
-
-html[data-cca-theme="light"] .sendButton {
-  background: #17191d;
-  color: #ffffff;
-  box-shadow: none;
-}
-
-html[data-cca-theme="light"] .sendButton[data-ready="true"]:hover {
-  background: #2b3036;
 }
 
 html[data-cca-theme="matrix"] {
@@ -11544,9 +9740,7 @@ html[data-cca-theme="matrix"] .workstation {
 
 html[data-cca-theme="matrix"] .topbar,
 html[data-cca-theme="matrix"] .sessionPanel,
-html[data-cca-theme="matrix"] .previewShelf,
-html[data-cca-theme="matrix"] .inspector,
-html[data-cca-theme="matrix"] .utilityPanel {
+html[data-cca-theme="matrix"] .previewShelf {
   border-color: rgba(145, 180, 118, 0.16);
 }
 
@@ -11566,12 +9760,9 @@ html[data-cca-theme="matrix"] .commandMenuGrid button,
 html[data-cca-theme="matrix"] .themePresetButton,
 html[data-cca-theme="matrix"] .settingsChoiceRow button,
 html[data-cca-theme="matrix"] .settingsToggle button,
-html[data-cca-theme="matrix"] .composerAttachButton,
-html[data-cca-theme="matrix"] .composer textarea,
 html[data-cca-theme="matrix"] .artifactActions button,
 html[data-cca-theme="matrix"] .codePanelActions button,
-html[data-cca-theme="matrix"] .previewControlButton,
-html[data-cca-theme="matrix"] .operatorCheckpointActions button {
+html[data-cca-theme="matrix"] .previewControlButton {
   background:
     linear-gradient(180deg, rgba(159, 232, 112, 0.045), rgba(6, 10, 5, 0.2)),
     rgba(255, 255, 255, 0.02);
@@ -11585,8 +9776,7 @@ html[data-cca-theme="matrix"] .brandMark {
 }
 
 html[data-cca-theme="matrix"] .sessionPanel,
-html[data-cca-theme="matrix"] .previewShelf,
-html[data-cca-theme="matrix"] .inspector {
+html[data-cca-theme="matrix"] .previewShelf {
   background:
     linear-gradient(180deg, rgba(159, 232, 112, 0.03), transparent 160px),
     linear-gradient(140deg, rgba(159, 232, 112, 0.045), transparent 32%),
@@ -11613,7 +9803,6 @@ html[data-cca-theme="matrix"] .commandMenuGrid button[data-active="true"],
 html[data-cca-theme="matrix"] .themePresetButton[data-active="true"],
 html[data-cca-theme="matrix"] .settingsChoiceRow button[data-active="true"],
 html[data-cca-theme="matrix"] .settingsToggle button[data-active="true"],
-html[data-cca-theme="matrix"] .inspectorTabs button[aria-selected="true"],
 html[data-cca-theme="matrix"] .previewControlButton[aria-pressed="true"] {
   border-color: rgba(159, 232, 112, 0.32);
   background:
@@ -11630,29 +9819,12 @@ html[data-cca-theme="matrix"] .settingsChoiceRow button:hover,
 html[data-cca-theme="matrix"] .settingsToggle button:hover,
 html[data-cca-theme="matrix"] .artifactActions button:hover,
 html[data-cca-theme="matrix"] .codePanelActions button:hover,
-html[data-cca-theme="matrix"] .previewControlButton:hover,
-html[data-cca-theme="matrix"] .operatorCheckpointActions button:hover {
+html[data-cca-theme="matrix"] .previewControlButton:hover {
   border-color: rgba(159, 232, 112, 0.26);
   box-shadow: 0 10px 22px rgba(54, 84, 34, 0.14);
   color: #eff6e4;
 }
 
-html[data-cca-theme="matrix"] .sendButton[data-ready="true"] {
-  color: #061004;
-  background:
-    linear-gradient(180deg, #b8f58e, #8edb5d);
-  box-shadow:
-    0 0 0 1px rgba(159, 232, 112, 0.2),
-    0 14px 28px rgba(47, 77, 28, 0.24);
-}
-
-html[data-cca-theme="matrix"] .chatLog {
-  background:
-    linear-gradient(180deg, rgba(159, 232, 112, 0.02), transparent 88px),
-    transparent;
-}
-
-html[data-cca-theme="matrix"] .message,
 html[data-cca-theme="matrix"] .overviewTile,
 html[data-cca-theme="matrix"] .workflowSummaryCard,
 html[data-cca-theme="matrix"] .workflowTraceCard,
@@ -11671,7 +9843,6 @@ html[data-cca-theme="matrix"] .retrievalQualityWeaknesses,
 html[data-cca-theme="matrix"] .retrievalSourceDetail,
 html[data-cca-theme="matrix"] .retrievalItem,
 html[data-cca-theme="matrix"] .retrievalChunk,
-html[data-cca-theme="matrix"] .previewIndicator,
 html[data-cca-theme="matrix"] .previewCopy,
 html[data-cca-theme="matrix"] .previewSurfacePanelFrame,
 html[data-cca-theme="matrix"] .subsystemErrorMeta div,
@@ -11681,38 +9852,16 @@ html[data-cca-theme="matrix"] .telemetryMetricRow div {
     rgba(11, 18, 10, 0.7);
 }
 
-html[data-cca-theme="matrix"] .message[data-role="assistant"],
 html[data-cca-theme="matrix"] .codePanel[data-opened-artifact] .codePanelHeader,
 html[data-cca-theme="matrix"] .overviewTile[data-state="running"],
 html[data-cca-theme="matrix"] .overviewTile[data-state="streaming"],
 html[data-cca-theme="matrix"] .overviewTile[data-state="generating"],
 html[data-cca-theme="matrix"] .overviewTile[data-state="ready"],
 html[data-cca-theme="matrix"] .previewShelf[open],
-html[data-cca-theme="matrix"] .previewIndicator[data-tone="active"],
 html[data-cca-theme="matrix"] .retrievalSummaryCard[data-state="available"],
 html[data-cca-theme="matrix"] .telemetryLifecycleCard,
 html[data-cca-theme="matrix"] .telemetryDashboardHero {
   border-color: rgba(159, 232, 112, 0.2);
-}
-
-html[data-cca-theme="matrix"] .inspector {
-  background:
-    linear-gradient(180deg, rgba(159, 232, 112, 0.045), transparent 148px),
-    linear-gradient(140deg, rgba(159, 232, 112, 0.05), transparent 26%),
-    rgba(11, 18, 10, 0.96);
-}
-
-html[data-cca-theme="matrix"] .inspectorHeader,
-html[data-cca-theme="matrix"] .inspectorTabs {
-  background:
-    linear-gradient(180deg, rgba(159, 232, 112, 0.028), transparent),
-    transparent;
-}
-
-html[data-cca-theme="matrix"] .inspectorTabs button {
-  background:
-    linear-gradient(180deg, rgba(159, 232, 112, 0.03), transparent),
-    rgba(9, 14, 8, 0.88);
 }
 
 html[data-cca-theme="matrix"] .telemetryDashboardHero {
@@ -11753,7 +9902,6 @@ html[data-cca-theme="matrix"] .previewSurface[data-runtime-state="generating"] {
 }
 
 html[data-cca-theme="matrix"] .previewSurfaceBackdrop,
-html[data-cca-theme="matrix"] .previewRuntimeCanvas,
 html[data-cca-theme="matrix"] .previewRuntimeFrame {
   background:
     radial-gradient(circle at 22% 28%, rgba(159, 232, 112, 0.16), transparent 22%),
@@ -11831,9 +9979,7 @@ html[data-cca-theme="terminal"] .workstation {
 
 html[data-cca-theme="terminal"] .topbar,
 html[data-cca-theme="terminal"] .sessionPanel,
-html[data-cca-theme="terminal"] .previewShelf,
-html[data-cca-theme="terminal"] .inspector,
-html[data-cca-theme="terminal"] .utilityPanel {
+html[data-cca-theme="terminal"] .previewShelf {
   border-color: rgba(241, 197, 111, 0.14);
   background:
     linear-gradient(180deg, rgba(241, 197, 111, 0.032), transparent 132px),
@@ -11845,8 +9991,7 @@ html[data-cca-theme="terminal"] .iconButton,
 html[data-cca-theme="terminal"] .commandMenuGrid button,
 html[data-cca-theme="terminal"] .themePresetButton,
 html[data-cca-theme="terminal"] .settingsChoiceRow button,
-html[data-cca-theme="terminal"] .settingsToggle button,
-html[data-cca-theme="terminal"] .inspectorTabs button {
+html[data-cca-theme="terminal"] .settingsToggle button {
   background:
     linear-gradient(180deg, rgba(241, 197, 111, 0.045), transparent),
     rgba(15, 16, 18, 0.88);
@@ -11854,7 +9999,6 @@ html[data-cca-theme="terminal"] .inspectorTabs button {
 
 html[data-cca-theme="terminal"] .telemetryDashboardHero,
 html[data-cca-theme="terminal"] .previewSurfaceBackdrop,
-html[data-cca-theme="terminal"] .previewRuntimeCanvas,
 html[data-cca-theme="terminal"] .previewRuntimeFrame,
 html[data-cca-theme="terminal"] .codeViewer {
   background:
@@ -11881,9 +10025,7 @@ html[data-cca-theme="horizon"] .workstation {
 
 html[data-cca-theme="horizon"] .topbar,
 html[data-cca-theme="horizon"] .sessionPanel,
-html[data-cca-theme="horizon"] .previewShelf,
-html[data-cca-theme="horizon"] .inspector,
-html[data-cca-theme="horizon"] .utilityPanel {
+html[data-cca-theme="horizon"] .previewShelf {
   border-color: rgba(244, 163, 110, 0.15);
   background:
     linear-gradient(180deg, rgba(244, 163, 110, 0.04), transparent 144px),
@@ -11896,8 +10038,7 @@ html[data-cca-theme="horizon"] .iconButton,
 html[data-cca-theme="horizon"] .commandMenuGrid button,
 html[data-cca-theme="horizon"] .themePresetButton,
 html[data-cca-theme="horizon"] .settingsChoiceRow button,
-html[data-cca-theme="horizon"] .settingsToggle button,
-html[data-cca-theme="horizon"] .inspectorTabs button {
+html[data-cca-theme="horizon"] .settingsToggle button {
   background:
     linear-gradient(180deg, rgba(244, 163, 110, 0.05), transparent),
     rgba(28, 22, 35, 0.88);
@@ -11905,7 +10046,6 @@ html[data-cca-theme="horizon"] .inspectorTabs button {
 
 html[data-cca-theme="horizon"] .telemetryDashboardHero,
 html[data-cca-theme="horizon"] .previewSurfaceBackdrop,
-html[data-cca-theme="horizon"] .previewRuntimeCanvas,
 html[data-cca-theme="horizon"] .previewRuntimeFrame,
 html[data-cca-theme="horizon"] .codeViewer {
   background:
@@ -11931,9 +10071,7 @@ html[data-cca-theme="zen"] .workstation {
 
 html[data-cca-theme="zen"] .topbar,
 html[data-cca-theme="zen"] .sessionPanel,
-html[data-cca-theme="zen"] .previewShelf,
-html[data-cca-theme="zen"] .inspector,
-html[data-cca-theme="zen"] .utilityPanel {
+html[data-cca-theme="zen"] .previewShelf {
   border-color: rgba(143, 212, 199, 0.12);
   background:
     linear-gradient(180deg, rgba(143, 212, 199, 0.024), transparent 140px),
@@ -11945,8 +10083,7 @@ html[data-cca-theme="zen"] .iconButton,
 html[data-cca-theme="zen"] .commandMenuGrid button,
 html[data-cca-theme="zen"] .themePresetButton,
 html[data-cca-theme="zen"] .settingsChoiceRow button,
-html[data-cca-theme="zen"] .settingsToggle button,
-html[data-cca-theme="zen"] .inspectorTabs button {
+html[data-cca-theme="zen"] .settingsToggle button {
   background:
     linear-gradient(180deg, rgba(143, 212, 199, 0.036), transparent),
     rgba(18, 26, 26, 0.84);
@@ -11954,7 +10091,6 @@ html[data-cca-theme="zen"] .inspectorTabs button {
 
 html[data-cca-theme="zen"] .telemetryDashboardHero,
 html[data-cca-theme="zen"] .previewSurfaceBackdrop,
-html[data-cca-theme="zen"] .previewRuntimeCanvas,
 html[data-cca-theme="zen"] .previewRuntimeFrame,
 html[data-cca-theme="zen"] .codeViewer {
   background:
@@ -11994,9 +10130,7 @@ html[data-cca-theme="blueprint"] .workstation {
 
 html[data-cca-theme="blueprint"] .topbar,
 html[data-cca-theme="blueprint"] .sessionPanel,
-html[data-cca-theme="blueprint"] .previewShelf,
-html[data-cca-theme="blueprint"] .inspector,
-html[data-cca-theme="blueprint"] .utilityPanel {
+html[data-cca-theme="blueprint"] .previewShelf {
   border-color: rgba(127, 212, 255, 0.15);
   background:
     linear-gradient(180deg, rgba(127, 212, 255, 0.035), transparent 148px),
@@ -12008,8 +10142,7 @@ html[data-cca-theme="blueprint"] .iconButton,
 html[data-cca-theme="blueprint"] .commandMenuGrid button,
 html[data-cca-theme="blueprint"] .themePresetButton,
 html[data-cca-theme="blueprint"] .settingsChoiceRow button,
-html[data-cca-theme="blueprint"] .settingsToggle button,
-html[data-cca-theme="blueprint"] .inspectorTabs button {
+html[data-cca-theme="blueprint"] .settingsToggle button {
   background:
     linear-gradient(180deg, rgba(127, 212, 255, 0.05), transparent),
     rgba(14, 25, 42, 0.86);
@@ -12017,22 +10150,12 @@ html[data-cca-theme="blueprint"] .inspectorTabs button {
 
 html[data-cca-theme="blueprint"] .telemetryDashboardHero,
 html[data-cca-theme="blueprint"] .previewSurfaceBackdrop,
-html[data-cca-theme="blueprint"] .previewRuntimeCanvas,
 html[data-cca-theme="blueprint"] .previewRuntimeFrame,
 html[data-cca-theme="blueprint"] .codeViewer {
   background:
     radial-gradient(circle at 18% 22%, rgba(127, 212, 255, 0.14), transparent 24%),
     radial-gradient(circle at 76% 62%, rgba(138, 169, 255, 0.08), transparent 28%),
     rgba(8, 15, 27, 0.94);
-}
-
-html[data-cca-theme] .utilityPanel.utilityPanel--kb {
-  background: rgb(var(--background-rgb));
-  box-shadow:
-    0 24px 72px rgba(0, 0, 0, 0.48),
-    var(--panel-highlight);
-  animation: none;
-  opacity: 1;
 }
 
 .workstation[data-density="compact"] .workspaceLayout {
@@ -12079,179 +10202,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   }
 }
 
-.sessionSidebar {
-  display: grid;
-  min-width: 0;
-  min-height: 0;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
-  gap: 10px;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 160px),
-    var(--panel);
-  box-shadow: var(--shadow), var(--panel-highlight);
-  overflow: hidden;
-}
-
-.sessionSidebar--collapsed {
-  display: grid;
-  padding: 0;
-}
-
-.sessionSidebarRail {
-  display: grid;
-  height: 100%;
-  align-content: center;
-  justify-items: center;
-  gap: 12px;
-  padding: 14px 8px;
-}
-
-.sessionSidebarRail strong,
-.sessionSidebarRail span {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  color: var(--muted-strong);
-  font-size: 11px;
-  font-weight: 760;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.sessionSidebarRail span {
-  color: var(--teal);
-  font-size: 10px;
-}
-
-.sessionSidebar > header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.sessionSidebar > header .eyebrow {
-  margin-bottom: 4px;
-  font-size: 10px;
-}
-
-.sessionSidebar > header strong {
-  display: block;
-  color: var(--foreground);
-  font-size: 13px;
-  line-height: 1.3;
-}
-
-.sessionSidebar .iconButton {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-}
-
-.newSessionButton {
-  display: inline-flex;
-  min-height: 34px;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  border: 1px solid rgba(var(--accent-rgb), 0.34);
-  border-radius: 10px;
-  background: rgba(var(--accent-rgb), 0.1);
-  color: var(--foreground);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 780;
-}
-
-.sessionSidebarList {
-  display: grid;
-  align-content: start;
-  gap: 6px;
-  min-height: 0;
-  overflow-y: auto;
-  padding-right: 2px;
-}
-
-.sessionSidebarItem {
-  display: grid;
-  gap: 5px;
-  padding: 7px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.025);
-}
-
-.sessionSidebarItem[data-active="true"] {
-  border-color: rgba(var(--accent-rgb), 0.32);
-  background: rgba(var(--accent-rgb), 0.08);
-}
-
-.sessionSidebarSelect {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-  padding: 0;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  text-align: left;
-}
-
-.sessionSidebarSelect strong,
-.sessionSidebarSelect span,
-.sessionSidebarSelect small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.sessionSidebarSelect strong { color: var(--foreground); font-size: 12px; }
-.sessionSidebarSelect span { color: var(--muted-strong); font-size: 11px; }
-.sessionSidebarSelect small { color: var(--muted); font-size: 10px; }
-
-.sessionSidebarActions,
-.sessionSidebarItem form {
-  display: flex;
-  gap: 5px;
-}
-
-.sessionSidebarActions button,
-.sessionSidebarItem form button {
-  min-height: 25px;
-  padding: 0 6px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--muted-strong);
-  cursor: pointer;
-  font-size: 10px;
-  font-weight: 720;
-}
-
-.sessionSidebarItem form { display: grid; grid-template-columns: 1fr auto auto; }
-
-.sessionSidebarItem form input {
-  min-width: 0;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--surface-1);
-  color: var(--foreground);
-  font-size: 11px;
-  padding: 4px 6px;
-}
-
-.sessionSidebarBoundary {
-  margin: 0;
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 1.4;
-}
-
-@media (max-width: 760px) {
-  .sessionSidebar { display: none; }
-}
 
 .workstation[data-density="compact"] .mainColumn,
 .workstation[data-density="compact"] .sessionPanel,
@@ -12265,7 +10215,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   padding: 14px;
 }
 
-.workstation[data-density="compact"] .message,
 .workstation[data-density="compact"] .overviewTile,
 .workstation[data-density="compact"] .workflowSummaryCard,
 .workstation[data-density="compact"] .workflowTraceCard,
@@ -12282,23 +10231,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 
 .workstation[data-density="compact"] .retrievalChunk {
   padding: 9px;
-}
-
-.workstation[data-density="compact"] .composerInputFrame {
-  min-height: 50px;
-}
-
-.workstation[data-density="compact"] .inspectorHeader {
-  padding: 13px 13px 10px;
-}
-
-.workstation[data-density="compact"] .inspectorTabs {
-  gap: 4px;
-  padding: 0 10px 10px;
-}
-
-.workstation[data-density="compact"] .inspectorTabs button {
-  min-height: 52px;
 }
 
 @keyframes pulseNode {
@@ -12390,8 +10322,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
     display: none;
   }
 
-  .mainColumn,
-  .inspector {
+  .mainColumn {
     grid-column: 1;
     max-height: none;
   }
@@ -12401,32 +10332,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
     padding-right: 0;
   }
 
-  .inspector {
-    position: static;
-    inset: auto;
-    grid-row: 2;
-    width: auto;
-    max-width: none;
-  }
-
-  .inspector[data-state="collapsed"] {
-    min-height: 54px;
-    max-height: 54px;
-    border-radius: 16px;
-  }
-
-  .inspector[data-state="collapsed"] .inspectorRail {
-    grid-template-columns: auto 1fr auto;
-    align-content: center;
-    align-items: center;
-    justify-items: start;
-  }
-
-  .inspector[data-state="collapsed"] .inspectorRail strong,
-  .inspector[data-state="collapsed"] .inspectorRail span {
-    writing-mode: initial;
-    transform: none;
-  }
 }
 
 /* Desktop rails keep their columns at every desktop width; only phones stack them. */
@@ -12459,8 +10364,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 
   .inspectorResizeHandle { display: block; }
 
-  .mainColumn,
-  .inspector {
+  .mainColumn {
     grid-column: auto;
     max-height: calc(100vh - 84px);
   }
@@ -12470,30 +10374,11 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
     padding-right: 0;
   }
 
-  .inspector {
-    position: static;
-    inset: auto;
-    grid-row: auto;
-    width: auto;
-    max-width: none;
-  }
 }
 
 @media (max-width: 980px) {
   .sessionHeader p {
     white-space: normal;
-  }
-
-  .emptyWorkspaceValue {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .demoModeBody {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .demoScenarioList {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
   }
 
   .previewUserFallbackCard {
@@ -12532,22 +10417,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
     width: 100%;
   }
 
-  .utilityPanel,
-  .utilityPanel--settings,
-  .utilityPanel--kb {
-    right: auto;
-    left: 0;
-    width: min(100vw - 24px, 360px);
-  }
-
-  .utilityPanel--kb {
-    top: 132px;
-    right: 12px;
-    left: 12px;
-    width: auto;
-    max-height: calc(100vh - 148px);
-  }
-
   .workspaceLayout {
     gap: 12px;
     padding: 10px;
@@ -12567,7 +10436,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   .previewInspectorHero,
   .runtimeConsoleHero,
   .previewBody,
-  .inspectorHeader,
   .previewSurfacePanelHeader,
   .artifactRefinementCard > header,
   .artifactParameterHeader,
@@ -12605,42 +10473,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   .sessionMetric {
     width: 100%;
     min-width: 0;
-  }
-
-  .emptyWorkspace {
-    padding: 18px;
-  }
-
-  .emptyWorkspaceValue {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .demoModeHeader,
-  .demoScenarioDetail header {
-    display: grid;
-  }
-
-  .demoModeBody,
-  .demoLiveSequence,
-  .demoScenarioQuickFacts,
-  .demoScenarioMeta {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .emptyWorkspaceGrid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .composerInputFrame {
-    min-height: 48px;
-  }
-
-  .sendButton {
-    width: 36px;
-  }
-
-  .inspectorTabs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .workflowSummaryGrid,
@@ -12708,10 +10540,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   }
 
   .retrievalSourceRowMeta {
-    justify-content: flex-start;
-  }
-
-  .previewToolbarActions {
     justify-content: flex-start;
   }
 
@@ -13610,8 +11438,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   line-height: 1;
 }
 
-.productDashboardContentHeader > button,
-.inspectorDashboardButton {
+.productDashboardContentHeader > button {
   min-height: 34px;
   padding: 0 10px;
   border: 1px solid var(--line);
@@ -13623,8 +11450,7 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   font-weight: 720;
 }
 
-.productDashboardContentHeader > button:hover,
-.inspectorDashboardButton:hover {
+.productDashboardContentHeader > button:hover {
   border-color: rgba(var(--accent-rgb), 0.38);
   color: var(--foreground);
 }
@@ -13783,96 +11609,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   background: rgba(var(--accent-rgb), 0.055);
 }
 
-.inspectorHeaderActions {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 6px;
-}
-
-.inspectorDashboardButton {
-  min-height: 30px;
-  padding: 0 8px;
-  font-size: 10px;
-}
-
-.inspectorTabs {
-  display: flex;
-  align-items: stretch;
-  gap: 7px;
-  overflow-x: auto;
-  padding: 10px 12px;
-  scrollbar-width: thin;
-}
-
-.inspectorTabs > button {
-  width: auto;
-  min-width: 108px;
-  min-height: 42px;
-  flex: 0 0 auto;
-  padding: 8px 24px 8px 8px;
-}
-
-.inspectorTabs .inspectorTabAdd {
-  position: relative;
-  flex: 0 0 auto;
-}
-
-.inspectorTabs .inspectorAddButton {
-  display: grid;
-  width: 42px;
-  min-width: 42px;
-  height: 42px;
-  min-height: 42px;
-  place-items: center;
-  padding: 0;
-  border-radius: 12px;
-}
-
-.inspectorAddMenu {
-  position: absolute;
-  z-index: 12;
-  bottom: calc(100% + 7px);
-  right: 0;
-  display: grid;
-  width: min(250px, 72vw);
-  max-height: 300px;
-  gap: 3px;
-  overflow-y: auto;
-  padding: 6px;
-  border: 1px solid var(--line-strong);
-  border-radius: 12px;
-  background: var(--panel-strong);
-  box-shadow: var(--shadow);
-}
-
-.inspectorTabs .inspectorAddMenu button {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  min-height: 34px;
-  padding: 7px 9px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--muted-strong);
-  font-size: 11px;
-  font-weight: 650;
-  text-align: left;
-}
-
-.inspectorTabs .inspectorAddMenu button:hover {
-  background: rgba(var(--accent-rgb), 0.12);
-  color: var(--foreground);
-  transform: none;
-}
-
-.inspectorAddMenu span {
-  padding: 8px;
-  color: var(--muted);
-  font-size: 11px;
-}
-
 .productIntelligenceInspector {
   overflow-y: auto;
   padding: 0;
@@ -13940,285 +11676,8 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   display: none;
 }
 
-.inspectorDisclosure {
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.025);
-}
-
-.inspectorDisclosure > summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 11px 12px;
-  cursor: pointer;
-  list-style: none;
-}
-
-.inspectorDisclosure > summary::-webkit-details-marker {
-  display: none;
-}
-
-.inspectorDisclosure > summary div {
-  display: grid;
-  min-width: 0;
-  gap: 3px;
-}
-
-.inspectorDisclosure > summary span {
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.inspectorDisclosure > summary strong {
-  overflow: hidden;
-  font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.inspectorDisclosure[open] > summary {
-  border-bottom: 1px solid var(--line);
-  background: rgba(var(--accent-rgb), 0.055);
-}
-
-.telemetryEvidenceDisclosure > .telemetryDashboardGrid {
-  padding: 10px;
-}
-
-.telemetryEventDisclosure > .telemetryDashboardCard,
-.inspectorDisclosureBoundary {
-  margin: 10px;
-}
-
-.runtimeConsolePanel [aria-label="Semantic runtime outcome"],
-.runtimeConsolePanel .runtimeConsoleHealth,
-.runtimeConsolePanel [aria-label="Runtime reload history"],
-.runtimeConsolePanel [aria-label="Runtime event history"],
 .runtimeConsoleHero > small {
   display: none;
-}
-
-.previewInspectorPanel:not(.previewInspectorPanel--user) .previewInspectorHero,
-.previewInspectorPanel:not(.previewInspectorPanel--user) [aria-label="Preview source metadata"] {
-  display: none;
-}
-
-/* Overview keeps live status, actions, and the selected output; deep diagnostics move to the Dashboard. */
-.overviewPanel .overviewSessionIntelligenceTile,
-.overviewPanel .overviewTelemetryTile,
-.overviewPanel .overviewTile[aria-label="Retrieval summary"],
-.overviewPanel .workstationDashboard {
-  display: none;
-}
-
-.composer {
-  display: grid;
-  gap: 0;
-  padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 62%),
-    rgba(255, 255, 255, 0.025);
-  box-shadow: var(--panel-highlight);
-  transition: border-color 180ms ease, box-shadow 180ms ease;
-}
-
-.composer:focus-within {
-  border-color: rgba(var(--accent-rgb), 0.48);
-  box-shadow:
-    0 0 0 3px rgba(var(--accent-rgb), 0.08),
-    var(--panel-highlight);
-}
-
-.composerInputFrame {
-  padding: 8px 10px 5px;
-  border: 0;
-  border-radius: 17px 17px 0 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.composerInputFrame:focus-within {
-  border-color: transparent;
-  box-shadow: none;
-}
-
-.composer textarea {
-  min-height: 62px;
-  padding: 9px 0;
-}
-
-.composerActions {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 8px;
-  min-height: 48px;
-  padding: 6px 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 0 0 17px 17px;
-  background: rgba(0, 0, 0, 0.08);
-}
-
-.workflowExecutionSelector {
-  flex: 0 0 auto;
-  margin: 0 0 0 auto;
-}
-
-.modelAvailabilityControl {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 5px;
-}
-
-.modelAvailabilityControl > span {
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 760;
-  white-space: nowrap;
-}
-
-.modelAvailabilityDisclosure {
-  position: relative;
-}
-
-.modelAvailabilityDisclosure > summary {
-  display: inline-flex;
-  min-height: 30px;
-  align-items: center;
-  padding: 0 9px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  color: var(--muted-strong);
-  cursor: pointer;
-  font-size: 10px;
-  font-weight: 760;
-  list-style: none;
-  white-space: nowrap;
-}
-
-.modelAvailabilityDisclosure > summary::-webkit-details-marker { display: none; }
-
-.modelAvailabilityDisclosure > summary::after {
-  content: "⌄";
-  margin-left: 6px;
-  color: var(--teal);
-}
-
-.modelAvailabilityDisclosure[open] > summary {
-  border-color: rgba(var(--accent-rgb), 0.34);
-  color: var(--foreground);
-}
-
-.modelAvailabilityDisclosure > summary[aria-disabled="true"] {
-  pointer-events: none;
-  opacity: 0.52;
-}
-
-.modelAvailabilityMenu {
-  position: absolute;
-  z-index: 22;
-  right: 0;
-  bottom: calc(100% + 8px);
-  display: grid;
-  width: 230px;
-  gap: 6px;
-  padding: 8px;
-  border: 1px solid var(--line-strong);
-  border-radius: 12px;
-  background: var(--panel-strong);
-  box-shadow: var(--shadow);
-}
-
-.modelAvailabilityGroup {
-  padding: 8px;
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.035);
-}
-
-.modelAvailabilityGroup summary,
-.modelAvailabilityMenu small {
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.modelAvailabilityGroup summary {
-  cursor: pointer;
-  list-style: none;
-}
-
-.modelAvailabilityGroup summary::-webkit-details-marker { display: none; }
-
-.modelAvailabilityGroup summary::after {
-  content: "⌄";
-  float: right;
-  color: var(--teal);
-}
-
-.modelAvailabilityGroup[open] summary::after { content: "⌃"; }
-
-.modelAvailabilityMenu p {
-  margin: 6px 0 0;
-  color: var(--muted-strong);
-  font-size: 11px;
-  line-height: 1.35;
-}
-
-.modelAvailabilityMenu p strong { color: var(--foreground); }
-.modelAvailabilityMenu p small { display: block; margin-top: 2px; color: var(--teal); }
-
-.sendButton {
-  position: static;
-  display: inline-flex;
-  width: auto;
-  min-width: 72px;
-  height: 34px;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 0 11px;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 760;
-}
-
-.sendButton span {
-  display: inline;
-}
-
-.creativityControl {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
-  gap: 5px;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 760;
-  white-space: nowrap;
-}
-
-.creativityControl svg { color: var(--teal); }
-
-.creativityControl select {
-  min-width: 0;
-  max-width: 110px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface-1);
-  color: var(--foreground);
-  cursor: pointer;
-  font-size: 10px;
-  font-weight: 720;
-  padding: 5px 20px 5px 7px;
 }
 
 .outputFeedback {
@@ -14376,27 +11835,6 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
     width: 100%;
   }
 
-  .inspectorHeaderActions {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .inspectorDashboardButton {
-    flex: 1 1 auto;
-  }
-
-  .composerActions {
-    flex-wrap: wrap;
-  }
-
-  .workflowExecutionSelector {
-    min-width: 0;
-  }
-
-  .sendButton {
-    margin-left: auto;
-  }
-
   .outputFeedback {
     grid-template-columns: minmax(0, 1fr) auto;
   }
@@ -14415,14 +11853,6 @@ html[data-cca-heading-font-size] .workstation h2 {
   font-size: var(--heading-section-size) !important;
 }
 
-html[data-cca-heading-font-size] .workstation .emptyWorkspace .emptyWorkspaceHero > strong {
-  max-width: 14ch;
-  font-size: var(--hero-heading-size) !important;
-  font-weight: 800;
-  letter-spacing: -0.06em;
-  line-height: 0.92;
-}
-
 html[data-cca-heading-font-size] .workstation :is(
   h3,
   h4,
@@ -14430,9 +11860,7 @@ html[data-cca-heading-font-size] .workstation :is(
   h6,
   header > strong,
   header > div > strong,
-  .emptyWorkspaceHero > strong,
   .operatorCheckpointHeader strong,
-  .utilityPanelHeader > strong,
   .settingsSectionHeader > strong
 ) {
   font-size: var(--heading-card-size) !important;
@@ -14959,74 +12387,6 @@ html[data-cca-heading-font-size] .workstation .dashboardNavSection > h2 {
   scroll-margin-top: 68px;
 }
 
-.userGuideJourney {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 9px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.userGuideJourney li {
-  position: relative;
-  display: grid;
-  min-width: 0;
-  min-height: 170px;
-  grid-template-columns: auto 1fr;
-  align-content: start;
-  align-items: center;
-  gap: 8px;
-  padding: 15px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.025);
-}
-
-.userGuideJourney li > svg:not(.userGuideJourneyArrow) {
-  color: var(--teal);
-}
-
-.userGuideStepNumber {
-  display: grid;
-  width: 24px;
-  height: 24px;
-  place-items: center;
-  border-radius: 999px;
-  color: var(--surface-0);
-  background: var(--teal);
-  font-size: 10px;
-  font-weight: 900;
-}
-
-.productDashboardManual.userGuide .userGuideJourney strong {
-  grid-column: 1 / -1;
-  margin: 5px 0 0;
-  color: var(--foreground);
-  font-size: 14px;
-  line-height: 1.25;
-}
-
-.productDashboardManual.userGuide .userGuideJourney p {
-  grid-column: 1 / -1;
-  margin: 0;
-  color: var(--muted-strong);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.userGuideJourneyArrow {
-  position: absolute;
-  z-index: 2;
-  top: 50%;
-  right: -14px;
-  padding: 2px;
-  border-radius: 50%;
-  color: var(--muted);
-  background: var(--surface-2);
-  transform: translateY(-50%);
-}
-
 .dashboardCallout {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -15325,14 +12685,6 @@ html[data-cca-heading-font-size] .workstation .dashboardNavSection > h2 {
 }
 
 @media (max-width: 1120px) {
-  .userGuideJourney {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .userGuideJourneyArrow {
-    display: none;
-  }
-
   .userGuideCompactSteps {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -15348,15 +12700,10 @@ html[data-cca-heading-font-size] .workstation .dashboardNavSection > h2 {
     padding: 12px;
   }
 
-  .userGuideJourney,
   .userGuideCompactSteps,
   .userGuideCompactSteps--four,
   .userGuideTroubleshooting {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .userGuideJourney li {
-    min-height: 0;
   }
 
   .userGuideKnowledgeFlow {
@@ -15375,155 +12722,10 @@ html[data-cca-heading-font-size] .workstation .dashboardNavSection > h2 {
   }
 }
 
-/* Composer controls use a deliberately compact reading measure inside the wider workspace. */
-.workstation .sessionPanel > .composer {
-  width: min(100%, 1120px) !important;
-  justify-self: center;
-}
-
-.workstation .composerInputFrame {
-  padding: 16px 18px 10px !important;
-}
-
-.workstation .composer textarea {
-  min-height: 96px !important;
-  font-size: clamp(15px, var(--body-copy-size), 18px) !important;
-  line-height: 1.55;
-}
-
-html[data-cca-label-font-size] .workstation .sessionPanel > .composer textarea {
-  font-size: clamp(15px, var(--body-copy-size), 18px) !important;
-}
-
-.workstation .composer textarea::placeholder {
-  color: var(--muted-strong);
-  font-size: inherit;
-  opacity: 1;
-}
-
-.workstation .composerActions {
-  display: grid !important;
-  grid-template-columns: minmax(36px, 1fr) auto minmax(77px, 1fr) !important;
-  gap: 16px !important;
-  min-height: 60px !important;
-  padding: 10px 14px !important;
-}
-
-.workstation .composerControlGroup {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  justify-content: center;
-  justify-self: center;
-  gap: clamp(20px, 2vw, 28px);
-}
-
-.workstation .composerControlGroup > :is(.workflowExecutionSelector, .modelAvailabilityControl) {
-  padding-right: 0;
-  border-right: 0;
-}
-
-.workstation .composerControlGroup .workflowExecutionSelector {
-  margin: 0;
-}
-
-.workstation .composerControlGroup :is(
-  .workflowExecutionSelector,
-  .modelAvailabilityControl,
-  .creativityControl
-) {
-  font-size: var(--label-font-size);
-}
-
-.workstation .composerControlGroup .modelAvailabilityControl > span {
-  font-size: var(--label-font-size);
-}
-
-.workstation .composerControlGroup :is(
-  .workflowExecutionSelector select,
-  .modelAvailabilityDisclosure > summary,
-  .creativityControl select
-) {
-  min-height: 34px;
-  border-radius: 10px;
-}
-
-.workstation .composerAttach {
-  justify-self: start;
-}
-
-.workstation .sendButton {
-  justify-self: end;
-}
-
 html[data-cca-heading-font-size] .workstation header.topbar .sessionStatus strong,
 .workstation header.topbar .sessionStatus strong {
   font-size: calc(var(--label-font-size) - 1px) !important;
   font-weight: 700;
-}
-
-.modelAvailabilitySelected {
-  display: grid;
-  gap: 2px;
-  padding: 10px;
-  border: 1px solid rgba(var(--accent-rgb), 0.28);
-  border-radius: 9px;
-  background: rgba(var(--accent-rgb), 0.07);
-}
-
-.modelAvailabilitySelected > span {
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.modelAvailabilitySelected > strong {
-  color: var(--foreground);
-  font-size: 13px;
-}
-
-.modelAvailabilitySelected > small {
-  color: var(--teal);
-}
-
-@media (max-width: 900px) {
-  .workstation .sessionPanel > .composer {
-    max-width: none;
-  }
-
-  .workstation .composerActions {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: 10px;
-  }
-
-  .workstation .composerControlGroup {
-    justify-content: flex-end;
-    gap: 12px;
-  }
-
-  .workstation .composerControlGroup > :is(.workflowExecutionSelector, .modelAvailabilityControl) {
-    padding-right: 0;
-  }
-}
-
-@media (max-width: 640px) {
-  .workstation .composerActions {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .workstation .composerControlGroup {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    flex-wrap: wrap;
-    justify-self: stretch;
-    justify-content: space-between;
-  }
-
-  .workstation .sendButton {
-    justify-self: end;
-  }
 }
 
 /* Session typography controls apply consistently to semantic text categories. */
@@ -15538,7 +12740,6 @@ html[data-cca-heading-font-size] h2 {
 html[data-cca-heading-font-size] :is(h3, h4, h5, h6),
 html[data-cca-heading-font-size] .productDashboardNav header strong,
 html[data-cca-heading-font-size] .productDashboardManual > article > header > div > strong,
-html[data-cca-heading-font-size] .utilityPanelHeader > strong,
 html[data-cca-heading-font-size] .settingsSectionHeader > strong {
   font-size: var(--heading-card-size) !important;
 }
@@ -15608,198 +12809,12 @@ html[data-cca-label-font-size] .workstation :is(
   }
 }
 
-.homepageDomains {
-  min-width: 0;
-}
-
-.homepageDomains > header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.homepageDomains > header > span,
-.homepageDomainGroups > section > span {
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 820;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.homepageDomains > header > small {
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 1.35;
-  text-align: right;
-}
-
-.homepageDomainGroups {
-  display: grid;
-  gap: 10px;
-}
-
-.homepageDomainGroups > section {
-  display: grid;
-  gap: 6px;
-}
-
-.homepageDomainGroups > section > div {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
-  gap: 7px;
-}
-
-.homepageDomainGroups article {
-  display: grid;
-  gap: 5px;
-  min-width: 0;
-  padding: 9px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.homepageDomainGroups article > div {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 6px;
-}
-
-.homepageDomainGroups article strong {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--foreground);
-  font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.homepageDomainGroups article small {
-  flex: 0 0 auto;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  font-size: 9px;
-  line-height: 1.2;
-}
-
-.homepageDomainGroups article p {
-  margin: 0;
-  color: var(--muted-strong);
-  font-size: 10px;
-  line-height: 1.35;
-}
-
-.homepageDomainGroups article[data-kind="live"] { border-color: rgba(121, 211, 139, 0.25); }
-.homepageDomainGroups article[data-kind="audio"] { border-color: rgba(var(--accent-rgb), 0.25); }
-.homepageDomainGroups article[data-kind="export"] { border-color: rgba(243, 184, 82, 0.22); }
-.homepageDomainGroups article[data-kind="handoff"] { border-color: rgba(173, 123, 249, 0.25); }
-
-.emptyWorkspaceGrid {
-  grid-template-columns: minmax(0, 1.45fr) minmax(240px, 0.85fr);
-}
-
-.emptyWorkspaceGrid .homepageDomains {
-  align-content: start;
-}
-
-.emptyWorkspaceGrid > section[aria-label="Ways to work"] > div {
-  align-content: start;
-  align-items: flex-start;
-}
-
-.emptyWorkspaceGrid > section[aria-label="Ways to work"] small {
-  align-self: flex-start;
-  height: auto;
-  line-height: 1.3;
-}
-
 .overviewPanel .overviewTile[aria-label="Preview summary"],
 .overviewPanel .overviewSessionIntelligenceTile,
 .overviewPanel .overviewTelemetryTile,
 .overviewPanel .overviewTile[aria-label="Retrieval summary"],
 .overviewPanel .workstationDashboard {
   display: none;
-}
-
-.inspectorTabItem {
-  position: relative;
-  display: grid;
-  flex: 0 0 auto;
-}
-
-.inspectorTabs .inspectorTabItem > [role="tab"] {
-  width: auto;
-  min-width: 108px;
-  min-height: 42px;
-  padding: 8px 28px 8px 8px;
-}
-
-.inspectorTabs .inspectorTabClose {
-  position: absolute;
-  z-index: 2;
-  top: 7px;
-  right: 7px;
-  display: grid;
-  grid-template-columns: none;
-  width: 17px;
-  min-width: 17px;
-  height: 17px;
-  min-height: 17px;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--muted);
-}
-
-.inspectorTabs .inspectorTabClose::after {
-  display: none;
-}
-
-.inspectorTabClose:hover,
-.inspectorTabClose:focus-visible {
-  background: rgba(255, 122, 102, 0.2);
-  color: var(--foreground);
-  transform: none;
-}
-
-.previewBody {
-  position: relative;
-}
-
-.previewArtworkControls {
-  position: absolute;
-  z-index: 5;
-  top: 12px;
-  right: 12px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 6px;
-  max-width: min(440px, calc(100% - 24px));
-  padding: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 14px;
-  background: rgba(20, 23, 28, 0.54);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
-  backdrop-filter: blur(14px) saturate(135%);
-}
-
-.previewArtworkControls .previewControlButton {
-  height: 30px;
-  padding: 0 8px;
-  border-color: rgba(255, 255, 255, 0.15);
-  background: rgba(10, 12, 16, 0.46);
-}
-
-.previewArtworkControls .previewControlLabel {
-  font-size: 9px;
 }
 
 .productDashboard {
@@ -16773,28 +13788,8 @@ html[data-cca-label-font-size] .workstation :is(
     overflow-x: hidden;
   }
 
-  .emptyWorkspaceGrid,
   .overviewPanel .miniWorkflow {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .homepageDomains > header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .homepageDomains > header > small {
-    text-align: left;
-  }
-
-  .previewArtworkControls {
-    top: 8px;
-    right: 8px;
-    max-width: calc(100% - 16px);
-  }
-
-  .previewArtworkControls .previewControlLabel {
-    display: none;
   }
 
   .productDashboard {
@@ -17234,7 +14229,7 @@ html[data-cca-label-font-size] .workstation :is(
   text-transform: uppercase;
 }
 
-.dashboardPageHeroCopy h2 {
+.dashboardPageHeroCopy :is(h1, h2) {
   max-width: 780px;
   margin: 6px 0 0;
   color: var(--foreground);
@@ -18183,21 +15178,15 @@ html[data-cca-label-font-size] .workstation :is(
 }
 
 .workstationSurface,
-.workstation .sessionSidebar:not(.sessionSidebar--collapsed),
 .workstation .sessionPanel,
-.workstation .previewShelf,
-.workstation .inspector,
-.workstation .demoModePanel,
-.workstation .utilityPanel {
+.workstation .previewShelf {
   border-color: var(--line);
   border-radius: var(--workstation-panel-radius);
   background: var(--workstation-panel-surface);
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18), var(--panel-highlight);
 }
 
-.workstation .sessionSidebar:not(.sessionSidebar--collapsed),
-.workstation .sessionPanel,
-.workstation .demoModePanel {
+.workstation .sessionPanel {
   gap: 16px;
   padding: var(--workstation-panel-padding);
 }
@@ -18205,20 +15194,12 @@ html[data-cca-label-font-size] .workstation :is(
 .workstationCard,
 .workstation :is(
   .sessionMetric,
-  .sessionSidebarItem,
-  .emptyWorkspaceValue article,
-  .emptyWorkspaceSuggestions button,
-  .emptyWorkspaceGrid section,
   .overviewTile,
   .workflowSummaryCard,
   .workflowTraceCard,
   .artifactItem,
   .retrievalItem,
   .loopHint,
-  .demoScenarioButton,
-  .demoScenarioDetail,
-  .demoScenarioQuickFacts div,
-  .demoLiveSequence button,
   .workstationDashboardCard
 ) {
   border-color: var(--line);
@@ -18229,48 +15210,23 @@ html[data-cca-label-font-size] .workstation :is(
 
 .workstation :is(
   .sessionMetric,
-  .emptyWorkspaceValue article,
-  .emptyWorkspaceSuggestions button,
-  .emptyWorkspaceGrid section,
   .overviewTile,
   .workflowSummaryCard,
   .workflowTraceCard,
   .artifactItem,
   .retrievalItem,
   .loopHint,
-  .demoScenarioButton,
-  .demoScenarioDetail,
-  .demoScenarioQuickFacts div,
-  .demoLiveSequence button,
   .workstationDashboardCard
 ) {
   padding: var(--workstation-card-padding);
 }
 
-.workstation .sessionSidebarItem {
-  gap: 7px;
-  padding: 12px;
-}
-
-.workstation .sessionSidebarItem[data-active="true"] {
-  border-color: rgba(var(--accent-rgb), 0.42);
-  background: rgba(var(--accent-rgb), 0.1);
-}
-
-.workstation .sessionSidebar > header strong,
 .workstation :is(
   .brandText strong,
-  .sessionSidebarSelect strong,
   .sessionMetric strong,
   .overviewTile strong,
   .workflowSummaryCard strong,
-  .workflowTraceCard header strong,
-  .demoScenarioButton strong,
-  .demoScenarioDetail header strong,
-  .emptyWorkspaceHero > strong,
-  .emptyWorkspaceValue strong,
-  .emptyWorkspaceSuggestions button strong,
-  .emptyWorkspaceGrid section strong
+  .workflowTraceCard header strong
 ) {
   font-size: var(--heading-card-size) !important;
   line-height: 1.3;
@@ -18278,19 +15234,11 @@ html[data-cca-label-font-size] .workstation :is(
 
 .workstation :is(
   .brandText span,
-  .sessionSidebarSelect span,
-  .sessionSidebarBoundary,
   .sessionMetric span,
   .sessionMetric small,
   .overviewTile span,
   .workflowSummaryCard span,
-  .workflowTraceCard header span,
-  .demoScenarioButton span,
-  .demoScenarioButton small,
-  .demoScenarioQuickFacts dt,
-  .emptyWorkspaceValue span,
-  .emptyWorkspaceSuggestions button small,
-  .emptyWorkspaceGrid section > span
+  .workflowTraceCard header span
 ) {
   font-size: var(--label-font-size) !important;
 }
@@ -18305,72 +15253,6 @@ html[data-cca-label-font-size] .workstation :is(
   max-width: 76ch;
   margin-top: 10px;
   white-space: normal;
-}
-
-.workstation .emptyWorkspace {
-  gap: 18px;
-  padding: 22px;
-  border-color: var(--line);
-  border-radius: var(--workstation-panel-radius);
-  background: var(--workstation-panel-surface);
-}
-
-.workstation .emptyWorkspaceHero > strong,
-.workstation .demoModeHeader strong {
-  font-size: var(--heading-section-size) !important;
-  line-height: 1.18;
-}
-
-.workstation .demoModeBody {
-  gap: 16px;
-}
-
-.workstation .demoScenarioButton {
-  min-height: 88px;
-}
-
-.workstation .composer {
-  border-color: var(--line-strong);
-  border-radius: var(--workstation-panel-radius);
-  background: var(--workstation-panel-surface);
-  box-shadow: var(--panel-highlight);
-}
-
-.workstation .composerInputFrame {
-  padding: 14px 16px 8px;
-}
-
-.workstation .composer textarea {
-  min-height: 88px;
-  font-size: var(--body-copy-size);
-  line-height: 1.5;
-}
-
-.workstation .composerActions {
-  min-height: 54px;
-  padding: 8px 12px;
-  border-top-color: var(--section-divider);
-  background: var(--surface-2);
-}
-
-.workstation .inspectorHeader {
-  padding: 18px 18px 16px;
-}
-
-.workstation .inspectorTabs {
-  gap: 9px;
-  padding: 14px 16px;
-}
-
-.workstation .inspectorTabs button {
-  min-height: 58px;
-  border-radius: var(--workstation-card-radius);
-  background: var(--workstation-card-surface);
-  box-shadow: none;
-}
-
-.workstation .inspectorPanel {
-  padding: 18px;
 }
 
 @media (min-width: 761px) {
@@ -18390,14 +15272,6 @@ html[data-cca-heading-font-size] .workstation h2 {
   font-size: var(--heading-section-size) !important;
 }
 
-html[data-cca-heading-font-size] .workstation .emptyWorkspaceHero > strong {
-  max-width: 14ch;
-  font-size: var(--hero-heading-size) !important;
-  font-weight: 800;
-  letter-spacing: -0.06em;
-  line-height: 0.92;
-}
-
 html[data-cca-heading-font-size] .workstation :is(
   h3,
   h4,
@@ -18405,9 +15279,7 @@ html[data-cca-heading-font-size] .workstation :is(
   h6,
   header > strong,
   header > div > strong,
-  .emptyWorkspaceHero > strong,
   .operatorCheckpointHeader strong,
-  .utilityPanelHeader > strong,
   .settingsSectionHeader > strong
 ) {
   font-size: var(--heading-card-size) !important;

@@ -1,12 +1,19 @@
 /*
- * Canonical Dashboard Design System
- * ---------------------------------
- * User Guide is the visual reference; every Dashboard page enters through
- * DashboardPage and consumes these shared primitives. Page-specific styles
- * should describe only unique data visualizations, never generic surfaces.
+ * Canonical Application Design System
+ * -----------------------------------
+ * User Guide remains the visual reference. Dashboard and workstation surfaces
+ * consume the same tokens and primitives; surface-specific styles should only
+ * describe unique data or interactions, never recreate generic UI patterns.
  */
 
-.productDashboard {
+:root {
+  --application-layer-sticky: 20;
+  --application-layer-popover: 40;
+  --application-layer-dialog: 70;
+  --application-layer-modal: 110;
+}
+
+:is(.productDashboard, .workstation) {
   --dashboard-space-1: 6px;
   --dashboard-space-2: 10px;
   --dashboard-space-3: 14px;
@@ -16,13 +23,24 @@
   --dashboard-radius-card: 14px;
   --dashboard-radius-section: 18px;
   --dashboard-radius-hero: 20px;
+  --dashboard-radius-pill: 999px;
   --dashboard-border: var(--line);
   --dashboard-border-strong: color-mix(in srgb, var(--teal) 32%, var(--line));
   --dashboard-surface-card: color-mix(in srgb, var(--surface-2) 92%, transparent);
   --dashboard-surface-inset: color-mix(in srgb, var(--surface-1) 78%, transparent);
   --dashboard-surface-accent: color-mix(in srgb, var(--teal) 7%, var(--surface-2));
+  --dashboard-surface-floating: var(--panel-strong);
   --dashboard-shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   --dashboard-reading-width: 1480px;
+  --dashboard-card-radius: 18px;
+  --dashboard-section-radius: 18px;
+  --dashboard-inner-card-radius: 14px;
+  --dashboard-section-background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.035), transparent 44%),
+    color-mix(in srgb, var(--surface-2) 94%, transparent);
+  --dashboard-inner-card-background: rgba(255, 255, 255, 0.024);
+  --dashboard-panel-background: var(--dashboard-section-background);
+  --dashboard-section-padding: 18px;
 }
 
 .dashboardPage {
@@ -47,6 +65,59 @@
 .dashboardVisualSection:focus-within,
 .dashboardInnerCard:focus-within {
   border-color: color-mix(in srgb, var(--teal) 42%, var(--line));
+}
+
+.dashboardSidebarHeader {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 11px;
+}
+
+.dashboardSidebarHeaderIcon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid rgba(var(--accent-rgb), 0.22);
+  border-radius: 11px;
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.07);
+}
+
+.dashboardSidebarHeaderCopy {
+  min-width: 0;
+}
+
+.dashboardSidebarHeaderCopy > span {
+  display: block;
+  margin: 0 0 4px;
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dashboardSidebarHeaderCopy > :is(strong, h2) {
+  display: block;
+  margin: 0;
+  color: var(--foreground);
+  font-size: 17px;
+  letter-spacing: -0.025em;
+  line-height: 1.18;
+}
+
+.dashboardSidebarHeaderCopy > p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.dashboardSidebarHeaderAction {
+  align-self: start;
 }
 
 .dashboardTabs {
@@ -98,6 +169,10 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.dashboardCardGrid[data-layout="quad"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .dashboardInfoCard {
   display: grid;
   min-width: 0;
@@ -128,6 +203,383 @@
   color: var(--muted-strong);
   font-size: 12px;
   line-height: 1.48;
+}
+
+.dashboardActionCard {
+  display: grid;
+  min-width: 0;
+  min-height: 168px;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-content: start;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 16px;
+  color: var(--teal);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.dashboardActionCardIcon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid rgba(var(--accent-rgb), 0.24);
+  border-radius: 10px;
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.075);
+}
+
+.dashboardActionCardBadge {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 820;
+  letter-spacing: 0.07em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dashboardActionCardTitle,
+.dashboardActionCardDetail,
+.dashboardActionCardCue {
+  grid-column: 1 / -1;
+}
+
+.dashboardActionCardTitle {
+  color: var(--foreground);
+  font-size: 15px;
+  font-weight: 780;
+  line-height: 1.25;
+}
+
+.dashboardActionCardDetail {
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.dashboardActionCardCue {
+  align-self: end;
+  margin-top: auto;
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 780;
+}
+
+.dashboardActionCard:hover {
+  border-color: color-mix(in srgb, var(--teal) 46%, var(--dashboard-border));
+  background: color-mix(in srgb, var(--teal) 7%, var(--dashboard-surface-inset));
+  transform: translateY(-1px);
+}
+
+.dashboardActionCard:focus-visible {
+  border-color: color-mix(in srgb, var(--teal) 52%, var(--dashboard-border));
+  background: color-mix(in srgb, var(--teal) 7%, var(--dashboard-surface-inset));
+  outline: 2px solid color-mix(in srgb, var(--teal) 72%, transparent);
+  outline-offset: 2px;
+  transform: translateY(-1px);
+}
+
+.dashboardChoiceCard {
+  display: grid;
+  min-width: 0;
+  min-height: 88px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-content: start;
+  align-items: center;
+  gap: 5px 9px;
+  padding: 13px;
+  color: var(--muted-strong);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.dashboardChoiceCardIcon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  grid-row: 1 / span 2;
+  place-items: center;
+  border: 1px solid rgba(var(--accent-rgb), 0.22);
+  border-radius: 10px;
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.07);
+}
+
+.dashboardChoiceCardEyebrow,
+.dashboardChoiceCardState {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 820;
+  letter-spacing: 0.075em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.dashboardChoiceCardState {
+  justify-self: end;
+}
+
+.dashboardChoiceCardTitle,
+.dashboardChoiceCardDetail {
+  grid-column: 2 / -1;
+}
+
+.dashboardChoiceCardTitle {
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 780;
+  line-height: 1.3;
+}
+
+.dashboardChoiceCardDetail {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--muted-strong);
+  font-size: 10px;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.dashboardChoiceCard:hover {
+  border-color: color-mix(in srgb, var(--teal) 42%, var(--dashboard-border));
+  background: color-mix(in srgb, var(--teal) 6%, var(--dashboard-surface-inset));
+  transform: translateY(-1px);
+}
+
+.dashboardChoiceCard:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--teal) 72%, transparent);
+  outline-offset: 2px;
+}
+
+.dashboardChoiceCard[data-selected="true"] {
+  border-color: color-mix(in srgb, var(--teal) 48%, var(--dashboard-border));
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), transparent 74%),
+    var(--dashboard-surface-inset);
+}
+
+.dashboardChoiceCard[data-selected="true"] .dashboardChoiceCardState {
+  color: var(--teal);
+}
+
+.dashboardDefinitionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--dashboard-space-2);
+  margin: 0;
+}
+
+.dashboardDefinitionGrid[data-layout="compact"] {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.dashboardDefinitionGrid[data-layout="wide"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.dashboardDefinitionCard {
+  display: grid;
+  min-width: 0;
+  min-height: 96px;
+  align-content: start;
+  gap: 7px;
+  padding: 13px;
+}
+
+.dashboardDefinitionCard dt {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.dashboardDefinitionCard dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--foreground);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.dashboardPrimaryAction {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid color-mix(in srgb, var(--teal) 46%, var(--dashboard-border));
+  border-radius: 999px;
+  color: var(--foreground);
+  background: rgba(var(--accent-rgb), 0.12);
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 830;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dashboardPrimaryAction:hover {
+  border-color: color-mix(in srgb, var(--teal) 68%, var(--dashboard-border));
+  background: rgba(var(--accent-rgb), 0.18);
+}
+
+.dashboardPrimaryAction:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--teal) 72%, transparent);
+  outline-offset: 2px;
+}
+
+.dashboardPrimaryAction:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.dashboardSecondaryAction {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-control);
+  color: var(--muted-strong);
+  background: var(--dashboard-surface-inset);
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 780;
+  white-space: nowrap;
+}
+
+.dashboardSecondaryAction:hover {
+  border-color: var(--dashboard-border-strong);
+  color: var(--foreground);
+  background: var(--dashboard-surface-accent);
+}
+
+.dashboardSecondaryAction:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--teal) 72%, transparent);
+  outline-offset: 2px;
+}
+
+.dashboardProcessRail {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--dashboard-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dashboardProcessRail > li {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-content: start;
+  gap: 9px;
+  padding: 12px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-control);
+  background: var(--dashboard-surface-inset);
+}
+
+.dashboardProcessRailMarker {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--surface-0);
+  background: var(--teal);
+  font-size: 10px;
+  font-weight: 880;
+}
+
+.dashboardProcessRailCopy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.dashboardProcessRail strong {
+  color: var(--foreground);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.dashboardProcessRail small {
+  color: var(--muted-strong);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.dashboardProcessRailIcon {
+  color: var(--teal);
+}
+
+.dashboardProcessRail[data-variant="journey"] {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.dashboardProcessRail[data-variant="journey"] > li {
+  position: relative;
+  min-height: 170px;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  padding: 15px;
+}
+
+.dashboardProcessRail[data-variant="journey"] .dashboardProcessRailCopy {
+  grid-column: 1 / -1;
+  align-self: start;
+  gap: 7px;
+  margin-top: 5px;
+}
+
+.dashboardProcessRail[data-variant="journey"] strong {
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.dashboardProcessRail[data-variant="journey"] small {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.dashboardProcessRailConnector {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  right: -14px;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: var(--surface-2);
+  font-size: 20px;
+  line-height: 1;
+  transform: translateY(-50%);
 }
 
 .dashboardDisclosure {
@@ -838,9 +1290,3332 @@
   color: var(--coral);
 }
 
+/* The session rail shares the User Guide sidebar hierarchy while keeping its
+ * record-management interactions compact and independently scrollable. */
+.workstation .sessionSidebar {
+  container-name: session-sidebar;
+  container-type: inline-size;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  align-self: stretch;
+  gap: var(--dashboard-space-3);
+  padding: var(--dashboard-space-3);
+  overflow: hidden;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-section);
+  background:
+    linear-gradient(180deg, rgba(var(--accent-rgb), 0.035), transparent 34%),
+    var(--dashboard-surface-card);
+  box-shadow: var(--dashboard-shadow-inset), 0 18px 48px rgba(0, 0, 0, 0.16);
+}
+
+.workstation .sessionSidebarHeader {
+  padding-bottom: var(--dashboard-space-3);
+  border-bottom: 1px solid var(--section-divider);
+}
+
+.workstation .sessionSidebarHeader .dashboardSidebarHeaderCopy > strong {
+  font-size: 15px;
+}
+
+.workstation .sessionSidebar .iconButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+}
+
+.workstation .sessionSidebarCreate {
+  width: 100%;
+  justify-content: center;
+}
+
+.workstation .sessionSidebarList {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  align-content: start;
+  gap: var(--dashboard-space-2);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 2px 4px 2px 2px;
+  scrollbar-width: thin;
+}
+
+.workstation .sessionSidebarItem {
+  display: grid;
+  min-width: 0;
+  gap: var(--dashboard-space-1);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.workstation .sessionSidebarSelect.dashboardChoiceCard {
+  width: 100%;
+  min-height: 78px;
+  padding: 10px;
+}
+
+.workstation .sessionSidebarSelect .dashboardChoiceCardDetail {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workstation .sessionSidebarActions,
+.workstation .sessionSidebarItem form {
+  display: flex;
+  min-width: 0;
+  gap: var(--dashboard-space-1);
+}
+
+.workstation .sessionSidebarActions {
+  justify-content: flex-end;
+  padding-inline: 4px;
+}
+
+.workstation .sessionSidebarActions button,
+.workstation .sessionSidebarItem form button {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 9px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-control);
+  color: var(--muted-strong);
+  background: var(--dashboard-surface-inset);
+  cursor: pointer;
+  font-size: var(--label-font-size);
+  font-weight: 760;
+}
+
+.workstation .sessionSidebarActions button:hover,
+.workstation .sessionSidebarActions button:focus-visible,
+.workstation .sessionSidebarItem form button:hover,
+.workstation .sessionSidebarItem form button:focus-visible {
+  border-color: var(--dashboard-border-strong);
+  color: var(--foreground);
+  background: var(--dashboard-surface-accent);
+  outline: none;
+}
+
+.workstation .sessionSidebarActions button:last-child {
+  color: var(--coral);
+}
+
+.workstation .sessionSidebarItem form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  padding: 10px;
+  border: 1px solid var(--dashboard-border-strong);
+  border-radius: var(--dashboard-radius-card);
+  background: var(--dashboard-surface-inset);
+}
+
+.workstation .sessionSidebarItem form input {
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-control);
+  color: var(--foreground);
+  background: var(--surface-1);
+  font: inherit;
+}
+
+.workstation .sessionSidebarBoundary.dashboardCallout {
+  gap: 8px;
+  padding: 10px;
+  border-radius: var(--dashboard-radius-card);
+}
+
+.workstation .sessionSidebarBoundary.dashboardCallout strong {
+  font-size: 11px;
+}
+
+.workstation .sessionSidebarBoundary.dashboardCallout p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 2px;
+  font-size: 10px;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.workstation .sessionSidebar--collapsed {
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+  padding: 0;
+}
+
+.workstation .sessionSidebarRail {
+  display: grid;
+  height: 100%;
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 14px 8px;
+}
+
+.workstation .sessionSidebarRail :is(strong, span, small) {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: var(--muted-strong);
+  font-size: var(--label-font-size);
+  font-weight: 780;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.workstation .sessionSidebarRail span {
+  color: var(--teal);
+}
+
+.workstation .sessionSidebarRail small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+/* Right Inspector is the compact companion to the full Dashboard reference.
+ * Its shell, navigation, cards, and responsive rail consume the same tokens as
+ * User Guide; panel-specific CSS only describes the data inside each cockpit. */
+.workstation .inspector--dashboardSystem {
+  container-name: right-inspector;
+  container-type: inline-size;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  max-height: calc(100dvh - 84px);
+  grid-template-rows: auto auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-section);
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.035), transparent 38%),
+    var(--dashboard-section-background);
+  box-shadow: var(--dashboard-shadow-inset);
+}
+
+.workstation .inspector--dashboardSystem[data-state="collapsed"] {
+  width: var(--inspector-rail-width);
+  min-width: var(--inspector-rail-width);
+  max-width: var(--inspector-rail-width);
+  grid-template-rows: minmax(0, 1fr);
+  background: var(--dashboard-section-background);
+}
+
+.workstation .inspector--dashboardSystem .inspectorRail {
+  display: grid;
+  height: 100%;
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 14px 8px;
+}
+
+.workstation .inspector--dashboardSystem .inspectorRail :is(strong, span, small) {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: var(--muted-strong);
+  font-size: var(--label-font-size);
+  font-weight: 780;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.workstation .inspector--dashboardSystem .inspectorRail span {
+  color: var(--teal);
+}
+
+.workstation .inspector--dashboardSystem .inspectorRail small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.workstation .inspector--dashboardSystem > .inspectorHeader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  padding: 13px;
+  border-bottom: 1px solid var(--dashboard-border);
+  background: transparent;
+}
+
+.workstation .inspectorHeader .dashboardSidebarHeaderIcon {
+  width: 35px;
+  height: 35px;
+}
+
+.workstation .inspectorHeader .dashboardSidebarHeaderCopy > span {
+  margin-bottom: 3px;
+  font-size: 9px;
+}
+
+.workstation .inspectorHeader .dashboardSidebarHeaderCopy > h2 {
+  overflow: hidden;
+  font-size: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workstation .inspectorHeader .dashboardSidebarHeaderCopy > p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.38;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.workstation .inspectorHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.workstation .inspectorDashboardButton {
+  min-height: 35px;
+}
+
+.workstation .inspectorTabsShell {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 7px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--dashboard-border);
+  background: color-mix(in srgb, var(--surface-1) 72%, transparent);
+}
+
+.workstation .inspector--dashboardSystem .inspectorTabs {
+  display: flex;
+  min-width: 0;
+  align-items: stretch;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0 0 3px;
+  border: 0;
+  background: transparent;
+  scrollbar-width: thin;
+}
+
+.workstation .inspectorTabItem {
+  position: relative;
+  display: grid;
+  flex: 0 0 auto;
+}
+
+.workstation .inspectorTabs .dashboardInspectorTab {
+  position: relative;
+  display: grid;
+  width: auto;
+  min-width: 104px;
+  min-height: 40px;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  padding: 7px 29px 7px 9px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-card);
+  color: var(--muted-strong);
+  background: var(--dashboard-surface-inset);
+  box-shadow: none;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.workstation .inspectorTabs .dashboardInspectorTab::after {
+  position: absolute;
+  right: 9px;
+  bottom: 4px;
+  left: 9px;
+  height: 2px;
+  border-radius: 999px;
+  content: "";
+  background: transparent;
+}
+
+.workstation .inspectorTabs .dashboardInspectorTab:hover {
+  border-color: var(--dashboard-border-strong);
+  color: var(--foreground);
+  background: var(--dashboard-surface-accent);
+  transform: none;
+}
+
+.workstation .inspectorTabs .dashboardInspectorTab[aria-selected="true"] {
+  border-color: var(--dashboard-border-strong);
+  color: var(--foreground);
+  background: var(--dashboard-surface-accent);
+  box-shadow: none;
+}
+
+.workstation .inspectorTabs .dashboardInspectorTab[aria-selected="true"]::after {
+  background: var(--teal);
+}
+
+.workstation .inspectorTabs .dashboardInspectorTab > span {
+  overflow: hidden;
+  min-width: 0;
+  font-size: 10px;
+  font-weight: 780;
+  line-height: 1.15;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workstation .inspectorTabs .dashboardInspectorTab > small {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  max-width: 42px;
+  overflow: hidden;
+  padding: 2px 4px;
+  border-radius: 999px;
+  color: var(--muted);
+  background: var(--dashboard-surface-card);
+  font-size: 7px;
+  font-weight: 850;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workstation .inspectorTabs .inspectorTabClose {
+  position: absolute;
+  z-index: 2;
+  top: 7px;
+  right: 4px;
+  display: grid;
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  min-height: 26px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: var(--muted);
+  background: transparent;
+}
+
+.workstation .inspectorTabs .inspectorTabClose::after {
+  display: none;
+}
+
+.workstation .inspectorTabs .inspectorTabClose:hover,
+.workstation .inspectorTabs .inspectorTabClose:focus-visible {
+  color: var(--coral);
+  background: color-mix(in srgb, var(--coral) 13%, transparent);
+  transform: none;
+}
+
+.workstation .inspectorTabAdd {
+  position: relative;
+}
+
+.workstation .inspectorTabAdd > .inspectorAddButton {
+  display: grid;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-card);
+  color: var(--muted-strong);
+  background: var(--dashboard-surface-inset);
+}
+
+.workstation .inspectorTabAdd > .inspectorAddButton:hover,
+.workstation .inspectorTabAdd > .inspectorAddButton[aria-expanded="true"] {
+  border-color: var(--dashboard-border-strong);
+  color: var(--foreground);
+  background: var(--dashboard-surface-accent);
+}
+
+.workstation .inspectorAddMenu {
+  position: absolute;
+  z-index: var(--application-layer-popover);
+  top: calc(100% + 7px);
+  right: 0;
+  display: grid;
+  width: min(250px, 72vw);
+  max-height: min(320px, 55vh);
+  gap: 3px;
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid var(--dashboard-border-strong);
+  border-radius: var(--dashboard-radius-card);
+  background: var(--surface-1);
+  box-shadow: var(--shadow);
+}
+
+.workstation .inspectorAddMenu button {
+  display: grid;
+  width: 100%;
+  min-height: 38px;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: var(--dashboard-radius-control);
+  color: var(--muted-strong);
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.workstation .inspectorAddMenu button:hover,
+.workstation .inspectorAddMenu button:focus-visible {
+  color: var(--foreground);
+  background: var(--dashboard-surface-accent);
+  transform: none;
+}
+
+.workstation .inspector--dashboardSystem > .inspectorPanel {
+  display: grid;
+  min-height: 0;
+  align-content: start;
+  gap: var(--dashboard-space-2);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+  scrollbar-gutter: stable;
+}
+
+.workstation .inspector--dashboardSystem :is(
+  .overviewTile,
+  .previewInspectorHero,
+  .previewInspectorCard,
+  .runtimeConsoleHero,
+  .runtimeConsoleCard,
+  .runtimeConsoleEmptyCard,
+  .workflowExecutionInspector,
+  .workflowNode,
+  .telemetryDashboardHero,
+  .telemetrySignalCard,
+  .telemetryDashboardCard,
+  .artifactDetailCard,
+  .artifactItem,
+  .retrievalSummaryCard,
+  .retrievalEmptyCard,
+  .retrievalInsightCard,
+  .savedOutputsHero,
+  .savedOutputCard,
+  .productIntelligenceHero,
+  .productIntelligenceMetrics > div,
+  .inspectorDisclosure
+) {
+  border-color: var(--dashboard-border);
+  border-radius: var(--dashboard-radius-card);
+  background: var(--dashboard-surface-inset);
+  box-shadow: var(--dashboard-shadow-inset);
+}
+
+.workstation .inspector--dashboardSystem :is(
+  .overviewTile,
+  .previewInspectorCard,
+  .runtimeConsoleHero,
+  .runtimeConsoleCard,
+  .runtimeConsoleEmptyCard,
+  .workflowExecutionInspector,
+  .telemetryDashboardHero,
+  .telemetrySignalCard,
+  .telemetryDashboardCard,
+  .artifactDetailCard,
+  .retrievalSummaryCard,
+  .retrievalEmptyCard,
+  .savedOutputsHero,
+  .productIntelligenceHero
+) {
+  padding: 12px;
+}
+
+.workstation .inspector--dashboardSystem .overviewGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.workstation .inspector--dashboardSystem .runtimeConsoleHero > div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.workstation .inspector--dashboardSystem .runtimeConsoleHero > div > :is(span, strong, p) {
+  display: block;
+}
+
+.workstation .inspector--dashboardSystem .runtimeConsoleHealthSignals {
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+}
+
+.workstation .inspector--dashboardSystem .runtimeConsoleHealthSignals strong {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+
+.workstation .inspector--dashboardSystem .overviewWorkflowTile,
+.workstation .inspector--dashboardSystem .overviewClarificationTile,
+.workstation .inspector--dashboardSystem .overviewPlanningTile {
+  grid-column: 1 / -1;
+}
+
+.workstation .inspector--dashboardSystem .inspectorCockpitBoundary {
+  display: block;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.workstation .inspector--dashboardSystem .previewInspectorGrid {
+  gap: 8px;
+}
+
+.workstation .inspector--dashboardSystem .previewInspectorCard {
+  gap: 9px;
+}
+
+.workstation .inspector--dashboardSystem .previewInspectorCard dl {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.workstation .inspector--dashboardSystem .previewInspectorCard dl > div {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3px;
+  padding: 8px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-control);
+  background: var(--dashboard-surface-card);
+}
+
+.workstation .inspector--dashboardSystem .previewInspectorControlGrid {
+  gap: 7px;
+}
+
+.workstation .inspector--dashboardSystem .previewInspectorControlGrid > div {
+  padding: 8px;
+  border-color: var(--dashboard-border);
+  border-radius: var(--dashboard-radius-control);
+  background: var(--dashboard-surface-card);
+}
+
+.workstation .inspector--dashboardSystem .previewInspectorNotes span {
+  border-color: var(--dashboard-border);
+  background: var(--dashboard-surface-card);
+}
+
+.workstation .inspector--dashboardSystem .workflowGraph {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.workstation .inspector--dashboardSystem .workflowNode {
+  min-height: 0;
+  padding: 8px;
+}
+
+.workstation .inspector--dashboardSystem .telemetrySignalGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.workstation .inspector--dashboardSystem .artifactDetailMeta {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.workstation .inspector--dashboardSystem .artifactDetailMeta > div {
+  border-color: var(--dashboard-border);
+  border-radius: var(--dashboard-radius-control);
+  background: var(--dashboard-surface-card);
+}
+
+.workstation .inspector--dashboardSystem .artifactList {
+  gap: 8px;
+}
+
+.workstation .inspector--dashboardSystem .productIntelligenceInspector {
+  padding: 0;
+}
+
+.workstation .inspector--dashboardSystem .productIntelligenceSection {
+  gap: 10px;
+  padding: 12px;
+}
+
+.workstation .inspector--dashboardSystem .productIntelligenceMetrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workstation[data-density="compact"] .inspector--dashboardSystem > .inspectorHeader {
+  padding: 10px;
+}
+
+.workstation[data-density="compact"] .inspectorTabsShell {
+  gap: 5px;
+  padding: 6px 8px;
+}
+
+.workstation[data-density="compact"] .inspectorTabs .dashboardInspectorTab,
+.workstation[data-density="compact"] .inspectorTabAdd > .inspectorAddButton {
+  min-height: 36px;
+  height: 36px;
+}
+
+.workstation[data-density="compact"] .inspector--dashboardSystem > .inspectorPanel {
+  gap: 8px;
+  padding: 10px;
+}
+
+@container right-inspector (max-width: 340px) {
+  .inspectorHeader .dashboardSidebarHeaderCopy > p {
+    -webkit-line-clamp: 1;
+  }
+
+  .inspectorDashboardButton {
+    width: 35px;
+    padding: 0;
+  }
+
+  .inspectorDashboardButton > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .inspectorTabs .dashboardInspectorTab {
+    min-width: 96px;
+  }
+
+  .inspector--dashboardSystem > .inspectorPanel {
+    padding: 10px;
+  }
+
+  .inspector--dashboardSystem .previewInspectorCard dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container right-inspector (min-width: 560px) {
+  .inspector--dashboardSystem .telemetrySignalGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .inspector--dashboardSystem .artifactDetailMeta {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@container session-sidebar (max-width: 220px) {
+  .sessionSidebarHeader .dashboardSidebarHeaderCopy > p {
+    display: none;
+  }
+
+  .sessionSidebarHeader .dashboardSidebarHeaderIcon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .sessionSidebarHeader .dashboardSidebarHeaderAction .iconButton {
+    width: 34px;
+    height: 34px;
+  }
+
+  .sessionSidebarSelect.dashboardChoiceCard {
+    grid-template-columns: 30px minmax(0, 1fr);
+  }
+
+  .sessionSidebarSelect .dashboardChoiceCardState {
+    display: none;
+  }
+
+  .sessionSidebarItem form {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .sessionSidebarItem form input {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 961px) and (max-width: 1180px) {
+  .workstation:not([data-sidebar-state="collapsed"]):not([data-inspector-state="collapsed"]):not([data-focus-mode="true"]) .workspaceLayout {
+    grid-template-columns:
+      minmax(200px, 224px)
+      minmax(280px, 1fr)
+      8px
+      minmax(280px, min(360px, var(--inspector-width)));
+  }
+
+  .workstation[data-sidebar-state="collapsed"] .workspaceLayout {
+    grid-template-columns:
+      56px
+      minmax(280px, 1fr)
+      8px
+      minmax(280px, min(360px, var(--inspector-width)));
+  }
+
+  .workstation[data-sidebar-state="collapsed"][data-inspector-state="collapsed"] .workspaceLayout {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 960px) {
+  .workstation .workspaceLayout,
+  .workstation[data-sidebar-state="collapsed"] .workspaceLayout,
+  .workstation[data-inspector-state="collapsed"] .workspaceLayout,
+  .workstation[data-sidebar-state="collapsed"][data-inspector-state="collapsed"] .workspaceLayout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-flow: row;
+    overflow-y: auto;
+  }
+
+  .workstation .sessionSidebar:not(.sessionSidebar--collapsed) {
+    display: grid;
+    height: auto;
+    max-height: none;
+    grid-column: 1;
+    grid-row: auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+  }
+
+  .workstation .sessionSidebar:not(.sessionSidebar--collapsed) .sessionSidebarHeader {
+    grid-column: 1;
+  }
+
+  .workstation .sessionSidebar:not(.sessionSidebar--collapsed) .sessionSidebarCreate {
+    width: auto;
+    align-self: start;
+    grid-column: 2;
+  }
+
+  .workstation .sessionSidebar:not(.sessionSidebar--collapsed) .sessionSidebarList {
+    display: flex;
+    grid-column: 1 / -1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 2px 7px;
+  }
+
+  .workstation .sessionSidebar:not(.sessionSidebar--collapsed) .sessionSidebarItem {
+    flex: 0 0 min(250px, 78vw);
+  }
+
+  .workstation .sessionSidebarBoundary {
+    display: none;
+  }
+
+  .workstation .sessionSidebar--collapsed {
+    display: grid;
+    min-height: 58px;
+    height: 58px;
+    grid-column: 1;
+    grid-row: auto;
+    padding: 8px 10px;
+  }
+
+  .workstation .sessionSidebar--collapsed .sessionSidebarRail {
+    grid-template-columns: auto auto auto minmax(0, 1fr);
+    align-content: center;
+    align-items: center;
+    justify-items: start;
+    padding: 0;
+  }
+
+  .workstation .sessionSidebar--collapsed .sessionSidebarRail :is(strong, span, small) {
+    writing-mode: initial;
+    transform: none;
+  }
+
+  .workstation .sessionSidebar--collapsed .sessionSidebarRail small {
+    justify-self: end;
+  }
+
+  .workstation .mainColumn,
+  .workstation .inspector {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .workstation .inspector--dashboardSystem {
+    width: auto;
+    max-width: none;
+    max-height: min(640px, 70dvh);
+  }
+
+  .workstation .inspector--dashboardSystem[data-state="collapsed"] {
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    min-height: 58px;
+    height: 58px;
+    max-height: 58px;
+  }
+
+  .workstation .inspector--dashboardSystem[data-state="collapsed"] .inspectorRail {
+    grid-template-columns: auto auto auto minmax(0, 1fr);
+    align-content: center;
+    align-items: center;
+    justify-items: start;
+    padding: 8px 10px;
+  }
+
+  .workstation .inspector--dashboardSystem[data-state="collapsed"] .inspectorRail :is(strong, span, small) {
+    writing-mode: initial;
+    transform: none;
+  }
+
+  .workstation .inspector--dashboardSystem[data-state="collapsed"] .inspectorRail small {
+    justify-self: end;
+  }
+
+  .workstation[data-inspector-state="collapsed"] .inspector {
+    position: static;
+    inset: auto;
+    width: auto;
+    max-width: none;
+  }
+
+  .workstation[data-inspector-state="collapsed"] .mainColumn {
+    padding-right: 0;
+  }
+
+  .workstation .inspectorResizeHandle {
+    display: none;
+  }
+
+  .workstation[data-focus-mode="true"] .sessionSidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .workstation .sessionSidebar:not(.sessionSidebar--collapsed) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workstation .sessionSidebar:not(.sessionSidebar--collapsed) .sessionSidebarCreate {
+    width: 100%;
+    grid-column: 1;
+  }
+}
+
+/* Homepage composes the canonical hero, sections, cards, and disclosure without
+ * adding another ornamental panel around them. */
+.workstation .sessionPanel[data-homepage="true"] {
+  grid-template-rows: minmax(0, 1fr);
+  grid-auto-rows: auto;
+}
+
+.workstation .sessionPanel[data-homepage="true"] > .sessionIntro {
+  display: none;
+}
+
+.workstation .sessionPanel[data-homepage="true"] .workspaceConversation[data-empty="true"] {
+  overflow: auto;
+  padding-top: 0;
+  border-top: 0;
+  background: transparent;
+}
+
+/* Floating panels and confirmations share one application-level geometry,
+   focus, surface, and layer contract. */
+.applicationFloatingPanel {
+  position: absolute;
+  z-index: var(--application-layer-dialog);
+  top: calc(100% + 10px);
+  right: 0;
+  display: grid;
+  width: min(92vw, 330px);
+  max-height: min(72vh, 560px);
+  gap: var(--dashboard-space-3, 14px);
+  overflow: auto;
+  padding: var(--dashboard-space-3, 14px);
+  border: 1px solid var(--dashboard-border-strong, var(--line-strong));
+  border-radius: var(--dashboard-radius-section, 18px);
+  color: var(--foreground);
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.045), transparent 54%),
+    var(--dashboard-surface-floating, var(--panel-strong));
+  box-shadow: var(--dashboard-shadow-inset, var(--panel-highlight)), 0 24px 64px rgba(0, 0, 0, 0.34);
+  outline: none;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.applicationFloatingPanel--settings {
+  width: min(94vw, 380px);
+}
+
+.applicationFloatingPanel:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--focus-outline),
+    var(--dashboard-shadow-inset, var(--panel-highlight)),
+    0 24px 64px rgba(0, 0, 0, 0.34);
+}
+
+.applicationFloatingPanelHeader {
+  position: sticky;
+  z-index: 2;
+  top: calc(var(--dashboard-space-3, 14px) * -1);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--dashboard-space-2, 10px);
+  margin: calc(var(--dashboard-space-3, 14px) * -1) calc(var(--dashboard-space-3, 14px) * -1) 0;
+  padding: var(--dashboard-space-3, 14px);
+  border-bottom: 1px solid var(--section-divider);
+  background: var(--dashboard-surface-floating, var(--panel-strong));
+}
+
+.applicationFloatingPanelHeader > div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.applicationFloatingPanelHeader strong {
+  color: var(--foreground);
+  font-size: 14px;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+
+.applicationFloatingPanelHeader p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.applicationFloatingPanelClose {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-control, 9px);
+  color: var(--muted-strong);
+  background: var(--dashboard-surface-inset, var(--surface-1));
+  cursor: pointer;
+}
+
+.applicationFloatingPanelClose:hover,
+.applicationFloatingPanelClose:focus-visible {
+  border-color: var(--dashboard-border-strong, var(--line-strong));
+  color: var(--foreground);
+  background: var(--dashboard-surface-accent, var(--surface-accent));
+}
+
+.applicationFloatingPanelClose:focus-visible {
+  outline: 2px solid var(--focus-outline);
+  outline-offset: 2px;
+}
+
+.applicationFloatingPanel .settingsSection {
+  display: grid;
+  gap: var(--dashboard-space-2, 10px);
+  padding: var(--dashboard-space-3, 14px);
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-card, 14px);
+  background: var(--dashboard-surface-inset, var(--surface-1));
+  box-shadow: var(--dashboard-shadow-inset, var(--panel-highlight));
+}
+
+.applicationFloatingPanel .settingsSectionHeader {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.applicationFloatingPanel .settingsSectionHeader strong,
+.applicationFloatingPanel .settingsToggle strong {
+  color: var(--foreground);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.applicationFloatingPanel .settingsSectionHeader p,
+.applicationFloatingPanel .settingsToggle p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.applicationFloatingPanel .settingsToggle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--dashboard-space-2, 10px);
+}
+
+.applicationFloatingPanel :is(.settingsChoiceRow button, .settingsToggle button),
+.applicationFloatingPanel .commandMenuGrid button,
+.applicationFloatingPanel .themePresetButton {
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-control, 9px);
+  color: var(--muted-strong);
+  background: var(--dashboard-surface-card, var(--surface-2));
+  box-shadow: var(--dashboard-shadow-inset, var(--panel-highlight));
+}
+
+.applicationFloatingPanel :is(.settingsChoiceRow button, .settingsToggle button):hover,
+.applicationFloatingPanel :is(.settingsChoiceRow button, .settingsToggle button):focus-visible,
+.applicationFloatingPanel .commandMenuGrid button:hover,
+.applicationFloatingPanel .commandMenuGrid button:focus-visible,
+.applicationFloatingPanel .themePresetButton:hover,
+.applicationFloatingPanel .themePresetButton:focus-visible {
+  border-color: var(--dashboard-border-strong, var(--line-strong));
+  color: var(--foreground);
+  background: var(--dashboard-surface-accent, var(--surface-accent));
+  transform: none;
+}
+
+.applicationFloatingPanel :is(.settingsChoiceRow button, .settingsToggle button):focus-visible,
+.applicationFloatingPanel .commandMenuGrid button:focus-visible,
+.applicationFloatingPanel .themePresetButton:focus-visible {
+  outline: 2px solid var(--focus-outline);
+  outline-offset: 2px;
+}
+
+.applicationFloatingPanel :is(.settingsChoiceRow button, .settingsToggle button)[data-active="true"],
+.applicationFloatingPanel .themePresetButton[data-active="true"] {
+  border-color: color-mix(in srgb, var(--teal) 48%, var(--dashboard-border));
+  color: var(--foreground);
+  background: var(--dashboard-surface-accent, var(--surface-accent));
+  box-shadow: none;
+}
+
+.applicationFloatingPanel .commandMenuGrid {
+  display: grid;
+  gap: 7px;
+}
+
+.applicationFloatingPanel .commandMenuGrid button {
+  min-height: 0;
+  gap: 3px;
+  padding: 10px;
+}
+
+.applicationFloatingPanel .commandMenuGrid button strong {
+  font-size: 10px;
+}
+
+.applicationFloatingPanel .commandMenuGrid button span {
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.applicationFloatingPanelReference {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 11px;
+  border: 1px solid color-mix(in srgb, var(--teal) 34%, var(--dashboard-border));
+  border-radius: var(--dashboard-radius-card, 14px);
+  color: var(--muted-strong);
+  background: var(--dashboard-surface-accent, var(--surface-accent));
+}
+
+.applicationFloatingPanelReference > svg {
+  color: var(--teal);
+}
+
+.applicationFloatingPanelReference > span {
+  display: grid;
+  gap: 3px;
+}
+
+.applicationFloatingPanelReference strong {
+  color: var(--foreground);
+  font-size: 11px;
+}
+
+.applicationFloatingPanelReference small {
+  color: var(--muted-strong);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.applicationFloatingPanelReference:hover,
+.applicationFloatingPanelReference:focus-visible {
+  border-color: color-mix(in srgb, var(--teal) 58%, var(--dashboard-border));
+  background: color-mix(in srgb, var(--teal) 11%, var(--dashboard-surface-card));
+}
+
+.applicationFloatingPanelReference:focus-visible {
+  outline: 2px solid var(--focus-outline);
+  outline-offset: 2px;
+}
+
+.applicationModalBackdrop {
+  position: fixed;
+  z-index: var(--application-layer-modal);
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: 24px;
+  background: rgba(4, 7, 11, 0.64);
+  backdrop-filter: blur(10px);
+}
+
+.applicationConfirmDialog {
+  display: grid;
+  width: min(100%, 480px);
+  max-height: min(86vh, 620px);
+  gap: var(--dashboard-space-3, 14px);
+  overflow: auto;
+  padding: clamp(18px, 3vw, 24px);
+  border: 1px solid color-mix(in srgb, var(--coral) 34%, var(--line));
+  border-radius: var(--dashboard-radius-hero, 20px);
+  color: var(--foreground);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--coral) 7%, transparent), transparent 52%),
+    var(--panel-strong);
+  box-shadow: var(--panel-highlight), 0 34px 96px rgba(0, 0, 0, 0.52);
+}
+
+.applicationModalBackdrop[data-tone="warning"] .applicationConfirmDialog {
+  border-color: color-mix(in srgb, var(--amber) 38%, var(--line));
+}
+
+.applicationConfirmDialogHeader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--dashboard-space-3, 14px);
+}
+
+.applicationConfirmDialogIcon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--coral) 34%, var(--line));
+  border-radius: var(--dashboard-radius-control, 9px);
+  color: var(--coral);
+  background: color-mix(in srgb, var(--coral) 10%, transparent);
+}
+
+.applicationModalBackdrop[data-tone="warning"] .applicationConfirmDialogIcon {
+  border-color: color-mix(in srgb, var(--amber) 38%, var(--line));
+  color: var(--amber);
+  background: color-mix(in srgb, var(--amber) 10%, transparent);
+}
+
+.applicationConfirmDialogHeader > div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.applicationConfirmDialogHeader span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 840;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.applicationConfirmDialog h2 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: clamp(18px, 3vw, 23px);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.applicationConfirmDialog > p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.applicationConfirmDialogError {
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--coral) 34%, var(--line));
+  border-radius: var(--dashboard-radius-control, 9px);
+  color: var(--coral) !important;
+  background: color-mix(in srgb, var(--coral) 8%, transparent);
+}
+
+.applicationConfirmDialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--dashboard-space-2, 10px);
+  padding-top: var(--dashboard-space-2, 10px);
+  border-top: 1px solid var(--section-divider);
+}
+
+.applicationConfirmDialogActions button {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--dashboard-radius-control, 9px);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 780;
+}
+
+.applicationConfirmDialogCancel {
+  color: var(--muted-strong);
+  background: var(--surface-1);
+}
+
+.applicationConfirmDialogSubmit {
+  border-color: color-mix(in srgb, var(--coral) 48%, var(--line)) !important;
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--coral) 15%, var(--surface-2));
+}
+
+.applicationModalBackdrop[data-tone="warning"] .applicationConfirmDialogSubmit {
+  border-color: color-mix(in srgb, var(--amber) 48%, var(--line)) !important;
+  background: color-mix(in srgb, var(--amber) 13%, var(--surface-2));
+}
+
+.applicationConfirmDialogActions button:hover,
+.applicationConfirmDialogActions button:focus-visible {
+  border-color: var(--line-strong);
+  color: var(--foreground);
+  outline: 2px solid var(--focus-outline);
+  outline-offset: 2px;
+}
+
+.applicationConfirmDialogActions button:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.applicationConfirmDialogSubmit svg {
+  animation: workspaceControlSpin 900ms linear infinite;
+}
+
+@media (max-width: 760px) {
+  .applicationFloatingPanel,
+  .applicationFloatingPanel--settings {
+    right: 0;
+    left: auto;
+    width: min(calc(100vw - 24px), 380px);
+    max-height: calc(100dvh - 190px);
+  }
+
+  .applicationModalBackdrop {
+    align-items: end;
+    padding: 12px;
+  }
+
+  .applicationConfirmDialog {
+    width: 100%;
+    max-height: calc(100vh - 24px);
+    border-radius: var(--dashboard-radius-section, 18px);
+  }
+
+  .applicationConfirmDialogActions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.workstation .emptyWorkspace {
+  container-name: homepage;
+  container-type: inline-size;
+  display: grid;
+  width: min(100%, 1120px);
+  gap: var(--dashboard-space-4);
+  justify-self: center;
+  padding: 0 0 var(--dashboard-space-2);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.workstation .emptyWorkspace > :is(.dashboardPageHero, .dashboardVisualSection) {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.emptyWorkspaceCapabilityGrid.dashboardCardGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.emptyWorkspaceCapabilityGrid .dashboardInfoCard {
+  min-height: 132px;
+  padding: 14px;
+}
+
+.emptyWorkspaceSuggestionGrid.dashboardCardGrid[data-layout="quad"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.emptyWorkspaceJourneyDisclosure > .dashboardDisclosureBody {
+  padding: var(--dashboard-space-3);
+}
+
+.emptyWorkspaceJourney.dashboardProcessRail {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@container homepage (max-width: 920px) {
+  .emptyWorkspaceHero.dashboardPageHero {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .emptyWorkspaceHero .dashboardPageHeroBadges {
+    grid-column: 1 / -1;
+    max-width: none;
+    justify-content: flex-start;
+  }
+
+  .emptyWorkspaceCapabilityGrid.dashboardCardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .emptyWorkspaceJourney.dashboardProcessRail {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@container homepage (max-width: 620px) {
+  .emptyWorkspaceHero.dashboardPageHero,
+  .emptyWorkspaceSuggestionGrid.dashboardCardGrid[data-layout="quad"],
+  .emptyWorkspaceCapabilityGrid.dashboardCardGrid,
+  .emptyWorkspaceJourney.dashboardProcessRail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .emptyWorkspaceHero .dashboardPageHeroIcon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .emptyWorkspaceCapabilityGrid .dashboardInfoCard,
+  .emptyWorkspaceSuggestionGrid .dashboardActionCard {
+    min-height: 0;
+  }
+}
+
+/* Demo Mode is a focused scenario studio, not another panel inside the session. */
+.workstation .sessionPanel[data-demo="true"] {
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.workstation .sessionPanel[data-demo="true"] > .sessionIntro {
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  padding: 0;
+}
+
+.workstation .sessionPanel[data-demo="true"] .sessionHeader,
+.workstation .sessionPanel[data-demo="true"] > .workspaceConversationFrame {
+  display: none;
+}
+
+.workstation .demoModePanel {
+  container-name: demo-mode;
+  container-type: inline-size;
+  display: grid;
+  grid-auto-rows: max-content;
+  min-height: 0;
+  height: 100%;
+  max-height: none;
+  align-content: start;
+  gap: var(--dashboard-space-4);
+  overflow: auto;
+  padding: 0 var(--dashboard-space-1) var(--dashboard-space-2) 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.workstation .demoModePanel > :is(.dashboardPageHero, .dashboardVisualSection) {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.demoFeaturedSequence .demoLiveSequence > [role="listitem"],
+.demoScenarioList > [role="listitem"] {
+  min-width: 0;
+}
+
+.demoFeaturedSequence .dashboardChoiceCard,
+.demoScenarioButton.dashboardChoiceCard {
+  width: 100%;
+}
+
+.demoFeaturedSequence .dashboardChoiceCard {
+  min-height: 98px;
+}
+
+.demoModeBody {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(250px, 0.42fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--dashboard-space-3);
+}
+
+.demoScenarioList {
+  display: grid;
+  min-width: 0;
+  max-height: min(610px, calc(100dvh - 390px));
+  align-content: start;
+  gap: var(--dashboard-space-2);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 2px 5px 2px 2px;
+  scrollbar-width: thin;
+}
+
+.demoScenarioButton.dashboardChoiceCard {
+  min-height: 76px;
+  padding: 11px;
+}
+
+.demoScenarioDetail.dashboardInnerCard {
+  position: sticky;
+  top: 0;
+  display: grid;
+  min-width: 0;
+  align-self: start;
+  gap: var(--dashboard-space-3);
+  padding: 16px;
+  background: var(--dashboard-surface-inset);
+}
+
+.demoScenarioDetail > .dashboardSectionHeader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  padding-bottom: var(--dashboard-space-3);
+  border-bottom: 1px solid var(--section-divider);
+}
+
+.demoScenarioDetail .dashboardDefinitionCard {
+  min-height: 112px;
+}
+
+.demoScenarioDetail :is(
+  .demoRunbookDisclosure,
+  .demoPromptDisclosure,
+  .demoTechnicalDisclosure
+) > .dashboardDisclosureBody {
+  padding: var(--dashboard-space-3);
+}
+
+.demoPromptPreview {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--muted-strong);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+@container demo-mode (max-width: 980px) {
+  .demoModeHero.dashboardPageHero {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .demoModeHero .dashboardPageHeroBadges {
+    grid-column: 1 / -1;
+    max-width: none;
+    justify-content: flex-start;
+  }
+
+  .demoModeBody {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .demoScenarioList {
+    display: flex;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 2px 7px;
+  }
+
+  .demoScenarioList > [role="listitem"] {
+    flex: 0 0 min(260px, 82cqw);
+  }
+
+  .demoScenarioDetail.dashboardInnerCard {
+    position: static;
+  }
+
+  .demoScenarioDetail .dashboardDefinitionGrid[data-layout="compact"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container demo-mode (max-width: 620px) {
+  .demoModeHero.dashboardPageHero,
+  .demoLiveSequence.dashboardCardGrid[data-layout="quad"],
+  .demoScenarioDetail .dashboardDefinitionGrid[data-layout="compact"],
+  .demoScenarioDetail .dashboardDefinitionGrid[data-layout="wide"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .demoScenarioDetail > .dashboardSectionHeader {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .demoScenarioDetail .dashboardSectionHeaderAction {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .demoScenarioDetail .dashboardPrimaryAction {
+    width: 100%;
+  }
+
+  .demoScenarioDetail .dashboardDefinitionCard {
+    min-height: 0;
+  }
+}
+
+/* Conversation and composer share the canonical application primitives. The
+   attachment and generation controls remain opaque slots for their own pass. */
+.workstation .sessionPanel {
+  container-name: session-workspace;
+  container-type: inline-size;
+}
+
+.workspaceConversationFrame {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.workspaceConversationFrame[data-has-leading="true"] {
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: var(--dashboard-space-2);
+}
+
+/* Operator checkpoints are canonical application surfaces. They remain a
+   compact, focusable session gate rather than duplicating Dashboard detail. */
+.workstation .operatorCheckpoint {
+  display: grid;
+  gap: var(--dashboard-space-2);
+  padding: var(--dashboard-space-3);
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-section);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--amber) 7%, transparent), transparent 54%),
+    var(--dashboard-surface-card);
+  box-shadow: var(--dashboard-shadow-inset);
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.workstation .operatorCheckpoint:focus-visible {
+  outline: 2px solid var(--focus-outline);
+  outline-offset: 2px;
+}
+
+.workstation .operatorCheckpoint[data-kind="destructive"] {
+  border-color: color-mix(in srgb, var(--coral) 34%, var(--dashboard-border));
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--coral) 7%, transparent), transparent 54%),
+    var(--dashboard-surface-card);
+}
+
+.workstation .operatorCheckpoint[data-kind="transfer"] {
+  border-color: color-mix(in srgb, var(--blue) 34%, var(--dashboard-border));
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--blue) 7%, transparent), transparent 54%),
+    var(--dashboard-surface-card);
+}
+
+.workstation .operatorCheckpoint[data-state="pending_approval"] {
+  box-shadow: var(--dashboard-shadow-inset), 0 18px 44px rgba(243, 184, 82, 0.08);
+}
+
+.workstation .operatorCheckpoint[data-state="executing"] {
+  border-color: color-mix(in srgb, var(--blue) 36%, var(--dashboard-border));
+  box-shadow: var(--dashboard-shadow-inset), 0 18px 44px rgba(124, 167, 255, 0.08);
+}
+
+.workstation .operatorCheckpoint[data-state="completed"] {
+  border-color: color-mix(in srgb, var(--green) 34%, var(--dashboard-border));
+}
+
+.workstation .operatorCheckpoint[data-state="rejected"],
+.workstation .operatorCheckpoint[data-state="failed"] {
+  border-color: color-mix(in srgb, var(--coral) 38%, var(--dashboard-border));
+}
+
+.workstation :is(.operatorCheckpointHeader, .operatorCheckpointStatus, .operatorCheckpointFooter) {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--dashboard-space-2);
+}
+
+.workstation :is(.operatorCheckpointHeader strong, .operatorCheckpointMeta dd) {
+  color: var(--foreground);
+}
+
+.workstation .operatorCheckpointHeader strong {
+  display: block;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.workstation :is(
+  .operatorCheckpointHeader p,
+  .operatorCheckpoint > p,
+  .operatorCheckpointMeta dt,
+  .operatorCheckpointFooter small
+) {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.workstation .operatorCheckpointStatus,
+.workstation .operatorCheckpointFooter {
+  align-items: center;
+}
+
+.workstation :is(.operatorCheckpointStatus small, .operatorCheckpointFooter span) {
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: var(--dashboard-radius-pill, 999px);
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  color: var(--muted-strong);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.workstation .operatorCheckpoint[data-state="pending_approval"]
+  :is(.operatorCheckpointStatus small, .operatorCheckpointFooter span) {
+  background: color-mix(in srgb, var(--amber) 15%, transparent);
+  color: var(--amber);
+}
+
+.workstation .operatorCheckpoint[data-state="executing"]
+  :is(.operatorCheckpointStatus small, .operatorCheckpointFooter span) {
+  background: color-mix(in srgb, var(--blue) 15%, transparent);
+  color: var(--blue);
+}
+
+.workstation .operatorCheckpoint[data-state="completed"]
+  :is(.operatorCheckpointStatus small, .operatorCheckpointFooter span) {
+  background: color-mix(in srgb, var(--green) 15%, transparent);
+  color: var(--green);
+}
+
+.workstation .operatorCheckpoint:is([data-state="rejected"], [data-state="failed"])
+  :is(.operatorCheckpointStatus small, .operatorCheckpointFooter span) {
+  background: color-mix(in srgb, var(--coral) 14%, transparent);
+  color: var(--coral);
+}
+
+.workstation .operatorCheckpointMeta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--dashboard-space-2);
+  margin: 0;
+}
+
+.workstation .operatorCheckpointMeta div {
+  display: grid;
+  gap: 3px;
+}
+
+.workstation .operatorCheckpointMeta dt {
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.workstation :is(.operatorCheckpointMeta dd, .operatorCheckpointFailure) {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.workstation .operatorCheckpointActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.workstation .operatorCheckpointActions button {
+  min-height: 40px;
+  padding: 0 var(--dashboard-space-3);
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-pill, 999px);
+  color: var(--muted-strong);
+  background: var(--dashboard-surface-inset);
+  box-shadow: var(--dashboard-shadow-inset);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.workstation .operatorCheckpointActions button:hover {
+  border-color: var(--dashboard-border-strong);
+  color: var(--foreground);
+  background: var(--dashboard-surface-accent);
+  transform: translateY(-1px);
+}
+
+.workstation .operatorCheckpointActions button:focus-visible {
+  outline: 2px solid var(--focus-outline);
+  outline-offset: 2px;
+}
+
+.workstation .operatorCheckpointActions .operatorCheckpointApprove {
+  border-color: color-mix(in srgb, var(--teal) 48%, var(--dashboard-border));
+  color: var(--foreground);
+  background: var(--dashboard-surface-accent);
+}
+
+.workstation .operatorCheckpointFailure {
+  color: var(--coral);
+}
+
+.workstation .sessionPanel[data-checkpoint="true"] {
+  grid-template-rows: minmax(240px, 1fr) auto;
+  overflow-y: auto;
+}
+
+.workstation .sessionPanel[data-checkpoint="true"] > .sessionIntro {
+  display: none;
+}
+
+.workstation .sessionPanel[data-checkpoint="true"] > .workspaceConversationFrame[data-has-leading="true"] {
+  min-height: 240px;
+  overflow: hidden;
+}
+
+.workstation .sessionPanel[data-checkpoint="true"] .operatorCheckpoint {
+  max-height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.workstation .sessionPanel[data-demo="true"] > .workspaceConversationFrame[data-has-leading="true"] {
+  display: grid;
+}
+
+.workstation .sessionPanel[data-demo="true"] > .workspaceConversationFrame[data-has-leading="true"] > .workspaceConversation {
+  display: none;
+}
+
+.workspaceConversation {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  align-content: start;
+  gap: var(--dashboard-space-2);
+  overflow: auto;
+  padding: var(--dashboard-space-3) 8px 4px 0;
+  border-top: 1px solid var(--section-divider);
+  background:
+    linear-gradient(180deg, rgba(var(--accent-rgb), 0.025), transparent 94px);
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.workspaceConversation[data-empty="true"] {
+  overflow: visible;
+  padding: 0;
+  border-top: 0;
+  background: transparent;
+}
+
+.workspaceConversation:focus-visible {
+  border-radius: var(--dashboard-radius-control);
+  outline: 2px solid var(--focus-outline);
+  outline-offset: -3px;
+}
+
+.workspaceMessage {
+  display: grid;
+  width: fit-content;
+  max-width: min(78%, 76ch);
+  gap: 8px;
+  padding: var(--dashboard-space-3);
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-card);
+  background: var(--dashboard-surface-card);
+  box-shadow: var(--dashboard-shadow-inset);
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.workspaceMessage[data-role="assistant"] {
+  justify-self: start;
+  border-color: color-mix(in srgb, var(--teal) 22%, var(--dashboard-border));
+}
+
+.workspaceMessage[data-role="user"] {
+  justify-self: end;
+  border-color: color-mix(in srgb, var(--blue) 32%, var(--dashboard-border));
+  background:
+    linear-gradient(135deg, rgba(124, 167, 255, 0.1), transparent 76%),
+    var(--dashboard-surface-inset);
+}
+
+.workspaceMessage[data-role="assistant"][data-stream-phase="connecting"],
+.workspaceMessage[data-role="assistant"][data-stream-phase="thinking"],
+.workspaceMessage[data-role="assistant"][data-stream-phase="streaming"] {
+  border-color: color-mix(in srgb, var(--teal) 42%, var(--dashboard-border));
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.08), transparent 64%),
+    var(--dashboard-surface-card);
+}
+
+.workspaceMessage[data-role="assistant"][data-stream-phase="error"] {
+  border-color: color-mix(in srgb, var(--coral) 40%, var(--dashboard-border));
+  background: color-mix(in srgb, var(--coral) 8%, var(--dashboard-surface-card));
+}
+
+.workspaceMessage[data-role="assistant"][data-stream-phase="fallback"] {
+  border-color: color-mix(in srgb, var(--amber) 36%, var(--dashboard-border));
+  background:
+    linear-gradient(135deg, rgba(243, 184, 82, 0.08), transparent 64%),
+    var(--dashboard-surface-card);
+}
+
+.workspaceMessage[data-fresh="true"] {
+  animation: messageArrive 260ms ease-out;
+}
+
+.workspaceMessageMeta {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--dashboard-space-2);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: 0.07em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.workspaceMessageMetaDetail {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.workspaceMessageMetaDetail small {
+  padding: 3px 7px;
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: color-mix(in srgb, var(--foreground) 7%, transparent);
+  font-size: 9px;
+  font-weight: 820;
+  letter-spacing: 0.06em;
+}
+
+.workspaceMessageMetaDetail small:is(
+  [data-phase="streaming"],
+  [data-phase="thinking"],
+  [data-phase="connecting"],
+  [data-phase="planning"],
+  [data-phase="retrieving"],
+  [data-phase="generating"],
+  [data-phase="reviewing"],
+  [data-phase="refining"],
+  [data-phase="finalizing"]
+) {
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.12);
+}
+
+.workspaceMessageMetaDetail small[data-phase="error"] {
+  color: var(--coral);
+  background: color-mix(in srgb, var(--coral) 12%, transparent);
+}
+
+.workspaceMessageMetaDetail small[data-phase="fallback"] {
+  color: var(--amber);
+  background: color-mix(in srgb, var(--amber) 12%, transparent);
+}
+
+.workspaceMessage p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--muted-strong);
+  font-size: var(--body-copy-size);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.workspaceMessageActivity {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted-strong);
+}
+
+.workspaceMessageActivity > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--teal);
+  box-shadow: 0 0 0 5px rgba(var(--accent-rgb), 0.1);
+  animation: pulseNode 1.8s ease-in-out infinite;
+}
+
+.workspaceMessageActivity small {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.workspaceMessageActivity[data-activity="completed"] > span {
+  background: var(--green);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--green) 12%, transparent);
+  animation: none;
+}
+
+.workspaceMessageActivity[data-activity="partial"] > span {
+  background: var(--amber);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--amber) 12%, transparent);
+  animation: none;
+}
+
+.workspaceMessageActivity[data-activity="failed"] > span {
+  background: var(--coral);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--coral) 12%, transparent);
+  animation: none;
+}
+
+.workspaceStreamingCaret {
+  display: inline-block;
+  width: 0.55ch;
+  height: 1.1em;
+  margin-left: 0.2ch;
+  vertical-align: -0.1em;
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.86);
+  animation: blinkCaret 1s steps(1, end) infinite;
+}
+
+.workspaceConversationJump {
+  position: absolute;
+  z-index: 4;
+  right: var(--dashboard-space-3);
+  bottom: var(--dashboard-space-2);
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 11px;
+  border: 1px solid var(--dashboard-border-strong);
+  border-radius: 999px;
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--surface-2) 94%, transparent);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 780;
+}
+
+.workspaceConversationJump:hover,
+.workspaceConversationJump:focus-visible {
+  border-color: color-mix(in srgb, var(--teal) 54%, var(--dashboard-border));
+  background: var(--dashboard-surface-accent);
+  outline: none;
+}
+
+.workspaceConversationJump:focus-visible {
+  box-shadow: 0 0 0 2px var(--focus-outline);
+}
+
+.workspaceComposer {
+  display: grid;
+  width: min(100%, 1120px);
+  min-width: 0;
+  justify-self: center;
+  border: 1px solid var(--dashboard-border-strong);
+  border-radius: var(--dashboard-radius-section);
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.04), transparent 58%),
+    var(--dashboard-surface-inset);
+  box-shadow: var(--dashboard-shadow-inset);
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.workspaceComposer:focus-within {
+  border-color: color-mix(in srgb, var(--teal) 52%, var(--dashboard-border));
+  box-shadow:
+    0 0 0 3px rgba(var(--accent-rgb), 0.08),
+    var(--dashboard-shadow-inset);
+}
+
+.workspaceComposerInputFrame {
+  position: relative;
+  min-width: 0;
+  padding: var(--dashboard-space-3) var(--dashboard-space-4) 8px;
+  border-radius: var(--dashboard-radius-section) var(--dashboard-radius-section) 0 0;
+  transition: background 180ms ease, box-shadow 180ms ease;
+}
+
+.workspaceComposerInputFrame:focus-within {
+  background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.025), transparent);
+  box-shadow: inset 0 -1px 0 rgba(var(--accent-rgb), 0.1);
+}
+
+.workspaceComposer textarea {
+  display: block;
+  width: 100%;
+  min-height: 88px;
+  max-height: 168px;
+  resize: none;
+  overflow-y: hidden;
+  padding: 8px 0;
+  border: 0;
+  border-radius: var(--dashboard-radius-control);
+  color: var(--foreground);
+  background: transparent;
+  font: inherit;
+  font-size: max(15px, var(--body-copy-size));
+  line-height: 1.52;
+  outline: none;
+}
+
+.workspaceComposer textarea::placeholder {
+  color: var(--muted-strong);
+  opacity: 0.88;
+}
+
+.workspaceComposerActions {
+  display: grid;
+  min-width: 0;
+  min-height: 56px;
+  grid-template-columns: minmax(36px, 1fr) auto minmax(78px, 1fr);
+  align-items: center;
+  gap: var(--dashboard-space-3);
+  padding: 8px var(--dashboard-space-3);
+  border-top: 1px solid var(--section-divider);
+  border-radius: 0 0 var(--dashboard-radius-section) var(--dashboard-radius-section);
+  background: var(--dashboard-surface-card);
+}
+
+.workspaceComposerAttachmentSlot {
+  min-width: 0;
+  justify-self: start;
+}
+
+.workspaceComposerControlsSlot {
+  min-width: 0;
+  justify-self: center;
+}
+
+.workspaceGenerationControls {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 2vw, 26px);
+}
+
+.workspaceAttachmentControl,
+.workspaceProviderControl {
+  position: relative;
+  min-width: 0;
+}
+
+.workspaceAttachmentTrigger {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-control);
+  color: var(--muted-strong);
+  background: var(--dashboard-surface-inset);
+  box-shadow: var(--dashboard-shadow-inset);
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.workspaceAttachmentTrigger:hover,
+.workspaceAttachmentTrigger[aria-expanded="true"] {
+  border-color: color-mix(in srgb, var(--teal) 48%, var(--dashboard-border));
+  color: var(--teal);
+  background: var(--dashboard-surface-accent);
+  transform: translateY(-1px);
+}
+
+.workspaceAttachmentTrigger:focus-visible,
+.workspaceProviderTrigger:focus-visible,
+.workspaceGenerationField select:focus-visible,
+.workspaceImageReferencesDismiss:focus-visible,
+.workspaceImageReferenceCard button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--focus-outline);
+}
+
+.workspaceAttachmentTrigger:disabled,
+.workspaceProviderTrigger:disabled,
+.workspaceGenerationField select:disabled {
+  cursor: default;
+  opacity: 0.55;
+  transform: none;
+}
+
+.workspaceAttachmentTrigger[data-processing="true"] {
+  border-color: color-mix(in srgb, var(--teal) 38%, var(--dashboard-border));
+  color: var(--teal);
+  opacity: 1;
+}
+
+.workspaceControlSpinner {
+  animation: workspaceControlSpin 900ms linear infinite;
+}
+
+@keyframes workspaceControlSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.workspaceAttachmentMenu,
+.workspaceProviderPopover {
+  position: absolute;
+  z-index: var(--application-layer-popover);
+  bottom: calc(100% + 11px);
+  display: grid;
+  width: min(320px, calc(100vw - 32px));
+  gap: var(--dashboard-space-2);
+  padding: var(--dashboard-space-3);
+  border: 1px solid var(--dashboard-border-strong);
+  border-radius: var(--dashboard-radius-card);
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.045), transparent 54%),
+    var(--dashboard-surface-floating);
+  box-shadow: var(--dashboard-shadow-inset), 0 20px 48px rgba(0, 0, 0, 0.28);
+}
+
+.workspaceAttachmentMenu {
+  left: 0;
+}
+
+.workspaceRequestMenuEyebrow {
+  color: var(--teal);
+  font-size: 9px;
+  font-weight: 840;
+  letter-spacing: 0.11em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.workspaceAttachmentOption {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-control);
+  color: var(--foreground);
+  background: var(--dashboard-surface-inset);
+  box-shadow: var(--dashboard-shadow-inset);
+  text-align: left;
+}
+
+button.workspaceAttachmentOption {
+  cursor: pointer;
+}
+
+button.workspaceAttachmentOption:hover,
+button.workspaceAttachmentOption:focus-visible {
+  border-color: color-mix(in srgb, var(--teal) 52%, var(--dashboard-border));
+  background: var(--dashboard-surface-accent);
+  outline: none;
+}
+
+.workspaceAttachmentOption > svg {
+  justify-self: center;
+  color: var(--teal);
+}
+
+.workspaceAttachmentOption > span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.workspaceAttachmentOption strong {
+  color: inherit;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.workspaceAttachmentOption small {
+  color: var(--muted-strong);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.workspaceAttachmentOption--disabled {
+  color: var(--muted-strong);
+  background: color-mix(in srgb, var(--surface-0) 34%, transparent);
+  opacity: 0.72;
+}
+
+.workspaceAttachmentOption--disabled > svg {
+  color: var(--muted);
+}
+
+.workspaceRequestMenuBoundary {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 0;
+  padding-top: 2px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.workspaceRequestMenuBoundary > svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--teal);
+}
+
+.workspaceGenerationField {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 760;
+  white-space: nowrap;
+}
+
+.workspaceGenerationField > span {
+  color: var(--muted);
+}
+
+.workspaceGenerationField select,
+.workspaceProviderTrigger {
+  min-width: 0;
+  min-height: 34px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-control);
+  color: var(--foreground);
+  background: var(--dashboard-surface-inset);
+  box-shadow: var(--dashboard-shadow-inset);
+  cursor: pointer;
+  font: inherit;
+}
+
+.workspaceGenerationField select {
+  max-width: 126px;
+  padding: 5px 24px 5px 8px;
+}
+
+.workspaceProviderTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+}
+
+.workspaceProviderTrigger > svg:first-child {
+  color: var(--teal);
+}
+
+.workspaceProviderTrigger > svg:last-child {
+  color: var(--muted);
+  transition: transform 180ms ease;
+}
+
+.workspaceProviderTrigger[aria-expanded="true"] {
+  border-color: color-mix(in srgb, var(--teal) 48%, var(--dashboard-border));
+  background: var(--dashboard-surface-accent);
+}
+
+.workspaceProviderTrigger[aria-expanded="true"] > svg:last-child {
+  transform: rotate(180deg);
+}
+
+.workspaceProviderTrigger strong {
+  color: var(--foreground);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.workspaceProviderPopover {
+  left: 50%;
+  width: min(280px, calc(100vw - 32px));
+  min-width: 0;
+  white-space: normal;
+  transform: translateX(-50%);
+}
+
+.workspaceProviderSelected {
+  display: grid;
+  gap: 3px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--teal) 30%, var(--dashboard-border));
+  border-radius: var(--dashboard-radius-control);
+  background: var(--dashboard-surface-accent);
+}
+
+.workspaceProviderSelected > span,
+.workspaceProviderSelected > small,
+.workspaceProviderGroup summary {
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.workspaceProviderSelected > span,
+.workspaceProviderGroup summary {
+  color: var(--muted);
+  font-weight: 820;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.workspaceProviderSelected > strong {
+  color: var(--foreground);
+  font-size: 13px;
+}
+
+.workspaceProviderSelected > small {
+  color: var(--teal);
+}
+
+.workspaceProviderGroup {
+  padding: 9px 10px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-control);
+  background: var(--dashboard-surface-inset);
+}
+
+.workspaceProviderGroup summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.workspaceProviderGroup summary::-webkit-details-marker {
+  display: none;
+}
+
+.workspaceProviderGroup summary::after {
+  content: "⌄";
+  float: right;
+  color: var(--teal);
+}
+
+.workspaceProviderGroup[open] summary::after {
+  content: "⌃";
+}
+
+.workspaceProviderGroup p {
+  margin: 7px 0 0;
+  color: var(--muted-strong);
+  font-size: 10px;
+  line-height: 1.4;
+  white-space: normal;
+}
+
+.workstation .sessionPanel:has(.workspaceAttachmentMenu),
+.workstation .sessionPanel:has(.workspaceProviderPopover) {
+  z-index: 8;
+  overflow: visible;
+}
+
+.workspaceImageReferences {
+  display: grid;
+  width: min(100%, 1120px);
+  min-width: 0;
+  justify-self: center;
+  gap: var(--dashboard-space-2);
+  padding: var(--dashboard-space-3);
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-card);
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.04), transparent 58%),
+    var(--dashboard-surface-card);
+  box-shadow: var(--dashboard-shadow-inset);
+}
+
+.workspaceImageReferences[data-state="ready"] {
+  border-color: color-mix(in srgb, var(--blue) 34%, var(--dashboard-border));
+}
+
+.workspaceImageReferences[data-state="error"] {
+  border-color: color-mix(in srgb, var(--coral) 38%, var(--dashboard-border));
+}
+
+.workspaceImageReferencesHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--dashboard-space-3);
+}
+
+.workspaceImageReferencesHeader > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.workspaceImageReferencesHeader strong {
+  color: var(--foreground);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.workspaceImageReferencesHeader p,
+.workspaceImageReferencesBoundary {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 10px;
+  line-height: 1.42;
+}
+
+.workspaceImageReferencesDismiss,
+.workspaceImageReferenceCard button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-control);
+  color: var(--muted-strong);
+  background: var(--dashboard-surface-inset);
+  cursor: pointer;
+}
+
+.workspaceImageReferencesDismiss:hover,
+.workspaceImageReferenceCard button:hover {
+  border-color: color-mix(in srgb, var(--coral) 44%, var(--dashboard-border));
+  color: var(--coral);
+}
+
+.workspaceImageReferencesList {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: var(--dashboard-space-2);
+}
+
+.workspaceImageReferenceCard {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-control);
+  background: var(--dashboard-surface-inset);
+}
+
+.workspaceImageReferenceThumb {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  background-color: color-mix(in srgb, var(--foreground) 8%, transparent);
+  background-position: center;
+  background-size: cover;
+}
+
+.workspaceImageReferenceCard > div:nth-child(2) {
+  min-width: 0;
+}
+
+.workspaceImageReferenceCard strong,
+.workspaceImageReferenceCard span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspaceImageReferenceCard strong {
+  color: var(--foreground);
+  font-size: 11px;
+}
+
+.workspaceImageReferenceCard span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 780;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.workspaceImageReferencesBoundary {
+  padding-top: var(--dashboard-space-2);
+  border-top: 1px solid var(--section-divider);
+  color: var(--muted);
+}
+
+.workspaceImageUploadError {
+  margin: 0;
+}
+
+.workspaceComposerSend {
+  display: inline-flex;
+  min-width: 74px;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid color-mix(in srgb, var(--teal) 48%, transparent);
+  border-radius: var(--dashboard-radius-control);
+  color: var(--accent-ink);
+  background: rgba(var(--accent-rgb), 0.92);
+  box-shadow: var(--dashboard-shadow-inset);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 820;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.workspaceComposerSend[data-ready="true"]:hover {
+  border-color: color-mix(in srgb, var(--teal) 72%, transparent);
+  background: rgba(var(--accent-rgb), 1);
+  transform: translateY(-1px);
+}
+
+.workspaceComposerSend:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--focus-outline);
+}
+
+.workspaceComposerSend:disabled {
+  border-color: var(--dashboard-border);
+  color: var(--muted);
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  box-shadow: none;
+  cursor: default;
+  opacity: 0.72;
+}
+
+.workspaceVisuallyHidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+}
+
+@container session-workspace (max-width: 900px) {
+  .workspaceComposer {
+    width: 100%;
+  }
+
+  .workspaceComposerActions {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--dashboard-space-2);
+  }
+
+  .workspaceComposerControlsSlot {
+    justify-self: end;
+  }
+
+  .workspaceGenerationControls {
+    justify-content: flex-end;
+    gap: 12px;
+  }
+}
+
+@container session-workspace (max-width: 640px) {
+  .workstation .sessionHeader {
+    flex-direction: column;
+  }
+
+  .workstation .sessionMetric {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .workspaceConversation {
+    gap: 9px;
+    padding-right: 2px;
+    scrollbar-gutter: auto;
+  }
+
+  .workspaceMessage {
+    width: 100%;
+    max-width: 100%;
+    padding: 12px;
+  }
+
+  .workspaceComposerInputFrame {
+    padding: 11px 13px 6px;
+  }
+
+  .workspaceComposer textarea {
+    min-height: 72px;
+  }
+
+  .workspaceComposerActions {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .workspaceComposerControlsSlot {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: stretch;
+  }
+
+  .workspaceGenerationControls {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: 8px;
+  }
+
+  .workspaceGenerationField {
+    display: grid;
+    align-content: start;
+    gap: 4px;
+  }
+
+  .workspaceGenerationField select,
+  .workspaceProviderTrigger {
+    width: 100%;
+    max-width: none;
+  }
+
+  .workspaceComposerSend {
+    justify-self: end;
+  }
+}
+
+@container session-workspace (max-width: 420px) {
+  .workspaceGenerationControls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .workspaceImageReferencesHeader {
+    flex-direction: column;
+  }
+
+  .workspaceImageReferencesDismiss {
+    align-self: flex-end;
+  }
+}
+
+/* Preview is the live artwork stage. Its shell consumes the application
+   primitives; only the canvas and its high-contrast HUD remain purpose-built. */
+.previewZone {
+  min-width: 0;
+}
+
+.previewShelf {
+  --preview-hud-surface: rgba(5, 8, 12, 0.88);
+  --preview-hud-surface-soft: rgba(14, 19, 26, 0.78);
+  --preview-hud-border: rgba(255, 255, 255, 0.18);
+  --preview-hud-text: #f7f9fc;
+  --preview-hud-muted: #c0c8d2;
+  --preview-hud-accent: #67b9ff;
+  --preview-hud-good: #65df9a;
+  --preview-hud-warning: #f4ca72;
+  --preview-hud-danger: #ff9687;
+  container-name: preview-workspace;
+  container-type: inline-size;
+  min-width: 0;
+  border: 1px solid var(--dashboard-border, var(--line));
+  border-radius: var(--dashboard-radius-section, 18px);
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.035), transparent 52%),
+    var(--surface-1);
+  box-shadow: var(--dashboard-shadow-inset, var(--panel-highlight));
+}
+
+.previewShelf[open] {
+  border-color: var(--dashboard-border-strong, var(--line-strong));
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.16),
+    var(--dashboard-shadow-inset, var(--panel-highlight));
+}
+
+.previewShelf > summary {
+  min-height: 58px;
+  gap: var(--dashboard-space-2, 10px);
+  padding: 11px 14px;
+  border-bottom-color: transparent;
+  background: transparent;
+}
+
+.previewShelf > summary:focus-visible {
+  outline: 2px solid var(--focus-outline);
+  outline-offset: -3px;
+}
+
+.previewShelf[data-state="open"] > summary {
+  border-bottom-color: var(--section-divider);
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.07), transparent 76%),
+    color-mix(in srgb, var(--surface-2) 84%, transparent);
+}
+
+.previewSummaryIcon {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  border-radius: var(--dashboard-radius-control, 9px);
+  background: rgba(var(--accent-rgb), 0.07);
+  box-shadow: none;
+}
+
+.previewSummaryIcon + div {
+  min-width: 0;
+}
+
+.previewSummaryIcon + div > :is(strong, span) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.previewSummaryMeta {
+  flex: 0 0 auto;
+  gap: var(--dashboard-space-1, 6px);
+}
+
+.previewPanel {
+  gap: var(--dashboard-space-2, 10px);
+  padding: 0 var(--dashboard-space-3, 14px) var(--dashboard-space-3, 14px);
+}
+
+.previewToolbar {
+  min-width: 0;
+  padding: 2px 2px 0;
+}
+
+.previewToolbarFocus {
+  gap: 4px;
+}
+
+.previewBody {
+  position: relative;
+  min-width: 0;
+}
+
+.previewSurface[data-chrome="immersive"] {
+  border-color: rgba(var(--accent-rgb), 0.24);
+  border-radius: var(--dashboard-radius-card, 14px);
+  box-shadow: var(--dashboard-shadow-inset, var(--panel-highlight));
+}
+
+.previewArtworkControls {
+  position: absolute;
+  z-index: 5;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  max-width: calc(100% - 24px);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--preview-hud-border);
+  border-radius: var(--dashboard-radius-card, 14px);
+  color: var(--preview-hud-text);
+  background: var(--preview-hud-surface-soft);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.26);
+  backdrop-filter: blur(14px) saturate(135%);
+}
+
+.previewShelf .previewArtworkControls .previewControlButton,
+.previewFullscreenClose .previewControlButton {
+  height: 32px;
+  padding: 0 9px;
+  border-color: var(--preview-hud-border);
+  color: var(--preview-hud-text);
+  background: rgba(4, 7, 11, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.previewShelf .previewArtworkControls .previewControlButton:hover,
+.previewShelf .previewArtworkControls .previewControlButton:focus-visible,
+.previewFullscreenClose .previewControlButton:hover,
+.previewFullscreenClose .previewControlButton:focus-visible {
+  border-color: rgba(103, 185, 255, 0.62);
+  color: #ffffff;
+  background: rgba(24, 38, 54, 0.94);
+  outline: none;
+  transform: none;
+}
+
+.previewShelf .previewArtworkControls .previewControlButton:focus-visible,
+.previewFullscreenClose .previewControlButton:focus-visible,
+.previewRuntimeRecoveryButton:focus-visible {
+  box-shadow:
+    0 0 0 2px #05080c,
+    0 0 0 4px var(--preview-hud-accent);
+}
+
+.previewShelf .previewArtworkControls .previewControlButton[data-action="clear"] {
+  border-color: rgba(255, 150, 135, 0.34);
+  color: var(--preview-hud-danger);
+}
+
+.previewShelf .previewArtworkControls .previewControlButton:disabled {
+  color: rgba(247, 249, 252, 0.5);
+  opacity: 0.62;
+}
+
+.previewShelf .previewArtworkControls .previewControlLabel {
+  font-size: 9px;
+}
+
+.previewRuntimeOverlay {
+  top: 12px;
+  left: 12px;
+  width: min(238px, calc(100% - 24px));
+  max-width: none;
+  max-height: calc(100% - 24px);
+  gap: 8px;
+  overflow: auto;
+  pointer-events: auto;
+  padding: 9px 10px;
+  border-color: var(--preview-hud-border);
+  border-radius: 11px;
+  color: var(--preview-hud-text);
+  background: var(--preview-hud-surface);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
+  opacity: 0.88;
+  scrollbar-width: thin;
+}
+
+.previewRuntimeStatus {
+  display: grid;
+  gap: 6px;
+}
+
+.previewRuntimeOverlayHeader {
+  min-width: 0;
+}
+
+.previewRuntimeOverlay small,
+.previewRuntimeMeta small {
+  color: var(--preview-hud-accent);
+}
+
+.previewRuntimeStatus > span,
+.previewRuntimeMeta > span,
+.previewRuntimeDiagnostics > span {
+  color: var(--preview-hud-muted);
+}
+
+.previewRuntimeOverlayHealth {
+  color: var(--preview-hud-muted);
+}
+
+.previewRuntimeOverlayHealth[data-tone="good"] {
+  color: var(--preview-hud-good);
+}
+
+.previewRuntimeOverlayHealth[data-tone="warning"] {
+  color: var(--preview-hud-warning);
+}
+
+.previewRuntimeOverlayHealth[data-tone="danger"] {
+  color: var(--preview-hud-danger);
+}
+
+.previewRuntimeMetric {
+  border-color: rgba(255, 255, 255, 0.11);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.previewRuntimeMetric span {
+  color: #aeb8c4;
+}
+
+.previewRuntimeMetric strong {
+  color: var(--preview-hud-text);
+}
+
+.previewRuntimeMetric[data-tone="good"] strong {
+  color: var(--preview-hud-good);
+}
+
+.previewRuntimeMetric[data-tone="warning"] strong {
+  color: var(--preview-hud-warning);
+}
+
+.previewRuntimeMetric[data-tone="danger"] strong {
+  color: var(--preview-hud-danger);
+}
+
+.previewShelf[data-user-mode="true"] .previewRuntimeOverlay {
+  width: min(218px, calc(100% - 24px));
+  padding: 8px 9px;
+}
+
+.previewShelf[data-user-mode="true"] .previewRuntimeStatus {
+  gap: 0;
+}
+
+.previewShelf[data-user-mode="true"] .previewRuntimeStatus > span:last-child {
+  display: none;
+}
+
+.previewRuntimeStage[data-runtime-state="error"] .previewRuntimeOverlay {
+  display: none;
+}
+
+.previewRuntimeErrorBoundary {
+  --foreground: var(--preview-hud-text);
+  --muted: #aeb8c4;
+  --muted-strong: var(--preview-hud-muted);
+  --line: var(--preview-hud-border);
+  --line-strong: rgba(255, 255, 255, 0.28);
+  --surface-1: rgba(17, 23, 31, 0.96);
+  --surface-2: rgba(24, 31, 41, 0.96);
+  --accent-rgb: 103, 185, 255;
+  --teal: var(--preview-hud-accent);
+  right: 12px;
+  z-index: 6;
+  width: min(360px, calc(100% - 24px));
+  max-height: calc(100% - 24px);
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid rgba(255, 150, 135, 0.3);
+  border-radius: var(--dashboard-radius-card, 14px);
+  background: rgba(5, 8, 12, 0.93);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.36);
+  scrollbar-width: thin;
+}
+
+.previewSurface[data-chrome="immersive"] .previewRuntimeErrorBoundary {
+  bottom: 12px;
+}
+
+.previewRuntimeErrorBoundary .subsystemErrorCallout,
+.previewRuntimePresenterFallback {
+  border-color: rgba(255, 150, 135, 0.28);
+  background:
+    linear-gradient(135deg, rgba(255, 150, 135, 0.09), transparent 72%),
+    rgba(16, 21, 29, 0.96);
+}
+
+.previewRuntimePresenterFallback :is(strong, p) {
+  color: inherit;
+}
+
+.previewRuntimePresenterFallback p {
+  color: var(--preview-hud-muted);
+}
+
+.previewRuntimeRecoveryButton {
+  border-color: rgba(103, 185, 255, 0.44);
+  color: var(--preview-hud-text);
+  background: rgba(31, 93, 146, 0.5);
+}
+
+.previewRuntimeRecoveryButton:hover,
+.previewRuntimeRecoveryButton:focus-visible {
+  border-color: rgba(103, 185, 255, 0.72);
+  background: rgba(39, 112, 175, 0.68);
+  outline: none;
+}
+
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewFullscreenClose {
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+}
+
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewFullscreenClose .previewControlButton {
+  min-width: 74px;
+  border-color: var(--preview-hud-border);
+  color: var(--preview-hud-text);
+  background: var(--preview-hud-surface);
+}
+
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewFullscreenClose .previewControlButton:hover,
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewFullscreenClose .previewControlButton:focus-visible {
+  border-color: rgba(103, 185, 255, 0.62);
+  color: #ffffff;
+  background: rgba(24, 38, 54, 0.94);
+  outline: none;
+}
+
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewFullscreenClose .previewControlButton:focus-visible {
+  box-shadow:
+    0 0 0 2px #05080c,
+    0 0 0 4px var(--preview-hud-accent);
+}
+
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewRuntimeFrame {
+  background: #05080b;
+}
+
+.previewFullscreenLayer .previewShelf[data-fullscreen="true"] .previewRuntimeErrorBoundary {
+  right: auto;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  left: 50%;
+  display: grid;
+  width: min(520px, calc(100% - 32px));
+  max-height: min(70dvh, 520px);
+  transform: translateX(-50%);
+}
+
+.previewSurfaceHeader h3 {
+  margin: 3px 0 0;
+  color: var(--foreground);
+  font-size: var(--heading-card-size, 15px);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.previewSurfaceChipRow,
+.previewSurfaceCapabilityList,
+.previewSurfacePanelBody {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.previewSurfaceChipRow li,
+.previewSurfaceCapabilityList li,
+.previewSurfacePanelBody li,
+.previewSurfaceNotes span {
+  padding: 6px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.055);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.previewSurfaceMetaGrid {
+  margin: 0;
+}
+
+.previewSurfaceMetaGrid dt {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.previewSurfaceMetaGrid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 720;
+  line-height: 1.3;
+}
+
+.previewShelf--userFallback {
+  padding: var(--dashboard-space-2, 10px);
+}
+
+.previewUserFallbackCard {
+  padding: var(--dashboard-space-3, 14px);
+  border-color: var(--dashboard-border, var(--line));
+  border-radius: var(--dashboard-radius-card, 14px);
+  background: var(--dashboard-surface-card, var(--surface-2));
+  box-shadow: var(--dashboard-shadow-inset, var(--panel-highlight));
+}
+
+.previewUserFallbackActions button {
+  min-height: 34px;
+  border-color: var(--dashboard-border, var(--line));
+  border-radius: var(--dashboard-radius-control, 9px);
+  color: var(--muted-strong);
+  background: var(--dashboard-surface-inset, var(--surface-1));
+}
+
+.previewUserFallbackActions button:hover,
+.previewUserFallbackActions button:focus-visible {
+  border-color: var(--dashboard-border-strong, var(--line-strong));
+  color: var(--foreground);
+  background: var(--dashboard-surface-accent, var(--surface-2));
+  outline: none;
+}
+
+.previewUserFallbackActions button:focus-visible {
+  box-shadow: 0 0 0 2px var(--focus-outline);
+}
+
+@container preview-workspace (max-width: 720px) {
+  .previewArtworkControls {
+    top: 8px;
+    right: 8px;
+    max-width: calc(100% - 16px);
+    padding: 5px;
+  }
+
+  .previewShelf .previewArtworkControls .previewControlLabel {
+    display: none;
+  }
+
+  .previewShelf .previewArtworkControls .previewControlButton {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+  }
+
+  .previewRuntimeOverlay {
+    top: auto;
+    bottom: 8px;
+    left: 8px;
+    width: min(224px, calc(100% - 16px));
+    max-height: calc(100% - 56px);
+  }
+
+  .previewRuntimeErrorBoundary {
+    right: 8px;
+    bottom: 8px;
+    width: calc(100% - 16px);
+    max-height: calc(100% - 56px);
+  }
+}
+
+@container preview-workspace (max-width: 480px) {
+  .previewShelf > summary {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 8px;
+    padding-inline: 10px;
+  }
+
+  .previewSummaryMeta small,
+  .previewToolbarFocus small {
+    display: none;
+  }
+
+  .previewPanel {
+    padding: 0 8px 8px;
+  }
+
+  .previewRuntimeStatus > span:last-child {
+    display: none;
+  }
+
+  .previewUserFallbackCard {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .previewUserFallbackActions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 1120px) {
+  .dashboardProcessRail[data-variant="journey"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dashboardProcessRail[data-variant="journey"] .dashboardProcessRailConnector {
+    display: none;
+  }
+}
+
 @media (max-width: 900px) {
   .dashboardCardGrid[data-layout="equal"] {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboardDefinitionGrid[data-layout="compact"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .telemetryReviewerHero,
@@ -890,6 +4665,20 @@
   }
 
   .dashboardInfoCard {
+    min-height: 0;
+  }
+
+  .dashboardDefinitionGrid,
+  .dashboardDefinitionGrid[data-layout="compact"],
+  .dashboardDefinitionGrid[data-layout="wide"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboardProcessRail[data-variant="journey"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboardProcessRail[data-variant="journey"] > li {
     min-height: 0;
   }
 }

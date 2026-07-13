@@ -9,41 +9,44 @@ import { SubsystemErrorCallout } from "./subsystem-error-callout";
 
 export function RetrievalInspector({
   inventory,
+  presentation,
   runtime,
-  showDebugPanels = true
+  showDebugPanels
 }: {
   inventory?: KnowledgeBaseInventory;
+  presentation?: "dashboard" | "inspector";
   runtime: RetrievalRuntimeModel;
   showDebugPanels?: boolean;
 }) {
-  const hasSources = runtime.sources.length > 0;
-  const quality = buildRetrievalQualityModel(runtime);
-  const explorer = buildRetrievalSourceExplorerModel(runtime);
+  const resolvedPresentation =
+    presentation ??
+    (typeof showDebugPanels === "boolean" ? "inspector" : "dashboard");
 
-  if (!showDebugPanels) {
+  if (resolvedPresentation === "inspector") {
     return (
       <section
         aria-label="Retrieval inspector"
+        aria-labelledby="retrieval-inspector-panel-tab"
         className="inspectorPanel retrievalPanel"
         id="retrieval-inspector-panel"
         role="tabpanel"
       >
         <RetrievalRunStatusSurface runtime={runtime} />
-        <KnowledgeBaseStatusSurface
-          inventory={inventory}
-          runtime={runtime}
-          showSourceHealth
-        />
+        <RetrievalCompactQualitySurface runtime={runtime} />
+        <KnowledgeBaseStatusSurface inventory={inventory} runtime={runtime} />
       </section>
     );
   }
 
+  const hasSources = runtime.sources.length > 0;
+  const quality = buildRetrievalQualityModel(runtime);
+  const explorer = buildRetrievalSourceExplorerModel(runtime);
+
   return (
     <section
-      aria-label="Retrieval inspector"
-      className="inspectorPanel retrievalPanel"
-      id="retrieval-inspector-panel"
-      role="tabpanel"
+      aria-label="Retrieval dashboard"
+      className="retrievalPanel"
+      role="region"
     >
       <article
         aria-label="Retrieval status"
@@ -67,36 +70,7 @@ export function RetrievalInspector({
           <span role="listitem">{runtime.summary.qualityLabel}</span>
           <span role="listitem">{runtime.summary.freshnessLabel}</span>
         </div>
-        <div className="retrievalInsightGrid" aria-label="Retrieval quality signals">
-          <article
-            aria-label="Retrieval confidence"
-            className="retrievalInsightCard"
-            data-confidence={runtime.summary.confidence}
-            role="group"
-          >
-            <span>Confidence</span>
-            <strong>{runtime.summary.confidenceLabel}</strong>
-            <p>{runtime.summary.confidenceDetail}</p>
-          </article>
-          <article
-            aria-label="Retrieval coverage"
-            className="retrievalInsightCard"
-            role="group"
-          >
-            <span>Coverage</span>
-            <strong>{runtime.summary.coverageLabel}</strong>
-            <p>{runtime.summary.coverageDetail}</p>
-          </article>
-          <article
-            aria-label="Retrieval context used"
-            className="retrievalInsightCard"
-            role="group"
-          >
-            <span>Generation context</span>
-            <strong>{runtime.summary.usedChunkLabel}</strong>
-            <p>{runtime.summary.usedChunkDetail}</p>
-          </article>
-        </div>
+        <RetrievalQualitySignals runtime={runtime} />
         {runtime.request.query ? (
           <p className="retrievalQuery">
             Query
@@ -141,6 +115,77 @@ export function RetrievalInspector({
         </article>
       )}
     </section>
+  );
+}
+
+function RetrievalCompactQualitySurface({
+  runtime
+}: {
+  runtime: RetrievalRuntimeModel;
+}) {
+  return (
+    <article
+      aria-label="Retrieval quality signals"
+      className="retrievalSummaryCard"
+      data-state={runtime.summary.state}
+      role="group"
+    >
+      <header className="retrievalSummaryHeader">
+        <div>
+          <span>Current-run quality</span>
+          <strong>{runtime.summary.qualityLabel}</strong>
+          <p>Published confidence, coverage, and grounding signals for this run.</p>
+        </div>
+        <span className="retrievalStateBadge" data-state={runtime.summary.state}>
+          {runtime.summary.freshnessLabel}
+        </span>
+      </header>
+      <RetrievalQualitySignals runtime={runtime} />
+      {runtime.summary.warning ? (
+        <p className="retrievalWarning" role="status">
+          {runtime.summary.warning}
+        </p>
+      ) : null}
+    </article>
+  );
+}
+
+function RetrievalQualitySignals({
+  runtime
+}: {
+  runtime: RetrievalRuntimeModel;
+}) {
+  return (
+    <div className="retrievalInsightGrid" aria-label="Retrieval quality signals">
+      <article
+        aria-label="Retrieval confidence"
+        className="retrievalInsightCard"
+        data-confidence={runtime.summary.confidence}
+        role="group"
+      >
+        <span>Confidence</span>
+        <strong>{runtime.summary.confidenceLabel}</strong>
+        <p>{runtime.summary.confidenceDetail}</p>
+      </article>
+      <article
+        aria-label="Retrieval coverage"
+        className="retrievalInsightCard"
+        role="group"
+      >
+        <span>Coverage</span>
+        <strong>{runtime.summary.coverageLabel}</strong>
+        <p>{runtime.summary.coverageDetail}</p>
+      </article>
+      <article
+        aria-label="Retrieval context used"
+        className="retrievalInsightCard"
+        role="group"
+      >
+        <span>Generation context</span>
+        <strong>{runtime.summary.usedChunkLabel}</strong>
+        <p>{runtime.summary.usedChunkDetail}</p>
+      </article>
+    </div>
   );
 }
 

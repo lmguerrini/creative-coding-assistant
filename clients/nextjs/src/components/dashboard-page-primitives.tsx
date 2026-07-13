@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 
 function joinClassNames(...values: Array<string | undefined>) {
@@ -11,6 +11,7 @@ export type DashboardPageHeroProps = {
   className?: string;
   detail: string;
   eyebrow: string;
+  headingLevel?: "h1" | "h2";
   icon: LucideIcon;
   title: string;
   tone?: string;
@@ -41,10 +42,13 @@ export function DashboardPageHero({
   className,
   detail,
   eyebrow,
+  headingLevel = "h2",
   icon: Icon,
   title,
   tone
 }: DashboardPageHeroProps) {
+  const Heading = headingLevel;
+
   return (
     <header className={joinClassNames("dashboardPageHero", className)} data-tone={tone}>
       <div className="dashboardPageHeroIcon" aria-hidden="true">
@@ -52,11 +56,11 @@ export function DashboardPageHero({
       </div>
       <div className="dashboardPageHeroCopy">
         <span>{eyebrow}</span>
-        <h2>{title}</h2>
+        <Heading>{title}</Heading>
         <p>{detail}</p>
       </div>
-      <div className="dashboardPageHeroBadges" aria-label={badgeLabel}>
-        {badges.map((badge) => <span key={badge}>{badge}</span>)}
+      <div className="dashboardPageHeroBadges" aria-label={badgeLabel} role="list">
+        {badges.map((badge) => <span key={badge} role="listitem">{badge}</span>)}
       </div>
     </header>
   );
@@ -156,7 +160,7 @@ export function DashboardCardGrid({
   children: ReactNode;
   className?: string;
   label?: string;
-  layout?: "auto" | "compact" | "equal" | "steps";
+  layout?: "auto" | "compact" | "equal" | "quad" | "steps";
   role?: "group" | "list";
 }) {
   return (
@@ -211,6 +215,163 @@ export function DashboardInfoCard({
   );
 }
 
+export function DashboardActionCard({
+  badge,
+  className,
+  detail,
+  icon: Icon,
+  onClick,
+  title,
+  tone
+}: {
+  badge?: string;
+  className?: string;
+  detail: string;
+  icon: LucideIcon;
+  onClick: () => void;
+  title: string;
+  tone?: string;
+}) {
+  const cardId = useId();
+  const titleId = `${cardId}-title`;
+  const detailId = `${cardId}-detail`;
+  const badgeId = badge ? `${cardId}-badge` : undefined;
+
+  return (
+    <button
+      aria-describedby={badgeId ? `${badgeId} ${detailId}` : detailId}
+      aria-labelledby={titleId}
+      className={joinClassNames("dashboardInnerCard", "dashboardActionCard", className)}
+      data-tone={tone}
+      onClick={onClick}
+      type="button"
+    >
+      <span className="dashboardActionCardIcon" aria-hidden="true">
+        <Icon size={19} />
+      </span>
+      {badge ? <span className="dashboardActionCardBadge" id={badgeId}>{badge}</span> : null}
+      <span className="dashboardActionCardTitle" id={titleId}>{title}</span>
+      <span className="dashboardActionCardDetail" id={detailId}>{detail}</span>
+      <span className="dashboardActionCardCue" aria-hidden="true">Use this starter →</span>
+    </button>
+  );
+}
+
+export function DashboardChoiceCard({
+  ariaCurrent,
+  ariaPressed = true,
+  className,
+  detail,
+  eyebrow,
+  idleLabel = "View",
+  icon: Icon,
+  onClick,
+  selected,
+  selectedLabel = "Selected",
+  title
+}: {
+  ariaCurrent?: "page" | "true";
+  ariaPressed?: boolean;
+  className?: string;
+  detail: string;
+  eyebrow: string;
+  idleLabel?: string;
+  icon: LucideIcon;
+  onClick: () => void;
+  selected: boolean;
+  selectedLabel?: string;
+  title: string;
+}) {
+  const cardId = useId();
+  const titleId = `${cardId}-title`;
+  const eyebrowId = `${cardId}-eyebrow`;
+  const descriptionId = `${cardId}-description`;
+
+  return (
+    <button
+      aria-current={ariaCurrent}
+      aria-describedby={`${eyebrowId} ${descriptionId}`}
+      aria-labelledby={titleId}
+      aria-pressed={ariaPressed ? selected : undefined}
+      className={joinClassNames("dashboardInnerCard", "dashboardChoiceCard", className)}
+      data-selected={selected ? "true" : undefined}
+      onClick={onClick}
+      type="button"
+    >
+      <span aria-hidden="true" className="dashboardChoiceCardIcon">
+        <Icon size={18} />
+      </span>
+      <span className="dashboardChoiceCardEyebrow" id={eyebrowId}>{eyebrow}</span>
+      <span aria-hidden="true" className="dashboardChoiceCardState">
+        {selected ? selectedLabel : idleLabel}
+      </span>
+      <span className="dashboardChoiceCardTitle" id={titleId}>{title}</span>
+      <span className="dashboardChoiceCardDetail" id={descriptionId}>{detail}</span>
+    </button>
+  );
+}
+
+export function DashboardSidebarHeader({
+  action,
+  className,
+  detail,
+  eyebrow,
+  icon: Icon,
+  title,
+  titleAs = "strong"
+}: {
+  action?: ReactNode;
+  className?: string;
+  detail: string;
+  eyebrow: string;
+  icon: LucideIcon;
+  title: string;
+  titleAs?: "h2" | "strong";
+}) {
+  const Title = titleAs;
+
+  return (
+    <header className={joinClassNames("dashboardSidebarHeader", className)}>
+      <span aria-hidden="true" className="dashboardSidebarHeaderIcon">
+        <Icon size={19} />
+      </span>
+      <div className="dashboardSidebarHeaderCopy">
+        <span>{eyebrow}</span>
+        <Title>{title}</Title>
+        <p>{detail}</p>
+      </div>
+      {action ? <div className="dashboardSidebarHeaderAction">{action}</div> : null}
+    </header>
+  );
+}
+
+export function DashboardDefinitionGrid({
+  className,
+  items,
+  label,
+  layout = "auto"
+}: {
+  className?: string;
+  items: readonly { label: string; value: ReactNode }[];
+  label: string;
+  layout?: "auto" | "compact" | "wide";
+}) {
+  return (
+    <dl
+      aria-label={label}
+      className={joinClassNames("dashboardDefinitionGrid", className)}
+      data-layout={layout}
+    >
+      {items.map((item) => (
+        <div className="dashboardInnerCard dashboardDefinitionCard" key={item.label}>
+          <dt>{item.label}</dt>
+          <dd>{item.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 export function DashboardMetricGrid({
   className,
   label,
@@ -235,6 +396,42 @@ export function DashboardMetricGrid({
         </div>
       ))}
     </dl>
+  );
+}
+
+export function DashboardProcessRail({
+  className,
+  connectors = false,
+  label,
+  steps,
+  variant = "compact"
+}: {
+  className?: string;
+  connectors?: boolean;
+  label: string;
+  steps: readonly { detail: string; icon?: LucideIcon; title: string }[];
+  variant?: "compact" | "journey";
+}) {
+  return (
+    <ol
+      aria-label={label}
+      className={joinClassNames("dashboardProcessRail", className)}
+      data-variant={variant}
+    >
+      {steps.map((step, index) => (
+        <li key={step.title}>
+          <span aria-hidden="true" className="dashboardProcessRailMarker">{index + 1}</span>
+          {step.icon ? <step.icon aria-hidden="true" className="dashboardProcessRailIcon" size={18} /> : null}
+          <div className="dashboardProcessRailCopy">
+            <strong>{step.title}</strong>
+            <small>{step.detail}</small>
+          </div>
+          {connectors && index < steps.length - 1 ? (
+            <span aria-hidden="true" className="dashboardProcessRailConnector">›</span>
+          ) : null}
+        </li>
+      ))}
+    </ol>
   );
 }
 

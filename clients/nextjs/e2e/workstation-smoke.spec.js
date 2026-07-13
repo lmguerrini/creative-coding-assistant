@@ -85,7 +85,7 @@ test.describe("V9.6 workstation E2E smoke", () => {
       artifactTitle: "physarum-drift-2.p5.js"
     });
     await page.getByRole("tab", { name: "Preview" }).click();
-    await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).not.toContainText(
+    await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).not.toContainText(
       "No matching live renderer"
     );
     const runtime = page.getByRole("group", { name: "p5.js live runtime" });
@@ -113,7 +113,7 @@ test.describe("V9.6 workstation E2E smoke", () => {
 
     await expectGeneratedPreview(page);
     await page.getByRole("tab", { name: "Preview" }).click();
-    await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).not.toContainText(
+    await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).not.toContainText(
       "No matching live renderer"
     );
     consoleGate.assertClean();
@@ -133,7 +133,7 @@ test.describe("V9.6 workstation E2E smoke", () => {
 
     await expect(page.getByRole("region", { name: "Preview workspace" })).toBeVisible();
     await page.getByRole("tab", { name: "Preview" }).click();
-    await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
+    await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).toContainText(
       "Tone.js audio surface"
     );
     const runtime = page.getByRole("group", { name: "Tone.js live runtime" });

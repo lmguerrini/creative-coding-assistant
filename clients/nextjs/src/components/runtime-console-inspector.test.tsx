@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type {
   RuntimeConsoleHealthSignal,
@@ -30,14 +30,14 @@ describe("RuntimeConsoleInspector", () => {
     }
   );
 
-  it("renders warnings, errors, reload history, and event history chronologically", () => {
+  it("keeps active diagnostics in the inspector and reserves history for the dashboard", () => {
     const model = createConsoleModel(
       "failed",
       "Failed",
       "Renderer execution stopped."
     );
 
-    render(<RuntimeConsoleInspector console={model} />);
+    const { rerender } = render(<RuntimeConsoleInspector console={model} />);
 
     expect(screen.getByRole("list", { name: "Runtime warnings" })).toHaveTextContent(
       "Frame budget exceeded."
@@ -45,6 +45,21 @@ describe("RuntimeConsoleInspector", () => {
     expect(screen.getByRole("list", { name: "Runtime errors" })).toHaveTextContent(
       "Shader compilation failed."
     );
+    expect(screen.getByRole("group", { name: "Runtime context" })).toHaveTextContent(
+      "diagnostic.frag"
+    );
+    expect(
+      screen.queryByRole("group", { name: "Runtime reload history" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("group", { name: "Runtime event history" })
+    ).not.toBeInTheDocument();
+
+    rerender(
+      <RuntimeConsoleInspector console={model} presentation="dashboard" />
+    );
+    fireEvent.click(screen.getByText("Runtime history · 1 reload · 3 events"));
+
     expect(
       screen.getByRole("group", { name: "Runtime reload history" })
     ).toHaveTextContent("1 reload");

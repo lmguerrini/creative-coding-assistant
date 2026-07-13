@@ -40,7 +40,19 @@ export type PreviewSandboxRuntimeMessage =
       runtimeId: string;
       type: "frame";
       renderedAtMs: number;
+    }
+  | {
+      source: "cca-preview-runtime";
+      runtimeId: string;
+      type: "keyboard-boundary";
+      key: "Escape" | "Tab";
+      shiftKey: boolean;
     };
+
+export type PreviewSandboxKeyboardBoundaryEvent = Pick<
+  Extract<PreviewSandboxRuntimeMessage, { type: "keyboard-boundary" }>,
+  "key" | "shiftKey"
+>;
 
 export type PreviewSandboxRuntimeStatusPayload = {
   state: PreviewRuntimeStatus["state"];
@@ -55,9 +67,13 @@ export type PreviewSandboxRuntimeStatusPayload = {
 };
 
 export type MountPreviewSandboxRuntimeInput = {
+  captureHostKeyboard?: boolean;
   iframe: HTMLIFrameElement;
   kind: PreviewExecutableRuntimeKind;
   onFrame?: ((sample: PreviewRuntimeFrameSample) => void) | undefined;
+  onKeyboardBoundary?:
+    | ((event: PreviewSandboxKeyboardBoundaryEvent) => void)
+    | undefined;
   onStatus: (status: PreviewRuntimeStatus) => void;
   runtimeId: string;
   showStatusOverlay?: boolean;
@@ -82,9 +98,11 @@ export function createPreviewSandboxRuntimeId() {
 }
 
 export function mountPreviewSandboxRuntime({
+  captureHostKeyboard = false,
   iframe,
   kind,
   onFrame,
+  onKeyboardBoundary,
   onStatus,
   runtimeId,
   showStatusOverlay = true,
@@ -113,6 +131,7 @@ export function mountPreviewSandboxRuntime({
     runtimeId,
     type: "mount",
     runtime: {
+      captureHostKeyboard,
       kind,
       runtimeId,
       showStatusOverlay,
@@ -148,6 +167,11 @@ export function mountPreviewSandboxRuntime({
 
     if (message.type === "frame") {
       onFrame?.({ renderedAtMs: message.renderedAtMs });
+      return;
+    }
+
+    if (message.type === "keyboard-boundary") {
+      onKeyboardBoundary?.({ key: message.key, shiftKey: message.shiftKey });
       return;
     }
 
@@ -222,6 +246,19 @@ export function readPreviewSandboxRuntimeMessage(
       : null;
   }
 
+  if (value.type === "keyboard-boundary") {
+    return (value.key === "Escape" || value.key === "Tab") &&
+      typeof value.shiftKey === "boolean"
+      ? {
+          source: sandboxMessageSource,
+          runtimeId,
+          type: "keyboard-boundary",
+          key: value.key,
+          shiftKey: value.shiftKey
+        }
+      : null;
+  }
+
   if (value.type !== "status" || !isRecord(value.status)) {
     return null;
   }
@@ -261,16 +298,19 @@ export function readPreviewSandboxRuntimeMessage(
 }
 
 export function buildPreviewSandboxDocument({
+  captureHostKeyboard = false,
   kind,
   runtimeId,
   source
 }: {
+  captureHostKeyboard?: boolean;
   kind: PreviewExecutableRuntimeKind;
   runtimeId: string;
   source: PreviewRuntimeSource;
 }) {
   const preparedSource = preparePreviewExecutableSource(source.source, kind);
   const payload = serializeForInlineScript({
+    captureHostKeyboard,
     kind,
     runtimeId,
     source: {
@@ -289,10 +329,12 @@ export function buildPreviewSandboxDocument({
 html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#05080b;color:#edf3f2;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
 canvas{display:block;width:100%;height:100%;}
 #preview-root{position:fixed;inset:0;overflow:hidden;}
+#preview-root:focus{outline:none;}
+#preview-root:focus-visible{outline:2px solid rgba(103,185,255,.82);outline-offset:-3px;}
 </style>
 </head>
 <body>
-<div id="preview-root"><canvas id="preview-canvas"></canvas></div>
+<div id="preview-root" tabindex="0"><canvas id="preview-canvas"></canvas></div>
 <!-- Three.js r176, MIT; vendored from the official package. See /vendor/three.LICENSE.txt. -->
 <script src="/vendor/three-r176.min.js"></script>
 <script>
@@ -546,6 +588,17 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
       "*"
     );
   }
+
+  window.addEventListener("keydown", function (event) {
+    if (runtime.captureHostKeyboard !== true) return;
+    if (event.key === "Escape") {
+      post({ type: "keyboard-boundary", key: "Escape", shiftKey: false });
+      return;
+    }
+    if (event.key !== "Tab") return;
+    event.preventDefault();
+    post({ type: "keyboard-boundary", key: "Tab", shiftKey: event.shiftKey });
+  }, true);
 
   function status(state, label, detail, extra) {
     runningLabel = label;

@@ -12,6 +12,7 @@ import type {
   PreviewRendererRoute,
   PreviewRendererSurfaceKind
 } from "@/lib/preview-renderers";
+import type { PreviewSandboxKeyboardBoundaryEvent } from "@/lib/preview-sandbox-runtime";
 import {
   PreviewRuntimeStage,
   type PreviewRuntimeDiagnosticsEvent,
@@ -19,7 +20,9 @@ import {
 } from "./preview-runtime-stage";
 
 type PreviewRendererSurfaceProps = {
+  captureHostKeyboard?: boolean;
   chrome?: "comparison" | "default" | "immersive";
+  onKeyboardBoundary?: PreviewRuntimeCallbackProps["onKeyboardBoundary"];
   onRuntimeDiagnostics?: PreviewRuntimeCallbackProps["onRuntimeDiagnostics"];
   onReload?: (() => void) | undefined;
   onRuntimeFrame?: PreviewRuntimeCallbackProps["onRuntimeFrame"];
@@ -32,6 +35,7 @@ type PreviewRendererSurfaceProps = {
 };
 
 type PreviewRuntimeCallbackProps = {
+  onKeyboardBoundary?: (event: PreviewSandboxKeyboardBoundaryEvent) => void;
   onRuntimeDiagnostics?: (event: PreviewRuntimeDiagnosticsEvent) => void;
   onRuntimeFrame?: (
     event: PreviewRuntimeTelemetryEvent & {
@@ -68,7 +72,9 @@ const mediaSurfaceLayers: Record<
 };
 
 export function PreviewRendererSurface({
+  captureHostKeyboard = false,
   chrome = "default",
+  onKeyboardBoundary,
   onRuntimeDiagnostics,
   onReload,
   onRuntimeFrame,
@@ -94,7 +100,7 @@ export function PreviewRendererSurface({
         <header className="previewSurfaceHeader">
           <div>
             <span className="eyebrow">{route.surfaceEyebrow}</span>
-            <strong>{route.surfaceTitle}</strong>
+            <h3>{route.surfaceTitle}</h3>
             <p>{route.rendererDescription}</p>
           </div>
           <div className="previewSurfaceStatus">
@@ -104,7 +110,9 @@ export function PreviewRendererSurface({
         </header>
       ) : null}
       {renderPreviewSurfaceStage({
+        captureHostKeyboard,
         chrome,
+        onKeyboardBoundary,
         onRuntimeDiagnostics,
         onReload,
         onRuntimeFrame,
@@ -137,7 +145,9 @@ export function PreviewRendererSurface({
 }
 
 function renderPreviewSurfaceStage({
+  captureHostKeyboard = false,
   chrome,
+  onKeyboardBoundary,
   onRuntimeDiagnostics,
   onReload,
   onRuntimeFrame,
@@ -158,30 +168,30 @@ function renderPreviewSurfaceStage({
           <strong>{route.rendererLabel}</strong>
           <p>{route.surfaceSummary}</p>
         </div>
-        <div className="previewSurfaceCapabilityList" aria-label="Supported foundations">
-          <span>p5.js</span>
-          <span>Three.js</span>
-          <span>GLSL</span>
-          <span>Hydra</span>
-          <span>Tone.js</span>
-          <span>GSAP</span>
-          <span>SVG</span>
-          <span>Canvas</span>
-        </div>
-        <div className="previewSurfaceMetaGrid">
+        <ul className="previewSurfaceCapabilityList" aria-label="Supported foundations">
+          <li>p5.js</li>
+          <li>Three.js</li>
+          <li>GLSL</li>
+          <li>Hydra</li>
+          <li>Tone.js</li>
+          <li>GSAP</li>
+          <li>SVG</li>
+          <li>Canvas</li>
+        </ul>
+        <dl className="previewSurfaceMetaGrid">
           <div>
-            <span>Selected</span>
-            <strong>{route.selectedArtifactName}</strong>
+            <dt>Selected</dt>
+            <dd>{route.selectedArtifactName}</dd>
           </div>
           <div>
-            <span>Target</span>
-            <strong>{route.targetLabel}</strong>
+            <dt>Target</dt>
+            <dd>{route.targetLabel}</dd>
           </div>
           <div>
-            <span>Lifecycle</span>
-            <strong>{formatPreviewStateLabel(preview.state)}</strong>
+            <dt>Lifecycle</dt>
+            <dd>{formatPreviewStateLabel(preview.state)}</dd>
           </div>
-        </div>
+        </dl>
       </div>
     );
   }
@@ -192,7 +202,9 @@ function renderPreviewSurfaceStage({
     if (runtimeKind) {
       return (
         <PreviewRuntimeStage
+          captureHostKeyboard={captureHostKeyboard}
           kind={runtimeKind}
+          onKeyboardBoundary={onKeyboardBoundary}
           onRuntimeDiagnostics={onRuntimeDiagnostics}
           onReload={onReload}
           onRuntimeFrame={onRuntimeFrame}
@@ -212,11 +224,11 @@ function renderPreviewSurfaceStage({
         className="previewSurfaceStage previewSurfaceStageCreative"
       >
         <div className="previewSurfaceBackdrop" />
-        <div className="previewSurfaceChipRow">
+        <ul className="previewSurfaceChipRow" aria-label="Renderer layers">
           {creativeSurfaceLayers[route.surfaceKind].map((layer) => (
-            <span key={layer}>{layer}</span>
+            <li key={layer}>{layer}</li>
           ))}
-        </div>
+        </ul>
         {chrome === "immersive" ? (
           <div className="previewSurfaceImmersiveHint" aria-hidden="true">
             Visual output focused mode
@@ -245,11 +257,11 @@ function renderPreviewSurfaceStage({
           <span>{route.selectedArtifactName}</span>
           <small>{route.targetLabel}</small>
         </div>
-        <div className="previewSurfacePanelBody">
+        <ul className="previewSurfacePanelBody" aria-label="Preview surface capabilities">
           {mediaSurfaceLayers[route.surfaceKind].map((layer) => (
-            <span key={layer}>{layer}</span>
+            <li key={layer}>{layer}</li>
           ))}
-        </div>
+        </ul>
       </div>
     </div>
   );

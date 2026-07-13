@@ -22,6 +22,7 @@ import {
   normalizeStoredArtifactRuntimeBoundary
 } from "./live-artifact-hydration";
 import { isArtifactPreviewable } from "./preview-runtime";
+import type { WorkflowExecutionMode } from "./workflow-execution";
 import {
   buildGenerationControls,
   type CreativityProfile,
@@ -88,6 +89,7 @@ export type WorkspacePreferences = {
   theme: WorkspaceThemePreset;
   autoOpenPreview: boolean;
   showDebugPanels: boolean;
+  workflowMode: WorkflowExecutionMode;
   creativity: CreativityProfile;
   personalizationEnabled: boolean;
   headingFontSize: FontScale;
@@ -110,6 +112,7 @@ export const defaultWorkspacePreferences: WorkspacePreferences = {
   theme: "codex",
   autoOpenPreview: true,
   showDebugPanels: true,
+  workflowMode: "auto",
   creativity: "balanced",
   personalizationEnabled: true,
   headingFontSize: "medium",
@@ -666,6 +669,9 @@ export function normalizeWorkspacePreferences(
       typeof preferences?.showDebugPanels === "boolean"
         ? preferences.showDebugPanels
         : defaultWorkspacePreferences.showDebugPanels,
+    workflowMode: isWorkflowExecutionMode(preferences?.workflowMode)
+      ? preferences.workflowMode
+      : defaultWorkspacePreferences.workflowMode,
     creativity: isCreativityProfile(preferences?.creativity)
       ? preferences.creativity
       : defaultWorkspacePreferences.creativity,
@@ -1453,6 +1459,7 @@ function isWorkspacePreferences(value: unknown): value is WorkspacePreferences {
     isWorkspaceThemePreset(value.theme) &&
     typeof value.autoOpenPreview === "boolean" &&
     typeof value.showDebugPanels === "boolean" &&
+    (value.workflowMode === undefined || isWorkflowExecutionMode(value.workflowMode)) &&
     (value.creativity === undefined || isCreativityProfile(value.creativity)) &&
     (value.personalizationEnabled === undefined ||
       typeof value.personalizationEnabled === "boolean") &&
@@ -1463,6 +1470,10 @@ function isWorkspacePreferences(value: unknown): value is WorkspacePreferences {
     (value.feedbackSignals === undefined || Array.isArray(value.feedbackSignals)) &&
     (value.evaluationHistory === undefined || Array.isArray(value.evaluationHistory))
   );
+}
+
+function isWorkflowExecutionMode(value: unknown): value is WorkflowExecutionMode {
+  return value === "auto" || value === "single_agent" || value === "multi_agent";
 }
 
 function isCreativityProfile(value: unknown): value is CreativityProfile {

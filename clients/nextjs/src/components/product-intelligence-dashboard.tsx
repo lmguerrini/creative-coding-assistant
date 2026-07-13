@@ -74,6 +74,7 @@ import {
   DashboardInfoCard,
   DashboardMetricGrid,
   DashboardSection,
+  DashboardSidebarHeader,
   DashboardTableFrame
 } from "./dashboard-page-primitives";
 
@@ -439,16 +440,13 @@ export function ProductIntelligenceDashboard({
   return (
     <section aria-label="Advanced Dashboard" className="productDashboard">
       <nav aria-label="Dashboard categories" className="productDashboardNav">
-        <header className="dashboardNavHeader">
-          <div aria-hidden="true" className="dashboardNavHeaderIcon">
-            <LayoutDashboard size={19} />
-          </div>
-          <div>
-            <span>Advanced Dashboard</span>
-            <strong>Workspace intelligence</strong>
-            <p>Create, inspect, and review the current workspace.</p>
-          </div>
-        </header>
+        <DashboardSidebarHeader
+          className="dashboardNavHeader"
+          detail="Create, inspect, and review the current workspace."
+          eyebrow="Advanced Dashboard"
+          icon={LayoutDashboard}
+          title="Workspace intelligence"
+        />
         <div className="dashboardNavSections">
           {dashboardNavigationSections.map((navSection) => (
             <section aria-labelledby={`dashboard-nav-${navSection.id}`} className="dashboardNavSection" key={navSection.id}>
@@ -2334,6 +2332,7 @@ export function ProductIntelligenceInspector({
   return (
     <section
       aria-label={`${category} inspector`}
+      aria-labelledby={`${category.toLowerCase().replace(/\s+/g, "-")}-inspector-panel-tab`}
       className="inspectorPanel productIntelligenceInspector"
       id={`${category.toLowerCase().replace(/\s+/g, "-")}-inspector-panel`}
       role="tabpanel"
@@ -2414,7 +2413,7 @@ function ProductIntelligenceSectionView({
   model: ProductIntelligenceModel;
   section: ProductIntelligenceSection;
 }) {
-  if (section.category === "Domains") {
+  if (detailed && section.category === "Domains") {
     return (
       <DomainExperienceSurface
         activeDomainId={model.activeDomainId}
@@ -2425,7 +2424,7 @@ function ProductIntelligenceSectionView({
     );
   }
 
-  if (section.category === "Knowledge Base") {
+  if (detailed && section.category === "Knowledge Base") {
     return (
       <KnowledgeBaseInventorySurface
         detailed={detailed}

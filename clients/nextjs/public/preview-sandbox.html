@@ -17,6 +17,13 @@
       inset: 0;
       overflow: hidden;
     }
+    #preview-root:focus {
+      outline: none;
+    }
+    #preview-root:focus-visible {
+      outline: 2px solid rgba(103, 185, 255, 0.82);
+      outline-offset: -3px;
+    }
     #preview-root > * {
       position: absolute;
       inset: 0;
@@ -259,7 +266,7 @@
   </style>
 </head>
 <body>
-  <div id="preview-root">
+  <div id="preview-root" tabindex="0">
     <canvas id="preview-canvas"></canvas>
     <div id="gsap-stage" aria-label="GSAP motion stage" hidden></div>
     <div id="svg-stage" aria-label="SVG vector stage" hidden></div>
@@ -339,6 +346,62 @@
           "*"
         );
       }
+
+      function getKeyboardNavigationStops() {
+        return Array.from(
+          document.querySelectorAll(
+            '#preview-root, button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          )
+        ).filter(function (element, index, controls) {
+          if (!(element instanceof HTMLElement) || controls.indexOf(element) !== index) {
+            return false;
+          }
+          let current = element;
+          while (current && current !== document.body) {
+            const style = window.getComputedStyle(current);
+            if (
+              current.hidden ||
+              current.getAttribute("aria-hidden") === "true" ||
+              style.display === "none" ||
+              style.visibility === "hidden"
+            ) {
+              return false;
+            }
+            current = current.parentElement;
+          }
+          return true;
+        });
+      }
+
+      function handleKeyboardBoundary(event) {
+        if (!runtime || runtime.captureHostKeyboard !== true) return;
+
+        if (event.key === "Escape") {
+          post({ type: "keyboard-boundary", key: "Escape", shiftKey: false });
+          return;
+        }
+
+        if (event.key !== "Tab") return;
+
+        const controls = getKeyboardNavigationStops();
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        const active = document.activeElement;
+        const leavesBackward =
+          event.shiftKey && (!controls.includes(active) || active === first);
+        const leavesForward = !event.shiftKey && active === last;
+
+        if (!leavesBackward && !leavesForward) return;
+
+        event.preventDefault();
+        post({
+          type: "keyboard-boundary",
+          key: "Tab",
+          shiftKey: event.shiftKey
+        });
+      }
+
+      window.addEventListener("keydown", handleKeyboardBoundary, true);
 
       function status(state, label, detail, extra) {
         document.body.dataset.runtimeState = state;

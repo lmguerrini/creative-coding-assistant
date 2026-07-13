@@ -18,7 +18,8 @@ import {
 import type { PreviewRendererRoute } from "@/lib/preview-renderers";
 import {
   createPreviewSandboxRuntimeId,
-  mountPreviewSandboxRuntime
+  mountPreviewSandboxRuntime,
+  type PreviewSandboxKeyboardBoundaryEvent
 } from "@/lib/preview-sandbox-runtime";
 import { SubsystemErrorCallout } from "./subsystem-error-callout";
 
@@ -35,7 +36,11 @@ export type PreviewRuntimeDiagnosticsEvent = PreviewRuntimeTelemetryEvent & {
 };
 
 type PreviewRuntimeStageProps = {
+  captureHostKeyboard?: boolean;
   kind: PreviewExecutableRuntimeKind;
+  onKeyboardBoundary?:
+    | ((event: PreviewSandboxKeyboardBoundaryEvent) => void)
+    | undefined;
   onRuntimeDiagnostics?: (event: PreviewRuntimeDiagnosticsEvent) => void;
   onRuntimeFrame?: (
     event: PreviewRuntimeTelemetryEvent & { sample: PreviewRuntimeFrameSample }
@@ -52,7 +57,9 @@ type PreviewRuntimeStageProps = {
 };
 
 export function PreviewRuntimeStage({
+  captureHostKeyboard = false,
   kind,
+  onKeyboardBoundary,
   onRuntimeDiagnostics,
   onRuntimeFrame,
   onRuntimeStatus,
@@ -64,6 +71,7 @@ export function PreviewRuntimeStage({
   source
 }: PreviewRuntimeStageProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const onKeyboardBoundaryRef = useRef(onKeyboardBoundary);
   const onRuntimeDiagnosticsRef = useRef(onRuntimeDiagnostics);
   const onRuntimeFrameRef = useRef(onRuntimeFrame);
   const onRuntimeStatusRef = useRef(onRuntimeStatus);
@@ -93,6 +101,7 @@ export function PreviewRuntimeStage({
     snapshot: metrics,
     status
   });
+  const canMountRuntime = canRunPreviewRuntime({ preview, route });
   const visibleRuntimeSource =
     showDiagnostics || !route.surfaceTitle.trim()
       ? source
@@ -108,13 +117,22 @@ export function PreviewRuntimeStage({
       : status.detail;
 
   useEffect(() => {
+    onKeyboardBoundaryRef.current = onKeyboardBoundary;
     onRuntimeDiagnosticsRef.current = onRuntimeDiagnostics;
     onRuntimeFrameRef.current = onRuntimeFrame;
     onRuntimeStatusRef.current = onRuntimeStatus;
     previewRef.current = preview;
     routeRef.current = route;
     sourceRef.current = source;
-  }, [onRuntimeDiagnostics, onRuntimeFrame, onRuntimeStatus, preview, route, source]);
+  }, [
+    onKeyboardBoundary,
+    onRuntimeDiagnostics,
+    onRuntimeFrame,
+    onRuntimeStatus,
+    preview,
+    route,
+    source
+  ]);
 
   useEffect(() => {
     const currentPreview = previewRef.current;
@@ -213,8 +231,10 @@ export function PreviewRuntimeStage({
       return undefined;
     }
     const runtime = mountPreviewSandboxRuntime({
+      captureHostKeyboard,
       iframe,
       kind,
+      onKeyboardBoundary: (event) => onKeyboardBoundaryRef.current?.(event),
       onFrame: handleFrame,
       onStatus: handleStatus,
       runtimeId,
@@ -226,6 +246,7 @@ export function PreviewRuntimeStage({
       runtime.dispose();
     };
   }, [
+    captureHostKeyboard,
     kind,
     preview.active,
     preview.error?.type,
@@ -254,22 +275,30 @@ export function PreviewRuntimeStage({
     >
       <iframe
         aria-label={`${route.rendererLabel} preview runtime frame`}
+        aria-hidden={canMountRuntime ? undefined : true}
         className="previewRuntimeFrame"
         ref={iframeRef}
         sandbox="allow-scripts"
+        tabIndex={canMountRuntime ? 0 : -1}
         title={`${route.rendererLabel} preview runtime`}
       />
-      <div className="previewRuntimeOverlay" aria-live="polite">
-        <div className="previewRuntimeOverlayHeader">
-          <small>{presenterStatusLabel}</small>
-          <span
-            className="previewRuntimeOverlayHealth"
-            data-tone={overlay.healthTone}
-          >
-            {overlay.healthLabel}
-          </span>
+      <div className="previewRuntimeOverlay">
+        <div
+          aria-atomic="true"
+          aria-live="polite"
+          className="previewRuntimeStatus"
+        >
+          <div className="previewRuntimeOverlayHeader">
+            <small>{presenterStatusLabel}</small>
+            <span
+              className="previewRuntimeOverlayHealth"
+              data-tone={overlay.healthTone}
+            >
+              {overlay.healthLabel}
+            </span>
+          </div>
+          <span>{presenterStatusDetail}</span>
         </div>
-        <span>{presenterStatusDetail}</span>
         {showDiagnostics ? (
           <div
             aria-label="Renderer health overlay"
@@ -298,16 +327,16 @@ export function PreviewRuntimeStage({
         ) : null}
       </div>
       {status.error ? (
-        <div className="previewRuntimeErrorBoundary" role="alert">
+        <div className="previewRuntimeErrorBoundary">
           {showDiagnostics ? (
             <SubsystemErrorCallout
               className="previewRuntimeErrorCallout"
               error={status.error}
-              role="status"
+              role="alert"
               title="Renderer runtime failed"
             />
           ) : (
-            <div className="previewRuntimePresenterFallback" role="status">
+            <div className="previewRuntimePresenterFallback" role="alert">
               <strong>Preview fallback ready</strong>
               <p>
                 The current artifact is not runnable in this preview route. Use
@@ -320,6 +349,7 @@ export function PreviewRuntimeStage({
             <button
               aria-label="Reload preview runtime"
               className="previewRuntimeRecoveryButton"
+              data-action="reload"
               onClick={onReload}
               type="button"
             >

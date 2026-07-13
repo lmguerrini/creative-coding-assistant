@@ -326,23 +326,23 @@ async function expectGeneratedPreview(
     "aria-selected",
     "true"
   );
-  await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
+  await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).toContainText(
     "P5 sketch surface"
   );
-  await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
+  await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).toContainText(
     artifactTitle
   );
   const artifactTab = page.getByRole("tab", { name: /^(Artifacts|Saved)$/ });
   await expect(artifactTab).toBeVisible();
   await artifactTab.click();
-  await expect(page.getByRole("tabpanel", { name: /^(Artifacts inspector|Saved outputs inspector)$/ })).toContainText(
-    "Visual / p5.js"
+  await expect(page.getByRole("tabpanel", { name: /^(Artifacts|Saved)$/ })).toContainText(
+    "p5.js"
   );
-  await expect(page.getByRole("tabpanel", { name: /^(Artifacts inspector|Saved outputs inspector)$/ })).toContainText(
+  await expect(page.getByRole("tabpanel", { name: /^(Artifacts|Saved)$/ })).toContainText(
     artifactTitle
   );
   await page.getByRole("tab", { name: "Code" }).click();
-  await expect(page.getByRole("tabpanel", { name: "Code inspector" })).toContainText(
+  await expect(page.getByRole("tabpanel", { exact: true, name: "Code" })).toContainText(
     "createCanvas"
   );
 }
@@ -361,9 +361,10 @@ async function expectWorkspacePersistence(page) {
 async function expectRetrievalRegressionSurface(page) {
   await switchToDeveloperMode(page);
   await page.getByRole("tab", { name: "Retrieval" }).click();
-  await expect(page.getByRole("tabpanel", { name: "Retrieval inspector" })).toContainText(
-    "p5.js createCanvas reference"
-  );
+  const retrieval = page.getByRole("tabpanel", { exact: true, name: "Retrieval" });
+  await expect(retrieval).toContainText("Current-run quality");
+  await expect(retrieval).toContainText("Top score 92%");
+  await expect(retrieval).not.toContainText("p5.js createCanvas reference");
 }
 
 async function expectStableVisualLayout(page) {

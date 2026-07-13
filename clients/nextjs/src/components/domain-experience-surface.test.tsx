@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { KnowledgeBaseInventory } from "@/lib/domain-experience";
 import { KnowledgeBaseInventorySurface } from "./domain-experience-surface";
@@ -71,10 +71,14 @@ function expandOfficialSources() {
   fireEvent.click(screen.getByRole("button", { name: /Show all \d+ official source/ }));
 }
 
+function beginAndConfirmSmartUpdate() {
+  fireEvent.click(screen.getByRole("button", { name: "Smart Update" }));
+  fireEvent.click(screen.getByRole("button", { name: "Run Smart Update" }));
+}
+
 describe("KnowledgeBaseInventorySurface", () => {
   beforeEach(() => {
     window.localStorage.clear();
-    vi.spyOn(window, "confirm").mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -210,7 +214,7 @@ describe("KnowledgeBaseInventorySurface", () => {
     vi.stubGlobal("fetch", fetcher);
 
     render(<KnowledgeBaseInventorySurface detailed inventory={inventoryWithTwoSources} />);
-    fireEvent.click(screen.getByRole("button", { name: "Smart Update" }));
+    beginAndConfirmSmartUpdate();
 
     expect(await screen.findByText("Smart Update complete")).toBeVisible();
     expect(screen.getByLabelText("Smart Update progress")).toHaveTextContent(
@@ -260,7 +264,7 @@ describe("KnowledgeBaseInventorySurface", () => {
     vi.stubGlobal("fetch", fetcher);
 
     render(<KnowledgeBaseInventorySurface detailed inventory={inventory} />);
-    fireEvent.click(screen.getByRole("button", { name: "Smart Update" }));
+    beginAndConfirmSmartUpdate();
 
     expect(await screen.findByText(
       "The Knowledge Base update failed; the prior local index was restored. Recovery: the later steps were not run; review the failed source and retry Smart Update."
@@ -281,6 +285,7 @@ describe("KnowledgeBaseInventorySurface", () => {
     render(<KnowledgeBaseInventorySurface detailed inventory={inventory} />);
     const smartUpdate = screen.getByRole("button", { name: "Smart Update" });
     fireEvent.click(smartUpdate);
+    fireEvent.click(screen.getByRole("button", { name: "Run Smart Update" }));
     fireEvent.click(smartUpdate);
 
     expect(fetcher).toHaveBeenCalledTimes(1);
@@ -293,6 +298,58 @@ describe("KnowledgeBaseInventorySurface", () => {
 
     expect(await screen.findByText("Smart Update complete")).toBeVisible();
     expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it("cancels a selected-source update without a request and restores focus", async () => {
+    const fetcher = vi.fn();
+    vi.stubGlobal("fetch", fetcher);
+
+    render(<KnowledgeBaseInventorySurface detailed inventory={inventory} />);
+    expandOfficialSources();
+    fireEvent.click(screen.getByRole("button", { name: "Select all" }));
+
+    const update = screen.getByRole("button", { name: "Update selected" });
+    fireEvent.click(update);
+
+    expect(screen.getByRole("alertdialog", { name: "Update selected official sources?" }))
+      .toBeVisible();
+    const cancel = screen.getByRole("button", { name: "Keep current index" });
+    await waitFor(() => expect(cancel).toHaveFocus());
+    fireEvent.click(cancel);
+
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    expect(fetcher).not.toHaveBeenCalled();
+    await waitFor(() => expect(update).toHaveFocus());
+  });
+
+  it("executes a selected-source rebuild only after themed confirmation", async () => {
+    const fetcher = vi.fn().mockResolvedValue(jsonResponse({
+      detail: "The selected official source was rebuilt.",
+      status: "completed"
+    }));
+    vi.stubGlobal("fetch", fetcher);
+
+    render(<KnowledgeBaseInventorySurface detailed inventory={inventory} />);
+    expandOfficialSources();
+    fireEvent.click(screen.getByRole("button", { name: "Select all" }));
+    fireEvent.click(screen.getByRole("button", { name: "Rebuild selected" }));
+
+    expect(fetcher).not.toHaveBeenCalled();
+    const dialog = screen.getByRole("alertdialog", { name: "Rebuild selected official sources?" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Rebuild selected" }));
+
+    expect(await screen.findByText("The selected official source was rebuilt.")).toBeVisible();
+    expect(fetcher).toHaveBeenCalledWith(
+      "http://localhost:8000/api/knowledge-base",
+      expect.objectContaining({
+        body: JSON.stringify({
+          action: "rebuild",
+          confirmed: true,
+          sourceIds: ["three_docs"]
+        }),
+        method: "POST"
+      })
+    );
   });
 
   it("keeps the source registry closed until the user explicitly expands it", () => {

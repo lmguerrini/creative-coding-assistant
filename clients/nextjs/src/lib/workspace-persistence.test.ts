@@ -472,6 +472,7 @@ describe("workspace persistence client", () => {
       theme: "matrix",
       autoOpenPreview: false,
       showDebugPanels: false,
+      workflowMode: "auto",
       creativity: "balanced",
       personalizationEnabled: true,
       headingFontSize: "medium",
@@ -489,6 +490,12 @@ describe("workspace persistence client", () => {
     expect(normalizeWorkspacePreferences({ theme: "codex_white" }).theme).toBe(
       "codex_white"
     );
+    expect(
+      normalizeWorkspacePreferences({ workflowMode: "multi_agent" }).workflowMode
+    ).toBe("multi_agent");
+    expect(
+      normalizeWorkspacePreferences({ workflowMode: "invalid" as never }).workflowMode
+    ).toBe("auto");
   });
 
   it("round-trips rich evaluation history and rejects malformed nested runs", () => {

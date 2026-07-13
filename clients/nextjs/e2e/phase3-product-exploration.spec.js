@@ -202,15 +202,15 @@ test.describe("V9.7 Phase 3 product exploration", () => {
       await page.setViewportSize({ height: viewport.height, width: viewport.width });
       await expectLoadedWorkstation(page);
 
-        const layout = await page.evaluate(() => ({
-          clientWidth: document.documentElement.clientWidth,
-          scrollWidth: document.documentElement.scrollWidth,
-          workspacePaddingBottom: Number.parseFloat(
-            window.getComputedStyle(
-              document.querySelector('[aria-label="Creative workspace"]')
-            ).paddingBottom
-          )
-        }));
+      const layout = await page.evaluate(() => ({
+        clientWidth: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        workspacePaddingBottom: Number.parseFloat(
+          window.getComputedStyle(
+            document.querySelector('[aria-label="Creative workspace"]')
+          ).paddingBottom
+        )
+      }));
       expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth);
 
       if (viewport.width >= 1024) {
@@ -244,8 +244,47 @@ test.describe("V9.7 Phase 3 product exploration", () => {
 
         await page.getByRole("button", { name: "Collapse session sidebar" }).click();
         await expect(inspector).toHaveAttribute("data-state", "open");
+        await expect(
+          page.getByRole("button", { name: "Expand session sidebar" })
+        ).toBeFocused();
         await page.getByRole("button", { name: "Expand session sidebar" }).click();
+        await expect(
+          page.getByRole("button", { name: "Collapse session sidebar" })
+        ).toBeFocused();
+      } else {
+        const sessions = page.getByRole("complementary", { name: "Sessions" });
+        const sessionList = sessions.getByRole("list", { name: "Saved sessions" });
+
+        await expect(sessions).toBeVisible();
+        await expect(sessionList).toBeVisible();
+        await expect(
+          page.getByRole("button", { name: "Collapse session sidebar" })
+        ).toBeVisible();
+
+        const compactRail = await sessions.evaluate((element) => {
+          const list = element.querySelector('[aria-label="Saved sessions"]');
+          const elementRect = element.getBoundingClientRect();
+          return {
+            listOverflowX: list ? window.getComputedStyle(list).overflowX : "missing",
+            right: elementRect.right,
+            viewportWidth: window.innerWidth
+          };
+        });
+        expect(compactRail.listOverflowX).toBe("auto");
+        expect(compactRail.right).toBeLessThanOrEqual(compactRail.viewportWidth);
+
+        await page.getByRole("button", { name: "Collapse session sidebar" }).click();
+        await expect(
+          page.getByRole("button", { name: "Expand session sidebar" })
+        ).toBeFocused();
+        await expect(sessions).toContainText("Sessions");
+        await page.getByRole("button", { name: "Expand session sidebar" }).click();
+        await expect(
+          page.getByRole("button", { name: "Collapse session sidebar" })
+        ).toBeFocused();
       }
+
+      await expectResponsiveRightInspector(page, viewport);
 
       consoleGate.assertClean();
     });
@@ -288,3 +327,108 @@ test.describe("V9.7 Phase 3 product exploration", () => {
     });
   }
 });
+
+async function expectResponsiveRightInspector(page, viewport) {
+  const inspector = page.getByRole("complementary", { name: "Right inspector" });
+  await expect(inspector).toHaveAttribute("data-state", "open");
+
+  const openGeometry = await inspector.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      clientWidth: element.clientWidth,
+      height: rect.height,
+      left: rect.left,
+      right: rect.right,
+      scrollWidth: element.scrollWidth,
+      viewportWidth: window.innerWidth,
+      width: rect.width
+    };
+  });
+  expect(openGeometry.width).toBeGreaterThan(240);
+  expect(openGeometry.height).toBeGreaterThan(240);
+  expect(openGeometry.left).toBeGreaterThanOrEqual(0);
+  expect(openGeometry.right).toBeLessThanOrEqual(openGeometry.viewportWidth + 1);
+  expect(openGeometry.scrollWidth).toBeLessThanOrEqual(openGeometry.clientWidth);
+  if (viewport.width < 1024) {
+    expect(openGeometry.height).toBeLessThanOrEqual(
+      Math.min(640, viewport.height * 0.7) + 1
+    );
+  } else {
+    expect(openGeometry.height).toBeLessThanOrEqual(viewport.height - 84 + 1);
+  }
+
+  const tablist = inspector.getByRole("tablist", { name: "Inspector tabs" });
+  const tabs = tablist.getByRole("tab");
+  const firstTab = tabs.first();
+  const lastTab = tabs.last();
+  expect(await tabs.count()).toBeGreaterThan(2);
+
+  await firstTab.focus();
+  await firstTab.press("End");
+  await expect(lastTab).toBeFocused();
+  await expect(lastTab).toHaveAttribute("aria-selected", "true");
+  await lastTab.press("Home");
+  await expect(firstTab).toBeFocused();
+  await firstTab.press("ArrowLeft");
+  await expect(lastTab).toBeFocused();
+  await lastTab.press("ArrowRight");
+  await expect(firstTab).toBeFocused();
+  await expect(firstTab).toHaveAttribute("aria-selected", "true");
+
+  const addButton = inspector.getByRole("button", { name: "Add Inspector tab" });
+  await addButton.click();
+  const addMenu = inspector.getByRole("menu", { name: "Available Inspector tabs" });
+  await expect(addMenu).toBeVisible();
+  await expect(addMenu.getByRole("menuitem").first()).toBeFocused();
+
+  const menuGeometry = await addMenu.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      bottom: rect.bottom,
+      left: rect.left,
+      right: rect.right,
+      top: rect.top,
+      viewportHeight: window.innerHeight,
+      viewportWidth: window.innerWidth
+    };
+  });
+  expect(menuGeometry.left).toBeGreaterThanOrEqual(0);
+  expect(menuGeometry.right).toBeLessThanOrEqual(menuGeometry.viewportWidth + 1);
+  expect(menuGeometry.top).toBeGreaterThanOrEqual(0);
+  expect(menuGeometry.bottom).toBeLessThanOrEqual(menuGeometry.viewportHeight + 1);
+
+  await addMenu.getByRole("menuitem").first().press("Escape");
+  await expect(addMenu).toHaveCount(0);
+  await expect(addButton).toBeFocused();
+
+  await inspector.getByRole("button", { name: "Collapse inspector" }).click();
+  await expect(inspector).toHaveAttribute("data-state", "collapsed");
+  const expandButton = inspector.getByRole("button", { name: "Expand inspector" });
+  await expect(expandButton).toBeFocused();
+
+  const collapsedGeometry = await inspector.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      height: rect.height,
+      left: rect.left,
+      right: rect.right,
+      viewportWidth: window.innerWidth,
+      width: rect.width
+    };
+  });
+  expect(collapsedGeometry.left).toBeGreaterThanOrEqual(0);
+  expect(collapsedGeometry.right).toBeLessThanOrEqual(
+    collapsedGeometry.viewportWidth + 1
+  );
+  if (viewport.width < 1024) {
+    expect(collapsedGeometry.height).toBeLessThanOrEqual(59);
+  } else {
+    expect(collapsedGeometry.width).toBeLessThanOrEqual(72);
+  }
+
+  await expandButton.click();
+  await expect(inspector).toHaveAttribute("data-state", "open");
+  await expect(
+    inspector.getByRole("button", { name: "Collapse inspector" })
+  ).toBeFocused();
+}

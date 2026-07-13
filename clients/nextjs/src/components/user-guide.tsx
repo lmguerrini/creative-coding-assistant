@@ -28,6 +28,7 @@ import {
   DashboardCardGrid,
   DashboardDisclosure,
   DashboardInfoCard,
+  DashboardProcessRail,
   DashboardSection,
   DashboardTableFrame,
   DashboardTabs
@@ -234,19 +235,13 @@ export function UserGuide() {
         title="Your first run"
         titleId="guide-start-title"
       >
-        <ol aria-label="First run workflow" className="userGuideJourney">
-          {quickStartSteps.map((step, index) => (
-            <li key={step.title}>
-              <div className="userGuideStepNumber">{index + 1}</div>
-              <step.icon aria-hidden="true" size={18} />
-              <strong>{step.title}</strong>
-              <p>{step.detail}</p>
-              {index < quickStartSteps.length - 1 ? (
-                <ChevronRight aria-hidden="true" className="userGuideJourneyArrow" size={16} />
-              ) : null}
-            </li>
-          ))}
-        </ol>
+        <DashboardProcessRail
+          className="userGuideJourney"
+          connectors
+          label="First run workflow"
+          steps={quickStartSteps}
+          variant="journey"
+        />
         <DashboardCallout
           detail="The saved artifact, its visible Preview, and Runtime health are related but independent. Check all three before calling a visual ready."
           icon={CheckCircle2}

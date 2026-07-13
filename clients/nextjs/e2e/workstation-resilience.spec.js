@@ -58,7 +58,9 @@ test.describe("V7.4 workstation resilience", () => {
       "Create a browser-ready React Three Fiber installation study."
     );
 
-    await expect(page.getByLabel("Current session")).toContainText("Partial");
+    await expect(page.getByLabel("Current session", { exact: true })).toContainText(
+      "Partial"
+    );
     await expect(page.getByRole("log", { name: "Conversation" })).toContainText(
       "A usable artifact was produced, but live preview is unavailable."
     );
@@ -68,16 +70,16 @@ test.describe("V7.4 workstation resilience", () => {
       await expandInspector.click();
     }
     await page.getByRole("tab", { name: "Preview" }).click();
-    await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
+    await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).toContainText(
       "PARTIAL"
     );
-    await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
+    await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).toContainText(
       "Open Code to inspect, copy, or download the component"
     );
-    await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
+    await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).toContainText(
       "React Three Fiber export"
     );
-    await expect(page.getByRole("tabpanel", { name: "Preview inspector" })).toContainText(
+    await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).toContainText(
       "Code/export-only"
     );
     await expect(page.locator('iframe[title*="React Three Fiber"]')).toHaveCount(0);

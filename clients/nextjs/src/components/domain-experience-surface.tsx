@@ -18,6 +18,10 @@ import {
   DashboardDisclosure,
   DashboardMetricGrid
 } from "./dashboard-page-primitives";
+import {
+  ApplicationConfirmDialog,
+  type ApplicationConfirmationRequest
+} from "./application-floating-surfaces";
 
 export function DomainExperienceSurface({
   activeDomainId,
@@ -289,6 +293,7 @@ function KnowledgeBaseSourceExplorer({
   const [smartUpdateRunning, setSmartUpdateRunning] = useState(false);
   const [smartUpdateState, setSmartUpdateState] = useState<SmartUpdateState | null>(null);
   const [latestSmartUpdate, setLatestSmartUpdate] = useState<KnowledgeBaseSmartUpdateSnapshot | null>(null);
+  const [applicationConfirmation, setApplicationConfirmation] = useState<ApplicationConfirmationRequest | null>(null);
   const smartUpdateInFlight = useRef(false);
   const sourceIds = inventory.sources.map((source) => source.id);
   const sourceTitleById = new Map(inventory.sources.map((source) => [source.id, source.title]));
@@ -345,16 +350,36 @@ function KnowledgeBaseSourceExplorer({
     }
   }
 
-  async function runOperation(action: KnowledgeBaseAction) {
+  function runOperation(action: KnowledgeBaseAction, focusOrigin?: HTMLElement | null) {
     if (operationRunning) {
       return;
     }
-    if (
-      (action === "update" || action === "rebuild") &&
-      !window.confirm(
-        "Update the selected official sources? If the operation fails, the prior local index will be restored."
-      )
-    ) {
+
+    if (action !== "update" && action !== "rebuild") {
+      void executeOperation(action);
+      return;
+    }
+
+    const returnFocus = focusOrigin ?? (
+      document.activeElement instanceof HTMLElement ? document.activeElement : null
+    );
+    setApplicationConfirmation({
+      cancelLabel: "Keep current index",
+      confirmLabel: action === "update" ? "Update selected" : "Rebuild selected",
+      detail: "Update the selected official sources? If the operation fails, the prior local index will be restored.",
+      eyebrow: "Knowledge Base",
+      id: `knowledge-base-${action}-confirmation`,
+      onConfirm: () => executeOperation(action),
+      returnFocus,
+      title: action === "update"
+        ? "Update selected official sources?"
+        : "Rebuild selected official sources?",
+      tone: "warning"
+    });
+  }
+
+  async function executeOperation(action: KnowledgeBaseAction) {
+    if (operationRunning) {
       return;
     }
     setRunningAction(action);
@@ -402,19 +427,34 @@ function KnowledgeBaseSourceExplorer({
     }
   }
 
+  function requestSmartUpdate(focusOrigin?: HTMLElement | null) {
+    if (smartUpdateInFlight.current || operationRunning || sourceIds.length === 0) {
+      return;
+    }
+
+    const scopeDescription = selectedSourceIds.length > 0 ? "the selected" : "all registered";
+    const returnFocus = focusOrigin ?? (
+      document.activeElement instanceof HTMLElement ? document.activeElement : null
+    );
+    setApplicationConfirmation({
+      cancelLabel: "Keep current index",
+      confirmLabel: "Run Smart Update",
+      detail: `Smart Update will check ${scopeDescription} official sources, then update and rebuild only reachable changed sources before validating the local index. Continue?`,
+      eyebrow: "Knowledge Base",
+      id: "knowledge-base-smart-update-confirmation",
+      onConfirm: runSmartUpdate,
+      returnFocus,
+      title: "Run Smart Update?",
+      tone: "warning"
+    });
+  }
+
   async function runSmartUpdate() {
     if (smartUpdateInFlight.current || operationRunning || sourceIds.length === 0) {
       return;
     }
 
     const sourceScope = selectedSourceIds.length > 0 ? selectedSourceIds : sourceIds;
-    const scopeDescription = selectedSourceIds.length > 0 ? "the selected" : "all registered";
-    if (!window.confirm(
-      `Smart Update will check ${scopeDescription} official sources, then update and rebuild only reachable changed sources before validating the local index. Continue?`
-    )) {
-      return;
-    }
-
     smartUpdateInFlight.current = true;
     setSmartUpdateRunning(true);
     setOperationState(null);
@@ -545,7 +585,7 @@ function KnowledgeBaseSourceExplorer({
               aria-label={smartUpdateRunning ? "Smart Update in progress" : undefined}
               className="kbSmartUpdateButton"
               disabled={operationRunning || sourceIds.length === 0}
-              onClick={() => void runSmartUpdate()}
+              onClick={(event) => requestSmartUpdate(event.currentTarget)}
               type="button"
             >
               {smartUpdateRunning ? <><span aria-hidden="true" className="kbActionSpinner" />Smart Update running</> : "Smart Update"}
@@ -629,10 +669,10 @@ function KnowledgeBaseSourceExplorer({
                 <><span aria-hidden="true" className="kbActionSpinner" />Checking sources</>
               ) : "Check for updates"}
             </button>
-            <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("update")} type="button">
+            <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={(event) => runOperation("update", event.currentTarget)} type="button">
               Update selected
             </button>
-            <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("rebuild")} type="button">
+            <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={(event) => runOperation("rebuild", event.currentTarget)} type="button">
               Rebuild selected
             </button>
             <button disabled={operationRunning} onClick={() => void runOperation("validate")} type="button">
@@ -681,6 +721,12 @@ function KnowledgeBaseSourceExplorer({
           Individual source selection and advanced controls are hidden. Expand the registry to browse all {sourceIds.length} official {sourceIds.length === 1 ? "source" : "sources"}.
         </p>
       )}
+      {applicationConfirmation ? (
+        <ApplicationConfirmDialog
+          onClose={() => setApplicationConfirmation(null)}
+          request={applicationConfirmation}
+        />
+      ) : null}
     </section>
   );
 }

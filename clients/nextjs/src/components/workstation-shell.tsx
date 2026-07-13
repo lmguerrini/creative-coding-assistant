@@ -9,15 +9,12 @@ import {
   type CSSProperties,
   type FormEvent,
   type KeyboardEvent,
-  type MouseEvent,
-  type SyntheticEvent
+  type MouseEvent
 } from "react";
-import { createPortal } from "react-dom";
 import {
   Activity,
   Boxes,
   Braces,
-  ChevronDown,
   Command,
   Database,
   Gauge,
@@ -26,13 +23,8 @@ import {
   Maximize2,
   Minimize2,
   Paintbrush,
-  PanelLeft,
   PanelRight,
   Play,
-  Plus,
-  RefreshCw,
-  RotateCcw,
-  SendHorizontal,
   Settings,
   Sparkles,
   TerminalSquare,
@@ -96,7 +88,6 @@ import {
   restoreWorkspaceArtifact,
   type RemovedArtifact
 } from "@/lib/artifact-lifecycle";
-import { buildMultiPreviewComparisonModel } from "@/lib/multi-preview-comparison";
 import { buildProjectBundle } from "@/lib/project-bundle";
 import {
   buildWorkflowRuntimeModel,
@@ -189,15 +180,11 @@ import {
 import {
   buildMultimodalSummary,
   createImageAttachmentFromFile,
-  formatImageAttachmentSize,
   normalizeImageAttachments,
-  supportedImageUploadAccept,
   toAssistantRequestImageAttachments
 } from "@/lib/multimodal-attachments";
 import {
   buildConversationEntries,
-  getConversationPhaseBadge,
-  getConversationPhasePlaceholder,
   toPersistedConversation,
   type ConversationEntry,
   type ConversationEntryPhase
@@ -215,7 +202,6 @@ import {
   type HitlApprovalRequest
 } from "@/lib/hitl-runtime";
 import {
-  demoModeRecommendedLiveSequence,
   demoModeScenarios,
   getDefaultDemoModeScenario,
   type DemoModeScenario
@@ -229,10 +215,7 @@ import {
   buildV3InspectorPanelsModel,
   type V3InspectorPanelsModel
 } from "@/lib/v3-inspector-panels";
-import {
-  buildWorkstationDashboardModel,
-  type WorkstationDashboardModel
-} from "@/lib/workstation-dashboard";
+import { buildWorkstationDashboardModel } from "@/lib/workstation-dashboard";
 import {
   buildProductIntelligenceModel,
   getProductIntelligenceSection,
@@ -248,8 +231,7 @@ import {
 import {
   buildSessionIntelligenceModel,
   readSessionIntelligenceMetadata,
-  type SessionIntelligenceMetadataInput,
-  type SessionIntelligenceModel
+  type SessionIntelligenceMetadataInput
 } from "@/lib/session-intelligence";
 import {
   createWorkstationError,
@@ -260,7 +242,6 @@ import { buildZipArchive, downloadZipArchive } from "@/lib/zip-archive";
 import {
   buildGenerationControls,
   createFeedbackSignal,
-  privacyContract,
   selectPersonalizationContext,
   type EvaluationHistoryRecord,
   type FeedbackSentiment
@@ -272,25 +253,26 @@ import {
   type EvaluationRunRequest,
   type RagasExecutionEvidence
 } from "@/lib/evaluation-benchmark";
-import { PreviewRendererSurface } from "./preview-renderer-surface";
-import { AudioReactiveMappingSummaryCard } from "./audio-reactive-mapping-summary";
 import { ArtifactRefinementPanel } from "./artifact-refinement-panel";
-import { CalibratedQualitySummary } from "./calibrated-quality-summary";
+import {
+  ApplicationConfirmDialog,
+  ApplicationFloatingPanel,
+  type ApplicationConfirmationRequest
+} from "./application-floating-surfaces";
 import { CreativeTimelineSurface } from "./creative-timeline-surface";
 import { ConversationContextInspector } from "./conversation-context-inspector";
 import { CreativeCostIntelligenceDashboard } from "./creative-cost-intelligence-dashboard";
-import { CreativeQualityCriticSummary } from "./creative-quality-critic-summary";
-import { CreativeTranslationSummaryCard } from "./creative-translation-summary";
+import { DemoModePanel } from "./demo-mode-panel";
 import { EvaluationSessionDashboard } from "./evaluation-session-dashboard";
 import { LangSmithTraceDeepDive } from "./langsmith-trace-deep-dive";
-import { MultiPreviewComparisonWorkspace } from "./multi-preview-comparison-workspace";
 import { ProviderObservabilityDeepDive } from "./provider-observability-deep-dive";
 import { RetrievalInspector } from "./retrieval-inspector";
 import { RuntimeConsoleInspector } from "./runtime-console-inspector";
-import { SacredConsistencySummary } from "./sacred-consistency-summary";
+import { RightInspector } from "./right-inspector";
+import { SessionSidebar } from "./session-sidebar";
 import { SubsystemErrorCallout } from "./subsystem-error-callout";
+import { PreviewWorkspace } from "./preview-workspace";
 import { V3InspectorPanelsSurface } from "./v3-inspector-panels-surface";
-import { WorkstationDashboardSurface } from "./workstation-dashboard-surface";
 import {
   ProductIntelligenceDashboard,
   ProductIntelligenceInspector
@@ -298,10 +280,24 @@ import {
 import { WorkflowExplorerSurface } from "./workflow-explorer-surface";
 import { WorkflowTimelineExplorer } from "./workflow-timeline-explorer";
 import {
-  ModelAvailabilityControl,
-  WorkflowExecutionInspector,
-  WorkflowExecutionSelector
-} from "./workflow-execution-inspector";
+  WorkspaceComposer,
+  WorkspaceConversation
+} from "./workspace-conversation";
+import {
+  WorkspaceAttachmentControl,
+  WorkspaceGenerationControls,
+  WorkspaceImageReferences
+} from "./workspace-request-controls";
+import { WorkflowExecutionInspector } from "./workflow-execution-inspector";
+import {
+  DashboardActionCard,
+  DashboardCardGrid,
+  DashboardDisclosure,
+  DashboardInfoCard,
+  DashboardPageHero,
+  DashboardProcessRail,
+  DashboardSection
+} from "./dashboard-page-primitives";
 
 type WorkstationShellProps = {
   snapshot: AssistantWorkspaceSnapshot;
@@ -522,7 +518,6 @@ export function WorkstationShell({
     )
   );
   const [composerValue, setComposerValue] = useState("");
-  const [workflowMode, setWorkflowMode] = useState<WorkflowExecutionMode>("auto");
   const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
   const [isDemoModeOpen, setIsDemoModeOpen] = useState(false);
   const [activeDemoScenarioId, setActiveDemoScenarioId] = useState(
@@ -534,6 +529,7 @@ export function WorkstationShell({
   const [imageUploadError, setImageUploadError] = useState<WorkstationError | null>(
     initialSnapshot.multimodal.error ?? null
   );
+  const [pendingImageUploadCount, setPendingImageUploadCount] = useState(0);
   const [domainExperience, setDomainExperience] = useState<DomainExperienceCatalog>(
     loadingDomainExperienceCatalog
   );
@@ -597,6 +593,7 @@ export function WorkstationShell({
   );
   const [workspacePreferences, setWorkspacePreferences] =
     useState<WorkspacePreferences>(defaultWorkspacePreferences);
+  const workflowMode = workspacePreferences.workflowMode;
   const [workspaceSessions, setWorkspaceSessions] = useState<
     WorkspaceSessionSummary[]
   >([]);
@@ -607,6 +604,8 @@ export function WorkstationShell({
   const [openUtilityPanel, setOpenUtilityPanel] = useState<UtilityPanelName | null>(
     null
   );
+  const [applicationConfirmation, setApplicationConfirmation] =
+    useState<ApplicationConfirmationRequest | null>(null);
   const [copyFeedback, setCopyFeedback] = useState<ArtifactActionFeedback | null>(
     null
   );
@@ -625,11 +624,9 @@ export function WorkstationShell({
     string | null
   >(null);
   const previousPreviewRuntimeSessionKeyRef = useRef<string | null>(null);
-  const chatLogRef = useRef<HTMLDivElement>(null);
   const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const attachmentMenuRef = useRef<HTMLDivElement | null>(null);
   const approvalCardRef = useRef<HTMLElement | null>(null);
-  const shouldAutoScrollRef = useRef(true);
+  const approvalFocusOriginRef = useRef<HTMLElement | null>(null);
   const isShellMountedRef = useRef(true);
   const hasLoadedPersistenceRef = useRef(false);
   const lastPersistedFingerprintRef = useRef<string | null>(null);
@@ -639,8 +636,13 @@ export function WorkstationShell({
   const transferFeedbackTimerRef = useRef<number | null>(null);
   const dragCleanupRef = useRef<(() => void) | null>(null);
   const utilityTrayRef = useRef<HTMLDivElement>(null);
+  const themeTriggerRef = useRef<HTMLButtonElement>(null);
+  const settingsTriggerRef = useRef<HTMLButtonElement>(null);
   const approvalExecutorsRef = useRef<Record<string, ApprovalActionExecutor>>({});
   const imageAttachmentCounterRef = useRef(imageAttachments.length);
+  const imageAttachmentsRef = useRef(imageAttachments);
+  const imageUploadEpochRef = useRef(0);
+  const imageUploadQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   function clearFeedbackTimers() {
     clearTimer(copyFeedbackTimerRef.current);
@@ -666,6 +668,12 @@ export function WorkstationShell({
       clearDragState();
     };
   }, []);
+
+  useEffect(() => {
+    imageUploadEpochRef.current += 1;
+    imageUploadQueueRef.current = Promise.resolve();
+    setPendingImageUploadCount(0);
+  }, [workspaceIdentity.sessionId]);
 
   useEffect(() => {
     document.documentElement.dataset.ccaTheme = workspacePreferences.theme;
@@ -722,59 +730,6 @@ export function WorkstationShell({
   }, [workspacePreferences.showDebugPanels]);
 
   useEffect(() => {
-    const textarea = composerTextareaRef.current;
-    if (!textarea) {
-      return;
-    }
-
-    const maxHeight = 168;
-    textarea.style.height = "auto";
-    const nextHeight = Math.min(textarea.scrollHeight || 38, maxHeight);
-    textarea.style.height = `${nextHeight}px`;
-    textarea.style.overflowY = textarea.scrollHeight > maxHeight ? "auto" : "hidden";
-  }, [composerValue]);
-
-  useEffect(() => {
-    const chatLog = chatLogRef.current;
-    if (!chatLog) {
-      return undefined;
-    }
-
-    const syncAutoScrollPreference = () => {
-      const distanceFromBottom =
-        chatLog.scrollHeight - chatLog.scrollTop - chatLog.clientHeight;
-      shouldAutoScrollRef.current = distanceFromBottom <= 88;
-    };
-
-    syncAutoScrollPreference();
-    chatLog.addEventListener("scroll", syncAutoScrollPreference, {
-      passive: true
-    });
-
-    return () => {
-      chatLog.removeEventListener("scroll", syncAutoScrollPreference);
-    };
-  }, []);
-
-  useEffect(() => {
-    const chatLog = chatLogRef.current;
-    if (!chatLog) {
-      return;
-    }
-
-    if (conversationEntries.length === 0 && !isStreaming && !isDemoModeOpen) {
-      chatLog.scrollTop = 0;
-      return;
-    }
-
-    if (!shouldAutoScrollRef.current) {
-      return;
-    }
-
-    chatLog.scrollTop = chatLog.scrollHeight;
-  }, [conversationEntries, isDemoModeOpen, isStreaming]);
-
-  useEffect(() => {
     const activeApproval = summarizeHitlApprovalRequests(approvalRequests).activeRequest;
     if (!activeApproval || activeApproval.state !== "pending_approval") {
       return;
@@ -824,70 +779,13 @@ export function WorkstationShell({
         setOpenUtilityPanel(null);
       }
     };
-    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setOpenUtilityPanel(null);
-      }
-    };
 
     document.addEventListener("pointerdown", handlePointerDown);
-    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
       document.removeEventListener("pointerdown", handlePointerDown);
-      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [openUtilityPanel]);
-
-  useEffect(() => {
-    if (!isAttachmentMenuOpen) {
-      return undefined;
-    }
-
-    const handlePointerDown = (event: PointerEvent) => {
-      if (
-        attachmentMenuRef.current &&
-        event.target instanceof Node &&
-        !attachmentMenuRef.current.contains(event.target)
-      ) {
-        setIsAttachmentMenuOpen(false);
-      }
-    };
-    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsAttachmentMenuOpen(false);
-      }
-    };
-
-    document.addEventListener("pointerdown", handlePointerDown);
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isAttachmentMenuOpen]);
-
-  useEffect(() => {
-    if (!isPreviewFullscreen) {
-      return undefined;
-    }
-
-    const previousOverflow = document.body.style.overflow;
-    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsPreviewFullscreen(false);
-      }
-    };
-
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isPreviewFullscreen]);
 
   useEffect(() => {
     let isMounted = true;
@@ -934,6 +832,10 @@ export function WorkstationShell({
               restoredSnapshot.workflow
             )
           );
+          imageUploadEpochRef.current += 1;
+          imageUploadQueueRef.current = Promise.resolve();
+          setPendingImageUploadCount(0);
+          imageAttachmentsRef.current = restoredImageAttachments;
           setImageAttachments(restoredImageAttachments);
           setImageUploadError(restoredSnapshot.multimodal.error ?? null);
           setClarification(restoredSnapshot.clarification ?? null);
@@ -1155,8 +1057,6 @@ export function WorkstationShell({
 
     previousPreviewRuntimeSessionKeyRef.current = previewRuntimeSessionKey;
     setPreviewRuntimeLive(null);
-    setLastRemovedArtifact(null);
-    setLastRestoredArtifact(null);
   }, [previewRuntimeSessionKey]);
   const persistenceRecord = useMemo(
     () =>
@@ -1421,9 +1321,6 @@ export function WorkstationShell({
       inspectorTabs.filter((tab) => availableInspectorCategories.includes(tab)),
     [availableInspectorCategories, inspectorTabs]
   );
-  const hasAvailableInspectorTabs = availableInspectorCategories.some(
-    (category) => !inspectorTabs.includes(category)
-  );
   useEffect(() => {
     if (!visibleInspectorTabs.includes(activeTab)) {
       return;
@@ -1437,7 +1334,9 @@ export function WorkstationShell({
     productIntelligence,
     activeTab
   ).detail;
-  const isComposerReady = Boolean(composerValue.trim()) && !isStreaming;
+  const isImageUploadPending = pendingImageUploadCount > 0;
+  const isComposerReady =
+    Boolean(composerValue.trim()) && !isStreaming && !isImageUploadPending;
   const approvalSummary = useMemo(
     () => summarizeHitlApprovalRequests(approvalRequests),
     [approvalRequests]
@@ -1494,6 +1393,7 @@ export function WorkstationShell({
     streamError !== null;
   const shouldRenderPreviewShelf =
     !isFocusMode &&
+    !isDemoModeOpen &&
     (interactiveSnapshot.preview.available ||
       (interactiveSnapshot.preview.state === "unavailable" &&
         (hasPreviewOutcomeToExplain ||
@@ -1532,6 +1432,7 @@ export function WorkstationShell({
     ? sessionStatusDetail
     : userSessionStatus.detail;
   const isPristineSession =
+    persistenceState !== "loading" &&
     streamState === "idle" &&
     !streamError &&
     !isDemoModeOpen &&
@@ -1673,6 +1574,18 @@ export function WorkstationShell({
     );
   }
 
+  function commitImageAttachments(nextAttachments: ImageAttachmentSummary[]) {
+    imageAttachmentsRef.current = nextAttachments;
+    setImageAttachments(nextAttachments);
+  }
+
+  function resetImageUploadBoundary(nextAttachments: ImageAttachmentSummary[]) {
+    imageUploadEpochRef.current += 1;
+    imageUploadQueueRef.current = Promise.resolve();
+    setPendingImageUploadCount(0);
+    commitImageAttachments(nextAttachments);
+  }
+
   function sessionPersistenceClient(sessionId: string) {
     return createWorkspacePersistenceClient({
       projectId: workspaceIdentity.projectId,
@@ -1694,7 +1607,7 @@ export function WorkstationShell({
         nextSnapshot.workflow
       )
     );
-    setImageAttachments(normalizedAttachments);
+    resetImageUploadBoundary(normalizedAttachments);
     setImageUploadError(nextSnapshot.multimodal.error ?? null);
     imageAttachmentCounterRef.current = normalizedAttachments.length;
     setActiveArtifactId(nextSnapshot.artifacts[0]?.id ?? "");
@@ -1715,6 +1628,9 @@ export function WorkstationShell({
     if (sessionId === workspaceIdentity.sessionId) {
       return;
     }
+    resetImageUploadBoundary([]);
+    setImageUploadError(null);
+    setIsAttachmentMenuOpen(false);
     hasLoadedPersistenceRef.current = false;
     lastPersistedFingerprintRef.current = null;
     skipNextPersistenceSaveRef.current = true;
@@ -1790,25 +1706,65 @@ export function WorkstationShell({
 
   async function handleSessionDelete(sessionId: string) {
     const summary = workspaceSessions.find((item) => item.sessionId === sessionId);
-    if (!summary || !window.confirm(`Delete ${summary.title}? This cannot be undone.`)) {
+    if (!summary) {
       return;
     }
-    await deletePersistedWorkspaceSession({
-      identity: {
-        projectId: summary.projectId,
-        sessionId: summary.sessionId,
-        userId: workspaceIdentity.userId
-      }
+
+    requestApplicationConfirmation({
+      cancelLabel: "Keep session",
+      confirmLabel: "Delete session",
+      detail:
+        "This permanently removes the browser-local session and its saved artifacts. This action cannot be undone.",
+      eyebrow: "Session deletion",
+      id: `delete-session-${summary.sessionId}`,
+      onConfirm: async () => {
+        await deletePersistedWorkspaceSession({
+          identity: {
+            projectId: summary.projectId,
+            sessionId: summary.sessionId,
+            userId: workspaceIdentity.userId
+          }
+        });
+        const remaining = listLocalWorkspaceSessions(workspaceIdentity.userId);
+        setWorkspaceSessions(remaining);
+        if (sessionId === workspaceIdentity.sessionId) {
+          if (remaining[0]) {
+            activateSession(remaining[0].sessionId);
+          } else {
+            await handleCreateSession();
+          }
+        }
+      },
+      title: `Delete ${summary.title}?`,
+      tone: "danger"
     });
-    const remaining = listLocalWorkspaceSessions(workspaceIdentity.userId);
-    setWorkspaceSessions(remaining);
-    if (sessionId === workspaceIdentity.sessionId) {
-      if (remaining[0]) {
-        activateSession(remaining[0].sessionId);
-      } else {
-        await handleCreateSession();
-      }
+  }
+
+  function requestApplicationConfirmation(
+    request: Omit<ApplicationConfirmationRequest, "returnFocus">
+  ) {
+    const returnFocus =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    setApplicationConfirmation({ ...request, returnFocus });
+    setOpenUtilityPanel(null);
+  }
+
+  function closeUtilityPanel(
+    panelName: UtilityPanelName,
+    options: { restoreFocus?: boolean } = {}
+  ) {
+    setOpenUtilityPanel(null);
+    if (options.restoreFocus === false) {
+      return;
     }
+    window.requestAnimationFrame(() => {
+      (panelName === "theme"
+        ? themeTriggerRef.current
+        : settingsTriggerRef.current
+      )?.focus({ preventScroll: true });
+    });
   }
 
   function toggleUtilityPanel(panelName: UtilityPanelName) {
@@ -1816,6 +1772,38 @@ export function WorkstationShell({
     setOpenUtilityPanel((currentPanel) =>
       currentPanel === panelName ? null : panelName
     );
+  }
+
+  function focusInspectorTab(nextTab: ProductIntelligenceCategory) {
+    window.requestAnimationFrame(() => {
+      const tab = document.getElementById(`${getInspectorPanelId(nextTab)}-tab`);
+      tab?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+      tab?.focus({ preventScroll: true });
+      tab?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+    });
+  }
+
+  function openInspectorTabFromUtility(nextTab: ProductIntelligenceCategory) {
+    revealInspectorTab(nextTab);
+    focusInspectorTab(nextTab);
+  }
+
+  function toggleFocusModeFromUtility() {
+    setOpenUtilityPanel(null);
+    handleFocusModeToggle();
+    window.requestAnimationFrame(() => {
+      composerTextareaRef.current?.focus({ preventScroll: true });
+    });
+  }
+
+  function togglePreviewFromUtility() {
+    setOpenUtilityPanel(null);
+    handlePreviewShelfFromControl();
+    window.requestAnimationFrame(() => {
+      document
+        .querySelector<HTMLElement>('.previewShelf > summary, [aria-label="Settings"]')
+        ?.focus({ preventScroll: true });
+    });
   }
 
   function revealInspectorTab(nextTab: ProductIntelligenceCategory) {
@@ -2069,6 +2057,10 @@ export function WorkstationShell({
       return;
     }
 
+    approvalFocusOriginRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
     const request = createHitlApprovalRequest({
       actionId,
       artifactTitle,
@@ -2088,6 +2080,18 @@ export function WorkstationShell({
       })
     );
     setOpenUtilityPanel(null);
+    focusApprovalCard();
+  }
+
+  function focusApprovalCard() {
+    window.requestAnimationFrame(() => {
+      approvalCardRef.current?.scrollIntoView?.({
+        behavior: "auto",
+        block: "nearest",
+        inline: "nearest"
+      });
+      approvalCardRef.current?.focus({ preventScroll: true });
+    });
   }
 
   async function handleApprovalApprove(request: HitlApprovalRequest) {
@@ -2099,6 +2103,7 @@ export function WorkstationShell({
       setApprovalRequestState(executingRequest, "failed", {
         failureReason: "No approval executor was available for this action."
       });
+      focusApprovalCard();
       return;
     }
 
@@ -2114,12 +2119,14 @@ export function WorkstationShell({
       });
     } finally {
       delete approvalExecutorsRef.current[request.id];
+      focusApprovalCard();
     }
   }
 
   function handleApprovalReject(request: HitlApprovalRequest) {
     delete approvalExecutorsRef.current[request.id];
     setApprovalRequestState(request, "rejected");
+    focusApprovalCard();
   }
 
   function handleApprovalDismiss(request: HitlApprovalRequest) {
@@ -2128,6 +2135,12 @@ export function WorkstationShell({
     }
 
     setDismissedApprovalRequestId(request.id);
+    window.requestAnimationFrame(() => {
+      const origin = approvalFocusOriginRef.current;
+      const fallback = settingsTriggerRef.current ?? composerTextareaRef.current;
+      (origin?.isConnected ? origin : fallback)?.focus({ preventScroll: true });
+      approvalFocusOriginRef.current = null;
+    });
   }
 
   function clearWorkspaceSession() {
@@ -2154,7 +2167,7 @@ export function WorkstationShell({
         clearedSnapshot.workflow
       )
     );
-    setImageAttachments(
+    resetImageUploadBoundary(
       normalizeImageAttachments(clearedSnapshot.multimodal.imageAttachments)
     );
     setImageUploadError(clearedSnapshot.multimodal.error ?? null);
@@ -2448,57 +2461,84 @@ export function WorkstationShell({
     }
   }
 
-  async function handleImageUploadChange(event: FormEvent<HTMLInputElement>) {
-    const input = event.currentTarget;
-    const files = Array.from(input.files ?? []);
-    input.value = "";
+  function handleImageFilesSelected(files: File[]) {
     setIsAttachmentMenuOpen(false);
 
     if (files.length === 0) {
-      return;
+      return Promise.resolve();
     }
 
-    const nextAttachments: ImageAttachmentSummary[] = [];
-    let nextError: WorkstationError | null = null;
+    const uploadEpoch = imageUploadEpochRef.current;
+    setImageUploadError(null);
+    setPendingImageUploadCount((currentCount) => currentCount + 1);
 
-    for (const file of files) {
-      const result = await createImageAttachmentFromFile({
-        createdAt: new Date().toISOString(),
-        existingCount: imageAttachments.length + nextAttachments.length,
-        file,
-        id: createImageAttachmentId(file.name)
+    const uploadTask = imageUploadQueueRef.current
+      .catch(() => undefined)
+      .then(async () => {
+        if (uploadEpoch !== imageUploadEpochRef.current) {
+          return;
+        }
+
+        const nextAttachments: ImageAttachmentSummary[] = [];
+        let nextError: WorkstationError | null = null;
+
+        for (const file of files) {
+          const result = await createImageAttachmentFromFile({
+            createdAt: new Date().toISOString(),
+            existingCount:
+              imageAttachmentsRef.current.length + nextAttachments.length,
+            file,
+            id: createImageAttachmentId(file.name)
+          });
+
+          if (uploadEpoch !== imageUploadEpochRef.current) {
+            return;
+          }
+
+          if (result.ok) {
+            nextAttachments.push(result.attachment);
+          } else {
+            nextError = result.error;
+            break;
+          }
+        }
+
+        if (!nextError && nextAttachments.length > 0) {
+          const updatedAttachments = [
+            ...imageAttachmentsRef.current,
+            ...nextAttachments
+          ];
+          commitImageAttachments(updatedAttachments);
+          appendImageReferenceRuntimeEvent({
+            attachments: updatedAttachments,
+            code: "image_reference_attached",
+            message: `${nextAttachments.length} ${pluralize(
+              nextAttachments.length,
+              "image reference",
+              "image references"
+            )} attached to the next request.`
+          });
+        }
+
+        setImageUploadError(nextError);
+      })
+      .finally(() => {
+        if (uploadEpoch === imageUploadEpochRef.current) {
+          setPendingImageUploadCount((currentCount) =>
+            Math.max(0, currentCount - 1)
+          );
+        }
       });
 
-      if (result.ok) {
-        nextAttachments.push(result.attachment);
-      } else {
-        nextError = result.error;
-        break;
-      }
-    }
-
-    if (nextAttachments.length > 0) {
-      const updatedAttachments = [...imageAttachments, ...nextAttachments];
-      setImageAttachments(updatedAttachments);
-      appendImageReferenceRuntimeEvent({
-        attachments: updatedAttachments,
-        code: "image_reference_attached",
-        message: `${nextAttachments.length} ${pluralize(
-          nextAttachments.length,
-          "image reference",
-          "image references"
-        )} attached to the next request.`
-      });
-    }
-
-    setImageUploadError(nextError);
+    imageUploadQueueRef.current = uploadTask;
+    return uploadTask;
   }
 
   function handleImageAttachmentRemove(attachmentId: string) {
-    const nextAttachments = imageAttachments.filter(
+    const nextAttachments = imageAttachmentsRef.current.filter(
       (attachment) => attachment.id !== attachmentId
     );
-    setImageAttachments(nextAttachments);
+    commitImageAttachments(nextAttachments);
     setImageUploadError(null);
     appendImageReferenceRuntimeEvent({
       attachments: nextAttachments,
@@ -2583,7 +2623,7 @@ export function WorkstationShell({
   }
 
   function handleDemoScenarioLoad(scenario: DemoModeScenario) {
-    if (isStreaming) {
+    if (isStreaming || isImageUploadPending) {
       return;
     }
 
@@ -2593,7 +2633,6 @@ export function WorkstationShell({
 
     setActiveDemoScenarioId(scenario.id);
     setIsDemoModeOpen(false);
-    setWorkflowMode(scenario.workflowMode);
     setOpenUtilityPanel(null);
     setIsAttachmentMenuOpen(false);
     void submitAssistantRequest({
@@ -2607,9 +2646,20 @@ export function WorkstationShell({
       return;
     }
 
+    const closingIndex = visibleInspectorTabs.indexOf(tab);
+    const remainingVisibleTabs = visibleInspectorTabs.filter(
+      (item) => item !== tab
+    );
     setInspectorTabs((currentTabs) => currentTabs.filter((item) => item !== tab));
     if (activeTab === tab) {
-      setActiveTab("Overview");
+      setActiveTab(
+        remainingVisibleTabs[
+          Math.min(Math.max(closingIndex, 0), remainingVisibleTabs.length - 1)
+        ] ??
+          (workspacePreferences.showDebugPanels
+            ? "Overview"
+            : userModeDefaultInspectorTab)
+      );
     }
     setIsInspectorAddMenuOpen(false);
   }
@@ -2619,7 +2669,7 @@ export function WorkstationShell({
 
     const prompt = composerValue.trim();
 
-    if (!prompt) {
+    if (!prompt || isImageUploadPending) {
       return;
     }
 
@@ -2691,6 +2741,10 @@ export function WorkstationShell({
     prompt: string;
     workflowModeOverride?: WorkflowExecutionMode;
   }) {
+    if (isStreaming || isImageUploadPending) {
+      return;
+    }
+
     const timestamp = formatMessageTime();
     const userMessageId = createConversationEntryId();
     const assistantMessageId = createConversationEntryId();
@@ -2752,9 +2806,11 @@ export function WorkstationShell({
     let streamedAnswer = "";
     let receivedTerminalStreamError = false;
     let latestWorkflowActivity = initialWorkflowActivity;
-    const requestAttachments = toAssistantRequestImageAttachments(imageAttachments);
+    const requestAttachments = toAssistantRequestImageAttachments(
+      imageAttachmentsRef.current
+    );
     if (requestAttachments.length > 0) {
-      setImageAttachments([]);
+      commitImageAttachments([]);
       setImageUploadError(null);
       appendImageReferenceRuntimeEvent({
         attachments: [],
@@ -3333,23 +3389,32 @@ export function WorkstationShell({
   }
 
   function handleArtifactDelete(artifact: ArtifactSummary) {
-    if (!window.confirm(`Delete ${artifact.title}? You can undo this while the session is open.`)) {
-      return;
-    }
-    const result = removeWorkspaceArtifact({
-      activeArtifactId,
-      artifactId: artifact.id,
-      previewArtifactId,
-      snapshot
+    requestApplicationConfirmation({
+      cancelLabel: "Keep artifact",
+      confirmLabel: "Delete artifact",
+      detail:
+        "This removes the artifact from the current session. You can still undo the removal while this session remains open.",
+      eyebrow: "Artifact deletion",
+      id: `delete-artifact-${artifact.id}`,
+      onConfirm: () => {
+        const result = removeWorkspaceArtifact({
+          activeArtifactId,
+          artifactId: artifact.id,
+          previewArtifactId,
+          snapshot
+        });
+        if (!result) {
+          return;
+        }
+        replaceSnapshot(result.snapshot);
+        setActiveArtifactId(result.activeArtifactId);
+        setPreviewArtifactId(result.previewArtifactId);
+        setLastRemovedArtifact(result.removed);
+        setLastRestoredArtifact(null);
+      },
+      title: `Delete ${artifact.title}?`,
+      tone: "danger"
     });
-    if (!result) {
-      return;
-    }
-    replaceSnapshot(result.snapshot);
-    setActiveArtifactId(result.activeArtifactId);
-    setPreviewArtifactId(result.previewArtifactId);
-    setLastRemovedArtifact(result.removed);
-    setLastRestoredArtifact(null);
   }
 
   function handleArtifactUndo() {
@@ -3558,7 +3623,6 @@ export function WorkstationShell({
             aria-controls="demo-mode-panel"
             aria-expanded={isDemoModeOpen}
             aria-label="Demo Mode"
-            aria-pressed={isDemoModeOpen}
             className="toolbarToggle"
             onClick={handleDemoModeToggle}
             title={isDemoModeOpen ? "Close Demo Mode" : "Open Demo Mode"}
@@ -3604,6 +3668,7 @@ export function WorkstationShell({
               aria-label="Theme"
               className="iconButton"
               onClick={() => toggleUtilityPanel("theme")}
+              ref={themeTriggerRef}
               title="Open theme presets"
               type="button"
             >
@@ -3612,9 +3677,10 @@ export function WorkstationShell({
             {openUtilityPanel === "theme" ? (
               <ThemePresetsPanel
                 activeTheme={workspacePreferences.theme}
+                onRequestClose={() => closeUtilityPanel("theme")}
                 onSelectTheme={(theme) => {
                   updateWorkspacePreferences({ theme });
-                  setOpenUtilityPanel(null);
+                  closeUtilityPanel("theme");
                 }}
               />
             ) : null}
@@ -3627,6 +3693,7 @@ export function WorkstationShell({
               aria-label="Settings"
               className="iconButton"
               onClick={() => toggleUtilityPanel("settings")}
+              ref={settingsTriggerRef}
               title="Open workspace settings"
               type="button"
             >
@@ -3640,21 +3707,13 @@ export function WorkstationShell({
                 isPreviewAvailable={interactiveSnapshot.preview.available}
                 isPreviewOpen={isPreviewOpen}
                 layoutState={layoutState}
-                onClearPersonalization={() =>
-                  updateWorkspacePreferences({ feedbackSignals: [] })
-                }
                 onDensityChange={(density) => updateLayout({ density })}
-                onFocusModeToggle={handleFocusModeToggle}
-                onOpenTab={revealInspectorTab}
+                onFocusModeToggle={toggleFocusModeFromUtility}
+                onOpenDashboardSettings={() => openDashboard("Settings")}
+                onOpenTab={openInspectorTabFromUtility}
                 onPreferencesChange={updateWorkspacePreferences}
-                onPreviewToggle={handlePreviewShelfFromControl}
-                onRemovePersonalizationSignal={(signalId) =>
-                  updateWorkspacePreferences({
-                    feedbackSignals: workspacePreferences.feedbackSignals.filter(
-                      (signal) => signal.id !== signalId
-                    )
-                  })
-                }
+                onPreviewToggle={togglePreviewFromUtility}
+                onRequestClose={() => closeUtilityPanel("settings")}
                 onWorkspaceClear={() =>
                   requestOperatorApproval({
                     actionId: "workspace_clear",
@@ -3706,7 +3765,8 @@ export function WorkstationShell({
             onPreviewToggle: handlePreviewShelfFromControl,
             onSidebarToggle: () =>
               updateLayout({ sidebarCollapsed: !layoutState.sidebarCollapsed }),
-            onWorkflowModeChange: setWorkflowMode,
+            onWorkflowModeChange: (workflowMode) =>
+              updateWorkspacePreferences({ workflowMode }),
             preferences: workspacePreferences,
             workflowMode
           }}
@@ -3726,9 +3786,15 @@ export function WorkstationShell({
           sessions={visibleWorkspaceSessions}
         />
         <div className="mainColumn">
-          <section className="sessionPanel" aria-label="Creative session">
-            <div className="sessionIntro">
-              <header className="sessionHeader">
+          <section
+            aria-label="Creative session"
+            className="sessionPanel"
+            data-checkpoint={visibleApprovalRequest ? "true" : undefined}
+            data-demo={isDemoModeOpen ? "true" : undefined}
+            data-homepage={isPristineSession ? "true" : undefined}
+          >
+            <div className="sessionIntro" hidden={isPristineSession}>
+              <header className="sessionHeader" hidden={isDemoModeOpen}>
                 <div>
                   <span className="eyebrow">Creative session</span>
                   <h1>{snapshot.workspace.focus}</h1>
@@ -3751,84 +3817,6 @@ export function WorkstationShell({
                   <small aria-live="polite">{persistenceStatusLabel}</small>
                 </div>
               </header>
-              {visibleApprovalRequest ? (
-                <article
-                  aria-label="Operator checkpoint"
-                  aria-live="polite"
-                  className="operatorCheckpoint"
-                  data-kind={visibleApprovalRequest.kind}
-                  data-state={visibleApprovalRequest.state}
-                  ref={approvalCardRef}
-                  tabIndex={-1}
-                >
-                  <header className="operatorCheckpointHeader">
-                    <div>
-                      <span className="eyebrow">Operator checkpoint</span>
-                      <strong>{visibleApprovalRequest.title}</strong>
-                      <p>{visibleApprovalRequest.summary}</p>
-                    </div>
-                    <div className="operatorCheckpointStatus">
-                      <small>{getHitlApprovalStateLabel(visibleApprovalRequest.state)}</small>
-                      {isHitlApprovalTerminalState(visibleApprovalRequest.state) ? (
-                        <button
-                          aria-label="Dismiss operator checkpoint"
-                          className="iconButton"
-                          onClick={() => handleApprovalDismiss(visibleApprovalRequest)}
-                          type="button"
-                        >
-                          <X size={15} />
-                        </button>
-                      ) : null}
-                    </div>
-                  </header>
-                  <p>{visibleApprovalRequest.detail}</p>
-                  <dl className="operatorCheckpointMeta">
-                    <div>
-                      <dt>Target</dt>
-                      <dd>{visibleApprovalRequest.targetLabel}</dd>
-                    </div>
-                    <div>
-                      <dt>Workflow</dt>
-                      <dd>{interactiveSnapshot.workflow.currentStep}</dd>
-                    </div>
-                    <div>
-                      <dt>Requested</dt>
-                      <dd>{formatTraceTime(visibleApprovalRequest.requestedAt)}</dd>
-                    </div>
-                  </dl>
-                  {visibleApprovalRequest.failureReason ? (
-                    <p className="operatorCheckpointFailure" role="status">
-                      {visibleApprovalRequest.failureReason}
-                    </p>
-                  ) : null}
-                  {visibleApprovalRequest.state === "pending_approval" ? (
-                    <div className="operatorCheckpointActions">
-                      <button
-                        onClick={() => handleApprovalReject(visibleApprovalRequest)}
-                        type="button"
-                      >
-                        {visibleApprovalRequest.cancelLabel}
-                      </button>
-                      <button
-                        className="operatorCheckpointApprove"
-                        onClick={() => void handleApprovalApprove(visibleApprovalRequest)}
-                        type="button"
-                      >
-                        {visibleApprovalRequest.confirmLabel}
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="operatorCheckpointFooter">
-                      <span>{getHitlApprovalStateLabel(visibleApprovalRequest.state)}</span>
-                      <small>
-                        {visibleApprovalRequest.resolvedAt
-                          ? formatTraceTime(visibleApprovalRequest.resolvedAt)
-                          : "Awaiting operator decision"}
-                      </small>
-                    </div>
-                  )}
-                </article>
-              ) : null}
               {isDemoModeOpen ? (
                 <DemoModePanel
                   activeScenario={activeDemoScenario}
@@ -3841,61 +3829,100 @@ export function WorkstationShell({
               ) : null}
             </div>
 
-            <div
-              aria-label="Conversation"
-              aria-busy={isStreaming}
-              aria-live="polite"
-              className="chatLog"
-              ref={chatLogRef}
-              role="log"
-            >
-              {conversationEntries.length === 0 && !isStreaming && !isDemoModeOpen ? (
-                <EmptyWorkspaceState onSelectPrompt={handleEmptyStatePromptSelect} />
+            <WorkspaceConversation
+              leadingSlot={visibleApprovalRequest ? (
+                <article
+                aria-label="Operator checkpoint"
+                aria-live="polite"
+                className="operatorCheckpoint"
+                data-kind={visibleApprovalRequest.kind}
+                data-state={visibleApprovalRequest.state}
+                ref={approvalCardRef}
+                tabIndex={-1}
+              >
+                <header className="operatorCheckpointHeader">
+                  <div>
+                    <span className="eyebrow">Operator checkpoint</span>
+                    <strong>{visibleApprovalRequest.title}</strong>
+                    <p>{visibleApprovalRequest.summary}</p>
+                  </div>
+                  <div className="operatorCheckpointStatus">
+                    <small>{getHitlApprovalStateLabel(visibleApprovalRequest.state)}</small>
+                    {isHitlApprovalTerminalState(visibleApprovalRequest.state) ? (
+                      <button
+                        aria-label="Dismiss operator checkpoint"
+                        className="iconButton"
+                        onClick={() => handleApprovalDismiss(visibleApprovalRequest)}
+                        type="button"
+                      >
+                        <X size={15} />
+                      </button>
+                    ) : null}
+                  </div>
+                </header>
+                <p>{visibleApprovalRequest.detail}</p>
+                <dl className="operatorCheckpointMeta">
+                  <div>
+                    <dt>Target</dt>
+                    <dd>{visibleApprovalRequest.targetLabel}</dd>
+                  </div>
+                  <div>
+                    <dt>Workflow</dt>
+                    <dd>{interactiveSnapshot.workflow.currentStep}</dd>
+                  </div>
+                  <div>
+                    <dt>Requested</dt>
+                    <dd>{formatTraceTime(visibleApprovalRequest.requestedAt)}</dd>
+                  </div>
+                </dl>
+                {visibleApprovalRequest.failureReason ? (
+                  <p className="operatorCheckpointFailure" role="status">
+                    {visibleApprovalRequest.failureReason}
+                  </p>
+                ) : null}
+                {visibleApprovalRequest.state === "pending_approval" ? (
+                  <div className="operatorCheckpointActions">
+                    <button
+                      onClick={() => handleApprovalReject(visibleApprovalRequest)}
+                      type="button"
+                    >
+                      {visibleApprovalRequest.cancelLabel}
+                    </button>
+                    <button
+                      className="operatorCheckpointApprove"
+                      onClick={() => void handleApprovalApprove(visibleApprovalRequest)}
+                      type="button"
+                    >
+                      {visibleApprovalRequest.confirmLabel}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="operatorCheckpointFooter">
+                    <span>{getHitlApprovalStateLabel(visibleApprovalRequest.state)}</span>
+                    <small>
+                      {visibleApprovalRequest.resolvedAt
+                        ? formatTraceTime(visibleApprovalRequest.resolvedAt)
+                        : "Awaiting operator decision"}
+                    </small>
+                  </div>
+                )}
+                </article>
               ) : null}
-              {conversationEntries.map((message, index) => {
-                const displayContent = getConversationDisplayContent(
+              emptyState={
+                <EmptyWorkspaceState onSelectPrompt={handleEmptyStatePromptSelect} />
+              }
+              entries={conversationEntries}
+              getDisplayContent={(message) =>
+                getConversationDisplayContent(
                   message,
                   workspacePreferences.showDebugPanels
-                );
-
-                return (
-                  <article
-                    className="message"
-                    data-fresh={index >= snapshot.messages.length ? "true" : undefined}
-                    data-role={message.role}
-                    data-stream-phase={message.phase}
-                    key={message.id}
-                  >
-                    <div className="messageMeta">
-                      <span>{message.role}</span>
-                      <div className="messageMetaDetail">
-                        {message.role === "assistant" ? (
-                          <small data-phase={message.phase}>
-                            {getConversationPhaseBadge(message.phase)}
-                          </small>
-                        ) : null}
-                        <span>{message.time}</span>
-                      </div>
-                    </div>
-                    <p>
-                      {displayContent || getConversationPhasePlaceholder(message.phase)}
-                      {message.phase === "streaming" ? (
-                        <span className="streamingCaret" aria-hidden="true" />
-                      ) : null}
-                    </p>
-                    {message.activity && message.phase !== "complete" ? (
-                      <div
-                        className="messageActivity"
-                        data-activity={message.phase}
-                      >
-                        <span aria-hidden="true" />
-                        <small>{message.activity}</small>
-                      </div>
-                    ) : null}
-                  </article>
-                );
-              })}
-            </div>
+                )
+              }
+              initialEntryCount={snapshot.messages.length}
+              isPristine={isPristineSession}
+              isStreaming={isStreaming}
+              sessionKey={workspaceIdentity.sessionId}
+            />
             {streamError ? (
               <SubsystemErrorCallout
                 className="chatErrorCallout"
@@ -3922,119 +3949,52 @@ export function WorkstationShell({
 
             {interactiveSnapshot.multimodal.imageAttachments.length > 0 ||
             interactiveSnapshot.multimodal.error ? (
-              <ImageReferenceShelf
+              <WorkspaceImageReferences
                 multimodal={interactiveSnapshot.multimodal}
                 onDismissError={handleImageUploadErrorDismiss}
                 onRemove={handleImageAttachmentRemove}
               />
             ) : null}
 
-            <form
-              className="composer"
-              data-has-images={
-                interactiveSnapshot.multimodal.imageAttachments.length > 0
-                  ? "true"
-                  : "false"
-              }
-              data-mode={
-                workspacePreferences.showDebugPanels ? "developer" : "user"
-              }
-              data-ready={isComposerReady}
-              onSubmit={handleComposerSubmit}
-            >
-              <div className="composerInputFrame">
-                <textarea
-                  aria-label="Assistant prompt"
-                  onChange={(event) => setComposerValue(event.currentTarget.value)}
-                  placeholder="Describe the visual, audio, or interactive experience you want to create."
-                  ref={composerTextareaRef}
-                  value={composerValue}
+            <WorkspaceComposer
+              attachmentSlot={
+                <WorkspaceAttachmentControl
+                  disabled={isStreaming}
+                  isOpen={isAttachmentMenuOpen}
+                  isProcessing={isImageUploadPending}
+                  onFilesSelected={handleImageFilesSelected}
+                  onOpenChange={setIsAttachmentMenuOpen}
                 />
-              </div>
-              <div className="composerActions">
-                <div className="composerAttach" ref={attachmentMenuRef}>
-                  <button
-                    aria-controls="composer-attachment-menu"
-                    aria-expanded={isAttachmentMenuOpen}
-                    aria-label="Add attachment"
-                    className="composerAttachButton"
-                    disabled={isStreaming}
-                    onClick={() =>
-                      setIsAttachmentMenuOpen((currentValue) => !currentValue)
-                    }
-                    title="Add attachment"
-                    type="button"
-                  >
-                    <Plus size={18} aria-hidden="true" />
-                  </button>
-                  {isAttachmentMenuOpen ? (
-                    <div
-                      aria-label="Attachment options"
-                      className="attachmentMenu"
-                      id="composer-attachment-menu"
-                      role="menu"
-                    >
-                      <label className="attachmentMenuItem">
-                        <input
-                          accept={supportedImageUploadAccept}
-                          aria-label="Upload image attachment"
-                          disabled={isStreaming}
-                          multiple
-                          onChange={(event) => void handleImageUploadChange(event)}
-                          type="file"
-                        />
-                        <span>Upload image reference</span>
-                        <small>
-                          Sent as visual input only with your next explicit request.
-                        </small>
-                      </label>
-                      <span
-                        aria-disabled="true"
-                        className="attachmentMenuItem attachmentMenuItem--unsupported"
-                        role="menuitem"
-                      >
-                        <strong>Audio input</strong>
-                        <small>
-                          Audio upload and audio analysis are not supported. Bounded
-                          Tone.js playback requires a compatible source artifact and an
-                          explicit start action.
-                        </small>
-                      </span>
-                    </div>
-                  ) : null}
-                </div>
-                <div aria-label="Generation controls" className="composerControlGroup">
-                  <WorkflowExecutionSelector
-                    disabled={isStreaming}
-                    mode={workflowMode}
-                    onChange={setWorkflowMode}
-                  />
-                  <ModelAvailabilityControl disabled={isStreaming} />
-                  <CreativityControl
-                    disabled={isStreaming}
-                    onChange={(creativity) =>
-                      updateWorkspacePreferences({ creativity })
-                    }
-                    profile={workspacePreferences.creativity}
-                  />
-                </div>
-                <button
-                  aria-label="Send prompt"
-                  className="sendButton"
-                  data-ready={isComposerReady}
-                  disabled={!isComposerReady}
-                  title={isComposerReady ? "Send prompt" : "Type a prompt to send"}
-                  type="submit"
-                >
-                  <SendHorizontal size={18} />
-                  <span>Send</span>
-                </button>
-              </div>
-            </form>
+              }
+              controlsSlot={
+                <WorkspaceGenerationControls
+                  creativity={workspacePreferences.creativity}
+                  disabled={isStreaming}
+                  onCreativityChange={(creativity) =>
+                    updateWorkspacePreferences({ creativity })
+                  }
+                  onWorkflowChange={(workflowMode) =>
+                    updateWorkspacePreferences({ workflowMode })
+                  }
+                  workflowMode={workflowMode}
+                />
+              }
+              hasImages={
+                interactiveSnapshot.multimodal.imageAttachments.length > 0
+              }
+              isReady={isComposerReady}
+              isPreparingAttachments={isImageUploadPending}
+              isStreaming={isStreaming}
+              mode={workspacePreferences.showDebugPanels ? "developer" : "user"}
+              onChange={setComposerValue}
+              onSubmit={handleComposerSubmit}
+              ref={composerTextareaRef}
+              value={composerValue}
+            />
           </section>
 
           {shouldRenderPreviewShelf ? (
-            <PreviewShelf
+            <PreviewWorkspace
               controller={previewController}
               height={layoutState.previewHeight}
               onClear={handlePreviewStateClear}
@@ -4055,6 +4015,7 @@ export function WorkstationShell({
               resizing={activeResizeTarget === "preview"}
               showDebugPanels={workspacePreferences.showDebugPanels}
               snapshot={interactiveSnapshot}
+              userArtifactLabel={formatUserPreviewArtifactLabel(interactiveSnapshot)}
             />
           ) : null}
         </div>
@@ -4077,144 +4038,41 @@ export function WorkstationShell({
               <span aria-hidden="true" />
             </div>
 
-            <aside
-              aria-label="Right inspector"
-              className="inspector"
-              data-state={isInspectorCollapsed ? "collapsed" : "open"}
+            <RightInspector
+              activeTab={activeTab}
+              addMenuOpen={isInspectorAddMenuOpen}
+              availableTabs={availableInspectorCategories
+                .filter((category) => !inspectorTabs.includes(category))
+                .map((category) => ({
+                  closeable: category !== "Overview",
+                  icon: inspectorTabIcons[category],
+                  id: category,
+                  label: formatInspectorTabDisplayLabel(
+                    category,
+                    workspacePreferences.showDebugPanels
+                  ),
+                  panelId: getInspectorPanelId(category)
+                }))}
+              collapsed={isInspectorCollapsed}
+              detail={activeTabSummary}
+              onAddMenuOpenChange={setIsInspectorAddMenuOpen}
+              onAddTab={revealInspectorTab}
+              onCloseTab={handleInspectorTabClose}
+              onOpenDashboard={openDashboard}
+              onSelectTab={setActiveTab}
+              onToggle={() => handleInspectorCollapsedChange(!isInspectorCollapsed)}
+              tabs={visibleInspectorTabs.map((tab) => ({
+                closeable: tab !== "Overview" && visibleInspectorTabs.length > 1,
+                icon: inspectorTabIcons[tab],
+                id: tab,
+                label: formatInspectorTabDisplayLabel(
+                  tab,
+                  workspacePreferences.showDebugPanels
+                ),
+                panelId: getInspectorPanelId(tab)
+              }))}
             >
-              {isInspectorCollapsed ? (
-                <div className="inspectorRail">
-                  <button
-                    aria-label="Expand inspector"
-                    className="iconButton"
-                    onClick={() => handleInspectorCollapsedChange(false)}
-                    type="button"
-                  >
-                    <PanelRight size={18} />
-                  </button>
-                  <strong>Inspector</strong>
-                  <span>
-                    {formatInspectorTabDisplayLabel(
-                      activeTab,
-                      workspacePreferences.showDebugPanels
-                    )}
-                  </span>
-                </div>
-              ) : (
-                <>
-                  <header className="inspectorHeader">
-                    <div>
-                      <span className="eyebrow">Inspector</span>
-                      <h2>
-                        {formatInspectorTabDisplayLabel(
-                          activeTab,
-                          workspacePreferences.showDebugPanels
-                        )}
-                      </h2>
-                      <p>{activeTabSummary}</p>
-                    </div>
-                    <div className="inspectorHeaderActions">
-                      <button
-                        className="inspectorDashboardButton"
-                        onClick={() => openDashboard(activeTab)}
-                        type="button"
-                      >
-                        Open in Dashboard
-                      </button>
-                      <button
-                        className="iconButton"
-                        type="button"
-                        aria-label="Collapse inspector"
-                        onClick={() => handleInspectorCollapsedChange(true)}
-                      >
-                        <PanelRight size={18} />
-                      </button>
-                    </div>
-                  </header>
-
-                  <div className="inspectorTabs" role="tablist" aria-label="Inspector tabs">
-                    {visibleInspectorTabs.map((tab) => {
-                      const Icon = inspectorTabIcons[tab];
-                      const displayLabel = formatInspectorTabDisplayLabel(
-                        tab,
-                        workspacePreferences.showDebugPanels
-                      );
-
-                      return (
-                        <div className="inspectorTabItem" key={tab}>
-                          <button
-                            aria-controls={getInspectorPanelId(tab)}
-                            aria-label={displayLabel}
-                            aria-selected={tab === activeTab}
-                            data-active={tab === activeTab}
-                            id={`${getInspectorPanelId(tab)}-tab`}
-                            onClick={() => setActiveTab(tab)}
-                            role="tab"
-                            tabIndex={tab === activeTab ? 0 : -1}
-                            title={getProductIntelligenceSection(productIntelligence, tab).summary}
-                            type="button"
-                          >
-                            <Icon size={15} aria-hidden="true" />
-                            <span>{displayLabel}</span>
-                            {workspacePreferences.showDebugPanels &&
-                            tab === "Runtime" && runtimeConsole.badge ? (
-                              <small>{` ${runtimeConsole.badge}`}</small>
-                            ) : null}
-                          </button>
-                          {tab !== "Overview" ? (
-                            <button
-                              aria-label={`Close ${displayLabel} Inspector tab`}
-                              className="inspectorTabClose"
-                              onClick={() => handleInspectorTabClose(tab)}
-                              title={`Close ${displayLabel}`}
-                              type="button"
-                            >
-                              <X aria-hidden="true" size={12} />
-                            </button>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                    {hasAvailableInspectorTabs ? (
-                      <div className="inspectorTabAdd">
-                        <button
-                          aria-expanded={isInspectorAddMenuOpen}
-                          aria-haspopup="menu"
-                          aria-label="Add Inspector tab"
-                          className="inspectorAddButton"
-                          onClick={() =>
-                            setIsInspectorAddMenuOpen((isOpen) => !isOpen)
-                          }
-                          title="Add Inspector tab"
-                          type="button"
-                        >
-                          <Plus size={15} aria-hidden="true" />
-                        </button>
-                        {isInspectorAddMenuOpen ? (
-                          <div
-                            aria-label="Available Inspector tabs"
-                            className="inspectorAddMenu"
-                            role="menu"
-                          >
-                            {availableInspectorCategories
-                              .filter((category) => !inspectorTabs.includes(category))
-                              .map((category) => (
-                                <button
-                                  key={category}
-                                  onClick={() => revealInspectorTab(category)}
-                                  role="menuitem"
-                                  type="button"
-                                >
-                                  {category}
-                                </button>
-                              ))}
-                          </div>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <InspectorPanel
+              <InspectorPanel
                     activeArtifact={activeArtifact}
                     activeArtifactDocument={activeArtifactDocument}
                     activeArtifactHighlights={activeArtifactHighlights}
@@ -4231,141 +4089,32 @@ export function WorkstationShell({
                     onArtifactSelect={handleArtifactSelect}
                     onArtifactTransfer={handleArtifactTransfer}
                     onClarificationOptionSelect={handleClarificationOptionSelect}
-                    providerTelemetry={providerTelemetry}
                     productIntelligence={productIntelligence}
-                    workstationDashboard={workstationDashboard}
                     previewController={previewController}
                     runtimeConsole={runtimeConsole}
-                    provenance={provenance}
                     previewRoute={previewRendererRoute}
-                    previewRuntimeSource={previewRuntimeSource}
                     retrievalRuntime={retrievalRuntime}
-                    sessionIntelligence={sessionIntelligence}
                     showDebugPanels={workspacePreferences.showDebugPanels}
                     snapshot={interactiveSnapshot}
                     telemetryDashboard={telemetryDashboard}
                     transferFeedback={transferFeedback}
-                    workflowExplorer={workflowExplorer}
                     workflowExecution={workflowExecution}
                     workflowMode={workflowMode}
-                    creativeTimeline={creativeTimeline}
-                    conversationContext={conversationContext}
-                    v3InspectorPanels={v3InspectorPanels}
                     workflowRuntime={workflowRuntime}
                     workflowIssues={workflowIssues}
                   />
-                </>
-              )}
-            </aside>
+            </RightInspector>
           </>
         ) : null}
       </section>
       )}
-    </main>
-  );
-}
-
-type PreviewShelfProps = WorkstationShellProps & {
-  controller: PreviewControllerModel;
-  height: number;
-  onClear: () => void;
-  onFullscreenToggle: (isFullscreen: boolean) => void;
-  onOpenArtifacts: () => void;
-  onOpenCode: () => void;
-  onReload: () => void;
-  onRuntimeDiagnostics: (event: Omit<RuntimeConsoleLiveSnapshot, "updatedAt">) => void;
-  onResizeKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
-  onResizeStart: (event: MouseEvent<HTMLElement>) => void;
-  onRestart: () => void;
-  onRuntimeFrame: (event: PreviewRuntimeFrameTelemetryEvent) => void;
-  onRuntimeStatus: (event: PreviewRuntimeStatusTelemetryEvent) => void;
-  onToggle: (isOpen: boolean) => void;
-  route: PreviewRendererRoute;
-  runtimeSessionKey: string;
-  runtimeSource: ReturnType<typeof buildPreviewRuntimeSource>;
-  resizing: boolean;
-  showDebugPanels: boolean;
-};
-
-function ImageReferenceShelf({
-  multimodal,
-  onDismissError,
-  onRemove
-}: {
-  multimodal: AssistantWorkspaceSnapshot["multimodal"];
-  onDismissError: () => void;
-  onRemove: (attachmentId: string) => void;
-}) {
-  return (
-    <section
-      aria-label="Image references"
-      className="imageReferenceShelf"
-      data-state={multimodal.state}
-    >
-      <header className="imageReferenceHeader">
-        <div>
-          <span className="eyebrow">Visual context</span>
-          <strong>{multimodal.status}</strong>
-          <p>{multimodal.detail}</p>
-        </div>
-        {multimodal.error ? (
-          <button
-            aria-label="Dismiss image upload issue"
-            className="imageReferenceDismiss"
-            onClick={onDismissError}
-            type="button"
-          >
-            <X size={14} />
-          </button>
-        ) : null}
-      </header>
-      {multimodal.error ? (
-        <SubsystemErrorCallout
-          className="imageUploadErrorCallout"
-          error={multimodal.error}
-          title="Image upload issue"
+      {applicationConfirmation ? (
+        <ApplicationConfirmDialog
+          onClose={() => setApplicationConfirmation(null)}
+          request={applicationConfirmation}
         />
       ) : null}
-      {multimodal.imageAttachments.length > 0 ? (
-        <div className="imageReferenceList" role="list">
-          {multimodal.imageAttachments.map((attachment) => (
-            <article
-              aria-label={`${attachment.name} image reference`}
-              className="imageReferenceCard"
-              key={attachment.id}
-              role="listitem"
-            >
-              <div
-                aria-hidden="true"
-                className="imageReferenceThumb"
-                style={{ backgroundImage: `url(${attachment.dataUrl})` }}
-              />
-              <div>
-                <strong>{attachment.name}</strong>
-                <span>
-                  {attachment.mimeType.replace("image/", "").toUpperCase()} /{" "}
-                  {formatImageAttachmentSize(attachment.sizeBytes)}
-                </span>
-              </div>
-              <button
-                aria-label={`Remove image reference ${attachment.name}`}
-                onClick={() => onRemove(attachment.id)}
-                type="button"
-              >
-                <X size={13} />
-              </button>
-            </article>
-          ))}
-        </div>
-      ) : null}
-      <p className="imageReferenceBoundary">
-        Image pixels are included only in the next explicit request payload, then
-        removed from the composer and not persisted with the session. Provider receipt,
-        use, and influence require separate live evidence. A bundle exported before
-        submission can include the still-queued files. Audio upload and audio analysis
-        are not supported in this workspace.
-      </p>
-    </section>
+    </main>
   );
 }
 
@@ -4376,21 +4125,38 @@ function EmptyWorkspaceState({
 }) {
   const valueHighlights = [
     {
+      icon: Braces,
       title: "Build browser-native visuals",
       detail: "Generate bounded p5.js, Three.js, GLSL, or Tone.js artifacts."
     },
     {
+      icon: Database,
       title: "Ground answers in official sources",
       detail: "Use retrieval context when source-backed guidance matters."
     },
     {
+      icon: Play,
       title: "Preview, refine, and save artifacts",
       detail: "Move from prompt to Code, Preview, and Saved outputs."
     },
     {
+      icon: Activity,
       title: "Support creative-coding workflows",
       detail: "Plan, generate, inspect, preview, export, and recover clearly."
     }
+  ];
+  const promptIcons: Record<(typeof homepagePromptLibrary)[number]["id"], LucideIcon> = {
+    "physarum-drift": Braces,
+    "kinetic-orbit-sculpture": LayoutGrid,
+    "chladni-light-field": Gauge,
+    "cymatic-audio-study": Activity
+  };
+  const journey = [
+    { title: "Write the brief", detail: "Describe the idea, medium, and constraints." },
+    { title: "Choose the route", detail: "Auto selects a bounded execution path." },
+    { title: "Generate", detail: "Follow the streamed run and its published state." },
+    { title: "Inspect", detail: "Review Code, Preview, and Runtime independently." },
+    { title: "Keep the result", detail: "Save, refine, copy, or export the useful output." }
   ];
   return (
     <article
@@ -4398,323 +4164,61 @@ function EmptyWorkspaceState({
       className="emptyWorkspace"
       role="group"
     >
-      <header className="emptyWorkspaceHero">
-        <span className="eyebrow">New creative session</span>
-        <strong>Describe the creative system you want to build.</strong>
-        <p>
-          Start with an idea, medium, constraint, or reference. Creative Coding
-          Assistant turns it into grounded guidance, generated code, previewable
-          artifacts, and saved outputs.
-        </p>
-      </header>
+      <DashboardPageHero
+        badgeLabel="Creative session capabilities"
+        badges={["Browser-native", "Source-grounded", "Session-scoped"]}
+        className="emptyWorkspaceHero"
+        detail="Start with an idea, medium, constraint, or reference. Move from one clear brief to inspectable code, visible runtime evidence, and saved output."
+        eyebrow="New creative session"
+        headingLevel="h1"
+        icon={Sparkles}
+        title="Describe the creative system you want to build."
+      />
 
-      <section className="emptyWorkspaceValue" aria-label="Product capabilities">
-        {valueHighlights.map((item) => (
-          <article key={item.title}>
-            <strong>{item.title}</strong>
-            <span>{item.detail}</span>
-          </article>
-        ))}
-      </section>
-
-      <div className="emptyWorkspaceSuggestions" aria-label="Prompt suggestions">
-        {homepagePromptLibrary.map((prompt) => (
-          <button
-            aria-label={prompt.title}
-            key={prompt.id}
-            onClick={() => onSelectPrompt(prompt.prompt)}
-            type="button"
-          >
-            <strong>{prompt.title}</strong>
-            <span>{prompt.description}</span>
-            <small>{prompt.runtime}</small>
-          </button>
-        ))}
-      </div>
-
-      <details className="emptyWorkspaceLearnMore">
-        <summary>How it works</summary>
-        <p>
-          Prompt the assistant, inspect concise chat guidance, open generated
-          code in Code, review visual output in Preview, and keep useful results
-          in Saved. Developer Mode exposes retrieval, workflow, and telemetry
-          details when you need the engineering trace.
-        </p>
-      </details>
-    </article>
-  );
-}
-
-function DemoModePanel({
-  activeScenario,
-  hasImageAttachment,
-  onLoadScenario,
-  onSelectScenario,
-  scenarios,
-  showDebugPanels
-}: {
-  activeScenario: DemoModeScenario;
-  hasImageAttachment: boolean;
-  onLoadScenario: (scenario: DemoModeScenario) => void;
-  onSelectScenario: (scenario: DemoModeScenario) => void;
-  scenarios: readonly DemoModeScenario[];
-  showDebugPanels: boolean;
-}) {
-  const imageAttachmentRequired = activeScenario.requiresImageAttachment === true;
-  const canRunActiveScenario = !imageAttachmentRequired || hasImageAttachment;
-  const scenarioFacts = showDebugPanels
-    ? ([
-        ["Concept", activeScenario.concept],
-        ["Purpose", activeScenario.purpose],
-        ["Runtime", activeScenario.runtime],
-        ["Workflow", activeScenario.workflow],
-        ["Input", activeScenario.inputRequirement],
-        ["Artifact", activeScenario.expectedArtifact],
-        ["Preview", activeScenario.expectedPreview],
-        ["Interaction", activeScenario.expectedInteraction],
-        ["Expected validation", activeScenario.expectedValidation],
-        ["Fallback", activeScenario.fallback],
-        ["Generation", activeScenario.estimatedGenerationTime],
-        ["Provider", activeScenario.providerRequirement],
-        ["Retrieval", activeScenario.retrievalRequirement]
-      ] as const)
-    : ([
-        ["Purpose", activeScenario.purpose],
-        ["Runtime", activeScenario.runtime],
-        ["Input", activeScenario.inputRequirement],
-        ["Expected artifact", activeScenario.expectedArtifact],
-        ["Preview", activeScenario.expectedPreview],
-        ["Interaction", activeScenario.expectedInteraction],
-        ["Fallback", activeScenario.fallback]
-      ] as const);
-
-  return (
-    <section
-      aria-label="Demo Mode"
-      className="demoModePanel"
-      data-debug={showDebugPanels ? "true" : "false"}
-      id="demo-mode-panel"
-    >
-      <header className="demoModeHeader">
-        <div>
-          <span className="eyebrow">Demo Mode</span>
-          <strong>Capstone scenarios</strong>
-          <p>
-            Curated creative-coding journeys with explicit runtime, preview, and
-            fallback boundaries.
-          </p>
-        </div>
-        <span className="demoModeCount">{scenarios.length} flows</span>
-      </header>
-
-      {showDebugPanels ? (
-        <div className="demoLiveSequence" aria-label="Featured demo paths">
-          {demoModeRecommendedLiveSequence.map((item) => (
-            <button
-              aria-label={`Featured: ${item.title}`}
-              key={`${item.role}-${item.scenarioId}`}
-              onClick={() => {
-                const scenario = scenarios.find(
-                  (candidate) => candidate.id === item.scenarioId
-                );
-                if (scenario) {
-                  onSelectScenario(scenario);
-                }
-              }}
-              type="button"
-            >
-              <span>{item.role}</span>
-              <strong>{item.title}</strong>
-              <small>{item.rationale}</small>
-            </button>
-          ))}
-        </div>
-      ) : null}
-
-      <div className="demoModeBody">
-        <div
-          aria-label="Demo Mode scenarios"
-          className="demoScenarioList"
-          role="list"
-        >
-          {scenarios.map((scenario) => {
-            const isActive = scenario.id === activeScenario.id;
-
+      <DashboardSection
+        className="emptyWorkspaceStarters"
+        detail="Select a bounded browser-ready brief, review it in the composer, then send when it matches your intent."
+        eyebrow="Quick start"
+        icon={Sparkles}
+        label="Prompt suggestions"
+        title="Choose a proven creative starting point"
+      >
+        <DashboardCardGrid className="emptyWorkspaceSuggestionGrid" label="Prompt suggestion cards" layout="quad" role="group">
+          {homepagePromptLibrary.map((prompt) => {
+            const PromptIcon = promptIcons[prompt.id];
             return (
-              <button
-                aria-pressed={isActive}
-                className="demoScenarioButton"
-                data-active={isActive ? "true" : "false"}
-                key={scenario.id}
-                onClick={() => onSelectScenario(scenario)}
-                type="button"
-              >
-                <span>{getDemoScenarioPublicCategory(scenario)}</span>
-                <strong>{scenario.title}</strong>
-                <small>
-                  {showDebugPanels
-                    ? `${scenario.category} / ${scenario.workflow}`
-                    : scenario.purpose}
-                </small>
-                {isActive ? <ChevronDown size={14} aria-hidden="true" /> : null}
-              </button>
+              <DashboardActionCard
+                badge={prompt.runtime}
+                detail={prompt.description}
+                icon={PromptIcon}
+                key={prompt.id}
+                onClick={() => onSelectPrompt(prompt.prompt)}
+                title={prompt.title}
+              />
             );
           })}
-        </div>
+        </DashboardCardGrid>
+        <DashboardDisclosure className="emptyWorkspaceJourneyDisclosure" summary="How it works">
+          <DashboardProcessRail className="emptyWorkspaceJourney" label="Creative workflow" steps={journey} />
+        </DashboardDisclosure>
+      </DashboardSection>
 
-        <article
-          aria-label="Selected demo scenario"
-          className="demoScenarioDetail"
-        >
-          <header>
-            <div>
-              <span>{getDemoScenarioPublicCategory(activeScenario)}</span>
-              <strong>{activeScenario.title}</strong>
-            </div>
-            <button
-              className="demoModeLoadButton"
-              disabled={!canRunActiveScenario}
-              onClick={() => onLoadScenario(activeScenario)}
-              type="button"
-            >
-              <Play size={15} aria-hidden="true" />
-              <span>{canRunActiveScenario ? "Load prompt & run" : "Attach image to run"}</span>
-            </button>
-          </header>
-
-          <p className="demoScenarioDescription">{activeScenario.description}</p>
-          {imageAttachmentRequired && !hasImageAttachment ? (
-            <p className="demoScenarioInputNotice" role="status">
-              Add one image reference through the composer before running this demo.
-            </p>
-          ) : null}
-
-          <dl className="demoScenarioQuickFacts">
-            {scenarioFacts.map(([label, value]) => (
-              <div key={label}>
-                <dt>{label}</dt>
-                <dd>{value}</dd>
-              </div>
-            ))}
-          </dl>
-
-          <p
-            className={
-              showDebugPanels
-                ? "demoPromptPreview"
-                : "demoPromptPreview demoPromptPreview--user"
-            }
-          >
-            {showDebugPanels
-              ? activeScenario.prompt
-              : formatDemoPromptPreview(activeScenario.prompt)}
-          </p>
-
-          {showDebugPanels ? (
-            <dl className="demoScenarioMeta">
-              <div>
-                <dt>Concept</dt>
-                <dd>{activeScenario.concept}</dd>
-              </div>
-              <div>
-                <dt>Preview contract</dt>
-                <dd>{activeScenario.expectedPreview}</dd>
-              </div>
-              <div>
-                <dt>Interaction</dt>
-                <dd>{activeScenario.expectedInteraction}</dd>
-              </div>
-              <div>
-                <dt>Input requirement</dt>
-                <dd>{activeScenario.inputRequirement}</dd>
-              </div>
-            </dl>
-          ) : (
-            <div className="demoUserEssentials">
-              <p>
-                <strong>Acceptance checks:</strong> {activeScenario.expectedValidation}
-              </p>
-            </div>
-          )}
-
-          {showDebugPanels ? (
-            <>
-              <dl className="demoScenarioMeta demoScenarioMeta--developer">
-                <div>
-                  <dt>Source boundary</dt>
-                  <dd>{activeScenario.sourceBoundary}</dd>
-                </div>
-                <div>
-                  <dt>Expected validation</dt>
-                  <dd>{activeScenario.expectedValidation}</dd>
-                </div>
-              </dl>
-
-              <div className="demoScenarioEvidence">
-                <span>Fallback</span>
-                <div>
-                  <code>{activeScenario.fallback}</code>
-                </div>
-              </div>
-            </>
-          ) : null}
-        </article>
-      </div>
-    </section>
+      <DashboardSection
+        className="emptyWorkspaceCapabilities"
+        detail="Four product boundaries keep the first prompt focused and the result reviewable."
+        eyebrow="Product capabilities"
+        icon={LayoutGrid}
+        label="Product capabilities"
+        title="From creative brief to retained result"
+      >
+        <DashboardCardGrid className="emptyWorkspaceCapabilityGrid" label="Product capability cards" layout="compact" role="list">
+          {valueHighlights.map((item) => (
+            <DashboardInfoCard detail={item.detail} icon={item.icon} key={item.title} role="listitem" title={item.title} />
+          ))}
+        </DashboardCardGrid>
+      </DashboardSection>
+    </article>
   );
-}
-
-function getDemoScenarioPublicCategory(scenario: DemoModeScenario) {
-  const searchable = [
-    scenario.id,
-    scenario.runtime,
-    scenario.category,
-    scenario.workflow,
-    scenario.concept,
-    scenario.title
-  ]
-    .join(" ")
-    .toLowerCase();
-
-  if (searchable.includes("tone") || searchable.includes("audio")) {
-    return "Audio-visual";
-  }
-
-  if (searchable.includes("export") || searchable.includes("handoff")) {
-    return "Export package";
-  }
-
-  if (searchable.includes("three")) {
-    return "Three.js";
-  }
-
-  if (searchable.includes("p5")) {
-    return "p5.js";
-  }
-
-  if (searchable.includes("glsl") || searchable.includes("shader")) {
-    return "GLSL";
-  }
-
-  if (searchable.includes("retrieval") || searchable.includes("rag")) {
-    return "Retrieval";
-  }
-
-  if (searchable.includes("agent")) {
-    return "Agent workflow";
-  }
-
-  return "Creative workflow";
-}
-
-function formatDemoPromptPreview(prompt: string) {
-  const normalizedPrompt = prompt.replace(/\s+/g, " ").trim();
-
-  if (normalizedPrompt.length <= 170) {
-    return normalizedPrompt;
-  }
-
-  return `${normalizedPrompt.slice(0, 167).trimEnd()}...`;
 }
 
 function formatUserPreviewArtifactLabel(snapshot: AssistantWorkspaceSnapshot) {
@@ -4745,282 +4249,6 @@ function formatUserPreviewArtifactLabel(snapshot: AssistantWorkspaceSnapshot) {
   });
 }
 
-function PreviewShelf({
-  controller,
-  height,
-  onClear,
-  onFullscreenToggle,
-  onOpenArtifacts,
-  onOpenCode,
-  onReload,
-  onRuntimeDiagnostics,
-  onResizeKeyDown,
-  onResizeStart,
-  onRestart,
-  onRuntimeFrame,
-  onRuntimeStatus,
-  onToggle,
-  route,
-  runtimeSessionKey,
-  runtimeSource,
-  resizing,
-  showDebugPanels,
-  snapshot
-}: PreviewShelfProps) {
-  const canOpenUserPreview = showDebugPanels || snapshot.preview.state === "ready";
-  const isPreviewPanelOpen = snapshot.preview.active && canOpenUserPreview;
-
-  function handleSummaryClick(event: MouseEvent<HTMLElement>) {
-    event.preventDefault();
-    if (!canOpenUserPreview) {
-      onToggle(false);
-      return;
-    }
-    onToggle(!isPreviewPanelOpen);
-  }
-
-  function handleToggle(event: SyntheticEvent<HTMLDetailsElement>) {
-    if (!canOpenUserPreview && event.currentTarget.open) {
-      onToggle(false);
-      return;
-    }
-    onToggle(event.currentTarget.open);
-  }
-
-  const layoutSize = resolvePreviewShelfLayoutSize(snapshot.preview);
-  const panelHeight = resolvePreviewShelfPanelHeight(height, snapshot.preview);
-  const canResizePreview =
-    isPreviewPanelOpen && layoutSize === "visual" && !controller.isFullscreen;
-  const panelStyle = controller.isFullscreen ? undefined : { height: panelHeight };
-
-  if (!showDebugPanels && snapshot.preview.state !== "ready") {
-    return (
-      <section className="previewZone" aria-label="Preview workspace">
-        <section
-          aria-label="Preview fallback"
-          className="previewShelf previewShelf--userFallback"
-          data-runtime-state={snapshot.preview.state}
-          data-user-mode="true"
-        >
-          <div className="previewUserFallbackCard">
-            <div>
-              <span>Preview</span>
-              <strong>Preview unavailable</strong>
-              <p>
-                Choose a previewable artifact, or inspect Code and Saved while
-                a runnable visual is prepared.
-              </p>
-            </div>
-            <div className="previewUserFallbackActions">
-              <button onClick={onOpenCode} type="button">
-                Open Code
-              </button>
-              <button onClick={onOpenArtifacts} type="button">
-                Open Saved
-              </button>
-            </div>
-          </div>
-        </section>
-      </section>
-    );
-  }
-
-  const previewShelf = (
-    <details
-        data-fullscreen={controller.isFullscreen ? "true" : "false"}
-        data-layout-size={layoutSize}
-        className="previewShelf"
-        data-state={isPreviewPanelOpen ? "open" : "closed"}
-        data-runtime-state={snapshot.preview.state}
-        data-user-mode={showDebugPanels ? "false" : "true"}
-        onToggle={handleToggle}
-        open={isPreviewPanelOpen}
-      >
-        {!controller.isFullscreen ? (
-          <summary
-            aria-expanded={isPreviewPanelOpen}
-            onClick={handleSummaryClick}
-          >
-            <span className="previewSummaryIcon" aria-hidden="true">
-              <Play size={16} />
-            </span>
-            <div>
-              <strong>{snapshot.preview.title}</strong>
-              <span>
-                {showDebugPanels
-                  ? snapshot.preview.artifactName
-                  : formatUserPreviewArtifactLabel(snapshot)}
-              </span>
-            </div>
-            <div className="previewSummaryMeta">
-              <small data-state={snapshot.preview.state}>{snapshot.preview.status}</small>
-              <span className="previewSummaryChevron" aria-hidden="true">
-                <ChevronDown size={15} />
-              </span>
-            </div>
-          </summary>
-        ) : null}
-        <div className="previewPanel" style={panelStyle}>
-          {controller.isFullscreen ? (
-            <div className="previewFullscreenClose" aria-label="Fullscreen preview controls">
-              <button
-                aria-label="Exit preview fullscreen"
-                aria-pressed
-                className="previewControlButton"
-                onClick={() => onFullscreenToggle(false)}
-                title="Exit preview fullscreen"
-                type="button"
-              >
-                <Minimize2 size={15} />
-                <span className="previewControlLabel">Exit</span>
-              </button>
-            </div>
-          ) : (
-            <div className="previewToolbar">
-              <div className="previewToolbarFocus" aria-label="Focused preview context">
-                <span>{route.surfaceEyebrow}</span>
-                <strong>{route.surfaceTitle}</strong>
-                <small>
-                  {showDebugPanels
-                    ? `${snapshot.preview.status} / ${route.rendererLabel}`
-                    : snapshot.preview.status}
-                </small>
-              </div>
-            </div>
-          )}
-          <div className="previewBody">
-            {snapshot.preview.error ? (
-              <SubsystemErrorCallout
-                className="previewErrorCallout"
-                error={snapshot.preview.error}
-                title="Preview runtime failed"
-              />
-            ) : null}
-            {!controller.isFullscreen ? (
-            <div className="previewArtworkControls" aria-label="Preview controls">
-              <button
-                aria-label="Enter preview fullscreen"
-                aria-pressed={false}
-                className="previewControlButton"
-                disabled={!controller.canFullscreen}
-                onClick={() => onFullscreenToggle(true)}
-                title="Enter preview fullscreen"
-                type="button"
-              >
-                <Maximize2 size={15} />
-                <span className="previewControlLabel">Fullscreen</span>
-              </button>
-              <button
-                aria-label="Restart preview session"
-                className="previewControlButton"
-                disabled={!controller.canRestart}
-                onClick={onRestart}
-                title="Restart preview session"
-                type="button"
-              >
-                <RotateCcw size={15} />
-                <span className="previewControlLabel">Restart</span>
-              </button>
-              <button
-                aria-label="Clear preview state"
-                className="previewControlButton"
-                disabled={!controller.canClear}
-                onClick={onClear}
-                title="Clear preview state"
-                type="button"
-              >
-                <X size={15} />
-                <span className="previewControlLabel">Clear</span>
-              </button>
-              <button
-                aria-label="Reload preview state"
-                className="previewControlButton"
-                disabled={!controller.canReload}
-                onClick={onReload}
-                title="Reload preview state"
-                type="button"
-              >
-                <RefreshCw size={15} />
-                <span className="previewControlLabel">Reload</span>
-              </button>
-            </div>
-            ) : null}
-            <PreviewRendererSurface
-              chrome="immersive"
-              onReload={onReload}
-              onRuntimeDiagnostics={onRuntimeDiagnostics}
-              onRuntimeFrame={onRuntimeFrame}
-              onRuntimeStatus={onRuntimeStatus}
-              preview={snapshot.preview}
-              route={route}
-              runtimeSessionKey={runtimeSessionKey}
-              runtimeSource={runtimeSource}
-              showDiagnostics={showDebugPanels}
-            />
-          </div>
-        </div>
-        <div
-          aria-label="Resize preview shelf"
-          aria-disabled={!canResizePreview}
-          aria-orientation="horizontal"
-          aria-valuemax={
-            layoutSize === "visual"
-              ? workspaceLayoutBounds.maxPreviewHeight
-              : workspaceLayoutBounds.compactPreviewHeight
-          }
-          aria-valuemin={workspaceLayoutBounds.minPreviewHeight}
-          aria-valuenow={panelHeight}
-          className="layoutResizeHandle previewResizeHandle"
-          data-active={resizing}
-          onKeyDown={canResizePreview ? onResizeKeyDown : undefined}
-          onMouseDown={canResizePreview ? onResizeStart : undefined}
-          role="separator"
-          tabIndex={canResizePreview ? 0 : -1}
-        >
-          <span aria-hidden="true" />
-        </div>
-    </details>
-  );
-
-  return (
-    <>
-      <section className="previewZone" aria-label="Preview workspace">
-        {controller.isFullscreen ? null : previewShelf}
-      </section>
-      {controller.isFullscreen && typeof document !== "undefined"
-        ? createPortal(
-            <div
-              aria-label="Fullscreen artwork canvas"
-              aria-modal="true"
-              className="previewFullscreenLayer"
-              role="dialog"
-            >
-              {previewShelf}
-            </div>,
-            document.body
-          )
-        : null}
-    </>
-  );
-}
-
-function resolvePreviewShelfLayoutSize(
-  preview: AssistantWorkspaceSnapshot["preview"]
-) {
-  return preview.active && preview.state === "ready" ? "visual" : "compact";
-}
-
-function resolvePreviewShelfPanelHeight(
-  height: number,
-  preview: AssistantWorkspaceSnapshot["preview"]
-) {
-  if (resolvePreviewShelfLayoutSize(preview) === "visual") {
-    return height;
-  }
-
-  return Math.min(height, workspaceLayoutBounds.compactPreviewHeight);
-}
-
 type InspectorPanelProps = {
   activeArtifact: ArtifactSummary;
   activeArtifactDocument: ArtifactDocument;
@@ -5038,26 +4266,17 @@ type InspectorPanelProps = {
   onArtifactSelect: (artifact: ArtifactSummary) => void;
   onArtifactTransfer: (artifact: ArtifactSummary) => void;
   onClarificationOptionSelect: (option: string) => Promise<void>;
-  providerTelemetry: ProviderTelemetryModel;
   productIntelligence: ProductIntelligenceModel;
-  workstationDashboard: WorkstationDashboardModel;
   previewController: PreviewControllerModel;
-  provenance: ProvenanceEngineModel;
   runtimeConsole: RuntimeConsoleModel;
   previewRoute: PreviewRendererRoute;
-  previewRuntimeSource: PreviewRuntimeSource;
   retrievalRuntime: RetrievalRuntimeModel;
-  sessionIntelligence: SessionIntelligenceModel;
   showDebugPanels: boolean;
   snapshot: AssistantWorkspaceSnapshot;
   telemetryDashboard: TelemetryDashboardModel;
   transferFeedback: ArtifactActionFeedback | null;
-  workflowExplorer: WorkflowExplorerModel;
   workflowExecution: WorkflowExecutionModel;
   workflowMode: WorkflowExecutionMode;
-  creativeTimeline: CreativeTimelineModel;
-  conversationContext: ConversationContextModel;
-  v3InspectorPanels: V3InspectorPanelsModel;
   workflowRuntime: WorkflowRuntimeModel;
   workflowIssues: WorkstationError[];
 };
@@ -5079,26 +4298,17 @@ function InspectorPanel({
   onArtifactSelect,
   onArtifactTransfer,
   onClarificationOptionSelect,
-  providerTelemetry,
   productIntelligence,
-  workstationDashboard,
   previewController,
-  provenance,
   runtimeConsole,
   previewRoute,
-  previewRuntimeSource,
   retrievalRuntime,
-  sessionIntelligence,
   showDebugPanels,
   snapshot,
   telemetryDashboard,
   transferFeedback,
-  workflowExplorer,
   workflowExecution,
   workflowMode,
-  creativeTimeline,
-  conversationContext,
-  v3InspectorPanels,
   workflowRuntime,
   workflowIssues
 }: InspectorPanelProps) {
@@ -5125,11 +4335,9 @@ function InspectorPanel({
     return (
       <PreviewInspector
         controller={previewController}
-        dashboard={telemetryDashboard}
         preview={snapshot.preview}
         productOutcome={workflowRuntime.summary.productOutcome}
         route={previewRoute}
-        runtimeSource={previewRuntimeSource}
         showDebugPanels={showDebugPanels}
       />
     );
@@ -5147,15 +4355,8 @@ function InspectorPanel({
   if (activeTab === "Workflow") {
     return (
       <WorkflowInspector
-        creativeTimeline={creativeTimeline}
-        conversationContext={conversationContext}
-        explorer={workflowExplorer}
         execution={workflowExecution}
         runtime={workflowRuntime}
-        provenance={provenance}
-        v3InspectorPanels={v3InspectorPanels}
-        telemetry={providerTelemetry}
-        showDebugPanels={showDebugPanels}
         issues={workflowIssues}
         workflowMode={workflowMode}
       />
@@ -5164,10 +4365,7 @@ function InspectorPanel({
 
   if (activeTab === "Telemetry") {
     return (
-      <TelemetryInspector
-        dashboard={telemetryDashboard}
-        showDebugPanels={showDebugPanels}
-      />
+      <TelemetryInspector dashboard={telemetryDashboard} />
     );
   }
 
@@ -5179,7 +4377,6 @@ function InspectorPanel({
         activeArtifactId={activeArtifactId}
         artifacts={snapshot.artifacts}
         artifactTransferError={artifactTransferError}
-        code={snapshot.code}
         copyFeedback={copyFeedback}
         isStreaming={isStreaming}
         onArtifactAction={onArtifactAction}
@@ -5187,7 +4384,6 @@ function InspectorPanel({
         onArtifactRefine={onArtifactRefine}
         onArtifactRename={onArtifactRename}
         onArtifactSelect={onArtifactSelect}
-        preview={snapshot.preview}
         productOutcome={workflowRuntime.summary.productOutcome}
         showDebugPanels={showDebugPanels}
         transferFeedback={transferFeedback}
@@ -5208,13 +4404,9 @@ function InspectorPanel({
   return (
     <OverviewInspector
       activeArtifact={activeArtifact}
-      retrieval={retrievalRuntime}
       runtime={workflowRuntime}
       workflowExecution={workflowExecution}
       workflowMode={workflowMode}
-      sessionIntelligence={sessionIntelligence}
-      workstationDashboard={workstationDashboard}
-      telemetry={providerTelemetry}
       isStreaming={isStreaming}
       onClarificationOptionSelect={onClarificationOptionSelect}
       showDebugPanels={showDebugPanels}
@@ -5227,26 +4419,18 @@ function OverviewInspector({
   activeArtifact,
   isStreaming,
   onClarificationOptionSelect,
-  retrieval,
   runtime,
   workflowExecution,
   workflowMode,
-  sessionIntelligence,
-  workstationDashboard,
-  telemetry,
   showDebugPanels,
   snapshot
 }: {
   activeArtifact: ArtifactSummary;
   isStreaming: boolean;
   onClarificationOptionSelect: (option: string) => Promise<void>;
-  retrieval: RetrievalRuntimeModel;
   runtime: WorkflowRuntimeModel;
   workflowExecution: WorkflowExecutionModel;
   workflowMode: WorkflowExecutionMode;
-  sessionIntelligence: SessionIntelligenceModel;
-  workstationDashboard: WorkstationDashboardModel;
-  telemetry: ProviderTelemetryModel;
   showDebugPanels: boolean;
   snapshot: AssistantWorkspaceSnapshot;
 }) {
@@ -5256,6 +4440,26 @@ function OverviewInspector({
     steps: runtime.steps
   });
   const workflowProgress = getWorkflowRuntimeProgress(visibleWorkflowSteps);
+  const activeWorkflowStepIndex = visibleWorkflowSteps.findIndex(
+    (step) => step.state === "active" || step.state === "failed"
+  );
+  const recentWorkflowSteps = visibleWorkflowSteps
+    .filter(
+      (step) =>
+        step.state === "complete" ||
+        step.state === "active" ||
+        step.state === "failed"
+    )
+    .slice(-5);
+  const overviewWorkflowSteps =
+    activeWorkflowStepIndex >= 0
+      ? visibleWorkflowSteps.slice(
+          Math.max(0, activeWorkflowStepIndex - 2),
+          activeWorkflowStepIndex + 3
+        )
+      : recentWorkflowSteps.length > 0
+        ? recentWorkflowSteps
+        : visibleWorkflowSteps.slice(0, 5);
   const workflowRouteLabel = formatWorkflowGraphRoute({
     execution: workflowExecution,
     requestedMode: workflowMode
@@ -5265,6 +4469,7 @@ function OverviewInspector({
   return (
     <section
       aria-label="Overview inspector"
+      aria-labelledby="overview-inspector-panel-tab"
       className="inspectorPanel overviewPanel"
       id="overview-inspector-panel"
       role="tabpanel"
@@ -5302,8 +4507,8 @@ function OverviewInspector({
             label="Overview workflow progress"
             progress={workflowProgress}
           />
-          <div className="miniWorkflow" aria-label="Minimal live workflow state">
-            {visibleWorkflowSteps.map((step) => (
+          <div className="miniWorkflow" aria-label="Latest live workflow checkpoints">
+            {overviewWorkflowSteps.map((step) => (
               <div
                 aria-current={
                   step.state === "active" || step.state === "failed"
@@ -5322,6 +4527,11 @@ function OverviewInspector({
               </div>
             ))}
           </div>
+          {visibleWorkflowSteps.length > overviewWorkflowSteps.length ? (
+            <small className="inspectorCockpitBoundary">
+              {`${overviewWorkflowSteps.length} of ${visibleWorkflowSteps.length} checkpoints shown · Dashboard contains the full graph`}
+            </small>
+          ) : null}
           <div className="workflowMiniTransitions" aria-label="Workflow transitions">
             {latestTransitions.length > 0 ? (
               latestTransitions.map((transition) => (
@@ -5338,7 +4548,6 @@ function OverviewInspector({
             )}
           </div>
         </div>
-        <SessionIntelligenceOverviewTile intelligence={sessionIntelligence} />
         <div className="overviewTile" role="group" aria-label="Artifacts summary">
           <span>Artifacts</span>
           <strong>{snapshot.artifacts.length}</strong>
@@ -5355,9 +4564,6 @@ function OverviewInspector({
           <p>{runtime.summary.productOutcome.summary}</p>
           <small>{runtime.summary.productOutcome.recovery_action || "No recovery action"}</small>
         </div>
-        {snapshot.creativePlan ? (
-          <CreativePlanOverviewTile plan={snapshot.creativePlan} />
-        ) : null}
         {snapshot.clarification ? (
           <ClarificationOverviewTile
             clarification={snapshot.clarification}
@@ -5365,27 +4571,6 @@ function OverviewInspector({
             onOptionSelect={onClarificationOptionSelect}
           />
         ) : null}
-        <div
-          aria-label="Preview summary"
-          className="overviewTile"
-          data-state={snapshot.preview.state}
-          role="group"
-        >
-          <span>Preview</span>
-          <strong>{formatPreviewStateLabel(snapshot.preview.state, snapshot.preview.active)}</strong>
-          <p>{snapshot.preview.available ? snapshot.preview.artifactName : "No target"}</p>
-        </div>
-        <div
-          className="overviewTile overviewTelemetryTile"
-          data-state={telemetry.status}
-          role="group"
-          aria-label="Telemetry summary"
-        >
-          <span>Telemetry</span>
-          <strong>{telemetry.summary.costLabel}</strong>
-          <p>{`${telemetry.summary.tokenLabel} / ${telemetry.summary.latencyLabel}`}</p>
-          <small>{`${telemetry.summary.providerLabel} / ${telemetry.summary.modelLabel}`}</small>
-        </div>
         <div
           aria-label="Image references summary"
           className="overviewTile"
@@ -5395,121 +4580,9 @@ function OverviewInspector({
           <span>Image references</span>
           <strong>{snapshot.multimodal.imageAttachments.length}</strong>
           <p>{snapshot.multimodal.status}</p>
-          <small>{snapshot.multimodal.detail}</small>
-        </div>
-        <div
-          aria-label="Retrieval summary"
-          className="overviewTile"
-          data-state={retrieval.summary.state}
-          role="group"
-        >
-          <span>Retrieval</span>
-          <strong>{retrieval.summary.status}</strong>
-          <p>
-            {retrieval.summary.sourceCount > 0
-              ? `${retrieval.summary.sourceCount} sources / ${retrieval.summary.chunkCount} chunks`
-              : retrieval.summary.headline}
-          </p>
-          <small>{retrieval.summary.freshnessLabel}</small>
         </div>
       </div>
-      <WorkstationDashboardSurface dashboard={workstationDashboard} />
     </section>
-  );
-}
-
-function SessionIntelligenceOverviewTile({
-  intelligence
-}: {
-  intelligence: SessionIntelligenceModel;
-}) {
-  const metadata = intelligence.metadata;
-  const dataState =
-    metadata.completion_status === "needs_attention"
-      ? "error"
-      : metadata.completion_status;
-
-  return (
-    <div
-      aria-label="Session intelligence summary"
-      className="overviewTile overviewSessionIntelligenceTile"
-      data-state={dataState}
-      role="group"
-    >
-      <span>Session</span>
-      <strong>{intelligence.statusLabel}</strong>
-      <p>{metadata.session_summary}</p>
-      <small>{metadata.active_request_summary}</small>
-      <div
-        aria-label="Available metadata groups"
-        className="sessionIntelligencePills"
-      >
-        {metadata.available_metadata_groups.length > 0 ? (
-          metadata.available_metadata_groups.map((group) => (
-            <span key={group}>{group}</span>
-          ))
-        ) : (
-          <span>No metadata groups</span>
-        )}
-      </div>
-      <div className="sessionIntelligenceMeta">
-        <span>{`${intelligence.availableMetadataCount} metadata group${
-          intelligence.availableMetadataCount === 1 ? "" : "s"
-        }`}</span>
-        <span>{`${intelligence.warningCount} warning${
-          intelligence.warningCount === 1 ? "" : "s"
-        }`}</span>
-        <span>{intelligence.source === "stream" ? "Stream" : "Derived"}</span>
-      </div>
-      <div
-        aria-label="Session warnings"
-        className="sessionIntelligenceList"
-      >
-        {metadata.session_warnings.length > 0 ? (
-          metadata.session_warnings.map((warning) => <p key={warning}>{warning}</p>)
-        ) : (
-          <p>No session warnings.</p>
-        )}
-      </div>
-      <div
-        aria-label="Recommended next user actions"
-        className="sessionIntelligenceList"
-      >
-        {metadata.recommended_next_user_actions.length > 0 ? (
-          metadata.recommended_next_user_actions.map((action) => (
-            <p key={action}>{action}</p>
-          ))
-        ) : (
-          <p>No recommended next action.</p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function CreativePlanOverviewTile({
-  plan
-}: {
-  plan: NonNullable<AssistantWorkspaceSnapshot["creativePlan"]>;
-}) {
-  return (
-    <div
-      aria-label="Planning summary"
-      className="overviewTile overviewPlanningTile"
-      data-state={plan.exportReadiness}
-      role="group"
-    >
-      <span>Planning</span>
-      <strong>{formatPlanningHeadline(plan)}</strong>
-      <p>{plan.generationStrategy}</p>
-      <small>
-        {`${plan.candidateCount} candidate${
-          plan.candidateCount === 1 ? "" : "s"
-        } / ${plan.refinementBudget} refinement pass${
-          plan.refinementBudget === 1 ? "" : "es"
-        } / ${plan.estimatedTokenCost} est. tokens`}
-      </small>
-    </div>
   );
 }
 
@@ -5584,25 +4657,22 @@ function ClarificationOverviewTile({
 
 function PreviewInspector({
   controller,
-  dashboard,
   preview,
   productOutcome,
   route,
-  runtimeSource,
   showDebugPanels
 }: {
   controller: PreviewControllerModel;
-  dashboard: TelemetryDashboardModel;
   preview: AssistantWorkspaceSnapshot["preview"];
   productOutcome: WorkflowRuntimeModel["summary"]["productOutcome"];
   route: PreviewRendererRoute;
-  runtimeSource: PreviewRuntimeSource;
   showDebugPanels: boolean;
 }) {
   if (!showDebugPanels) {
     return (
       <section
         aria-label="Preview inspector"
+        aria-labelledby="preview-inspector-panel-tab"
         className="inspectorPanel previewInspectorPanel previewInspectorPanel--user"
         data-state={preview.state}
         id="preview-inspector-panel"
@@ -5639,25 +4709,12 @@ function PreviewInspector({
   return (
     <section
       aria-label="Preview inspector"
+      aria-labelledby="preview-inspector-panel-tab"
       className="inspectorPanel previewInspectorPanel"
       data-state={preview.state}
       id="preview-inspector-panel"
       role="tabpanel"
     >
-      <article
-        aria-label="Preview canvas status"
-        className="previewInspectorHero"
-        data-state={preview.state}
-        role="group"
-      >
-        <div>
-          <span>Canvas runtime</span>
-          <strong>{formatPreviewStateLabel(preview.state, preview.active)}</strong>
-          <p>{preview.summary}</p>
-        </div>
-        <span>{controller.sessionLabel}</span>
-      </article>
-
       <div className="previewInspectorGrid">
         <article
           aria-label="Preview runtime metadata"
@@ -5704,36 +4761,6 @@ function PreviewInspector({
               <dd>{preview.trigger}</dd>
             </div>
           </dl>
-        </article>
-
-        <article
-          aria-label="Preview source metadata"
-          className="previewInspectorCard"
-          role="group"
-        >
-          <header>
-            <span>Executable source</span>
-            <strong>{runtimeSource.title}</strong>
-          </header>
-          <dl>
-            <div>
-              <dt>Fingerprint</dt>
-              <dd>{runtimeSource.fingerprint}</dd>
-            </div>
-            <div>
-              <dt>Lines</dt>
-              <dd>{runtimeSource.lineCount}</dd>
-            </div>
-            <div>
-              <dt>Renderer</dt>
-              <dd>{route.rendererId ?? "Pending renderer"}</dd>
-            </div>
-            <div>
-              <dt>Health</dt>
-              <dd>{dashboard.preview.healthLabel}</dd>
-            </div>
-          </dl>
-          <p>{dashboard.preview.detail}</p>
         </article>
 
         <article
@@ -5826,6 +4853,7 @@ function CodeInspector({
   return (
     <section
       aria-label="Code inspector"
+      aria-labelledby="code-inspector-panel-tab"
       className="inspectorPanel codePanel"
       data-opened-artifact={displayDocumentName}
       id="code-inspector-panel"
@@ -5926,102 +4954,15 @@ function CodeInspector({
   );
 }
 
-function ProvenanceSummaryCard({
-  provenance
-}: {
-  provenance: ProvenanceEngineModel;
-}) {
-  return (
-    <article
-      aria-label="Provenance summary"
-      className="workflowProvenanceCard"
-      role="group"
-    >
-      <header>
-        <div>
-          <span>Provenance</span>
-          <strong>Source trace</strong>
-          <p>{provenance.provenance_summary}</p>
-        </div>
-      </header>
-      <div
-        aria-label="Provenance source counts"
-        className="workflowProvenanceMetrics"
-        role="group"
-      >
-        <span>{`${provenance.evidence_sources.length} evidence`}</span>
-        <span>{`${provenance.dependency_sources.length} dependencies`}</span>
-        <span>{`${provenance.artifact_sources.length} artifacts`}</span>
-        <span>{`${provenance.evaluation_sources.length} evaluation/final`}</span>
-        <span>{`${provenance.unsupported_or_missing_sources.length} missing`}</span>
-      </div>
-      <div className="workflowProvenanceLists">
-        <ProvenanceSourceList
-          label="Evidence sources"
-          sources={provenance.evidence_sources}
-        />
-        <ProvenanceSourceList
-          label="Artifact sources"
-          sources={provenance.artifact_sources}
-        />
-        <ProvenanceSourceList
-          label="Unsupported or missing sources"
-          sources={provenance.unsupported_or_missing_sources}
-        />
-      </div>
-    </article>
-  );
-}
-
-function ProvenanceSourceList({
-  label,
-  sources
-}: {
-  label: string;
-  sources: ProvenanceEngineModel["evidence_sources"];
-}) {
-  const visibleSources = sources.slice(0, 3);
-
-  return (
-    <section aria-label={label} className="workflowProvenanceList">
-      <span>{label}</span>
-      {visibleSources.length > 0 ? (
-        visibleSources.map((source) => (
-          <p key={source.id}>
-            <strong>{source.label}</strong>
-            {` / ${source.summary}`}
-          </p>
-        ))
-      ) : (
-        <p>No sources captured.</p>
-      )}
-    </section>
-  );
-}
-
 function WorkflowInspector({
-  creativeTimeline,
-  conversationContext,
   execution,
-  explorer,
   issues,
-  provenance,
   runtime,
-  v3InspectorPanels,
-  telemetry,
-  showDebugPanels,
   workflowMode
 }: {
-  creativeTimeline: CreativeTimelineModel;
-  conversationContext: ConversationContextModel;
   execution: WorkflowExecutionModel;
-  explorer: WorkflowExplorerModel;
   issues: WorkstationError[];
-  provenance: ProvenanceEngineModel;
   runtime: WorkflowRuntimeModel;
-  v3InspectorPanels: V3InspectorPanelsModel;
-  telemetry: ProviderTelemetryModel;
-  showDebugPanels: boolean;
   workflowMode: WorkflowExecutionMode;
 }) {
   const visibleWorkflowSteps = selectWorkflowGraphSteps({
@@ -6034,17 +4975,16 @@ function WorkflowInspector({
     execution,
     requestedMode: workflowMode
   });
-  const recentEvents = runtime.events.slice(-6).reverse();
-
   return (
     <section
       aria-label="Workflow inspector"
+      aria-labelledby="workflow-inspector-panel-tab"
       className="inspectorPanel workflowPanel"
       id="workflow-inspector-panel"
       role="tabpanel"
     >
       {issues.length > 0 ? (
-        <div className="workflowIssueStack" aria-label="Workflow runtime issues">
+        <div className="inspectorCockpitIssueStack" aria-label="Workflow runtime issues">
           {issues.map((issue) => (
             <SubsystemErrorCallout
               className="workflowIssueCallout"
@@ -6056,79 +4996,15 @@ function WorkflowInspector({
         </div>
       ) : null}
       <WorkflowExecutionInspector execution={execution} />
-      <WorkflowProgress
-        label="Workflow inspector progress"
-        progress={workflowProgress}
-      />
-      <div className="workflowSummaryGrid" aria-label="Workflow execution summary">
-        <article className="workflowSummaryCard" role="group" aria-label="Workflow status">
-          <span>Status</span>
-          <strong>{runtime.summary.activity.label}</strong>
-          <p>{runtime.summary.activity.detail}</p>
-        </article>
-        <article
-          className="workflowSummaryCard"
-          role="group"
-          aria-label="Semantic product outcome"
-        >
-          <span>Product outcome</span>
-          <strong>{runtime.summary.productOutcome.product_outcome}</strong>
-          <p>{`${runtime.summary.productOutcome.orchestration_status} orchestration / ${runtime.summary.productOutcome.deliverable_status} delivery / ${runtime.summary.productOutcome.preview_status} preview`}</p>
-        </article>
-        <article className="workflowSummaryCard" role="group" aria-label="Workflow runtime">
-          <span>Runtime</span>
-          <strong>{formatRuntimeDuration(runtime.summary.totalRuntimeMs)}</strong>
-          <p>
-            {runtime.summary.activeRuntimeMs != null
-              ? `Active ${formatRuntimeDuration(runtime.summary.activeRuntimeMs)}`
-              : "Awaiting next transition"}
-          </p>
-        </article>
-        <article className="workflowSummaryCard" role="group" aria-label="Workflow retries">
-          <span>Retries</span>
-          <strong>{runtime.summary.retryCount}</strong>
-          <p>{formatRetryCount(runtime.summary.retryCount)}</p>
-        </article>
-        <article
-          className="workflowSummaryCard"
-          role="group"
-          aria-label="Workflow transitions"
-        >
-          <span>Transitions</span>
-          <strong>{runtime.summary.transitionCount}</strong>
-          <p>{runtime.summary.traceEventCount} streamed events</p>
-        </article>
-        <article
-          className="workflowSummaryCard"
-          role="group"
-          aria-label="Workflow token usage"
-        >
-          <span>Tokens</span>
-          <strong>{formatTokenUsageTotal(telemetry)}</strong>
-          <p>{formatTokenUsageDetail(telemetry)}</p>
-        </article>
-        <article
-          className="workflowSummaryCard"
-          role="group"
-          aria-label="Workflow cost estimate"
-        >
-          <span>Cost</span>
-          <strong>{telemetry.summary.costLabel}</strong>
-          <p>{formatTelemetryCostSource(telemetry)}</p>
-        </article>
+      <div className="inspectorCockpitProgress">
+        <WorkflowProgress
+          label="Workflow inspector progress"
+          progress={workflowProgress}
+        />
       </div>
-      <WorkflowExplorerSurface model={explorer} />
-      {showDebugPanels ? (
-        <ConversationContextInspector context={conversationContext} />
-      ) : null}
-      <ProvenanceSummaryCard provenance={provenance} />
-      <CreativeTimelineSurface timeline={creativeTimeline} />
-      <V3InspectorPanelsSurface model={v3InspectorPanels} />
-      <TelemetryLifecycleCard telemetry={telemetry} />
-      <WorkflowTimelineExplorer timeline={runtime.timeline} />
       <header className="workflowGraphHeader">
         <div>
-          <span>Actual runtime graph</span>
+          <span>Live route</span>
           <strong>{workflowRouteLabel}</strong>
         </div>
         <small>{`${visibleWorkflowSteps.length} route node${
@@ -6154,171 +5030,24 @@ function WorkflowInspector({
             <span className="nodeIndex">{String(index + 1).padStart(2, "0")}</span>
             <div>
               <strong>{step.displayLabel}</strong>
-              <p>
-                <code>{step.nodeId}</code>
-                <span>{formatWorkflowRuntimeState(step.state)}</span>
-              </p>
-              <small>{step.lastEventDetail ?? step.detail}</small>
-            </div>
-            <div className="workflowNodeMeta">
-              <span>{formatRuntimeDuration(step.durationMs)}</span>
-              <span>{formatAttemptMeta(step.attemptCount)}</span>
+              <small>{formatWorkflowRuntimeState(step.state)}</small>
             </div>
           </article>
         ))}
       </div>
-      {showDebugPanels ? (
-        <div className="workflowTraceLayout">
-          <article
-            className="workflowTraceCard"
-            role="group"
-            aria-label="Workflow transition trace"
-          >
-            <header>
-              <strong>Transitions</strong>
-              <span>{runtime.summary.transitionCount}</span>
-            </header>
-            <div className="workflowTraceList">
-              {runtime.transitions.length > 0 ? (
-                runtime.transitions.map((transition) => (
-                  <article
-                    className="workflowTraceItem"
-                    data-kind={transition.kind}
-                    key={`${transition.sequence}-${transition.label}`}
-                  >
-                    <strong>{transition.label}</strong>
-                    <p>
-                      <span>{transition.sequence}</span>
-                      <span>{formatTraceTime(transition.at)}</span>
-                      {transition.reason ? (
-                        <span>{formatRuntimeCode(transition.reason)}</span>
-                      ) : null}
-                    </p>
-                  </article>
-                ))
-              ) : (
-                <p className="workflowTraceEmpty">No runtime transitions recorded yet.</p>
-              )}
-            </div>
-          </article>
-          <article
-            className="workflowTraceCard"
-            role="group"
-            aria-label="Workflow event trace"
-          >
-            <header>
-              <strong>Event trace</strong>
-              <span>{runtime.summary.traceEventCount}</span>
-            </header>
-            <div className="workflowTraceList">
-              {recentEvents.length > 0 ? (
-                recentEvents.map((event) => (
-                  <article
-                    className="workflowTraceItem"
-                    data-kind={event.phase ?? "running"}
-                    key={`${event.sequence}-${event.label}`}
-                  >
-                    <strong>{event.label}</strong>
-                    <p>
-                      <span>{event.nodeId ?? "runtime"}</span>
-                      <span>{formatTraceTime(event.at)}</span>
-                    </p>
-                    <small>{event.detail}</small>
-                  </article>
-                ))
-              ) : (
-                <p className="workflowTraceEmpty">No streamed workflow events yet.</p>
-              )}
-            </div>
-          </article>
-        </div>
-      ) : (
-        <article
-          className="workflowTraceCard workflowTraceCard--muted"
-          role="group"
-          aria-label="Workflow traces hidden"
-        >
-          <header>
-            <strong>Advanced traces</strong>
-            <span>Off</span>
-          </header>
-          <p className="workflowTraceEmpty">
-            Workflow trace panels are hidden in Settings.
-          </p>
-        </article>
-      )}
     </section>
   );
 }
 
-function TelemetryLifecycleCard({
-  telemetry
-}: {
-  telemetry: ProviderTelemetryModel;
-}) {
-  return (
-    <article
-      className="telemetryLifecycleCard"
-      role="group"
-      aria-label="Generation telemetry lifecycle"
-    >
-      <header>
-        <div>
-          <span>Generation telemetry</span>
-          <strong>{formatProviderRuntimeLabel(telemetry)}</strong>
-          <p>{telemetry.summary.lifecycleLabel}</p>
-        </div>
-        <span className="telemetryStateBadge" data-state={telemetry.status}>
-          {formatTelemetryStatus(telemetry.status)}
-        </span>
-      </header>
-      <div className="telemetryMetricRow" aria-label="Telemetry timing summary">
-        <div>
-          <span>First token</span>
-          <strong>{formatRuntimeDuration(telemetry.timing.timeToFirstTokenMs)}</strong>
-        </div>
-        <div>
-          <span>Generation</span>
-          <strong>{formatRuntimeDuration(telemetry.timing.generationDurationMs)}</strong>
-        </div>
-        <div>
-          <span>Stream</span>
-          <strong>{telemetry.summary.streamLabel}</strong>
-        </div>
-      </div>
-      <div className="telemetryLifecycleSteps" aria-label="Generation lifecycle stages">
-        {telemetry.lifecycle.map((step) => (
-          <div
-            className="telemetryLifecycleStep"
-            data-state={step.state}
-            key={step.id}
-          >
-            <span aria-hidden="true" />
-            <div>
-              <strong>{step.label}</strong>
-              <small>{formatTelemetryLifecycleStep(step)}</small>
-            </div>
-          </div>
-        ))}
-      </div>
-    </article>
-  );
-}
-
 function TelemetryInspector({
-  dashboard,
-  showDebugPanels
+  dashboard
 }: {
   dashboard: TelemetryDashboardModel;
-  showDebugPanels: boolean;
 }) {
-  const populatedEventTypes = Object.entries(dashboard.stream.eventTypeCounts).filter(
-    ([, count]) => count > 0
-  );
-
   return (
     <section
-      aria-label="Telemetry dashboard"
+      aria-label="Telemetry inspector"
+      aria-labelledby="telemetry-inspector-panel-tab"
       className="inspectorPanel telemetryDashboardPanel"
       data-state={dashboard.status}
       id="telemetry-inspector-panel"
@@ -6352,266 +5081,7 @@ function TelemetryInspector({
         ))}
       </div>
 
-      <details className="inspectorDisclosure telemetryEvidenceDisclosure">
-        <summary>
-          <div>
-            <span>Evidence detail</span>
-            <strong>Provider, runtime, preview, retrieval, and evaluation</strong>
-          </div>
-          <span>{dashboard.summary.coverageLabel}</span>
-        </summary>
-        <div className="telemetryDashboardGrid">
-        <article
-          aria-label="Stream lifecycle"
-          className="telemetryDashboardCard"
-          data-state={dashboard.stream.state}
-          role="group"
-        >
-          <header>
-            <span>Stream lifecycle</span>
-            <strong>{formatDashboardStatusLabel(dashboard.stream.state)}</strong>
-          </header>
-          <dl>
-            <div>
-              <dt>Events</dt>
-              <dd>{dashboard.stream.eventCount}</dd>
-            </div>
-            <div>
-              <dt>Errors</dt>
-              <dd>{dashboard.stream.errorCount}</dd>
-            </div>
-            <div>
-              <dt>Preview</dt>
-              <dd>{dashboard.stream.previewEventCount}</dd>
-            </div>
-            <div>
-              <dt>Eval</dt>
-              <dd>{dashboard.stream.evalEventCount}</dd>
-            </div>
-          </dl>
-          <p>{dashboard.stream.latestEventLabel}</p>
-          <small>{formatNullableTraceTime(dashboard.stream.latestEventAt)}</small>
-        </article>
 
-        <ProviderObservabilityDeepDive telemetry={dashboard.provider} />
-
-        <CreativeCostIntelligenceDashboard
-          intelligence={dashboard.creativeCost}
-        />
-
-        <article
-          aria-label="Runtime lifecycle"
-          className="telemetryDashboardCard"
-          data-state={dashboard.runtime.workflowStatus}
-          role="group"
-        >
-          <header>
-            <span>Runtime</span>
-            <strong>{dashboard.runtime.activity.label}</strong>
-          </header>
-          <dl>
-            <div>
-              <dt>Nodes</dt>
-              <dd>{`${dashboard.runtime.reachedNodes}/${dashboard.runtime.totalNodes}`}</dd>
-            </div>
-            <div>
-              <dt>Transitions</dt>
-              <dd>{dashboard.runtime.transitionCount}</dd>
-            </div>
-            <div>
-              <dt>Retries</dt>
-              <dd>{dashboard.runtime.retryCount}</dd>
-            </div>
-            <div>
-              <dt>Runtime</dt>
-              <dd>{formatRuntimeDuration(dashboard.runtime.totalRuntimeMs)}</dd>
-            </div>
-          </dl>
-          <p>{dashboard.runtime.activity.detail}</p>
-          <small>
-            {dashboard.runtime.activeRuntimeMs != null
-              ? `Active ${formatRuntimeDuration(dashboard.runtime.activeRuntimeMs)}`
-              : "No active node timing"}
-          </small>
-        </article>
-
-        <article
-          aria-label="Semantic product outcome"
-          className="telemetryDashboardCard telemetryDashboardCard--wide"
-          data-state={dashboard.runtime.workflowStatus}
-          role="group"
-        >
-          <header>
-            <span>Product outcome</span>
-            <strong>{dashboard.runtime.productOutcome.product_outcome}</strong>
-          </header>
-          <dl>
-            <div>
-              <dt>Orchestration</dt>
-              <dd>{dashboard.runtime.productOutcome.orchestration_status}</dd>
-            </div>
-            <div>
-              <dt>Provider</dt>
-              <dd>{dashboard.runtime.productOutcome.provider_status}</dd>
-            </div>
-            <div>
-              <dt>Generation</dt>
-              <dd>{dashboard.runtime.productOutcome.generation_status}</dd>
-            </div>
-            <div>
-              <dt>Extraction</dt>
-              <dd>{dashboard.runtime.productOutcome.artifact_extraction_status}</dd>
-            </div>
-            <div>
-              <dt>Runnable</dt>
-              <dd>{dashboard.runtime.productOutcome.artifact_runnability}</dd>
-            </div>
-            <div>
-              <dt>Runtime health</dt>
-              <dd>{dashboard.runtime.productOutcome.runtime_health}</dd>
-            </div>
-          </dl>
-          <p>{dashboard.runtime.productOutcome.summary}</p>
-          <small>{dashboard.runtime.productOutcome.recovery_action || "No recovery action"}</small>
-        </article>
-
-        <article
-          aria-label="Renderer and preview health"
-          className="telemetryDashboardCard"
-          data-state={dashboard.preview.state}
-          role="group"
-        >
-          <header>
-            <span>Preview runtime</span>
-            <strong>{dashboard.preview.healthLabel}</strong>
-          </header>
-          <dl>
-            <div>
-              <dt>Renderer</dt>
-              <dd>{dashboard.preview.renderer}</dd>
-            </div>
-            <div>
-              <dt>Target</dt>
-              <dd>{dashboard.preview.target}</dd>
-            </div>
-          </dl>
-          <p>{dashboard.preview.detail}</p>
-          <small>
-            {dashboard.preview.error ??
-              `Latest preview event ${formatNullableTraceTime(dashboard.preview.latestPreviewEventAt)}`}
-          </small>
-        </article>
-
-        <article
-          aria-label="Retrieval activity"
-          className="telemetryDashboardCard"
-          data-state={dashboard.retrieval.state}
-          role="group"
-        >
-          <header>
-            <span>Retrieval</span>
-            <strong>{dashboard.retrieval.status}</strong>
-          </header>
-          <dl>
-            <div>
-              <dt>Sources</dt>
-              <dd>{dashboard.retrieval.sourceCount}</dd>
-            </div>
-            <div>
-              <dt>Chunks</dt>
-              <dd>{dashboard.retrieval.chunkCount}</dd>
-            </div>
-            <div>
-              <dt>Quality</dt>
-              <dd>{dashboard.retrieval.qualityLabel}</dd>
-            </div>
-            <div>
-              <dt>Freshness</dt>
-              <dd>{dashboard.retrieval.freshnessLabel}</dd>
-            </div>
-          </dl>
-          <p>{dashboard.retrieval.query ?? "No retrieval query captured yet."}</p>
-          <small>
-            {dashboard.retrieval.error ??
-              dashboard.retrieval.warning ??
-              dashboard.retrieval.providerLabel}
-          </small>
-        </article>
-
-        <LangSmithTraceDeepDive trace={dashboard.langsmithTrace} />
-
-        <EvaluationSessionDashboard evaluation={dashboard.evaluation} />
-
-        <article
-          aria-label="Artifact runtime linkage"
-          className="telemetryDashboardCard telemetryDashboardCard--wide"
-          data-state={dashboard.preview.state}
-          role="group"
-        >
-          <header>
-            <span>Artifact linkage</span>
-            <strong>{dashboard.artifactLink.linkLabel}</strong>
-          </header>
-          <dl>
-            <div>
-              <dt>Active</dt>
-              <dd>{dashboard.artifactLink.activeArtifactTitle}</dd>
-            </div>
-            <div>
-              <dt>Preview source</dt>
-              <dd>{dashboard.artifactLink.previewArtifactId ?? "None"}</dd>
-            </div>
-            <div>
-              <dt>Renderer</dt>
-              <dd>{dashboard.artifactLink.renderer}</dd>
-            </div>
-            <div>
-              <dt>Status</dt>
-              <dd>{dashboard.artifactLink.status}</dd>
-            </div>
-          </dl>
-          <p>{dashboard.artifactLink.target}</p>
-        </article>
-        </div>
-      </details>
-
-      <details className="inspectorDisclosure telemetryEventDisclosure">
-        <summary>
-          <div>
-            <span>Raw event distribution</span>
-            <strong>
-              {showDebugPanels
-                ? `${dashboard.stream.eventCount} captured events`
-                : "Hidden in Settings"}
-            </strong>
-          </div>
-          <span>{showDebugPanels ? "Inspect" : "Off"}</span>
-        </summary>
-        {showDebugPanels ? (
-          <article
-            aria-label="Telemetry event type counts"
-            className="telemetryDashboardCard telemetryDashboardCard--wide"
-            role="group"
-          >
-            <div className="telemetryEventPills">
-              {populatedEventTypes.length > 0 ? (
-                populatedEventTypes.map(([eventType, count]) => (
-                  <span key={eventType}>
-                    {formatRuntimeCode(eventType)}
-                    <strong>{count}</strong>
-                  </span>
-                ))
-              ) : (
-                <p>No stream events captured yet.</p>
-              )}
-            </div>
-          </article>
-        ) : (
-          <p className="inspectorDisclosureBoundary">
-            Enable advanced diagnostics in Settings to inspect raw event counts.
-          </p>
-        )}
-      </details>
     </section>
   );
 }
@@ -6622,7 +5092,6 @@ type ArtifactsInspectorProps = {
   activeArtifactId: string;
   artifacts: ArtifactSummary[];
   artifactTransferError: WorkstationError | null;
-  code: AssistantWorkspaceSnapshot["code"];
   copyFeedback: ArtifactActionFeedback | null;
   isStreaming: boolean;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
@@ -6630,7 +5099,6 @@ type ArtifactsInspectorProps = {
   onArtifactRefine: (artifact: ArtifactSummary, instruction: string) => Promise<void>;
   onArtifactRename: (artifact: ArtifactSummary, requestedTitle: string) => string | null;
   onArtifactSelect: (artifact: ArtifactSummary) => void;
-  preview: AssistantWorkspaceSnapshot["preview"];
   productOutcome: WorkflowRuntimeModel["summary"]["productOutcome"];
   showDebugPanels: boolean;
   transferFeedback: ArtifactActionFeedback | null;
@@ -6642,7 +5110,6 @@ function ArtifactsInspector({
   activeArtifactId,
   artifacts,
   artifactTransferError,
-  code,
   copyFeedback,
   isStreaming,
   onArtifactAction,
@@ -6650,7 +5117,6 @@ function ArtifactsInspector({
   onArtifactRefine,
   onArtifactRename,
   onArtifactSelect,
-  preview,
   productOutcome,
   showDebugPanels,
   transferFeedback
@@ -6660,12 +5126,6 @@ function ArtifactsInspector({
     copyFeedback,
     transferFeedback
   );
-  const comparison = buildMultiPreviewComparisonModel({
-    activeArtifactId,
-    artifacts,
-    code,
-    preview
-  });
   const artifactDeliveryStatus =
     productOutcome.deliverable_status === "UNKNOWN"
       ? activeArtifact.status
@@ -6690,6 +5150,7 @@ function ArtifactsInspector({
   return (
     <section
       aria-label="Artifacts inspector"
+      aria-labelledby="artifacts-inspector-panel-tab"
       className="inspectorPanel artifactPanel"
       id="artifacts-inspector-panel"
       role="tabpanel"
@@ -6701,11 +5162,6 @@ function ArtifactsInspector({
           title="Artifact transfer failed"
         />
       ) : null}
-      <MultiPreviewComparisonWorkspace
-        comparison={comparison}
-        onArtifactAction={onArtifactAction}
-        onArtifactSelect={onArtifactSelect}
-      />
       <article
         aria-label="Active artifact details"
         className="artifactDetailCard"
@@ -6781,16 +5237,6 @@ function ArtifactsInspector({
             </div>
           ) : null}
         </dl>
-        {activeArtifact.critique ? (
-          <ArtifactCritiqueSummaryCard artifact={activeArtifact} />
-        ) : null}
-        <ArtifactPlanSummaryCard artifact={activeArtifact} />
-        <CreativeTranslationSummaryCard
-          translation={activeArtifact.creativeTranslation}
-        />
-        <AudioReactiveMappingSummaryCard
-          translation={activeArtifact.creativeTranslation}
-        />
         {activeArtifact.type === "code" && activeArtifact.actions.length > 0 ? (
           <ArtifactRefinementPanel
             artifact={activeArtifact}
@@ -6871,6 +5317,7 @@ function UserArtifactsInspector({
   return (
     <section
       aria-label="Saved outputs inspector"
+      aria-labelledby="artifacts-inspector-panel-tab"
       className="inspectorPanel artifactPanel artifactPanel--user"
       id="artifacts-inspector-panel"
       role="tabpanel"
@@ -7106,33 +5553,32 @@ function WorkspaceQuickActions({
 
 function ThemePresetsPanel({
   activeTheme,
+  onRequestClose,
   onSelectTheme
 }: {
   activeTheme: WorkspacePreferences["theme"];
+  onRequestClose: () => void;
   onSelectTheme: (theme: WorkspacePreferences["theme"]) => void;
 }) {
   return (
-    <section
-      aria-label="Theme presets"
-      className="utilityPanel utilityPanel--theme"
+    <ApplicationFloatingPanel
+      description="Switch the workspace accent and shell tone without changing the layout."
       id="theme-presets-panel"
-      role="dialog"
+      label="Theme presets"
+      onRequestClose={onRequestClose}
+      title="Theme presets"
     >
-      <header className="utilityPanelHeader">
-        <strong>Theme presets</strong>
-        <p>Switch the workspace accent and shell tone without changing the layout.</p>
-      </header>
       <ThemePresetPicker activeTheme={activeTheme} onSelectTheme={onSelectTheme} />
-    </section>
+    </ApplicationFloatingPanel>
   );
 }
 
 type WorkspaceSettingsPanelProps = WorkspaceQuickActionsProps & {
   layoutState: WorkspaceLayoutState;
-  onClearPersonalization: () => void;
-  onRemovePersonalizationSignal: (signalId: string) => void;
   onDensityChange: (density: WorkspaceLayoutState["density"]) => void;
+  onOpenDashboardSettings: () => void;
   onPreferencesChange: (preferences: Partial<WorkspacePreferences>) => void;
+  onRequestClose: () => void;
   preferences: WorkspacePreferences;
 };
 
@@ -7143,71 +5589,41 @@ function WorkspaceSettingsPanel({
   isPreviewAvailable,
   isPreviewOpen,
   layoutState,
-  onClearPersonalization,
-  onRemovePersonalizationSignal,
   onDensityChange,
   onFocusModeToggle,
+  onOpenDashboardSettings,
   onOpenTab,
   onPreferencesChange,
   onPreviewToggle,
+  onRequestClose,
   onWorkspaceClear,
   preferences,
   showDebugPanels
 }: WorkspaceSettingsPanelProps) {
   return (
-    <section
-      aria-label="Workspace settings"
-      className="utilityPanel utilityPanel--settings"
+    <ApplicationFloatingPanel
+      className="applicationFloatingPanel--settings"
+      description="Compact controls for the active creative session."
       id="workspace-settings-panel"
-      role="dialog"
+      label="Workspace settings"
+      onRequestClose={onRequestClose}
+      title="Workspace settings"
     >
-      <header className="utilityPanelHeader">
-        <strong>Workspace settings</strong>
-        <p>Lightweight preferences are restored with the current local workspace session.</p>
-      </header>
+      <button
+        className="applicationFloatingPanelReference"
+        onClick={onOpenDashboardSettings}
+        type="button"
+      >
+        <LayoutDashboard aria-hidden="true" size={17} />
+        <span>
+          <strong>Open Dashboard Settings</strong>
+          <small>Complete appearance, typography, privacy, and prompt defaults.</small>
+        </span>
+      </button>
       <div className="settingsSection">
         <div className="settingsSectionHeader">
-          <strong>Theme</strong>
-          <p>Pick the overall shell character for this session.</p>
-        </div>
-        <ThemePresetPicker
-          activeTheme={preferences.theme}
-          compact
-          onSelectTheme={(theme) => onPreferencesChange({ theme })}
-        />
-      </div>
-      <div className="settingsSection">
-        <div className="settingsSectionHeader">
-          <strong>Typography</strong>
-          <p>Set separate reading scales for headings, body copy, labels and controls, and code.</p>
-        </div>
-        <div className="settingsFontRows">
-          <FontScaleControl
-            label="Heading size"
-            onChange={(headingFontSize) => onPreferencesChange({ headingFontSize })}
-            value={preferences.headingFontSize}
-          />
-          <FontScaleControl
-            label="Body text size"
-            onChange={(uiFontSize) => onPreferencesChange({ uiFontSize })}
-            value={preferences.uiFontSize}
-          />
-          <FontScaleControl
-            label="Label and control size"
-            onChange={(labelFontSize) => onPreferencesChange({ labelFontSize })}
-            value={preferences.labelFontSize}
-          />
-          <FontScaleControl
-            label="Code font size"
-            onChange={(codeFontSize) => onPreferencesChange({ codeFontSize })}
-            value={preferences.codeFontSize}
-          />
-        </div>
-      </div>
-      <div className="settingsSection">
-        <div className="settingsSectionHeader">
-          <strong>Workspace</strong>
-          <p>Density is persisted alongside the current layout widths and shelf sizing.</p>
+          <strong>Active session</strong>
+          <p>Adjust the compact cockpit without duplicating the complete Dashboard reference.</p>
         </div>
         <div className="settingsChoiceRow" role="group" aria-label="Workspace density options">
           <button
@@ -7227,26 +5643,6 @@ function WorkspaceSettingsPanel({
             Compact
           </button>
         </div>
-      </div>
-      <div className="settingsSection">
-        <div className="settingsSectionHeader">
-          <strong>Quick actions</strong>
-          <p>Open workspace surfaces and session controls without crowding the top bar.</p>
-        </div>
-        <WorkspaceQuickActions
-          activeTab={activeTab}
-          hasBlockingApproval={hasBlockingApproval}
-          isFocusMode={isFocusMode}
-          isPreviewAvailable={isPreviewAvailable}
-          isPreviewOpen={isPreviewOpen}
-          onFocusModeToggle={onFocusModeToggle}
-          onOpenTab={onOpenTab}
-          onPreviewToggle={onPreviewToggle}
-          onWorkspaceClear={onWorkspaceClear}
-          showDebugPanels={showDebugPanels}
-        />
-      </div>
-      <div className="settingsSection">
         <div className="settingsToggle">
           <div>
             <strong>Preview behavior</strong>
@@ -7312,276 +5708,27 @@ function WorkspaceSettingsPanel({
             {preferences.personalizationEnabled ? "On" : "Off"}
           </button>
         </div>
-        {preferences.feedbackSignals.length > 0 ? (
-          <>
-            <ul aria-label="Stored preference signals" className="storedPreferenceSignals">
-              {[...preferences.feedbackSignals]
-                .reverse()
-                .slice(0, 12)
-                .map((signal) => (
-                  <li key={signal.id}>
-                    <div>
-                      <strong>{signal.sentiment === "positive" ? "Helpful" : "Needs work"}</strong>
-                      <span>
-                        {signal.artifactTitle ?? "Session output"} · {signal.workflowMode} · {signal.creativity}
-                      </span>
-                      <small>
-                        {signal.categories.length > 0
-                          ? `Preference categories: ${signal.categories.join(", ")}.`
-                          : "No reusable preference category was inferred."}
-                        {signal.promptExcerpt ? ` Prompt: ${signal.promptExcerpt}` : ""}
-                        {signal.providerName || signal.providerModel
-                          ? ` Provider: ${[signal.providerName, signal.providerModel].filter(Boolean).join(" / ")}.`
-                          : ""}
-                        {` Creativity request: ${signal.requestedTemperature}; ${signal.parameterApplication === "provider_reported" ? "provider-reported" : "not provider-confirmed"}.`}
-                      </small>
-                    </div>
-                    <button
-                      aria-label={`Remove preference signal for ${signal.artifactTitle ?? "session output"}`}
-                      onClick={() => onRemovePersonalizationSignal(signal.id)}
-                      type="button"
-                    >
-                      Remove
-                    </button>
-                  </li>
-                ))}
-            </ul>
-            <button
-              className="settingsSecondaryAction"
-              onClick={onClearPersonalization}
-              type="button"
-            >
-              Clear stored preference signals
-            </button>
-          </>
-        ) : null}
       </div>
-      <div className="settingsSection privacyContractSection">
+      <div className="settingsSection">
         <div className="settingsSectionHeader">
-          <strong>Privacy and safety</strong>
-          <p>These are product boundaries, not a claim of absolute security.</p>
+          <strong>Quick actions</strong>
+          <p>Move directly to the active workspace surface.</p>
         </div>
-        <ul>
-          {privacyContract.map((item) => (
-            <li key={item.label}>
-              <strong>{item.label}</strong>
-              <span>{item.storage}</span>
-              <small>{item.boundary}</small>
-            </li>
-          ))}
-        </ul>
+        <WorkspaceQuickActions
+          activeTab={activeTab}
+          hasBlockingApproval={hasBlockingApproval}
+          isFocusMode={isFocusMode}
+          isPreviewAvailable={isPreviewAvailable}
+          isPreviewOpen={isPreviewOpen}
+          onFocusModeToggle={onFocusModeToggle}
+          onOpenTab={onOpenTab}
+          onPreviewToggle={onPreviewToggle}
+          onWorkspaceClear={onWorkspaceClear}
+          showDebugPanels={showDebugPanels}
+        />
       </div>
-    </section>
+    </ApplicationFloatingPanel>
   );
-}
-
-function FontScaleControl({
-  label,
-  onChange,
-  value
-}: {
-  label: string;
-  onChange: (value: WorkspacePreferences["uiFontSize"]) => void;
-  value: WorkspacePreferences["uiFontSize"];
-}) {
-  return (
-    <div className="settingsFontControl" role="group" aria-label={label}>
-      <strong>{label}</strong>
-      <div className="settingsChoiceRow settingsChoiceRow--three">
-        {(["small", "medium", "large"] as const).map((size) => (
-          <button
-            aria-pressed={value === size}
-            data-active={value === size}
-            key={size}
-            onClick={() => onChange(size)}
-            type="button"
-          >
-            {size}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function CreativityControl({
-  disabled,
-  onChange,
-  profile
-}: {
-  disabled: boolean;
-  onChange: (profile: WorkspacePreferences["creativity"]) => void;
-  profile: WorkspacePreferences["creativity"];
-}) {
-  const controls = buildGenerationControls(profile);
-  return (
-    <label className="creativityControl" title={controls.detail}>
-      <span>Creativity</span>
-      <select
-        aria-label="Creativity"
-        disabled={disabled}
-        onChange={(event) =>
-          onChange(event.currentTarget.value as WorkspacePreferences["creativity"])
-        }
-        value={profile}
-      >
-        <option value="controlled">Controlled</option>
-        <option value="balanced">Balanced</option>
-        <option value="exploratory">Exploratory</option>
-      </select>
-    </label>
-  );
-}
-
-function SessionSidebar({
-  activeSessionId,
-  collapsed,
-  onCreate,
-  onDelete,
-  onRename,
-  onSelect,
-  onToggle,
-  sessions
-}: {
-  activeSessionId: string;
-  collapsed: boolean;
-  onCreate: () => void;
-  onDelete: (sessionId: string) => void;
-  onRename: (sessionId: string, title: string) => void;
-  onSelect: (sessionId: string) => void;
-  onToggle: () => void;
-  sessions: WorkspaceSessionSummary[];
-}) {
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [title, setTitle] = useState("");
-
-  if (collapsed) {
-    return (
-      <aside className="sessionSidebar sessionSidebar--collapsed" aria-label="Sessions">
-        <div className="sessionSidebarRail">
-          <button
-            aria-label="Expand session sidebar"
-            className="iconButton"
-            onClick={onToggle}
-            title="Expand session sidebar"
-            type="button"
-          >
-            <PanelLeft size={18} />
-          </button>
-          <strong>Sessions</strong>
-          <span>{sessions.length} saved</span>
-        </div>
-      </aside>
-    );
-  }
-
-  function startRename(session: WorkspaceSessionSummary) {
-    setEditingId(session.sessionId);
-    setTitle(session.title);
-  }
-
-  function submitRename(event: FormEvent<HTMLFormElement>, sessionId: string) {
-    event.preventDefault();
-    onRename(sessionId, title);
-    setEditingId(null);
-  }
-
-  return (
-    <aside className="sessionSidebar" aria-label="Sessions">
-      <header>
-        <div>
-          <span className="eyebrow">Sessions</span>
-          <strong>Creative workspace</strong>
-        </div>
-        <button
-          aria-label="Collapse session sidebar"
-          className="iconButton"
-          onClick={onToggle}
-          title="Collapse session sidebar"
-          type="button"
-        >
-          <PanelLeft size={18} />
-        </button>
-      </header>
-      <button className="newSessionButton" onClick={onCreate} type="button">
-        <Plus size={15} aria-hidden="true" />
-        New session
-      </button>
-      <div className="sessionSidebarList" role="list" aria-label="Saved sessions">
-        {sessions.map((session) => {
-          const active = session.sessionId === activeSessionId;
-          return (
-            <article
-              aria-current={active ? "page" : undefined}
-              className="sessionSidebarItem"
-              data-active={active ? "true" : "false"}
-              key={session.sessionId}
-              role="listitem"
-            >
-              {editingId === session.sessionId ? (
-                <form onSubmit={(event) => submitRename(event, session.sessionId)}>
-                  <input
-                    aria-label="Session name"
-                    autoFocus
-                    onChange={(event) => setTitle(event.currentTarget.value)}
-                    value={title}
-                  />
-                  <button type="submit">Save</button>
-                  <button onClick={() => setEditingId(null)} type="button">
-                    Cancel
-                  </button>
-                </form>
-              ) : (
-                <>
-                  <button
-                    className="sessionSidebarSelect"
-                    onClick={() => onSelect(session.sessionId)}
-                    type="button"
-                  >
-                    <strong>{session.title}</strong>
-                    <span>
-                      {session.artifactCount} artifact{session.artifactCount === 1 ? "" : "s"}
-                    </span>
-                    <small>{formatSessionUpdatedAt(session.updatedAt)}</small>
-                  </button>
-                  {active ? (
-                    <div className="sessionSidebarActions">
-                      <button
-                        aria-label={`Rename ${session.title}`}
-                        onClick={() => startRename(session)}
-                        type="button"
-                      >
-                        Rename
-                      </button>
-                      <button
-                        aria-label={`Delete ${session.title}`}
-                        onClick={() => onDelete(session.sessionId)}
-                        type="button"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  ) : null}
-                </>
-              )}
-            </article>
-          );
-        })}
-      </div>
-      <p className="sessionSidebarBoundary">
-        Sessions are isolated by this browser profile. A damaged local record is skipped
-        instead of replacing the current workspace.
-      </p>
-    </aside>
-  );
-}
-
-function formatSessionUpdatedAt(value: string | null) {
-  if (!value) {
-    return "Current session";
-  }
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "Saved locally" : `Updated ${date.toLocaleString()}`;
 }
 
 function ThemePresetPicker({
@@ -7633,121 +5780,6 @@ function ThemePresetPicker({
         </div>
       ))}
     </div>
-  );
-}
-
-function ArtifactCritiqueSummaryCard({
-  artifact
-}: {
-  artifact: ArtifactSummary;
-}) {
-  const critique = artifact.critique;
-  if (!critique) {
-    return null;
-  }
-
-  const dimensions = [
-    ["Prompt", critique.promptAlignment.score],
-    ["Creative", critique.creativeQuality.score],
-    ["Runtime", critique.runtimeSuitability.score],
-    ["Code", critique.codeQuality.score],
-    ["Preview", critique.previewReadiness.score],
-    ["Domain", critique.domainAppropriateness.score]
-  ] as const;
-
-  return (
-    <section
-      aria-label="Artifact quality summary"
-      className="artifactCritiqueCard"
-    >
-      <header>
-        <div>
-          <span>Artifact critique</span>
-          <strong>
-            {artifact.isRecommended
-              ? "Recommended candidate"
-              : critique.passed
-                ? "Quality gate passed"
-                : "Refinement advised"}
-          </strong>
-        </div>
-        <span className="artifactQualityBadge">
-          {formatQualityScore(critique.overallScore)}
-        </span>
-      </header>
-      <p>{critique.rationale}</p>
-      {critique.refinementGuidance ? (
-        <p className="artifactRefinementReason">{critique.refinementGuidance}</p>
-      ) : null}
-      <div className="artifactCritiqueDimensions" aria-label="Critique dimensions">
-        {dimensions.map(([label, score]) => (
-          <span key={label}>{`${label} ${formatQualityScore(score)}`}</span>
-        ))}
-      </div>
-      <CalibratedQualitySummary
-        evaluation={critique.calibratedQuality}
-      />
-      <CreativeQualityCriticSummary
-        evaluation={critique.creativeEvaluation}
-      />
-      <SacredConsistencySummary
-        evaluation={critique.sacredConsistency}
-      />
-    </section>
-  );
-}
-
-function ArtifactPlanSummaryCard({
-  artifact
-}: {
-  artifact: ArtifactSummary;
-}) {
-  const plan = artifact.creativePlan;
-  if (!plan) {
-    return null;
-  }
-
-  return (
-    <section
-      aria-label="Artifact planning summary"
-      className="artifactPlanCard"
-    >
-      <header>
-        <div>
-          <span>Execution plan</span>
-          <strong>{formatPlanningHeadline(plan)}</strong>
-        </div>
-        <span className="artifactQualityBadge">
-          {formatExportReadiness(plan.exportReadiness)}
-        </span>
-      </header>
-      <p>{plan.generationStrategy}</p>
-      <dl className="artifactPlanMeta">
-        <div>
-          <dt>Runtime</dt>
-          <dd>{plan.recommendedRuntime ?? "Code-only"}</dd>
-        </div>
-        <div>
-          <dt>Candidates</dt>
-          <dd>{plan.candidateCount}</dd>
-        </div>
-        <div>
-          <dt>Refinement</dt>
-          <dd>{plan.refinementBudget}</dd>
-        </div>
-        <div>
-          <dt>Complexity</dt>
-          <dd>{formatPlanningComplexity(plan.expectedComplexity)}</dd>
-        </div>
-      </dl>
-      {plan.planSteps.length > 0 ? (
-        <ul className="artifactPlanSteps">
-          {plan.planSteps.slice(0, 4).map((step) => (
-            <li key={step}>{step}</li>
-          ))}
-        </ul>
-      ) : null}
-    </section>
   );
 }
 
@@ -8105,34 +6137,6 @@ function getArtifactTypeLabel(type: ArtifactSummary["type"]) {
 
 function formatQualityScore(score: number) {
   return `${Math.round(score * 100)}%`;
-}
-
-function formatPlanningHeadline(
-  plan: NonNullable<AssistantWorkspaceSnapshot["creativePlan"]>
-) {
-  const runtime = plan.recommendedRuntime ?? "code-only";
-  return `${formatOutputModality(plan.outputModality)} / ${runtime}`;
-}
-
-function formatOutputModality(value: string) {
-  if (value === "audiovisual") {
-    return "Audiovisual";
-  }
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-function formatPlanningComplexity(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-function formatExportReadiness(value: string) {
-  if (value === "ready") {
-    return "Export ready";
-  }
-  if (value === "blocked") {
-    return "Blocked";
-  }
-  return "Partially ready";
 }
 
 function getArtifactRuntimeSupportLabel(artifact: ArtifactSummary) {

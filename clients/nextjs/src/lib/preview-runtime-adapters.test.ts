@@ -3,11 +3,51 @@ import { getLocalWorkspaceSnapshot } from "./assistant-client";
 import {
   buildPreviewRuntimeSource,
   canRunPreviewRuntime,
-  getExecutablePreviewRuntimeKind
+  getExecutablePreviewRuntimeKind,
+  getInitialPreviewRuntimeStatus
 } from "./preview-runtime-adapters";
 import { buildPreviewRendererRoute } from "./preview-renderers";
 
 describe("preview runtime adapters", () => {
+  it("maps preview lifecycle states to explicit initial runtime states", () => {
+    const preview = getLocalWorkspaceSnapshot().preview;
+
+    for (const state of ["ready", "generating"] as const) {
+      expect(
+        getInitialPreviewRuntimeStatus({
+          kind: "p5",
+          preview: { ...preview, state }
+        })
+      ).toMatchObject({
+        error: null,
+        label: "Runtime starting",
+        state: "starting"
+      });
+    }
+
+    expect(
+      getInitialPreviewRuntimeStatus({
+        kind: "p5",
+        preview: { ...preview, state: "unavailable" }
+      })
+    ).toMatchObject({
+      error: null,
+      label: "Runtime unavailable",
+      state: "idle"
+    });
+
+    expect(
+      getInitialPreviewRuntimeStatus({
+        kind: "p5",
+        preview: { ...preview, error: null, state: "error" }
+      })
+    ).toMatchObject({
+      label: "Runtime stopped",
+      state: "error",
+      error: expect.objectContaining({ type: "preview_runtime_stopped" })
+    });
+  });
+
   it("extracts stable runtime source for routed code artifacts", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const route = buildPreviewRendererRoute({

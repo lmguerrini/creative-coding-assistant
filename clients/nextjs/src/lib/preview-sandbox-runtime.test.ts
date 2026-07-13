@@ -475,6 +475,65 @@ describe("preview sandbox runtime", () => {
     ).toBeNull();
   });
 
+  it("accepts only valid keyboard boundary messages", () => {
+    expect(
+      readPreviewSandboxRuntimeMessage(
+        {
+          key: "Escape",
+          runtimeId: "runtime-1",
+          shiftKey: false,
+          source: "cca-preview-runtime",
+          type: "keyboard-boundary"
+        },
+        "runtime-1"
+      )
+    ).toEqual({
+      key: "Escape",
+      runtimeId: "runtime-1",
+      shiftKey: false,
+      source: "cca-preview-runtime",
+      type: "keyboard-boundary"
+    });
+    expect(
+      readPreviewSandboxRuntimeMessage(
+        {
+          key: "Tab",
+          runtimeId: "runtime-1",
+          shiftKey: true,
+          source: "cca-preview-runtime",
+          type: "keyboard-boundary"
+        },
+        "runtime-1"
+      )
+    ).toMatchObject({ key: "Tab", shiftKey: true });
+
+    for (const message of [
+      {
+        key: "Enter",
+        runtimeId: "runtime-1",
+        shiftKey: false,
+        source: "cca-preview-runtime",
+        type: "keyboard-boundary"
+      },
+      {
+        key: "Tab",
+        runtimeId: "runtime-1",
+        shiftKey: "false",
+        source: "cca-preview-runtime",
+        type: "keyboard-boundary"
+      },
+      {
+        key: "Escape",
+        runtimeId: "runtime-2",
+        shiftKey: false,
+        source: "cca-preview-runtime",
+        type: "keyboard-boundary"
+      }
+    ]) {
+      expect(readPreviewSandboxRuntimeMessage(message, "runtime-1")).toBeNull();
+    }
+  });
+
   it("mounts the same-origin sandbox host and receives runtime status", () => {
     const iframe = document.createElement("iframe");
     const statuses: string[] = [];
@@ -520,6 +579,82 @@ describe("preview sandbox runtime", () => {
     expect(iframe.dataset.runtimeId).toBeUndefined();
     expect(iframe.getAttribute("src")).toBe("about:blank");
     iframe.remove();
+  });
+
+  it("publishes host-keyboard capture and routes only matching boundaries", () => {
+    const iframe = document.createElement("iframe");
+    const foreignIframe = document.createElement("iframe");
+    const onKeyboardBoundary = vi.fn();
+    document.body.append(iframe, foreignIframe);
+    const runtime = mountPreviewSandboxRuntime({
+      captureHostKeyboard: true,
+      iframe,
+      kind: "p5",
+      onKeyboardBoundary,
+      onStatus: () => undefined,
+      runtimeId: "runtime-keyboard",
+      source: {
+        fingerprint: "abc123",
+        lineCount: 1,
+        source: "function draw() { circle(20, 20, 10); }",
+        title: "sketch.p5.js"
+      }
+    });
+    const postMessage = vi.spyOn(iframe.contentWindow as Window, "postMessage");
+
+    iframe.dispatchEvent(new Event("load"));
+    expect(postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        runtime: expect.objectContaining({ captureHostKeyboard: true }),
+        runtimeId: "runtime-keyboard",
+        type: "mount"
+      }),
+      "*"
+    );
+
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: {
+          key: "Escape",
+          runtimeId: "runtime-stale",
+          shiftKey: false,
+          source: "cca-preview-runtime",
+          type: "keyboard-boundary"
+        },
+        source: iframe.contentWindow
+      })
+    );
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: {
+          key: "Tab",
+          runtimeId: "runtime-keyboard",
+          shiftKey: false,
+          source: "cca-preview-runtime",
+          type: "keyboard-boundary"
+        },
+        source: foreignIframe.contentWindow
+      })
+    );
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: {
+          key: "Tab",
+          runtimeId: "runtime-keyboard",
+          shiftKey: true,
+          source: "cca-preview-runtime",
+          type: "keyboard-boundary"
+        },
+        source: iframe.contentWindow
+      })
+    );
+
+    expect(onKeyboardBoundary).toHaveBeenCalledTimes(1);
+    expect(onKeyboardBoundary).toHaveBeenCalledWith({ key: "Tab", shiftKey: true });
+
+    runtime.dispose();
+    iframe.remove();
+    foreignIframe.remove();
   });
 
   it("rejects HTML p5 payloads before mounting the sandbox host", () => {

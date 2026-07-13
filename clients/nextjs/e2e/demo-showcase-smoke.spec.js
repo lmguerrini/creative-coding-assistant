@@ -122,7 +122,7 @@ async function assertHydratedArtifactAndSource(page, showcase) {
   await expect(details).toContainText(showcase.runtimeLabel);
 
   await page.getByRole("tab", { exact: true, name: "Code" }).click();
-  const code = page.getByRole("tabpanel", { name: "Code inspector" });
+  const code = page.getByRole("tabpanel", { exact: true, name: "Code" });
   await expect(code).toHaveAttribute("data-opened-artifact", showcase.artifact.title);
   for (const token of showcase.qualityTokens) {
     await expect(code).toContainText(token);
@@ -131,7 +131,7 @@ async function assertHydratedArtifactAndSource(page, showcase) {
 
 async function assertLiveRuntimeSignal(page, showcase, expectedTitle = showcase.artifact.title) {
   await page.getByRole("tab", { exact: true, name: "Preview" }).click();
-  const previewInspector = page.getByRole("tabpanel", { name: "Preview inspector" });
+  const previewInspector = page.getByRole("tabpanel", { exact: true, name: "Preview" });
   await expect(previewInspector).toContainText(expectedTitle);
 
   const runtime = page.getByRole("group", {

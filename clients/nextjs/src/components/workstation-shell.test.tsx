@@ -949,6 +949,13 @@ function createNoopPersistenceClient(): WorkspacePersistenceClient {
   };
 }
 
+function createEmptyPersistenceClient(): WorkspacePersistenceClient {
+  return {
+    load: vi.fn(async () => ({ error: null, record: null, source: "none" as const })),
+    save: vi.fn(async () => ({ error: null, target: "local" as const }))
+  };
+}
+
 function renderShell(
   snapshot: AssistantWorkspaceSnapshot = getLocalWorkspaceSnapshot(),
   props: Partial<ComponentProps<typeof WorkstationShell>> = {},
@@ -1116,6 +1123,10 @@ describe("WorkstationShell", () => {
     renderShell(getInitialWorkspaceSnapshot());
 
     expect(screen.queryByRole("region", { name: "Demo Mode" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Demo Mode" })).toHaveAttribute(
+      "aria-expanded",
+      "false"
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Demo Mode" }));
 
@@ -1127,13 +1138,40 @@ describe("WorkstationShell", () => {
     expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent(
       "Developer"
     );
-    expect(within(demoMode).getByText("Capstone scenarios")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Demo Mode" })).toHaveAttribute(
+      "aria-expanded",
+      "true"
+    );
+    expect(
+      within(demoMode).getByRole("heading", {
+        level: 1,
+        name: "Capstone scenarios"
+      })
+    ).toBeVisible();
+    expect(
+      within(demoMode).getByRole("region", { name: "Featured demo paths" })
+    ).toBeVisible();
+    expect(
+      within(demoMode).getByRole("region", { name: "Demo scenario workspace" })
+    ).toBeVisible();
+    expect(within(demoScenarioList).getAllByRole("listitem")).toHaveLength(10);
     expect(
       within(demoScenarioList).getByRole("button", {
         name: /Recursive aurora garden/
       })
     ).toBeVisible();
     expect(within(demoMode).getByText("10 flows")).toBeVisible();
+
+    fireEvent.click(
+      within(demoScenarioList).getByRole("button", {
+        name: /Failure-recovery rehearsal/
+      })
+    );
+    expect(
+      within(demoMode).getByRole("article", {
+        name: "Selected demo scenario Failure-recovery rehearsal"
+      })
+    ).toBeVisible();
 
     fireEvent.click(
       within(demoScenarioList).getByRole("button", {
@@ -1145,9 +1183,17 @@ describe("WorkstationShell", () => {
     expect(
       within(demoMode).getAllByText("Recursive aurora garden").length
     ).toBeGreaterThan(1);
+    const presenterRunbook = within(demoMode).getByText("Presenter runbook").closest("details");
+    expect(presenterRunbook).not.toHaveAttribute("open");
+    fireEvent.click(within(demoMode).getByText("Presenter runbook"));
+    expect(presenterRunbook).toHaveAttribute("open");
     fireEvent.click(within(demoMode).getByRole("button", { name: /Load prompt & run/ }));
 
     expect(screen.queryByRole("region", { name: "Demo Mode" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Demo Mode" })).toHaveAttribute(
+      "aria-expanded",
+      "false"
+    );
     expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent(
       "Developer"
     );
@@ -1171,6 +1217,13 @@ describe("WorkstationShell", () => {
       name: "Attach image to run"
     });
     expect(loadButton).toBeDisabled();
+    expect(loadButton).toHaveAttribute(
+      "aria-describedby",
+      "demo-image-required-notice"
+    );
+    expect(document.getElementById("demo-image-required-notice")).toHaveTextContent(
+      "Image reference required"
+    );
     expect(demoMode).toHaveTextContent(
       "Add one image reference through the composer before running this demo."
     );
@@ -1193,6 +1246,14 @@ describe("WorkstationShell", () => {
     renderUserShell(getInitialWorkspaceSnapshot());
 
     fireEvent.click(screen.getByRole("button", { name: "Demo Mode" }));
+
+    const userDemoMode = screen.getByRole("region", { name: "Demo Mode" });
+    expect(
+      within(userDemoMode).queryByRole("region", { name: "Featured demo paths" })
+    ).not.toBeInTheDocument();
+    expect(within(userDemoMode).queryByText("Technical contract")).not.toBeInTheDocument();
+    expect(within(userDemoMode).getByText("Presenter runbook").closest("details"))
+      .toHaveAttribute("open");
 
     await waitFor(() =>
       expect(screen.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
@@ -1268,7 +1329,7 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Saved" }));
 
     const savedPanel = screen.getByRole("tabpanel", {
-      name: "Saved outputs inspector"
+      name: "Saved"
     });
     expect(within(savedPanel).getAllByText("Hydra Pattern").length).toBeGreaterThan(0);
     expect(within(savedPanel).queryByText("feedback-lattice.hydra.js")).not.toBeInTheDocument();
@@ -1294,7 +1355,7 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Saved" }));
 
     const savedPanel = screen.getByRole("tabpanel", {
-      name: "Saved outputs inspector"
+      name: "Saved"
     });
     expect(within(savedPanel).getAllByText("P5 Sketch 1").length).toBeGreaterThan(0);
     expect(within(savedPanel).getByText("P5 Sketch 2")).toBeVisible();
@@ -1302,12 +1363,18 @@ describe("WorkstationShell", () => {
     expect(within(savedPanel).queryByText("second-orbit-field.p5.js")).not.toBeInTheDocument();
   });
 
-  it("renders a polished first-run workspace without demo or infrastructure noise", () => {
-    renderUserShell(getInitialWorkspaceSnapshot());
+  it("renders a polished first-run workspace without demo or infrastructure noise", async () => {
+    renderUserShell(getInitialWorkspaceSnapshot(), {
+      persistenceClient: createEmptyPersistenceClient()
+    });
 
     expect(
-      screen.getByRole("group", { name: "Empty creative workspace" })
+      await screen.findByRole("group", { name: "Empty creative workspace" })
     ).toBeVisible();
+    expect(screen.getByLabelText("Creative session overview")).not.toHaveAttribute(
+      "role",
+      "log"
+    );
     expect(screen.getByText("New creative session")).toBeVisible();
     expect(screen.getByText("Describe the creative system you want to build.")).toBeVisible();
     expect(screen.getByRole("textbox", { name: "Assistant prompt" })).toHaveAttribute(
@@ -1325,7 +1392,14 @@ describe("WorkstationShell", () => {
     expect(screen.getByText("How it works")).toBeVisible();
     const promptSuggestions = screen.getByLabelText("Prompt suggestions");
     expect(within(promptSuggestions).getAllByRole("button")).toHaveLength(4);
-    expect(screen.getByRole("button", { name: "Kinetic orbit sculpture" })).toBeVisible();
+    const kineticStarter = screen.getByRole("button", {
+      name: "Kinetic orbit sculpture"
+    });
+    expect(kineticStarter).toBeVisible();
+    expect(kineticStarter).toHaveAccessibleDescription(
+      /Three\.js browser preview.*luminous spatial study/i
+    );
+    expect(screen.getByRole("list", { name: "Creative session capabilities" })).toBeVisible();
     expect(screen.queryByRole("button", { name: /Hydra feedback/i })).not.toBeInTheDocument();
     expect(screen.queryByText("Workflows")).not.toBeInTheDocument();
     expect(screen.queryByText(/aurora/i)).not.toBeInTheDocument();
@@ -1338,15 +1412,23 @@ describe("WorkstationShell", () => {
     ).not.toBeInTheDocument();
     expect(screen.getByLabelText("Current session")).toHaveTextContent("Ready");
     expect(screen.getByLabelText("Current session")).not.toHaveTextContent("Start a prompt");
-    expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
-      "Ready for first prompt"
-    );
+    expect(screen.getByLabelText("Active artifact")).not.toBeVisible();
+    expect(
+      screen.queryByRole("heading", { name: "Start a creative coding session" })
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("group", { name: "Workflow summary" })
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("group", { name: "Session intelligence summary" })
     ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("How it works"));
+    expect(
+      within(screen.getByRole("list", { name: "Creative workflow" })).getAllByRole(
+        "listitem"
+      )
+    ).toHaveLength(5);
 
     fireEvent.click(
       screen.getByRole("button", {
@@ -1356,6 +1438,21 @@ describe("WorkstationShell", () => {
     expect(
       (screen.getByLabelText("Assistant prompt") as HTMLTextAreaElement).value
     ).toContain("physarum-drift.p5.js");
+    await waitFor(() => {
+      expect(screen.getByLabelText("Assistant prompt")).toHaveFocus();
+    });
+  });
+
+  it("keeps the first-run Homepage hidden while persistence restoration is pending", () => {
+    renderUserShell(getInitialWorkspaceSnapshot(), {
+      persistenceClient: createNoopPersistenceClient()
+    });
+
+    expect(
+      screen.queryByRole("group", { name: "Empty creative workspace" })
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("log", { name: "Conversation" })).toBeInTheDocument();
+    expect(screen.getByText("Restoring session")).toBeVisible();
   });
 
   it("keeps the User Mode composer minimal while preserving prompt controls", () => {
@@ -1430,7 +1527,7 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Runtime" }));
 
     const runtimePanel = screen.getByRole("tabpanel", {
-      name: "Runtime console inspector"
+      name: "Runtime"
     });
 
     expect(runtimePanel).toBeVisible();
@@ -1459,6 +1556,48 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     expect(screen.queryByRole("dialog", { name: "Theme presets" })).not.toBeInTheDocument();
     expect(screen.getByRole("dialog", { name: "Workspace settings" })).toBeVisible();
+  });
+
+  it("focuses utility panels, restores their triggers, and keeps Settings compact", async () => {
+    renderShell();
+
+    const settingsTrigger = screen.getByRole("button", { name: "Settings" });
+    fireEvent.click(settingsTrigger);
+    const settingsPanel = screen.getByRole("dialog", {
+      name: "Workspace settings"
+    });
+
+    await waitFor(() => expect(settingsPanel).toHaveFocus());
+    expect(
+      within(settingsPanel).getByRole("button", {
+        name: /Open Dashboard Settings/
+      })
+    ).toBeVisible();
+    for (const duplicatedDetail of [
+      "Theme and colour",
+      "Comfortable reading",
+      "Privacy contract",
+      "Stored preference signals"
+    ]) {
+      expect(within(settingsPanel).queryByText(duplicatedDetail)).not.toBeInTheDocument();
+    }
+
+    fireEvent.keyDown(settingsPanel, { key: "Escape" });
+    expect(
+      screen.queryByRole("dialog", { name: "Workspace settings" })
+    ).not.toBeInTheDocument();
+    await waitFor(() => expect(settingsTrigger).toHaveFocus());
+
+    const themeTrigger = screen.getByRole("button", { name: "Theme" });
+    fireEvent.click(themeTrigger);
+    const themePanel = screen.getByRole("dialog", { name: "Theme presets" });
+
+    await waitFor(() => expect(themePanel).toHaveFocus());
+    fireEvent.keyDown(themePanel, { key: "Escape" });
+    expect(
+      screen.queryByRole("dialog", { name: "Theme presets" })
+    ).not.toBeInTheDocument();
+    await waitFor(() => expect(themeTrigger).toHaveFocus());
   });
 
   it("renders available workspace theme presets and applies them", () => {
@@ -1504,7 +1643,7 @@ describe("WorkstationShell", () => {
     );
     expect(screen.getByRole("tablist", { name: "Inspector tabs" })).toBeVisible();
     fireEvent.click(screen.getByRole("tab", { name: "Overview" }));
-    expect(screen.getByRole("tabpanel", { name: "Overview inspector" })).toBeVisible();
+    expect(screen.getByRole("tabpanel", { name: "Overview" })).toBeVisible();
   });
 
   it("supports focus mode and density toggles without changing the data flow", () => {
@@ -1545,24 +1684,124 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("region", { name: "Preview workspace" })).toBeVisible();
   });
 
-  it("projects the compact workflow graph to the selected route", () => {
+  it("keeps the compact workflow graph scoped to live checkpoints", () => {
     renderShell();
     const selector = screen.getByRole("combobox", { name: "Workflow" });
-    const graph = screen.getByLabelText("Minimal live workflow state");
+    const graph = screen.getByLabelText("Latest live workflow checkpoints");
 
     fireEvent.change(selector, { target: { value: "single_agent" } });
+    expect(selector).toHaveValue("single_agent");
     expect(within(graph).queryByText("Planning")).not.toBeInTheDocument();
     expect(within(graph).queryByText("Review")).not.toBeInTheDocument();
     expect(within(graph).getByText("Generation")).toBeVisible();
 
     fireEvent.change(selector, { target: { value: "multi_agent" } });
-    expect(within(graph).getByText("Planning")).toBeVisible();
-    expect(within(graph).getByText("Review")).toBeVisible();
+    expect(selector).toHaveValue("multi_agent");
+    expect(within(graph).queryByText("Planning")).not.toBeInTheDocument();
+    expect(within(graph).queryByText("Review")).not.toBeInTheDocument();
+    expect(within(graph).getByText("Generation")).toBeVisible();
+  });
+
+  it("uses one persisted workflow default in the composer and Dashboard", async () => {
+    const persistenceClient = createEmptyPersistenceClient();
+    renderShell(getLocalWorkspaceSnapshot(), { persistenceClient });
+    expect(await screen.findByText("Local session ready")).toBeVisible();
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Workflow" }), {
+      target: { value: "multi_agent" }
+    });
+
+    await waitFor(() =>
+      expect(persistenceClient.save).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          preferences: expect.objectContaining({ workflowMode: "multi_agent" })
+        })
+      )
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open Product Intelligence Dashboard" })
+    );
+    const navigation = screen.getByRole("navigation", {
+      name: "Dashboard categories"
+    });
+    fireEvent.click(within(navigation).getByRole("button", { name: "Settings" }));
+
+    expect(screen.getByRole("combobox", { name: "Default workflow" })).toHaveValue(
+      "multi_agent"
+    );
+  });
+
+  it("keeps the workspace-clear checkpoint visible and restores focus across outcomes", async () => {
+    const persistenceClient = createEmptyPersistenceClient();
+    renderShell(getLocalWorkspaceSnapshot(), { persistenceClient });
+    await screen.findByText("Local session ready");
+
+    const settingsTrigger = screen.getByRole("button", { name: "Settings" });
+    const requestWorkspaceClear = () => {
+      const settingsPanel = openWorkspaceSettingsPanel();
+      const clearButton = within(settingsPanel).getByRole("button", {
+        name: "Clear workspace session"
+      });
+      clearButton.focus();
+      fireEvent.click(clearButton);
+      return screen.getByLabelText("Operator checkpoint");
+    };
+
+    let checkpoint = requestWorkspaceClear();
+    expect(checkpoint).toBeVisible();
+    await waitFor(() => expect(checkpoint).toHaveFocus());
+
+    fireEvent.click(
+      within(checkpoint).getByRole("button", { name: "Keep session" })
+    );
+    await waitFor(() => {
+      expect(checkpoint).toHaveAttribute("data-state", "rejected");
+      expect(checkpoint).toHaveFocus();
+    });
+
+    fireEvent.click(
+      within(checkpoint).getByRole("button", {
+        name: "Dismiss operator checkpoint"
+      })
+    );
+    expect(screen.queryByLabelText("Operator checkpoint")).not.toBeInTheDocument();
+    await waitFor(() => expect(settingsTrigger).toHaveFocus());
+
+    checkpoint = requestWorkspaceClear();
+    await waitFor(() => expect(checkpoint).toHaveFocus());
+    await act(async () => {
+      fireEvent.click(
+        within(checkpoint).getByRole("button", { name: "Clear workspace" })
+      );
+      await Promise.resolve();
+    });
+
+    expect(
+      await screen.findByRole("group", { name: "Empty creative workspace" })
+    ).toBeVisible();
+    expect(screen.getByLabelText("Creative session overview")).toBeVisible();
+    checkpoint = screen.getByLabelText("Operator checkpoint");
+    await waitFor(() => {
+      expect(checkpoint).toBeVisible();
+      expect(checkpoint).toHaveAttribute("data-state", "completed");
+      expect(checkpoint).toHaveFocus();
+    });
+
+    fireEvent.click(
+      within(checkpoint).getByRole("button", {
+        name: "Dismiss operator checkpoint"
+      })
+    );
+    await waitFor(() => expect(settingsTrigger).toHaveFocus());
   });
 
   it("clears the workspace session only after operator approval", async () => {
     const confirmSpy = vi.spyOn(window, "confirm").mockImplementation(() => true);
-    renderShell();
+    renderShell(getLocalWorkspaceSnapshot(), {
+      persistenceClient: createEmptyPersistenceClient()
+    });
+    expect(await screen.findByText("Local session ready")).toBeVisible();
 
     fireEvent.click(screen.getByRole("tab", { name: "Code" }));
     const preview = screen.getByRole("region", { name: "Preview workspace" });
@@ -1579,11 +1818,6 @@ describe("WorkstationShell", () => {
     );
     expect(screen.getByRole("button", { name: "Keep session" })).toBeVisible();
 
-    fireEvent.click(screen.getByRole("button", { name: "Keep session" }));
-    expect(screen.getByLabelText("Operator checkpoint")).toHaveTextContent("Rejected");
-
-    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
-    fireEvent.click(screen.getByRole("button", { name: "Clear workspace session" }));
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Clear workspace" }));
       await Promise.resolve();
@@ -1596,19 +1830,31 @@ describe("WorkstationShell", () => {
       "data-state",
       "open"
     );
-    expect(screen.queryByRole("region", { name: "Preview workspace" })).not.toBeInTheDocument();
-    expect(screen.getByRole("group", { name: "Empty creative workspace" })).toBeVisible();
+    expect(
+      await screen.findByRole("group", { name: "Empty creative workspace" })
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("region", { name: "Preview workspace" })
+    ).not.toBeInTheDocument();
 
     openDeveloperInspector();
     fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
-    await waitFor(() => {
-      const events = screen.getByRole("group", { name: "Workflow event trace" });
-      expect(within(events).getByText("Workspace Clear Completed")).toBeVisible();
-    });
+    const workflowPanel = screen.getByRole("tabpanel", { name: "Workflow" });
+    expect(
+      within(workflowPanel).getByRole("group", {
+        name: "LangGraph workflow visualization"
+      })
+    ).toBeVisible();
+    expect(
+      within(workflowPanel).queryByRole("group", { name: "Workflow event trace" })
+    ).not.toBeInTheDocument();
   });
 
   it("clears Demo Mode and composer state without breaking the workspace", async () => {
-    renderShell(getLocalWorkspaceSnapshot());
+    renderShell(getLocalWorkspaceSnapshot(), {
+      persistenceClient: createEmptyPersistenceClient()
+    });
+    expect(await screen.findByText("Local session ready")).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "Demo Mode" }));
     const demoMode = screen.getByRole("region", { name: "Demo Mode" });
@@ -1643,15 +1889,19 @@ describe("WorkstationShell", () => {
       "data-state",
       "open"
     );
-    expect(screen.getByRole("tab", { name: "Overview" })).toBeVisible();
-    expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
-      "Ready for first prompt"
-    );
-    expect(screen.queryByRole("region", { name: "Preview workspace" })).not.toBeInTheDocument();
-    expect(screen.getByRole("group", { name: "Empty creative workspace" })).toBeVisible();
+    expect(
+      await screen.findByRole("group", { name: "Empty creative workspace" })
+    ).toBeVisible();
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: "Overview" })).toBeVisible();
+      expect(
+        screen.queryByRole("region", { name: "Preview workspace" })
+      ).not.toBeInTheDocument();
+      expect(screen.getByLabelText("Active artifact")).not.toBeVisible();
+    });
   });
 
-  it("shows the full Overview inspector panel in Developer Mode", () => {
+  it("shows the compact Overview cockpit in Developer Mode", () => {
     renderShell();
 
     const expandInspector = screen.queryByRole("button", {
@@ -1681,7 +1931,7 @@ describe("WorkstationShell", () => {
     );
     expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
     const overviewPanel = screen.getByRole("tabpanel", {
-      name: "Overview inspector"
+      name: "Overview"
     });
     expect(overviewPanel).toBeVisible();
     expect(screen.getByRole("group", { name: "Workflow summary" })).toHaveAttribute(
@@ -1691,50 +1941,38 @@ describe("WorkstationShell", () => {
     const workflowSummary = within(overviewPanel).getByRole("group", {
       name: "Workflow summary"
     });
-    const sessionSummary = within(overviewPanel).getByRole("group", {
-      name: "Session intelligence summary"
-    });
-    expect(
-      workflowSummary.compareDocumentPosition(sessionSummary) &
-        Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(workflowSummary).toHaveTextContent("Auto");
     expect(screen.getByRole("group", { name: "Artifacts summary" })).toBeVisible();
-    expect(screen.getByRole("group", { name: "Preview summary" })).toHaveAttribute(
-      "data-state",
-      "generating"
-    );
-    expect(screen.getByRole("group", { name: "Telemetry summary" })).toBeVisible();
+    expect(
+      screen.getByRole("group", { name: "Product outcome summary" })
+    ).toBeVisible();
     expect(
       screen.getByRole("group", { name: "Image references summary" })
     ).toHaveAttribute("data-state", "empty");
-    expect(screen.getByRole("group", { name: "Retrieval summary" })).toHaveAttribute(
-      "data-state",
-      "available"
-    );
-    const dashboard = screen.getByRole("group", {
-      name: "Workstation dashboard"
-    });
-    expect(dashboard).toBeVisible();
-    expect(
-      within(dashboard).getByRole("list", {
-        name: "Workstation dashboard cards"
-      })
-    ).toBeVisible();
-    expect(
-      within(dashboard).getByRole("listitem", {
-        name: "Workflow Health dashboard card"
-      })
-    ).toHaveTextContent("Running");
-    expect(
-      within(dashboard).getByRole("listitem", {
-        name: "Artifact Readiness dashboard card"
-      })
-    ).toHaveTextContent("Ready");
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
     ).toHaveAttribute("aria-valuetext", "11 of 17 workflow nodes reached");
-    expect(screen.queryByRole("tabpanel", { name: "Code inspector" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("tabpanel", { name: "Preview inspector" })).not.toBeInTheDocument();
+    expect(
+      within(overviewPanel).queryByRole("group", {
+        name: "Session intelligence summary"
+      })
+    ).not.toBeInTheDocument();
+    expect(
+      within(overviewPanel).queryByRole("group", { name: "Preview summary" })
+    ).not.toBeInTheDocument();
+    expect(
+      within(overviewPanel).queryByRole("group", { name: "Telemetry summary" })
+    ).not.toBeInTheDocument();
+    expect(
+      within(overviewPanel).queryByRole("group", { name: "Retrieval summary" })
+    ).not.toBeInTheDocument();
+    expect(
+      within(overviewPanel).queryByRole("group", {
+        name: "Workstation dashboard"
+      })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("tabpanel", { name: "Code" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tabpanel", { name: "Preview" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Review" })).not.toBeInTheDocument();
   });
 
@@ -1749,16 +1987,22 @@ describe("WorkstationShell", () => {
     );
     expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
     const previewPanel = screen.getByRole("tabpanel", {
-      name: "Preview inspector"
+      name: "Preview"
     });
     expect(previewPanel).toBeVisible();
     expect(
       within(previewPanel).getByRole("group", { name: "Preview runtime metadata" })
     ).toBeVisible();
     expect(
-      within(previewPanel).getByRole("group", { name: "Preview source metadata" })
-    ).toHaveTextContent("4ff94984");
-    expect(screen.queryByRole("tabpanel", { name: "Overview inspector" })).not.toBeInTheDocument();
+      within(previewPanel).getByRole("group", { name: "Preview controls metadata" })
+    ).toBeVisible();
+    expect(
+      within(previewPanel).getByRole("group", { name: "Preview renderer notes" })
+    ).toBeVisible();
+    expect(
+      within(previewPanel).queryByRole("group", { name: "Preview source metadata" })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("tabpanel", { name: "Overview" })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("tab", { name: "Code" }));
 
@@ -1771,8 +2015,8 @@ describe("WorkstationShell", () => {
       "true"
     );
     expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
-    expect(screen.getByRole("tabpanel", { name: "Code inspector" })).toBeVisible();
-    expect(screen.queryByRole("tabpanel", { name: "Preview inspector" })).not.toBeInTheDocument();
+    expect(screen.getByRole("tabpanel", { name: "Code" })).toBeVisible();
+    expect(screen.queryByRole("tabpanel", { name: "Preview" })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("tab", { name: "Runtime" }));
 
@@ -1782,7 +2026,7 @@ describe("WorkstationShell", () => {
     );
     expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
     expect(
-      screen.getByRole("tabpanel", { name: "Runtime console inspector" })
+      screen.getByRole("tabpanel", { name: "Runtime" })
     ).toBeVisible();
 
     fireEvent.click(screen.getByRole("tab", { name: "Retrieval" }));
@@ -1792,22 +2036,22 @@ describe("WorkstationShell", () => {
       "true"
     );
     expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
-    expect(screen.getByRole("tabpanel", { name: "Retrieval inspector" })).toBeVisible();
+    expect(screen.getByRole("tabpanel", { name: "Retrieval" })).toBeVisible();
   });
 
-  it("renders a grouped retrieval source explorer with chunk drilldown", () => {
+  it("keeps retrieval run signals compact and leaves source drilldown to Dashboard", () => {
     renderShell();
 
     fireEvent.click(screen.getByRole("tab", { name: "Retrieval" }));
 
     const retrievalPanel = screen.getByRole("tabpanel", {
-      name: "Retrieval inspector"
+      name: "Retrieval"
     });
 
     expect(
       within(retrievalPanel).getByRole("group", { name: "Retrieval status" })
     ).toBeVisible();
-    expect(within(retrievalPanel).getByText("Official knowledge base")).toBeVisible();
+    expect(within(retrievalPanel).getByText("Retrieved context available")).toBeVisible();
     expect(
       within(retrievalPanel).getByRole("group", { name: "Retrieval confidence" })
     ).toHaveTextContent("Medium confidence");
@@ -1817,86 +2061,17 @@ describe("WorkstationShell", () => {
     expect(
       within(retrievalPanel).getByRole("group", { name: "Retrieval context used" })
     ).toHaveTextContent("3 chunks used");
-    const qualityDeepDive = within(retrievalPanel).getByLabelText(
-      "Retrieval quality deep dive"
-    );
-    expect(qualityDeepDive).toHaveAttribute("data-open", "true");
-    expect(qualityDeepDive).toHaveTextContent("Medium retrieval quality");
-    expect(qualityDeepDive).toHaveTextContent("Balanced across 2 domains");
-    const explorer = within(retrievalPanel).getByRole("region", {
-      name: "Retrieval source explorer"
-    });
-    expect(explorer).toHaveTextContent(
-      "2 selected sources · No ignored sources reported"
-    );
-    expect(explorer).toHaveTextContent(
-      "WebGPU API contributed most with 2/3 context chunks."
-    );
-    const healthToggle = within(explorer).getByLabelText(
-      "Toggle knowledge base source health dashboard"
-    );
-    expect(healthToggle.closest("details")).not.toHaveAttribute("open");
-    expect(healthToggle).toHaveTextContent("Stale");
-
-    fireEvent.click(healthToggle);
-
-    expect(healthToggle.closest("details")).toHaveAttribute("open");
     expect(
-      within(explorer).getByRole("list", {
-        name: "Knowledge base source health metrics"
-      })
-    ).toHaveTextContent("280 indexed chunks");
-    expect(
-      within(explorer).getByRole("button", {
-        name: "Inspect source WebGPU API"
-      })
-    ).toHaveAttribute("aria-pressed", "true");
-    expect(
-      within(explorer).getByRole("button", {
-        name: "Inspect source OpenGL Shading Language 4.60 Specification"
-      })
+      within(retrievalPanel).getByRole("group", { name: "Knowledge Base status" })
     ).toBeVisible();
-    const webgpuDetail = within(explorer).getByRole("group", {
-      name: "WebGPU API source details"
-    });
-    expect(webgpuDetail).toHaveTextContent("webgpu_mdn_api");
-    expect(webgpuDetail).toHaveTextContent("Top contributor");
-    expect(webgpuDetail).toHaveTextContent("2 retrieved chunks");
-    expect(webgpuDetail).toHaveTextContent("Ranks #1–#2");
-    expect(webgpuDetail).toHaveTextContent("2/3 context chunks");
-    expect(webgpuDetail).toHaveTextContent("Used in context");
-    expect(within(webgpuDetail).getByText("Rank #1")).toBeVisible();
     expect(
-      within(webgpuDetail).getAllByText(/Domain match ·/).length
-    ).toBeGreaterThan(0);
+      within(retrievalPanel).queryByLabelText("Retrieval quality deep dive")
+    ).not.toBeInTheDocument();
     expect(
-      within(webgpuDetail).getAllByText("Why selected").length
-    ).toBeGreaterThan(0);
-    expect(within(webgpuDetail).getByText("Best match")).toBeVisible();
-    expect(within(webgpuDetail).getByText("High relevance")).toBeVisible();
-    expect(
-      within(webgpuDetail).getByRole("region", {
-        name: "WebGPU API source health"
+      within(retrievalPanel).queryByRole("region", {
+        name: "Retrieval source explorer"
       })
-    ).toHaveTextContent("184 indexed chunks");
-
-    fireEvent.click(
-      within(explorer).getByRole("button", {
-        name: "Inspect source OpenGL Shading Language 4.60 Specification"
-      })
-    );
-
-    const glslDetail = within(explorer).getByRole("group", {
-      name: "OpenGL Shading Language 4.60 Specification source details"
-    });
-    expect(glslDetail).toHaveTextContent("glsl_language_spec_460");
-    expect(glslDetail).toHaveTextContent("Rank #3");
-    expect(glslDetail).toHaveTextContent("Review soon");
-    expect(
-      within(retrievalPanel).getByText(
-        /Stable WebGPU particle field for a projection wall/
-      )
-    ).toBeVisible();
+    ).not.toBeInTheDocument();
   });
 
   it("renders retrieval empty states without stale source cards", () => {
@@ -1905,13 +2080,12 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Retrieval" }));
 
     const retrievalPanel = screen.getByRole("tabpanel", {
-      name: "Retrieval inspector"
+      name: "Retrieval"
     });
 
     expect(
-      within(retrievalPanel).getByRole("group", { name: "Retrieval empty state" })
-    ).toBeVisible();
-    expect(within(retrievalPanel).getByText("No matches")).toBeVisible();
+      within(retrievalPanel).getByRole("group", { name: "Retrieval status" })
+    ).toHaveTextContent("No retrieved context for this run.");
     expect(
       within(retrievalPanel).getByText("No retrieved chunks for TouchDesigner.")
     ).toBeVisible();
@@ -1953,12 +2127,29 @@ describe("WorkstationShell", () => {
     expect(dashboard).toHaveTextContent("3 chunks from 2 sources");
   });
 
-  it("labels ignored sources and unused chunks without losing global rank", () => {
+  it("keeps ignored-source drilldown in the Dashboard reference view", () => {
     renderShell(snapshotWithIgnoredRetrievalSource());
 
     fireEvent.click(screen.getByRole("tab", { name: "Retrieval" }));
 
-    const explorer = screen.getByRole("region", {
+    const retrievalPanel = screen.getByRole("tabpanel", {
+      name: "Retrieval"
+    });
+    expect(
+      within(retrievalPanel).queryByRole("region", {
+        name: "Retrieval source explorer"
+      })
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open Retrieval in Dashboard" })
+    );
+    const dashboard = screen.getByRole("region", { name: "Advanced Dashboard" });
+    fireEvent.click(
+      within(dashboard).getByText("Open current-run retrieval evidence")
+    );
+
+    const explorer = within(dashboard).getByRole("region", {
       name: "Retrieval source explorer"
     });
     expect(explorer).toHaveTextContent("1 selected source · 1 ignored source");
@@ -1982,18 +2173,20 @@ describe("WorkstationShell", () => {
     );
   });
 
-  it("uses Settings quick actions to open focused inspector views", () => {
+  it("uses Settings quick actions to open and focus Inspector views", async () => {
     renderShell();
 
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     fireEvent.click(screen.getByRole("button", { name: /Code Open generated code/ }));
 
-    expect(screen.getByRole("tab", { name: "Code" })).toHaveAttribute(
+    const codeTab = screen.getByRole("tab", { name: "Code" });
+    expect(codeTab).toHaveAttribute(
       "aria-selected",
       "true"
     );
-    expect(screen.getByRole("tabpanel", { name: "Code inspector" })).toBeVisible();
+    expect(screen.getByRole("tabpanel", { name: "Code" })).toBeVisible();
     expect(screen.queryByRole("dialog", { name: "Workspace settings" })).not.toBeInTheDocument();
+    await waitFor(() => expect(codeTab).toHaveFocus());
   });
 
   it("streams backend events into the conversation and workflow state", async () => {
@@ -2128,23 +2321,12 @@ describe("WorkstationShell", () => {
     expect(
       screen.getByRole("progressbar", { name: "Overview workflow progress" })
     ).toHaveAttribute("aria-valuenow", "17");
-    const sessionIntelligence = screen.getByRole("group", {
-      name: "Session intelligence summary"
-    });
-    expect(sessionIntelligence).toHaveAttribute("data-state", "completed");
-    expect(sessionIntelligence).toHaveTextContent("Backend session summary.");
-    expect(sessionIntelligence).toHaveTextContent("Backend active request summary.");
     expect(
-      within(sessionIntelligence).getByLabelText("Session warnings")
-    ).toHaveTextContent("Backend warning.");
+      screen.queryByRole("group", { name: "Session intelligence summary" })
+    ).not.toBeInTheDocument();
     expect(
-      within(sessionIntelligence).getByLabelText("Recommended next user actions")
-    ).toHaveTextContent("Review the hydrated preview.");
-    const planningSummary = screen.getByRole("group", {
-      name: "Planning summary"
-    });
-    expect(planningSummary).toHaveTextContent("Visual / p5");
-    expect(planningSummary).toHaveTextContent("2800 est. tokens");
+      screen.queryByRole("group", { name: "Planning summary" })
+    ).not.toBeInTheDocument();
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
     expect(
@@ -2157,17 +2339,17 @@ describe("WorkstationShell", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: "Preview" }));
     const previewPanel = screen.getByRole("tabpanel", {
-      name: "Preview inspector"
+      name: "Preview"
     });
-    const previewStatus = within(previewPanel).getByRole("group", {
-      name: "Preview canvas status"
+    const previewRuntime = within(previewPanel).getByRole("group", {
+      name: "Preview runtime metadata"
     });
 
+    expect(previewRuntime).toHaveTextContent("aurora-field.p5.js");
+    expect(previewRuntime).toHaveTextContent("Runtime ready");
     expect(
-      within(previewStatus).getByText(
-        "p5.js runtime ready for browser preview execution."
-      )
-    ).toBeVisible();
+      within(previewPanel).queryByRole("group", { name: "Preview canvas status" })
+    ).not.toBeInTheDocument();
   });
 
   it("uses the owning browser-profile identity for generation requests", async () => {
@@ -2487,7 +2669,7 @@ describe("WorkstationShell", () => {
     expect(within(preview).getByText("Preview open / Three.js")).toBeVisible();
 
     fireEvent.click(screen.getByRole("tab", { name: "Code" }));
-    const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
+    const codePanel = screen.getByRole("tabpanel", { name: "Code" });
     expect(within(codePanel).getByText("generated-scene.three.ts")).toBeVisible();
     expect(
       within(codePanel).getByRole("region", {
@@ -2497,7 +2679,7 @@ describe("WorkstationShell", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
     const artifactsPanel = screen.getByRole("tabpanel", {
-      name: "Artifacts inspector"
+      name: "Artifacts"
     });
     expect(
       within(artifactsPanel).getByRole("article", {
@@ -2597,7 +2779,7 @@ describe("WorkstationShell", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
     const artifactsPanel = screen.getByRole("tabpanel", {
-      name: "Artifacts inspector"
+      name: "Artifacts"
     });
     expect(
       within(artifactsPanel).getByRole("article", {
@@ -2615,7 +2797,7 @@ describe("WorkstationShell", () => {
         name: "Open in Code palette-notes.py"
       })
     );
-    const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
+    const codePanel = screen.getByRole("tabpanel", { name: "Code" });
     expect(within(codePanel).getByText("palette-notes.py")).toBeVisible();
     expect(
       within(codePanel).getByRole("region", {
@@ -2632,7 +2814,7 @@ describe("WorkstationShell", () => {
     fireEvent.click(
       within(
         screen.getByRole("tabpanel", {
-          name: "Artifacts inspector"
+          name: "Artifacts"
         })
       ).getByRole("button", {
         name: "Open Preview orbit-sketch.p5.js"
@@ -2684,13 +2866,14 @@ describe("WorkstationShell", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: "Overview" }));
     expect(
-      within(screen.getByRole("group", { name: "Preview summary" })).getByText(
-        "No target"
-      )
+      screen.getByRole("group", { name: "Product outcome summary" })
     ).toBeVisible();
+    expect(
+      screen.queryByRole("group", { name: "Preview summary" })
+    ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("tab", { name: "Code" }));
-    const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
+    const codePanel = screen.getByRole("tabpanel", { name: "Code" });
     expect(within(codePanel).getByText("assistant-response.md")).toBeVisible();
     expect(within(codePanel).getByText("Markdown export")).toBeVisible();
   });
@@ -2849,6 +3032,245 @@ describe("WorkstationShell", () => {
     );
   });
 
+  it("pauses Send while an image reference is being prepared", async () => {
+    const pendingBuffer = createDeferred<ArrayBuffer>();
+    const imageFile = new File([validPngBytes], "slow-palette.png", {
+      type: "image/png"
+    });
+    Object.defineProperty(imageFile, "arrayBuffer", {
+      configurable: true,
+      value: vi.fn(() => pendingBuffer.promise)
+    });
+
+    renderShell(getLocalWorkspaceSnapshot());
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Use the queued image reference." }
+    });
+    expect(screen.getByRole("button", { name: "Send prompt" })).toBeEnabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Add attachment" }));
+    fireEvent.change(screen.getByLabelText("Upload image attachment"), {
+      target: { files: [imageFile] }
+    });
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("form", { name: "Creative request composer" })
+      ).toHaveAttribute("data-upload-state", "processing")
+    );
+    expect(
+      screen.getByText("Preparing image reference. Send is paused.")
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add attachment" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Send prompt" })).toBeDisabled();
+
+    await act(async () => {
+      pendingBuffer.resolve(validPngBytes.slice().buffer);
+      await pendingBuffer.promise;
+    });
+
+    expect(
+      await screen.findByRole("region", { name: "Image references" })
+    ).toHaveTextContent("slow-palette.png");
+    expect(
+      screen.getByRole("form", { name: "Creative request composer" })
+    ).toHaveAttribute("data-upload-state", "idle");
+    expect(screen.getByRole("button", { name: "Send prompt" })).toBeEnabled();
+  });
+
+  it("discards an in-flight image read when the session is cleared", async () => {
+    const pendingBuffer = createDeferred<ArrayBuffer>();
+    const imageFile = new File([validPngBytes], "stale-palette.png", {
+      type: "image/png"
+    });
+    Object.defineProperty(imageFile, "arrayBuffer", {
+      configurable: true,
+      value: vi.fn(() => pendingBuffer.promise)
+    });
+
+    renderShell(getLocalWorkspaceSnapshot(), {
+      persistenceClient: createEmptyPersistenceClient()
+    });
+    expect(await screen.findByText("Local session ready")).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "Add attachment" }));
+    fireEvent.change(screen.getByLabelText("Upload image attachment"), {
+      target: { files: [imageFile] }
+    });
+    await waitFor(() =>
+      expect(
+        screen.getByRole("form", { name: "Creative request composer" })
+      ).toHaveAttribute("data-upload-state", "processing")
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    fireEvent.click(screen.getByRole("button", { name: "Clear workspace session" }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Clear workspace" }));
+      await Promise.resolve();
+    });
+
+    expect(
+      await screen.findByRole("group", { name: "Empty creative workspace" })
+    ).toBeVisible();
+
+    await act(async () => {
+      pendingBuffer.resolve(validPngBytes.slice().buffer);
+      await pendingBuffer.promise;
+      await Promise.resolve();
+    });
+
+    expect(
+      screen.queryByRole("region", { name: "Image references" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("form", { name: "Creative request composer" })
+    ).toHaveAttribute("data-upload-state", "idle");
+    expect(screen.getByRole("button", { name: "Add attachment" })).toBeEnabled();
+  });
+
+  it("clears request-scoped images before an asynchronously restored session can submit", async () => {
+    const userId = "image-boundary-user";
+    const projectId = "image-boundary-project";
+    const currentSessionId = "image-boundary-current";
+    const nextSessionId = "image-boundary-next";
+    const currentSnapshot = {
+      ...getInitialWorkspaceSnapshot(),
+      session: {
+        ...getInitialWorkspaceSnapshot().session,
+        projectId,
+        sessionId: currentSessionId,
+        userId
+      }
+    };
+    const nextSnapshot = {
+      ...getInitialWorkspaceSnapshot(),
+      session: {
+        ...getInitialWorkspaceSnapshot().session,
+        projectId,
+        sessionId: nextSessionId,
+        userId
+      },
+      workspace: {
+        ...getInitialWorkspaceSnapshot().workspace,
+        name: "Second image session"
+      }
+    };
+    const baseNextRecord = createWorkspaceSessionRecord({
+      activeArtifactId: nextSnapshot.artifacts[0]?.id ?? "",
+      activeInspectorTab: "Overview",
+      previewArtifactId: nextSnapshot.artifacts[0]?.id ?? "",
+      previewOpen: false,
+      snapshot: nextSnapshot
+    });
+    const nextRecord = {
+      ...baseNextRecord,
+      title: "Second image session",
+      workspace: {
+        ...baseNextRecord.workspace,
+        name: "Second image session"
+      }
+    };
+    const sessionKey = `cca.workspace.${userId}.${nextSessionId}`;
+    const sessionIndexKey = `cca.workspace.${userId}.session-index.v1`;
+    window.localStorage.setItem(sessionKey, JSON.stringify(nextRecord));
+    window.localStorage.setItem(
+      sessionIndexKey,
+      JSON.stringify([
+        {
+          artifactCount: nextRecord.artifacts.length,
+          projectId,
+          sessionId: nextSessionId,
+          title: nextRecord.title,
+          updatedAt: nextRecord.updatedAt
+        }
+      ])
+    );
+
+    const delayedRestore = createDeferred<Response>();
+    vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
+      const url = String(input);
+      if (
+        init?.method === "GET" &&
+        url.includes("/api/workspace/session") &&
+        url.includes(`sessionId=${nextSessionId}`)
+      ) {
+        return delayedRestore.promise;
+      }
+      if (init?.method === "POST" && url.includes("/api/workspace/session")) {
+        return Promise.resolve(new Response("{}"));
+      }
+      return Promise.resolve(new Response("unavailable", { status: 503 }));
+    });
+    const backendStream = vi.fn((_request: AssistantStreamRequest) =>
+      streamEvents([
+        {
+          event_type: "final",
+          sequence: 0,
+          payload: { answer: "Session-safe response." }
+        }
+      ])
+    );
+    const persistenceClient: WorkspacePersistenceClient = {
+      ...createEmptyPersistenceClient(),
+      identity: currentSnapshot.session
+    };
+
+    try {
+      renderShell(currentSnapshot, {
+        persistenceClient,
+        streamAssistantEvents: backendStream
+      });
+      await waitFor(() => expect(persistenceClient.load).toHaveBeenCalled());
+
+      fireEvent.click(screen.getByRole("button", { name: "Add attachment" }));
+      await act(async () => {
+        fireEvent.change(screen.getByLabelText("Upload image attachment"), {
+          target: {
+            files: [
+              new File([validPngBytes], "session-a-reference.png", {
+                type: "image/png"
+              })
+            ]
+          }
+        });
+        await Promise.resolve();
+      });
+      expect(
+        await screen.findByRole("region", { name: "Image references" })
+      ).toHaveTextContent("session-a-reference.png");
+
+      fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+        target: { value: "Submit only inside the newly selected session." }
+      });
+      fireEvent.click(
+        screen.getByRole("button", { name: /Second image session/ })
+      );
+
+      expect(
+        screen.queryByRole("region", { name: "Image references" })
+      ).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+      await waitFor(() => expect(backendStream).toHaveBeenCalledOnce());
+      expect(backendStream).toHaveBeenCalledWith(
+        expect.objectContaining({
+          conversationId: nextSessionId,
+          query: "Submit only inside the newly selected session."
+        })
+      );
+      expect(backendStream.mock.calls[0]?.[0]).toEqual(
+        expect.not.objectContaining({ attachments: expect.anything() })
+      );
+
+      delayedRestore.resolve(new Response("session not found", { status: 404 }));
+      await delayedRestore.promise;
+    } finally {
+      window.localStorage.removeItem(sessionKey);
+      window.localStorage.removeItem(sessionIndexKey);
+    }
+  });
+
   it("shows a graceful image upload error for unsupported files", async () => {
     renderShell();
 
@@ -2866,15 +3288,61 @@ describe("WorkstationShell", () => {
       name: "Image references"
     });
 
-    expect(within(imageShelf).getAllByText("Image upload issue")).toHaveLength(2);
+    expect(within(imageShelf).getByText("Reference not added")).toBeVisible();
+    expect(within(imageShelf).getByText("Image upload issue")).toBeVisible();
     expect(
-      within(imageShelf).getAllByText(
+      within(imageShelf).getByText(
         "Only PNG, JPEG, WebP, or GIF image references can be attached."
       )
-    ).toHaveLength(2);
+    ).toBeVisible();
     expect(
       within(imageShelf).getByRole("button", { name: "Dismiss image upload issue" })
     ).toBeVisible();
+  });
+
+  it("keeps a mixed valid and invalid image batch atomic", async () => {
+    const backendStream = vi.fn((_request: AssistantStreamRequest) =>
+      streamEvents([
+        {
+          event_type: "final",
+          sequence: 0,
+          payload: { answer: "No partial image batch was sent." }
+        }
+      ])
+    );
+    renderShell(getLocalWorkspaceSnapshot(), {
+      streamAssistantEvents: backendStream
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Add attachment" }));
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText("Upload image attachment"), {
+        target: {
+          files: [
+            new File([validPngBytes], "valid-first.png", { type: "image/png" }),
+            new File(["notes"], "invalid-second.txt", { type: "text/plain" })
+          ]
+        }
+      });
+      await Promise.resolve();
+    });
+
+    const imageShelf = await screen.findByRole("region", {
+      name: "Image references"
+    });
+    expect(within(imageShelf).getByText("Reference not added")).toBeVisible();
+    expect(within(imageShelf).getByText(/queued request is unchanged/i)).toBeVisible();
+    expect(within(imageShelf).queryByText("valid-first.png")).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Continue without a partial image batch." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    await waitFor(() => expect(backendStream).toHaveBeenCalledOnce());
+    expect(backendStream.mock.calls[0]?.[0]).toEqual(
+      expect.not.objectContaining({ attachments: expect.anything() })
+    );
   });
 
   it("hydrates the retrieval inspector from streamed retrieval events", async () => {
@@ -2959,19 +3427,28 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Retrieval" }));
 
     const retrievalPanel = screen.getByRole("tabpanel", {
-      name: "Retrieval inspector"
+      name: "Retrieval"
     });
 
     expect(
-      within(retrievalPanel).getByText(
-        "Create a p5.js sketch with low-frequency motion."
-      )
-    ).toBeVisible();
-    const sourceDetail = within(retrievalPanel).getByRole("group", {
+      within(retrievalPanel).getByRole("group", { name: "Retrieval status" })
+    ).toHaveTextContent("1 retrieved sources");
+    expect(
+      within(retrievalPanel).queryByRole("group", {
+        name: "createCanvas source details"
+      })
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open Retrieval in Dashboard" })
+    );
+    const dashboard = screen.getByRole("region", { name: "Advanced Dashboard" });
+    fireEvent.click(
+      within(dashboard).getByText("Open current-run retrieval evidence")
+    );
+    const sourceDetail = within(dashboard).getByRole("group", {
       name: "createCanvas source details"
     });
-    expect(sourceDetail).toBeVisible();
-    expect(within(retrievalPanel).getAllByText("p5.js").length).toBeGreaterThan(0);
     expect(within(sourceDetail).getByText("88% match")).toBeVisible();
     expect(within(sourceDetail).getAllByText("Rank #1").length).toBeGreaterThan(0);
     expect(within(sourceDetail).getByText("88% score")).toBeVisible();
@@ -3038,7 +3515,7 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Retrieval" }));
 
     const retrievalPanel = screen.getByRole("tabpanel", {
-      name: "Retrieval inspector"
+      name: "Retrieval"
     });
 
     expect(
@@ -3108,10 +3585,13 @@ describe("WorkstationShell", () => {
     expect(await screen.findByText("Planning the requested work...")).toBeVisible();
     expect(screen.getByLabelText("Current session")).toHaveTextContent("Planning");
     expect(screen.queryByText("Thinking")).not.toBeInTheDocument();
-    expect(screen.getByRole("log", { name: "Conversation" })).toHaveAttribute(
-      "aria-busy",
-      "true"
+    expect(screen.getByRole("log", { name: "Conversation" })).not.toHaveAttribute(
+      "aria-busy"
     );
+    expect(
+      screen.getByRole("form", { name: "Creative request composer" })
+    ).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByRole("status")).toHaveTextContent("Assistant Planning");
 
     beforeTokens.resolve();
     await act(async () => {
@@ -3131,10 +3611,12 @@ describe("WorkstationShell", () => {
     beforeFinal.resolve();
 
     expect(await screen.findByText("Live draft completed.")).toBeVisible();
-    expect(screen.getByRole("log", { name: "Conversation" })).toHaveAttribute(
-      "aria-busy",
-      "false"
+    expect(screen.getByRole("log", { name: "Conversation" })).not.toHaveAttribute(
+      "aria-busy"
     );
+    expect(
+      screen.getByRole("form", { name: "Creative request composer" })
+    ).toHaveAttribute("aria-busy", "false");
   });
 
   it("keeps generated code out of the conversation summary", async () => {
@@ -3292,7 +3774,7 @@ describe("WorkstationShell", () => {
     }
     fireEvent.click(screen.getByRole("tab", { name: "Code" }));
     expect(
-      within(screen.getByRole("tabpanel", { name: "Code inspector" })).getByText(
+      within(screen.getByRole("tabpanel", { name: "Code" })).getByText(
         /gl_FragColor/
       )
     ).toBeVisible();
@@ -3300,7 +3782,7 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Saved" }));
     expect(
       within(
-        screen.getByRole("tabpanel", { name: "Saved outputs inspector" })
+        screen.getByRole("tabpanel", { name: "Saved" })
       ).getAllByText("GLSL Shader").length
     ).toBeGreaterThan(0);
   });
@@ -3673,7 +4155,7 @@ describe("WorkstationShell", () => {
     expect(details).not.toHaveAttribute("open");
     expect(details).toHaveAttribute("data-state", "closed");
     fireEvent.click(screen.getByRole("tab", { name: "Preview" }));
-    expect(screen.getByRole("tabpanel", { name: "Preview inspector" })).toBeVisible();
+    expect(screen.getByRole("tabpanel", { name: "Preview" })).toBeVisible();
 
     expect(summary).not.toBeNull();
     fireEvent.click(summary as HTMLElement);
@@ -3826,13 +4308,14 @@ describe("WorkstationShell", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: "Preview" }));
     const previewPanel = screen.getByRole("tabpanel", {
-      name: "Preview inspector"
+      name: "Preview"
     });
     expect(
-      within(previewPanel).getByRole("group", { name: "Preview canvas status" })
-    ).toHaveTextContent(
-      "Preview state cleared for aurora-field.p5.js. Reload or reset the session to restore the latest runtime context."
-    );
+      within(previewPanel).getByRole("group", { name: "Preview runtime metadata" })
+    ).toHaveTextContent("aurora-field.p5.js");
+    expect(
+      within(previewPanel).queryByRole("group", { name: "Preview canvas status" })
+    ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
     const notesArtifact = screen.getByLabelText("projection-notes.md artifact");
@@ -3847,9 +4330,17 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
-    const events = screen.getByRole("group", { name: "Workflow event trace" });
-
-    expect(within(events).getByText("Preview Runtime Clear Completed")).toBeVisible();
+    const workflowPanel = screen.getByRole("tabpanel", {
+      name: "Workflow"
+    });
+    expect(
+      within(workflowPanel).getByRole("group", {
+        name: "LangGraph workflow visualization"
+      })
+    ).toBeVisible();
+    expect(
+      within(workflowPanel).queryByRole("group", { name: "Workflow event trace" })
+    ).not.toBeInTheDocument();
   });
 
   it("restores a cleared preview through the non-destructive reload path", async () => {
@@ -3907,7 +4398,7 @@ describe("WorkstationShell", () => {
       "true"
     );
     expect(
-      within(screen.getByRole("tabpanel", { name: "Code inspector" })).getByText(
+      within(screen.getByRole("tabpanel", { name: "Code" })).getByText(
         "projection-notes.md"
       )
     ).toBeVisible();
@@ -3943,7 +4434,7 @@ describe("WorkstationShell", () => {
     renderShell();
 
     fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
-    const artifactList = screen.getByRole("tabpanel", { name: "Artifacts inspector" });
+    const artifactList = screen.getByRole("tabpanel", { name: "Artifacts" });
     const sourceArtifact = within(artifactList).getByLabelText(
       "aurora-field.p5.js artifact"
     );
@@ -3953,7 +4444,7 @@ describe("WorkstationShell", () => {
       })
     );
 
-    const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
+    const codePanel = screen.getByRole("tabpanel", { name: "Code" });
 
     expect(screen.getByRole("tab", { name: "Code" })).toHaveAttribute(
       "aria-selected",
@@ -3972,7 +4463,7 @@ describe("WorkstationShell", () => {
       })
     );
 
-    expect(screen.getByRole("tabpanel", { name: "Code inspector" })).toHaveAttribute(
+    expect(screen.getByRole("tabpanel", { name: "Code" })).toHaveAttribute(
       "data-opened-artifact",
       "projection-notes.md"
     );
@@ -4009,7 +4500,7 @@ describe("WorkstationShell", () => {
     expect(preview.querySelector("details")).toHaveAttribute("data-state", "open");
   });
 
-  it("surfaces artifact critique ranking and rationale in the artifacts inspector", () => {
+  it("keeps artifact ranking concise in the inspector without mounting critic deep dives", () => {
     const snapshot = getLocalWorkspaceSnapshot();
     const critiquedSnapshot: AssistantWorkspaceSnapshot = {
       ...snapshot,
@@ -4166,7 +4657,7 @@ describe("WorkstationShell", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
     const artifactsPanel = screen.getByRole("tabpanel", {
-      name: "Artifacts inspector"
+      name: "Artifacts"
     });
 
     expect(
@@ -4175,46 +4666,16 @@ describe("WorkstationShell", () => {
       })
     ).toHaveTextContent("Quality");
     expect(
-      within(artifactsPanel).getByRole("region", {
+      within(artifactsPanel).queryByRole("region", {
         name: "Artifact quality summary"
       })
-    ).toHaveTextContent("Recommended candidate");
-    const qualitySummary = within(artifactsPanel).getByRole("region", {
-      name: "Artifact quality summary"
-    });
-    expect(
-      within(qualitySummary).getByText(
-        "aurora-field.p5.js is the recommended candidate."
-      )
-    ).toBeVisible();
-    expect(
-      within(qualitySummary).getByRole("region", {
-        name: "Creative quality critic"
-      })
-    ).toHaveTextContent("Aesthetic consistency");
-    expect(
-      within(qualitySummary).getByText(
-        "5 of 5 creative dimensions are strong."
-      )
-    ).toBeVisible();
-    expect(
-      within(qualitySummary).getByRole("region", {
-        name: "Calibrated quality summary"
-      })
-    ).toHaveTextContent("Strong candidate");
-    expect(
-      within(qualitySummary).getByRole("region", {
-        name: "Calibrated quality summary"
-      })
-    ).toHaveTextContent("Legacy score");
-    expect(
-      within(qualitySummary).getByRole("region", {
-        name: "Geometry consistency evaluator"
-      })
-    ).toHaveTextContent("Claim safety");
+    ).not.toBeInTheDocument();
     expect(
       within(artifactsPanel).getByText(/Rank #1 \/ Quality 93%/)
     ).toBeVisible();
+    expect(artifactsPanel).toHaveTextContent(
+      "aurora-field.p5.js is the recommended candidate."
+    );
   });
 
   it("mounts supported p5 artifacts into a controlled live runtime", async () => {
@@ -4522,7 +4983,7 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Runtime" }));
 
     const runtimePanel = screen.getByRole("tabpanel", {
-      name: "Runtime console inspector"
+      name: "Runtime"
     });
     const metrics = within(runtimePanel).getByRole("group", {
       name: "Runtime metrics"
@@ -4532,9 +4993,6 @@ describe("WorkstationShell", () => {
     });
     const health = within(runtimePanel).getByRole("group", {
       name: "Runtime health"
-    });
-    const eventHistory = within(runtimePanel).getByRole("group", {
-      name: "Runtime event history"
     });
 
     expect(metrics).toHaveTextContent("Running");
@@ -4548,9 +5006,15 @@ describe("WorkstationShell", () => {
     expect(health).toHaveTextContent("frame delivery is within the expected budget");
     expect(context).toHaveTextContent("Browser preview");
     expect(context).toHaveTextContent("p5.js");
-    expect(eventHistory).toHaveTextContent("Start");
-    expect(eventHistory).toHaveTextContent("p5 runtime running");
-    expect(eventHistory).not.toHaveTextContent("First preview frame rendered");
+    expect(
+      within(runtimePanel).getByRole("group", { name: "Runtime diagnostics" })
+    ).toBeVisible();
+    expect(
+      within(runtimePanel).queryByRole("group", { name: "Runtime event history" })
+    ).not.toBeInTheDocument();
+    expect(
+      within(runtimePanel).queryByRole("group", { name: "Runtime reload history" })
+    ).not.toBeInTheDocument();
   });
 
   it("mounts supported Three.js artifacts into a controlled 3D runtime", async () => {
@@ -4648,10 +5112,15 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
-    const events = screen.getByRole("group", { name: "Workflow event trace" });
-
-    expect(within(events).getByText("Preview Runtime Error")).toBeVisible();
-    expect(within(events).getByText("Preview Runtime Recovered")).toBeVisible();
+    const workflowPanel = screen.getByRole("tabpanel", { name: "Workflow" });
+    expect(
+      within(workflowPanel).getByRole("group", {
+        name: "LangGraph workflow visualization"
+      })
+    ).toBeVisible();
+    expect(
+      within(workflowPanel).queryByRole("group", { name: "Workflow event trace" })
+    ).not.toBeInTheDocument();
   });
 
   it("keeps preview runtime failures presenter-friendly in User Mode", async () => {
@@ -4713,7 +5182,7 @@ describe("WorkstationShell", () => {
 
   });
 
-  it("shows runtime errors and reload requests inside the runtime console", async () => {
+  it("shows runtime errors and reload metrics in the compact runtime console", async () => {
     renderShell(snapshotWithThreePreview());
 
     const preview = screen.getByRole("region", { name: "Preview workspace" });
@@ -4743,7 +5212,7 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Runtime" }));
 
     const runtimePanel = screen.getByRole("tabpanel", {
-      name: "Runtime console inspector"
+      name: "Runtime"
     });
     const diagnostics = within(runtimePanel).getByRole("group", {
       name: "Runtime diagnostics"
@@ -4751,14 +5220,13 @@ describe("WorkstationShell", () => {
     const health = within(runtimePanel).getByRole("group", {
       name: "Runtime health"
     });
-    const eventHistory = within(runtimePanel).getByRole("group", {
-      name: "Runtime event history"
-    });
 
     expect(health).toHaveTextContent("Failure");
     expect(diagnostics).toHaveTextContent("1 active");
     expect(diagnostics).toHaveTextContent("WebGL is unavailable in the preview frame.");
-    expect(eventHistory).toHaveTextContent("Error");
+    expect(
+      within(runtimePanel).queryByRole("group", { name: "Runtime event history" })
+    ).not.toBeInTheDocument();
 
     const failedRuntimeId = frame.dataset.runtimeId;
     fireEvent.click(
@@ -4776,13 +5244,13 @@ describe("WorkstationShell", () => {
       state: "running"
     });
 
-    const reloadHistory = within(runtimePanel).getByRole("group", {
-      name: "Runtime reload history"
-    });
-
-    expect(reloadHistory).toHaveTextContent("1 reload");
-    expect(reloadHistory).toHaveTextContent("Reload requested");
-    expect(eventHistory).toHaveTextContent("Reload");
+    const reloadMetric = within(runtimePanel)
+      .getByText("Reloads")
+      .closest("[role='listitem']");
+    expect(reloadMetric).toHaveTextContent("1");
+    expect(
+      within(runtimePanel).queryByRole("group", { name: "Runtime reload history" })
+    ).not.toBeInTheDocument();
   });
 
   it("shows a stable GLSL runtime error from the preview frame", async () => {
@@ -4928,12 +5396,17 @@ describe("WorkstationShell", () => {
         within(preview).getByRole("button", { name: "Reload preview state" })
       ).toBeEnabled();
 
-      fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
-      const events = screen.getByRole("group", { name: "Workflow event trace" });
-
+      fireEvent.click(screen.getByRole("tab", { name: "Runtime" }));
+      const runtimePanel = screen.getByRole("tabpanel", {
+        name: "Runtime"
+      });
+      const reloadMetric = within(runtimePanel)
+        .getByText("Reloads")
+        .closest("[role='listitem']");
+      expect(reloadMetric).toHaveTextContent("1");
       expect(
-        within(events).getByText("Preview Runtime Reload Requested")
-      ).toBeVisible();
+        within(runtimePanel).queryByRole("group", { name: "Runtime event history" })
+      ).not.toBeInTheDocument();
     }
   );
 
@@ -4991,7 +5464,7 @@ describe("WorkstationShell", () => {
     renderShell(snapshotWithActiveTab("Code"));
 
     expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
-    const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
+    const codePanel = screen.getByRole("tabpanel", { name: "Code" });
 
     expect(codePanel).toBeVisible();
     expect(within(codePanel).getByText("p5.js")).toBeVisible();
@@ -5002,87 +5475,42 @@ describe("WorkstationShell", () => {
         name: "aurora-field.p5.js content"
       })
     ).toHaveTextContent("function draw()");
-    expect(screen.queryByRole("tabpanel", { name: "Overview inspector" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tabpanel", { name: "Overview" })).not.toBeInTheDocument();
   });
 
-  it("renders artifact comparison with recommendation, critique, and runtime support", () => {
+  it("keeps the comparison workspace out of the cockpit and exposes deliverables in Dashboard", () => {
     renderShell(snapshotWithArtifactComparison());
 
-    const comparison = screen.getByRole("region", {
-      name: "Artifact comparison"
-    });
-    const recommended = within(comparison).getByRole("group", {
-      name: "Recommended artifact comparison"
-    });
-    const shaderCandidate = within(comparison).getByLabelText(
-      "shader-field.frag comparison candidate"
-    );
-    const hydraCandidate = within(comparison).getByLabelText(
-      "feedback-lattice.hydra.js comparison candidate"
-    );
-    const toneCandidate = within(comparison).getByLabelText(
-      "pulse.tone.js comparison candidate"
-    );
-    const codeOnlyCandidate = within(comparison).getByLabelText(
-      "field.wgsl comparison candidate"
-    );
-
-    expect(comparison).toHaveTextContent("Multi-preview workspace");
-    expect(comparison).toHaveTextContent("5 candidates");
-    expect(recommended).toHaveTextContent("Recommended");
-    expect(recommended).toHaveTextContent("shader-field.frag");
-    expect(comparison).toHaveTextContent(
-      "Shader candidate has the strongest prompt alignment and preview readiness."
-    );
-    expect(shaderCandidate).toHaveAttribute("data-recommended", "true");
-    expect(within(shaderCandidate).getByText("Previewable")).toBeVisible();
-    expect(within(shaderCandidate).getByText("Visual / GLSL")).toBeVisible();
-    expect(within(shaderCandidate).getByText("#1")).toBeVisible();
-    expect(within(shaderCandidate).getByText("94%")).toBeVisible();
-    expect(within(shaderCandidate).getByText("minimal / geometry")).toBeVisible();
-    expect(within(shaderCandidate).getByText("glow")).toBeVisible();
-    expect(within(shaderCandidate).getByText("mandala")).toBeVisible();
     expect(
-      within(shaderCandidate).getByRole("group", { name: "GLSL live runtime" })
-    ).toBeVisible();
-    expect(hydraCandidate).toHaveAttribute("data-runtime-support", "previewable");
-    expect(within(hydraCandidate).getByText("Previewable")).toBeVisible();
-    expect(within(hydraCandidate).getByText("Visual / Hydra")).toBeVisible();
-    expect(
-      within(hydraCandidate).getByRole("group", { name: "Hydra live runtime" })
-    ).toBeVisible();
-    expect(
-      within(hydraCandidate).getByRole("button", {
-        name: "Preview feedback-lattice.hydra.js from comparison"
-      })
-    ).toBeVisible();
-    expect(toneCandidate).toHaveAttribute("data-output-kind", "audio");
-    expect(
-      within(toneCandidate).getByText("Silent until explicit start")
-    ).toBeVisible();
-    expect(
-      within(toneCandidate).getByRole("group", {
-        name: "Tone.js live runtime"
-      })
-    ).toHaveAttribute("data-runtime-state", "starting");
-    expect(within(toneCandidate).queryByText("Tone.js runtime running")).not.toBeInTheDocument();
-    expect(codeOnlyCandidate).toHaveAttribute(
-      "data-runtime-support",
-      "unsupported"
-    );
-    expect(
-      within(codeOnlyCandidate).getByLabelText(
-        "field.wgsl safe preview fallback"
-      )
-    ).toHaveTextContent("Unsupported runtime");
-    expect(
-      within(codeOnlyCandidate).queryByRole("button", {
-        name: "Preview field.wgsl from comparison"
-      })
+      screen.queryByRole("region", { name: "Artifact comparison" })
     ).not.toBeInTheDocument();
+    const artifactsPanel = screen.getByRole("tabpanel", {
+      name: "Artifacts"
+    });
+    expect(
+      within(artifactsPanel).getByLabelText("shader-field.frag artifact")
+    ).toHaveTextContent("Recommended");
+    expect(
+      within(artifactsPanel).getByLabelText("field.wgsl artifact")
+    ).toHaveTextContent("Code-only");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open Artifacts in Dashboard" })
+    );
+    const dashboard = screen.getByRole("region", { name: "Advanced Dashboard" });
+    expect(
+      within(dashboard).getByRole("list", { name: "Saved deliverables" })
+    ).toBeVisible();
+    expect(within(dashboard).getByText("5 saved deliverables")).toBeVisible();
+    expect(
+      within(dashboard).getByLabelText("shader-field.frag visual preview")
+    ).toBeVisible();
+    expect(
+      within(dashboard).getByLabelText("field.wgsl export boundary")
+    ).toBeVisible();
   });
 
-  it("renders creative execution plan metadata in the artifacts inspector", () => {
+  it("keeps creative planning metadata out of compact inspector tabs", () => {
     const snapshot = snapshotWithActiveTab("Artifacts");
     const plannedSnapshot: AssistantWorkspaceSnapshot = {
       ...snapshot,
@@ -5095,16 +5523,17 @@ describe("WorkstationShell", () => {
     renderShell(plannedSnapshot);
 
     const artifactsPanel = screen.getByRole("tabpanel", {
-      name: "Artifacts inspector"
+      name: "Artifacts"
     });
-    const planningSummary = within(artifactsPanel).getByRole("region", {
-      name: "Artifact planning summary"
-    });
-
-    expect(planningSummary).toHaveTextContent("Execution plan");
-    expect(planningSummary).toHaveTextContent("Visual / p5");
-    expect(planningSummary).toHaveTextContent("Export ready");
-    expect(planningSummary).toHaveTextContent("Target p5 output.");
+    expect(
+      within(artifactsPanel).queryByRole("region", {
+        name: "Artifact planning summary"
+      })
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Overview" }));
+    expect(
+      screen.queryByRole("group", { name: "Planning summary" })
+    ).not.toBeInTheDocument();
   });
 
   it("shows a selected-artifact refinement action with guided instructions", () => {
@@ -5293,7 +5722,7 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
 
     fireEvent.click(screen.getByRole("tab", { name: "Code" }));
-    const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
+    const codePanel = screen.getByRole("tabpanel", { name: "Code" });
 
     expect(codePanel).toHaveAttribute(
       "data-opened-artifact",
@@ -5322,19 +5751,16 @@ describe("WorkstationShell", () => {
     ).toHaveAttribute("data-active", "true");
   });
 
-  it("selects artifacts from comparison and keeps code plus preview context synced", () => {
+  it("keeps artifact actions synced without mounting the comparison workspace", () => {
     renderShell(snapshotWithArtifactComparison());
 
-    const comparison = screen.getByRole("region", {
-      name: "Artifact comparison"
-    });
-    const shaderCandidate = within(comparison).getByLabelText(
-      "shader-field.frag comparison candidate"
-    );
-
+    expect(
+      screen.queryByRole("region", { name: "Artifact comparison" })
+    ).not.toBeInTheDocument();
+    const shaderCandidate = screen.getByLabelText("shader-field.frag artifact");
     fireEvent.click(
       within(shaderCandidate).getByRole("button", {
-        name: "Select shader-field.frag as preferred candidate"
+        name: "Open Preview shader-field.frag"
       })
     );
 
@@ -5347,19 +5773,9 @@ describe("WorkstationShell", () => {
         { selector: "summary span" }
       )
     ).toBeVisible();
-    expect(
-      within(
-        screen.getByRole("region", {
-          name: "Selected artifact refinement"
-        })
-      ).getByText(
-        "Target shader-field.frag without regenerating every candidate."
-      )
-    ).toBeVisible();
-
     fireEvent.click(screen.getByRole("tab", { name: "Code" }));
 
-    const codePanel = screen.getByRole("tabpanel", { name: "Code inspector" });
+    const codePanel = screen.getByRole("tabpanel", { name: "Code" });
 
     expect(codePanel).toHaveAttribute("data-opened-artifact", "shader-field.frag");
     expect(
@@ -5369,12 +5785,10 @@ describe("WorkstationShell", () => {
     ).toHaveTextContent("void main()");
 
     fireEvent.click(screen.getByRole("tab", { name: "Artifacts" }));
-    const refreshedComparison = screen.getByRole("region", {
-      name: "Artifact comparison"
-    });
+    const codeOnlyArtifact = screen.getByLabelText("field.wgsl artifact");
     fireEvent.click(
-      within(refreshedComparison).getByRole("button", {
-        name: "Select field.wgsl as preferred candidate"
+      within(codeOnlyArtifact).getByRole("button", {
+        name: "Open in Code field.wgsl"
       })
     );
 
@@ -5382,12 +5796,7 @@ describe("WorkstationShell", () => {
       "field.wgsl"
     );
     expect(
-      screen.queryByRole("region", { name: "Preview workspace" })
-    ).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("tab", { name: "Code" }));
-    expect(
-      screen.getByRole("tabpanel", { name: "Code inspector" })
+      screen.getByRole("tabpanel", { name: "Code" })
     ).toHaveAttribute("data-opened-artifact", "field.wgsl");
   });
 
@@ -5415,15 +5824,15 @@ describe("WorkstationShell", () => {
       })
     ).toBeVisible();
     expect(
-      within(details).getByRole("region", {
+      within(details).queryByRole("region", {
         name: "Creative translation summary"
       })
-    ).toHaveAttribute("data-state", "legacy");
+    ).not.toBeInTheDocument();
     expect(
-      within(details).getByRole("region", {
+      within(details).queryByRole("region", {
         name: "Audio-reactive mapping summary"
       })
-    ).toHaveAttribute("data-state", "legacy");
+    ).not.toBeInTheDocument();
   });
 
   it("shows compact creative translation guidance for generated artifacts", () => {
@@ -5557,106 +5966,46 @@ describe("WorkstationShell", () => {
       )
     });
 
-    const translation = screen.getByRole("region", {
-      name: "Creative translation summary"
-    });
+    expect(
+      screen.queryByRole("region", { name: "Creative translation summary" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: "Audio-reactive mapping summary" })
+    ).not.toBeInTheDocument();
 
-    expect(translation).toHaveAttribute("data-state", "available");
-    expect(within(translation).getByText("Audiovisual")).toBeVisible();
-    expect(within(translation).getByText("mandala")).toBeVisible();
-    expect(within(translation).getByText("geometry")).toBeVisible();
-    expect(within(translation).getByText("rhythm")).toBeVisible();
-    expect(within(translation).getByText("p5.js / Tone.js")).toBeVisible();
-    expect(within(translation).getByText(/Preserve atmosphere/)).toBeVisible();
-    const referenceFusion = within(translation).getByRole("region", {
-      name: "Reference fusion guidance"
-    });
-    expect(referenceFusion).toBeVisible();
-    expect(within(referenceFusion).getByText("2 references")).toBeVisible();
+    openDashboardKnowledgeBase();
+    const dashboard = screen.getByRole("region", { name: "Advanced Dashboard" });
     expect(
-      within(referenceFusion).getByText(/non-identifying guidance/)
-    ).toBeVisible();
+      within(dashboard).getAllByText("Creative Knowledge Base").length
+    ).toBeGreaterThan(0);
     expect(
-      within(referenceFusion).getByText("warm palette bias / neon accent contrast")
-    ).toBeVisible();
-    const geometry = within(translation).getByRole("region", {
-      name: "Geometry guidance"
-    });
-    expect(geometry).toBeVisible();
-    expect(
-      within(geometry).getByText("mandala / radial symmetry")
-    ).toBeVisible();
-    expect(
-      within(geometry).getByText("p5.js / GLSL / Tone.js")
-    ).toBeVisible();
-    const shaderPresets = within(translation).getByRole("region", {
-      name: "Shader preset guidance"
-    });
-    expect(shaderPresets).toBeVisible();
-    expect(
-      within(shaderPresets).getByText("glow / kaleidoscopic symmetry")
-    ).toBeVisible();
-    expect(
-      within(shaderPresets).getByText(
-        "Use the selected compatible runtime: p5.js."
+      within(dashboard).getByText(
+        "Create an audio-reactive mandala with a meditative pulse."
       )
-    ).toBeVisible();
-    const visualStyle = within(translation).getByRole("region", {
-      name: "Visual style guidance"
-    });
-    expect(visualStyle).toBeVisible();
-    expect(
-      within(visualStyle).getByText("minimal / geometry")
-    ).toBeVisible();
-    expect(
-      within(visualStyle).getByText(
-        "Use the selected compatible runtime: p5.js."
-      )
-    ).toBeVisible();
-    const mapping = screen.getByRole("region", {
-      name: "Audio-reactive mapping summary"
-    });
-    expect(mapping).toHaveAttribute("data-state", "available");
-    expect(within(mapping).getByText("2 bounded links")).toBeVisible();
-    expect(within(mapping).getByText("Scale / Glow")).toBeVisible();
-    expect(
-      within(mapping).getByText(/Audio remains silent until explicit start/)
-    ).toBeVisible();
+    ).toBeInTheDocument();
   });
 
   it("keeps optional creative guidance absent for legacy artifact metadata", () => {
     renderShell(snapshotWithActiveTab("Artifacts"));
 
-    const translation = screen.getByRole("region", {
-      name: "Creative translation summary"
-    });
-
-    expect(translation).toHaveAttribute("data-state", "legacy");
     expect(
-      within(translation).queryByRole("region", {
-        name: "Geometry guidance"
-      })
+      screen.queryByRole("region", { name: "Creative translation summary" })
     ).not.toBeInTheDocument();
     expect(
-      within(translation).queryByRole("region", {
-        name: "Shader preset guidance"
-      })
+      screen.queryByRole("region", { name: "Geometry guidance" })
     ).not.toBeInTheDocument();
     expect(
-      within(translation).queryByRole("region", {
-        name: "Visual style guidance"
-      })
+      screen.queryByRole("region", { name: "Shader preset guidance" })
     ).not.toBeInTheDocument();
     expect(
-      within(translation).queryByRole("region", {
-        name: "Reference fusion guidance"
-      })
+      screen.queryByRole("region", { name: "Visual style guidance" })
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole("region", {
-        name: "Audio-reactive mapping summary"
-      })
-    ).toHaveAttribute("data-state", "legacy");
+      screen.queryByRole("region", { name: "Reference fusion guidance" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: "Audio-reactive mapping summary" })
+    ).not.toBeInTheDocument();
   });
 
   it("labels unsupported artifacts as code-only in the artifacts inspector", () => {
@@ -5702,7 +6051,62 @@ describe("WorkstationShell", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("requires approval before downloading an artifact and records the action in workflow traces", async () => {
+  it("confirms artifact deletion, preserves cancel focus, and exposes Undo", async () => {
+    const snapshot = snapshotWithActiveTab("Artifacts");
+    const artifact =
+      snapshot.artifacts.find((candidate) => candidate.isDefault) ??
+      snapshot.artifacts[0];
+    renderShell(snapshot);
+
+    const details = screen.getByRole("group", { name: "Active artifact details" });
+    const deleteButton = within(details).getByRole("button", {
+      name: "Delete artifact"
+    });
+
+    deleteButton.focus();
+    fireEvent.click(deleteButton);
+    let dialog = screen.getByRole("alertdialog", {
+      name: `Delete ${artifact.title}?`
+    });
+    const cancelButton = within(dialog).getByRole("button", {
+      name: "Keep artifact"
+    });
+    await waitFor(() => expect(cancelButton).toHaveFocus());
+
+    fireEvent.click(cancelButton);
+    await waitFor(() => {
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+      expect(deleteButton).toHaveFocus();
+    });
+    expect(screen.getByLabelText(`${artifact.title} artifact`)).toBeVisible();
+
+    deleteButton.focus();
+    fireEvent.click(deleteButton);
+    dialog = screen.getByRole("alertdialog", {
+      name: `Delete ${artifact.title}?`
+    });
+    await act(async () => {
+      fireEvent.click(
+        within(dialog).getByRole("button", { name: "Delete artifact" })
+      );
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+      expect(
+        screen.queryByLabelText(`${artifact.title} artifact`)
+      ).not.toBeInTheDocument();
+    });
+    const undoNotice = screen.getByText(`${artifact.title} was deleted.`).closest(
+      "[role='status']"
+    );
+    expect(undoNotice).not.toBeNull();
+    expect(within(undoNotice as HTMLElement).getByRole("button", { name: "Undo" }))
+      .toBeVisible();
+  });
+
+  it("requires approval before downloading an artifact", async () => {
     const confirmSpy = vi.spyOn(window, "confirm").mockImplementation(() => true);
     const anchorClick = vi
       .spyOn(HTMLAnchorElement.prototype, "click")
@@ -5744,10 +6148,10 @@ describe("WorkstationShell", () => {
     ).toBeVisible();
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
-    const events = screen.getByRole("group", { name: "Workflow event trace" });
-
-    expect(within(events).getByText("Artifact Download Approval Requested")).toBeVisible();
-    expect(within(events).getByText("Artifact Download Completed")).toBeVisible();
+    const workflowPanel = screen.getByRole("tabpanel", { name: "Workflow" });
+    expect(
+      within(workflowPanel).queryByRole("group", { name: "Workflow event trace" })
+    ).not.toBeInTheDocument();
   });
 
   it("exports the current workspace bundle through the existing approval flow", async () => {
@@ -5790,12 +6194,10 @@ describe("WorkstationShell", () => {
     expect(anchor.download).toBe("local-nextjs-workspace-bundle.zip");
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
-    const events = screen.getByRole("group", { name: "Workflow event trace" });
-
+    const workflowPanel = screen.getByRole("tabpanel", { name: "Workflow" });
     expect(
-      within(events).getByText("Project Bundle Export Approval Requested")
-    ).toBeVisible();
-    expect(within(events).getByText("Project Bundle Export Completed")).toBeVisible();
+      within(workflowPanel).queryByRole("group", { name: "Workflow event trace" })
+    ).not.toBeInTheDocument();
   });
 
   it("shows artifact transfer failures in the artifacts and workflow surfaces", async () => {
@@ -5855,80 +6257,21 @@ describe("WorkstationShell", () => {
     expect(screen.getByText("Copied")).toBeVisible();
   });
 
-  it("shows an elegant workflow inspector with live graph states", () => {
+  it("shows a compact workflow cockpit with live graph states", () => {
     renderShell(snapshotWithActiveTab("Workflow"));
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
     expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
-    const workflowPanel = screen.getByRole("tabpanel", { name: "Workflow inspector" });
+    const workflowPanel = screen.getByRole("tabpanel", { name: "Workflow" });
     expect(workflowPanel).toBeVisible();
     const graph = screen.getByRole("group", {
       name: "LangGraph workflow visualization"
     });
 
     expect(graph).toBeVisible();
-    const timeline = within(workflowPanel).getByRole("group", {
-      name: "Workflow timeline explorer"
-    });
-    const explorer = within(workflowPanel).getByRole("group", {
-      name: "Workflow explorer"
-    });
-    const provenance = within(workflowPanel).getByRole("group", {
-      name: "Provenance summary"
-    });
-    const creativeTimeline = within(workflowPanel).getByRole("group", {
-      name: "Creative timeline"
-    });
-    const v3InspectorPanels = within(workflowPanel).getByRole("group", {
-      name: "V3 inspector panels"
-    });
-    expect(timeline).toBeVisible();
-    expect(explorer).toBeVisible();
-    expect(provenance).toBeVisible();
-    expect(creativeTimeline).toBeVisible();
-    expect(v3InspectorPanels).toBeVisible();
     expect(
-      within(creativeTimeline).getByRole("list", {
-        name: "Creative timeline events"
-      })
+      screen.getByRole("group", { name: "Workflow execution decision" })
     ).toBeVisible();
-    expect(
-      within(creativeTimeline).getByRole("listitem", {
-        name: "Request intake creative timeline event"
-      })
-    ).toHaveAttribute("data-status", "complete");
-    expect(within(creativeTimeline).getByText("Artifact intelligence")).toBeVisible();
-    expect(
-      within(v3InspectorPanels).getByRole("group", {
-        name: "Creative Intelligence inspector panel"
-      })
-    ).toBeVisible();
-    expect(
-      within(v3InspectorPanels).getByRole("group", {
-        name: "Provenance inspector panel"
-      })
-    ).toHaveTextContent("2 evidence sources");
-    expect(
-      within(provenance).getByRole("group", { name: "Provenance source counts" })
-    ).toHaveTextContent("2 evidence");
-    expect(
-      within(provenance).getByRole("region", { name: "Unsupported or missing sources" })
-    ).toHaveTextContent("Dependency sources");
-    expect(
-      within(explorer).getByRole("group", {
-        name: "Retrieval workflow explorer stage"
-      })
-    ).toHaveAttribute("data-state", "partial");
-    expect(
-      within(explorer).getByRole("group", {
-        name: "Artifact intelligence workflow explorer stage"
-      })
-    ).toHaveTextContent("workspace artifacts");
-    expect(
-      within(explorer).getByRole("group", { name: "Final response workflow explorer stage" })
-    ).toHaveTextContent("Drafting a p5.js sketch");
-    expect(within(timeline).getByText("No workflow timeline yet")).toBeVisible();
-    expect(screen.getByLabelText("Workflow execution summary")).toBeVisible();
     expect(
       screen.getByRole("progressbar", { name: "Workflow inspector progress" })
     ).toHaveAttribute("aria-valuetext", "11 of 17 workflow nodes reached");
@@ -5937,17 +6280,26 @@ describe("WorkstationShell", () => {
       "aria-current",
       "step"
     );
-    expect(within(graph).getByText("context_assembly")).toBeVisible();
-    expect(within(graph).getByText("prompt_rendering")).toBeVisible();
-    expect(within(graph).getByText("failure")).toBeVisible();
-    expect(
-      within(workflowPanel).getByText("No runtime transitions recorded yet.")
-    ).toBeVisible();
+    expect(within(graph).getByText("Context assembly")).toBeVisible();
+    expect(within(graph).getByText("Prompt rendering")).toBeVisible();
+    for (const deepSurface of [
+      "Workflow timeline explorer",
+      "Workflow explorer",
+      "Provenance summary",
+      "Creative timeline",
+      "V3 inspector panels",
+      "Workflow transition trace",
+      "Workflow event trace"
+    ]) {
+      expect(
+        within(workflowPanel).queryByRole("group", { name: deepSurface })
+      ).not.toBeInTheDocument();
+    }
     expect(screen.queryByText("Preview request")).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Review" })).not.toBeInTheDocument();
   });
 
-  it("renders runtime transitions, retries, and event traces from streamed metadata", async () => {
+  it("keeps streamed workflow state compact and moves transition history to Dashboard", async () => {
     const skippedSteps = [
       "memory",
       "retrieval",
@@ -6456,53 +6808,32 @@ describe("WorkstationShell", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
 
-    const workflowPanel = screen.getByRole("tabpanel", { name: "Workflow inspector" });
+    const workflowPanel = screen.getByRole("tabpanel", { name: "Workflow" });
     const workflowGraph = within(workflowPanel).getByRole("group", {
       name: "LangGraph workflow visualization"
     });
-    const transitions = within(workflowPanel).getByRole("group", {
-      name: "Workflow transition trace"
-    });
-    const events = within(workflowPanel).getByRole("group", {
-      name: "Workflow event trace"
-    });
-    const retries = within(workflowPanel).getByRole("group", {
-      name: "Workflow retries"
-    });
-    const timeline = within(workflowPanel).getByRole("group", {
-      name: "Workflow timeline explorer"
-    });
-
-    expect(within(retries).getByText("1 retry loop")).toBeVisible();
     expect(
-      within(timeline).getByRole("list", {
-        name: "Chronological workflow events"
+      screen.getByRole("group", { name: "Workflow execution decision" })
+    ).toBeVisible();
+    expect(
+      screen.getByRole("progressbar", { name: "Workflow inspector progress" })
+    ).toBeVisible();
+    expect(
+      within(workflowPanel).queryByRole("group", { name: "Workflow retries" })
+    ).not.toBeInTheDocument();
+    expect(
+      within(workflowPanel).queryByRole("group", {
+        name: "Workflow transition trace"
       })
-    ).toBeVisible();
+    ).not.toBeInTheDocument();
     expect(
-      within(timeline).getAllByText("Provider generation completed")
-    ).toHaveLength(2);
-    expect(within(timeline).getByText("Review needs refinement")).toBeVisible();
-    expect(within(timeline).getByText("Final response")).toBeVisible();
+      within(workflowPanel).queryByRole("group", { name: "Workflow event trace" })
+    ).not.toBeInTheDocument();
     expect(
-      within(timeline).getAllByText("Review Failed Retry Available").length
-    ).toBeGreaterThan(0);
-    expect(within(transitions).getByText("Review -> Refinement")).toBeVisible();
-    expect(
-      within(transitions).getByText("Review Failed Retry Available")
-    ).toBeVisible();
-    expect(within(transitions).getByText("Refinement -> Generation")).toBeVisible();
-    expect(
-      within(transitions).getAllByText("Generation -> Artifact extraction")
-    ).toHaveLength(2);
-    expect(
-      within(transitions).getAllByText(
-        "Artifact extraction -> Preview preparation"
-      )
-    ).toHaveLength(2);
-    expect(within(events).getByText("Retry Completed")).toBeVisible();
-    expect(within(events).getByText("Review Passed")).toBeVisible();
-    expect(within(events).getByText("Final")).toBeVisible();
+      within(workflowPanel).queryByRole("group", {
+        name: "Workflow timeline explorer"
+      })
+    ).not.toBeInTheDocument();
     expect(
       within(workflowGraph).getByText("Artifact extraction").closest("article")
     ).toHaveAttribute("data-state", "complete");
@@ -6515,9 +6846,27 @@ describe("WorkstationShell", () => {
     expect(
       within(workflowGraph).getByText("Finalization").closest("article")
     ).toHaveAttribute("data-state", "complete");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open Workflow in Dashboard" })
+    );
+    const dashboard = screen.getByRole("region", { name: "Advanced Dashboard" });
+    const workflowMap = within(dashboard).getByLabelText("Live workflow map");
+    expect(workflowMap).toBeVisible();
+    expect(workflowMap).toHaveTextContent("1");
+    const recentTransitions = within(workflowMap)
+      .getByText(/Recent transitions/)
+      .closest("details");
+    expect(recentTransitions).not.toBeNull();
+    fireEvent.click(
+      (recentTransitions as HTMLElement).querySelector("summary") as HTMLElement
+    );
+    expect(
+      within(workflowMap).getByRole("list", { name: "Recent workflow transitions" })
+    ).toBeVisible();
   });
 
-  it("renders provider telemetry in the overview and workflow inspector", async () => {
+  it("keeps provider telemetry in the Telemetry cockpit instead of duplicating it", async () => {
     const backendStream = vi.fn(() =>
       streamEvents([
         runtimeWorkflowEvent({
@@ -6612,45 +6961,45 @@ describe("WorkstationShell", () => {
 
     expect(await screen.findByText("Telemetry answer.")).toBeVisible();
 
-    const overviewTelemetry = screen.getByRole("group", {
-      name: "Telemetry summary"
-    });
-    expect(within(overviewTelemetry).getByText("$0.0009")).toBeVisible();
-    expect(within(overviewTelemetry).getByText(/1,500 tokens/)).toBeVisible();
-    expect(
-      within(overviewTelemetry).getByText("openai / gpt-5-mini")
-    ).toBeVisible();
     expect(screen.getByLabelText("Current session")).toHaveTextContent(
       "1,500 tokens · $0.0009"
     );
+    expect(
+      screen.queryByRole("group", { name: "Telemetry summary" })
+    ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));
 
     const workflowPanel = screen.getByRole("tabpanel", {
-      name: "Workflow inspector"
+      name: "Workflow"
     });
-    const tokenUsage = within(workflowPanel).getByRole("group", {
-      name: "Workflow token usage"
-    });
-    const costEstimate = within(workflowPanel).getByRole("group", {
-      name: "Workflow cost estimate"
-    });
-    const lifecycle = within(workflowPanel).getByRole("group", {
-      name: "Generation telemetry lifecycle"
-    });
-
-    expect(within(tokenUsage).getByText("1,500")).toBeVisible();
-    expect(within(tokenUsage).getByText(/1,200 input/)).toBeVisible();
-    expect(within(costEstimate).getByText("$0.0009")).toBeVisible();
     expect(
-      within(costEstimate).getByText("Estimated from pricing metadata")
+      within(workflowPanel).queryByRole("group", { name: "Workflow token usage" })
+    ).not.toBeInTheDocument();
+    expect(
+      within(workflowPanel).queryByRole("group", {
+        name: "Workflow cost estimate"
+      })
+    ).not.toBeInTheDocument();
+    expect(
+      within(workflowPanel).queryByRole("group", {
+        name: "Generation telemetry lifecycle"
+      })
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Telemetry" }));
+    const telemetryPanel = screen.getByRole("tabpanel", {
+      name: "Telemetry"
+    });
+    expect(
+      within(telemetryPanel).getByRole("group", { name: "Provider signal" })
+    ).toHaveTextContent("openai / $0.0009");
+    expect(
+      within(telemetryPanel).getByLabelText("Telemetry signal summary")
     ).toBeVisible();
-    expect(within(lifecycle).getByText("openai / gpt-5-mini")).toBeVisible();
-    expect(within(lifecycle).getByText("Generation input")).toBeVisible();
-    expect(within(lifecycle).getAllByText("First token").length).toBeGreaterThan(0);
   });
 
-  it("renders the advanced telemetry dashboard without fake metrics", async () => {
+  it("keeps telemetry evidence concise in Inspector and complete in Dashboard", async () => {
     const backendStream = vi.fn(() =>
       streamEvents([
         runtimeWorkflowEvent({
@@ -6772,88 +7121,57 @@ describe("WorkstationShell", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: "Telemetry" }));
 
-    const dashboard = screen.getByRole("tabpanel", {
-      name: "Telemetry dashboard"
+    const telemetryPanel = screen.getByRole("tabpanel", {
+      name: "Telemetry"
     });
-    expect(dashboard).toBeVisible();
-    expect(within(dashboard).getByLabelText("Telemetry signal summary")).toBeVisible();
-    const evidenceDisclosure = within(dashboard)
-      .getByText("Evidence detail")
-      .closest("details");
-    expect(evidenceDisclosure).not.toHaveAttribute("open");
+    expect(telemetryPanel).toBeVisible();
     expect(
-      within(dashboard).getByRole("group", { name: "Stream lifecycle" })
-    ).not.toBeVisible();
-    fireEvent.click((evidenceDisclosure as HTMLElement).querySelector("summary")!);
-    expect(
-      within(dashboard).getByRole("group", { name: "Stream lifecycle" })
+      within(telemetryPanel).getByLabelText("Telemetry signal summary")
     ).toBeVisible();
     expect(
-      within(dashboard).getByRole("group", {
+      within(telemetryPanel).getByRole("group", { name: "Provider signal" })
+    ).toHaveTextContent("150 tokens");
+    expect(
+      within(telemetryPanel).getByRole("group", { name: "Evaluation signal" })
+    ).toHaveTextContent("eval-run-1");
+    expect(
+      within(telemetryPanel).queryByText("Evidence detail")
+    ).not.toBeInTheDocument();
+    expect(
+      within(telemetryPanel).queryByRole("group", {
         name: "Provider observability deep dive"
       })
-    ).toBeVisible();
-    const providerDeepDive = within(dashboard).getByRole("group", {
-      name: "Provider observability deep dive"
-    });
-    expect(within(providerDeepDive).getByText("Streaming generation")).toBeVisible();
-    expect(within(providerDeepDive).getByText("780 ms")).toBeVisible();
-    expect(within(providerDeepDive).getByText("0 retries")).toBeVisible();
-    expect(within(providerDeepDive).getByText("Stream completed")).toBeVisible();
-    const creativeCost = within(dashboard).getByRole("group", {
-      name: "Creative cost intelligence dashboard"
-    });
-    expect(within(creativeCost).getByText("Session cost unavailable")).toBeVisible();
-    expect(within(creativeCost).getByText("120 tokens")).toBeVisible();
-    expect(within(creativeCost).getByText("30 tokens")).toBeVisible();
-    expect(within(creativeCost).getByText("1 completed run")).toBeVisible();
+    ).not.toBeInTheDocument();
     expect(
-      within(dashboard).getByRole("group", { name: "Runtime lifecycle" })
-    ).toBeVisible();
-    expect(
-      within(dashboard).getByRole("group", {
-        name: "Renderer and preview health"
+      within(telemetryPanel).queryByRole("group", {
+        name: "Evaluation session dashboard"
       })
-    ).toBeVisible();
-    expect(
-      within(dashboard).getByRole("group", { name: "Retrieval activity" })
-    ).toBeVisible();
+    ).not.toBeInTheDocument();
 
-    const langsmith = within(dashboard).getByRole("group", {
-      name: "LangSmith trace deep dive"
-    });
-    const evaluation = within(dashboard).getByRole("group", {
-      name: "Evaluation session dashboard"
-    });
-
-    expect(within(langsmith).getByText("Local trace metadata")).toBeVisible();
-    expect(within(langsmith).getByLabelText("Trace status Complete")).toBeVisible();
-    expect(within(langsmith).getByText("missing_api_key")).toBeVisible();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open Telemetry in Dashboard" })
+    );
+    const dashboard = screen.getByRole("region", { name: "Advanced Dashboard" });
+    const observatory = within(dashboard).getByLabelText("Telemetry observatory");
+    expect(observatory).toBeVisible();
     expect(
-      within(langsmith).getByRole("region", {
-        name: "LangSmith trace hierarchy"
-      })
+      within(observatory).getByRole("list", { name: "Run evidence checkpoints" })
     ).toBeVisible();
-    expect(within(langsmith).getAllByText("Intake")).toHaveLength(2);
-    expect(within(evaluation).getByText("Evaluation complete")).toBeVisible();
-    expect(within(evaluation).getByText("82%")).toBeVisible();
     expect(
-      within(evaluation).getByLabelText("Evaluation status Pass")
-    ).toBeVisible();
-    expect(within(evaluation).getByText("RAGAs live")).toBeVisible();
-    expect(within(evaluation).getByText("eval-run-1")).toBeVisible();
-    expect(within(evaluation).getByText("dataset-live-1")).toBeVisible();
+      within(observatory).getByLabelText("Run measurement facts")
+    ).toHaveTextContent("150 tokens");
     expect(
-      within(evaluation).getByRole("group", {
-        name: "Retrieval quality evaluation signal"
-      })
-    ).toHaveTextContent("84%");
-    const eventDisclosure = within(dashboard)
-      .getByText("Raw event distribution")
+      within(observatory).getByLabelText("Run measurement facts")
+    ).toHaveTextContent("Cost pending");
+    const evidenceDisclosure = within(observatory)
+      .getByText("Provider, observability, and evaluation evidence")
       .closest("details");
-    fireEvent.click((eventDisclosure as HTMLElement).querySelector("summary")!);
+    expect(evidenceDisclosure).not.toBeNull();
+    fireEvent.click(
+      (evidenceDisclosure as HTMLElement).querySelector("summary") as HTMLElement
+    );
     expect(
-      within(dashboard).getByRole("group", { name: "Telemetry event type counts" })
+      within(observatory).getByLabelText("Supporting telemetry signals")
     ).toBeVisible();
   });
 
