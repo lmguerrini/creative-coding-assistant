@@ -153,5 +153,6 @@ Do not run current local knowledge-base excerpts through an external generation
 or evaluator provider. Current-product end-to-end RAGAS remains
 `BLOCKED_BY_EXECUTION_ENVIRONMENT` until a reviewed committed sanitized/redacted
 dataset represents that path. The latest defensible provider score remains the
-committed approved-fixture run; `MISSING_EVIDENCE` and blocked dimensions are
-never converted to zero.
+committed transcribed product summary of the approved-fixture result; the raw
+scored JSONL and run manifest are not tracked artifacts. `MISSING_EVIDENCE` and
+blocked dimensions are never converted to zero.

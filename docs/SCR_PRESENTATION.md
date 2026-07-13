@@ -1,0 +1,125 @@
+# SCR Presentation
+
+This reviewer-facing narrative uses **Situation–Complication–Resolution** to
+explain why Creative Coding Assistant exists, what is demonstrably working, and
+where its boundaries remain. It is designed as the opening three minutes of a
+ten-minute capstone presentation, followed by the live product and evaluation
+evidence.
+
+## One-slide version
+
+| Situation | Complication | Resolution |
+|---|---|---|
+| Creative technologists move between ideas, official API documentation, code editors, and browser runtimes. They need rapid exploration without losing control of the artifact. | A generic assistant can return plausible code while hiding weak sources, route choices, unsupported runtimes, or image handling. That makes a polished answer difficult to review and reproduce. | Creative Coding Assistant turns text or bounded image references into an inspectable code artifact through a published Single/Multi route, optional official-source retrieval, a bounded LangGraph workflow, browser preview metadata, persistent sessions, and explicit evaluation evidence. |
+
+**Claim in one sentence:** the product does not try to replace the creative
+coder; it makes AI-assisted creative-code exploration more visible, grounded,
+and reviewable.
+
+## Sixty-second opening
+
+> Creative coders often begin with an aesthetic idea but must immediately cross
+> several technical boundaries: choose a library, find reliable documentation,
+> translate intent into code, and verify the result in a browser. A general
+> chatbot can accelerate the first draft, but a convincing answer is not the
+> same as a traceable working artifact. Creative Coding Assistant addresses that
+> gap with a Next.js workstation and a bounded backend workflow. The user can
+> submit a prompt or a validated image reference, see whether Single, Multi, or
+> Auto was requested and which route actually ran, inspect official-source
+> retrieval and node events, extract the generated code, and preview the four
+> canonical live domains: p5.js, Three.js, GLSL, and Tone.js. The point is not an
+> invisible agent swarm. It is a compact creative loop whose route, evidence,
+> artifact, and limitations remain available for review.
+
+## Narrated structure with demo cues
+
+### Situation — 0:00–0:50
+
+Show the Creative Session rather than a slide full of feature names.
+
+- Start from a visual or sonic intention, such as a Three.js orbit sculpture.
+- Point to the domain and workflow selectors.
+- Explain that the desired outcome is an editable artifact and a runtime result,
+  not prose alone.
+
+Transition: “The hard part is not producing code-shaped text; it is knowing what
+happened between the idea and the result.”
+
+### Complication — 0:50–1:35
+
+Use the Inspector and Evaluation surfaces to make the risk concrete.
+
+- Source registration, indexing, retrieval, and citation are different states.
+- Single and Multi are different execution paths; Multi is sequential
+  application logic, not five parallel provider-backed agents.
+- Auto is a selector. Under the current default capability map, ordinary Auto
+  requests resolve to Multi because every task mode includes official-document
+  capability.
+- A listed runtime is not automatically a live internal preview. The canonical
+  browser-preview contract is p5.js, Three.js, GLSL, and Tone.js.
+- An uploaded image matters only if its validated bytes enter the provider
+  payload; filename metadata alone would not be multimodal generation.
+
+Transition: “So the product has to expose those boundaries instead of asking a
+reviewer to trust the interface.”
+
+### Resolution — 1:35–3:00
+
+Run one request and narrate only evidence visible in the product or repository.
+
+1. The Next.js client sends the request to the exact-path WSGI API.
+2. The compiled LangGraph emits lifecycle and node events.
+3. Multi retrieves official-source context, prepares typed planning guidance,
+   calls the generation provider, extracts an artifact, prepares preview
+   metadata, reviews the result, and allows at most one refinement pass.
+4. The response preserves the resolved route, executed nodes, source context,
+   artifact, and terminal state for inspection.
+5. A supported domain opens through its browser-focused preview path; other
+   domains remain code/export or external-tool handoffs unless separately
+   validated.
+
+Then show the evaluation boundary:
+
+- The canonical fixed retrieval run completed all **7/7** cases.
+- It covered **16/23 expected source anchors (69.57%)**.
+- It covered **18/19 requested domains (94.74%)**.
+- A separate four-case approved synthetic RAGAS fixture reported context
+  precision `0.999999999925`, faithfulness `0.29583333333333334`, answer
+  relevancy `0.4742546883775048`, and context relevancy `0.6875`.
+
+Do not merge those values into one product-quality score. The displayed 61.44%
+macro is an arithmetic presentation summary across the four component means,
+not an official RAGAS metric, a project grade, or proof of current live-output
+quality. Context recall is not present in that result.
+
+## Evidence ledger for the slide
+
+| Statement | Evidence to open | Boundary to say aloud |
+|---|---|---|
+| Single and Multi execute different paths | [Runtime workflow graph](../architecture/workflow_graph.md) and streamed node events | Multi responsibilities are sequential; only generation crosses the model boundary |
+| Image-guided input is genuine | [Architecture Walkthrough](ARCHITECTURE_WALKTHROUGH.md) and multimodal request tests | At most four PNG/JPEG/WebP/GIF files, 1 MiB each; request bytes are not restored with sessions |
+| Retrieval is evaluated | [`canonical_retrieval_report.json`](../demo/evaluation/canonical_retrieval_report.json) | Coverage is not grounded-answer quality |
+| RAGAS components exist | [Evaluation Metrics Summary](EVALUATION_METRICS_SUMMARY.md) | Four approved synthetic fixtures; no context-recall value |
+| Browser previews are bounded | [Capability Matrix](CAPABILITY_MATRIX.md) | Four canonical live domains; other adapters/handoffs are not the same claim |
+| Privacy is inspectable | [Ethics & Privacy Assessment](ETHICS_PRIVACY_ASSESSMENT.md) | Provider and embedding calls can send user/source text off-device; no production auth claim |
+
+## Closing line
+
+> The resolution is not “AI generates perfect art.” It is that a creative coder
+> can move from intention to an inspectable artifact while the system keeps its
+> route, sources, runtime boundary, and uncertainty visible enough to challenge.
+
+## Presentation guardrails
+
+- Keep the architecture terms tied to observable behavior.
+- Treat automated checks as engineering evidence, not human aesthetic judgment.
+- If the provider or network is unavailable, show the truthful failure state and
+  switch to committed evidence; do not present a prerecorded success as live.
+- State when a metric belongs to a fixed retrieval report or synthetic fixture.
+- Do not describe metadata registries as runtime agents, model routing, telemetry,
+  or autonomous policy execution.
+
+Continue with the [SMART Presentation](SMART_PRESENTATION.md) for measurable
+scope, the [Ten-Minute Presentation](TEN_MINUTE_PRESENTATION.md) for timing, and
+the [Evaluation Criteria Mapping](EVALUATION_CRITERIA_MAPPING.md) for the
+reviewer evidence path.

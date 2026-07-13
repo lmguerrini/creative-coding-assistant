@@ -1,134 +1,102 @@
 flowchart TB
-    %% Class palette
-    classDef boundary fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px;
-    classDef implemented fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
-    classDef gate fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px;
-    classDef failure fill:#FEE2E2,stroke:#B91C1C,color:#7F1D1D,stroke-width:1.5px;
-    classDef terminal fill:#E3F2FD,stroke:#1565C0,color:#0D47A1,stroke-width:1.5px;
-    classDef relationship fill:#FEFCE8,stroke:#A16207,color:#713F12,stroke-width:1.5px,stroke-dasharray: 6 4;
+    classDef boundary fill:#f4f4f5,stroke:#52525b,color:#18181b,stroke-width:1.5px
+    classDef runtime fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:1.5px
+    classDef decision fill:#e0f2fe,stroke:#0369a1,color:#0c4a6e,stroke-width:1.5px
+    classDef store fill:#fefce8,stroke:#a16207,color:#713f12,stroke-width:1.5px
+    classDef external fill:#fff7ed,stroke:#c2410c,color:#7c2d12,stroke-width:1.5px
+    classDef terminal fill:#ede9fe,stroke:#6d28d9,color:#4c1d95,stroke-width:1.5px
+    classDef failed fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:1.5px
 
-    %% Terminal nodes
-    start([START])
-    finish([END])
+    user["Creative coder"]:::boundary
+    ui["Next.js Creative Session"]:::boundary
+    api["Exact-path WSGI API<br/>NDJSON stream"]:::boundary
+    requested{"Requested mode<br/>Single / Multi / Auto"}:::decision
+    resolved{"Published resolved route<br/>Single or Multi"}:::decision
 
-    %% Runtime phases
-    subgraph phase_1["Phase 1: Intake and Routing"]
+    subgraph graph["Compiled LangGraph runtime"]
         direction TB
-        intake["Intake<br/>emit status: request_received"]
-        routing["Routing<br/>select route<br/>store route_decision + route_payload<br/>emit status: route_selected"]
+        intake["intake"]:::runtime
+        routing["routing"]:::runtime
+        memory["memory"]:::runtime
+        retrieval["retrieval<br/>complete or explicit skip"]:::runtime
+        context_assembly["context_assembly"]:::runtime
+        prompt_input["prompt_input"]:::runtime
+        clarification{"clarification needed?"}:::decision
+        route_branch{"resolved route"}:::decision
+        planning["planning"]:::runtime
+        director["director"]:::runtime
+        reasoning["reasoning"]:::runtime
+        prompt_rendering["prompt_rendering"]:::runtime
+        generation["generation"]:::runtime
+        artifact_extraction["artifact_extraction"]:::runtime
+        preview_preparation["preview_preparation"]:::runtime
+        post_preview{"resolved route"}:::decision
+        artifact_critique["artifact_critique"]:::runtime
+        review["review"]:::runtime
+        review_gate{"pass / retry exhausted<br/>or refine once"}:::decision
+        refinement["refinement"]:::runtime
+        finalization["finalization"]:::runtime
+        failure["failure"]:::failed
+
+        intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input
+        prompt_input --> clarification
+        clarification -->|"yes"| finalization
+        clarification -->|"no"| route_branch
+        route_branch -->|"Single"| prompt_rendering
+        route_branch -->|"Multi"| planning
+        planning --> director --> reasoning --> prompt_rendering
+        prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> post_preview
+        post_preview -->|"Single"| finalization
+        post_preview -->|"Multi"| artifact_critique --> review --> review_gate
+        review_gate -->|"pass or exhausted"| finalization
+        review_gate -->|"refine once"| refinement --> generation
     end
 
-    subgraph phase_2["Phase 2: Context Preparation"]
-        direction TB
-        memory["Memory<br/>retrieve memory context<br/>complete or skip"]
-        retrieval["Retrieval<br/>retrieve KB context<br/>complete or skip"]
-        context_assembly["Context assembly<br/>combine memory + retrieval<br/>complete or skip"]
-    end
+    final_event["terminal final event"]:::terminal
+    failure_event["terminal failure event"]:::failed
+    chroma["Local Chroma<br/>official docs and memory"]:::store
+    sqlite["Local SQLite<br/>workspace sessions"]:::store
+    embeddings["OpenAI embeddings"]:::external
+    responses["OpenAI Responses<br/>text plus validated image data"]:::external
+    preview["Browser preview<br/>p5.js / Three.js / GLSL / Tone.js"]:::boundary
 
-    subgraph phase_3["Phase 3: Prompt Preparation"]
-        direction TB
-        prompt_input["Prompt input<br/>build prompt inputs<br/>complete or skip"]
-        planning["Planning<br/>derive V3.1-V3.4 metadata<br/>complete or skip"]
-        director["Director<br/>derive bounded guidance<br/>complete or skip"]
-        reasoning["Reasoning<br/>synthesize stored metadata signals<br/>complete or skip"]
-        prompt_rendering["Prompt rendering<br/>serialize provider prompt sections<br/>complete or skip"]
-    end
+    user --> ui --> api --> requested --> intake
+    routing --> resolved
+    resolved -. "controls later branches" .-> route_branch
+    resolved -. "controls later branches" .-> post_preview
+    memory <--> chroma
+    retrieval <--> chroma
+    retrieval -. "query text" .-> embeddings
+    generation -. "provider request" .-> responses
+    finalization --> final_event --> api --> ui
+    failure --> failure_event --> api
+    ui <--> sqlite
+    ui --> preview --> user
 
-    subgraph phase_4["Phase 4: Answer Production"]
-        direction TB
-        generation["Generation<br/>prepare provider input<br/>stream tokens<br/>store generation_result"]
-        artifact_extraction["Artifact extraction<br/>normalize code artifacts<br/>emit artifact_extracted"]
-        preview_preparation["Preview preparation<br/>prepare preview metadata<br/>emit preview_artifact"]
-        artifact_critique["Artifact critique<br/>score artifacts<br/>emit artifact_critique"]
-        review{{"Review quality gate<br/>deterministic checks<br/>emit review + retry events"}}
-        refinement["Refinement<br/>append guidance<br/>emit refinement_completed<br/>max one attempt"]
-        finalization["Finalization<br/>resolve final answer<br/>emit final<br/>finish_workflow()"]
-        failure["Failure<br/>emit final failure answer<br/>mark workflow FAILED"]
-    end
+    intake -. "pending failure" .-> failure
+    routing -. "pending failure" .-> failure
+    memory -. "pending failure" .-> failure
+    retrieval -. "pending failure" .-> failure
+    context_assembly -. "pending failure" .-> failure
+    prompt_input -. "pending failure" .-> failure
+    planning -. "pending failure" .-> failure
+    director -. "pending failure" .-> failure
+    reasoning -. "pending failure" .-> failure
+    prompt_rendering -. "pending failure" .-> failure
+    generation -. "pending failure" .-> failure
+    artifact_extraction -. "pending failure" .-> failure
+    preview_preparation -. "pending failure" .-> failure
+    artifact_critique -. "pending failure" .-> failure
+    review -. "pending failure" .-> failure
+    refinement -. "pending failure" .-> failure
+    finalization -. "pending failure" .-> failure
 
-    %% Documentation boundaries
-    metadata_boundary["Metadata boundary<br/>V3.1-V3.4 planning outputs<br/>stored on workflow + prompt input state"]:::relationship
-    workstation_boundary["Workstation inspection boundary<br/>stream events + snapshots hydrate UI<br/>no extra runtime nodes"]:::relationship
-    orchestration_boundary["V4.2 orchestration metadata boundary<br/>passive registries over V4.1 agents<br/>no runtime orchestration"]:::relationship
-    hybrid_workflow_boundary["V4.3 hybrid workflow metadata boundary<br/>passive escalation + integration registries<br/>no runtime escalation"]:::relationship
-    hybrid_studio_boundary["V4.4 hybrid studio metadata boundary<br/>passive local/cloud + Studio inspection registries<br/>no Studio runtime"]:::relationship
-    multimodal_studio_boundary["V4.5 multimodal studio metadata boundary<br/>passive preview + canvas + lineage registries<br/>no rendering execution"]:::relationship
-    hardening_boundary["V4.6 agentic studio hardening metadata boundary<br/>passive audit + error-path coverage<br/>terminal failure audit only"]:::relationship
-    model_routing_boundary["V5.2 model routing metadata boundary<br/>advisory routing + budget + explainability<br/>no provider/model switching"]:::relationship
-    performance_boundary["V5.3 performance metadata boundary<br/>advisory scheduling + profiling + benchmarking<br/>no runtime measurement or control"]:::relationship
-    observability_boundary["V5.4 production observability metadata boundary<br/>read-only dashboards + diagnostics<br/>no live telemetry emission"]:::relationship
-    adaptive_execution_boundary["V5.5 adaptive execution policy boundary<br/>controlled allow/confirm/block simulation<br/>no provider execution or routing mutation"]:::relationship
-
-    %% Main success path
-    start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> artifact_critique --> review
-    review -->|"pass or max retry"| finalization --> finish
-    review -->|"needs refinement and count < 1"| refinement --> generation
-
-    %% Metadata and inspection boundaries
-    planning -. stores .-> metadata_boundary
-    metadata_boundary -. consumed by .-> director
-    metadata_boundary -. consumed by .-> reasoning
-    metadata_boundary -. serialized by .-> prompt_rendering
-    artifact_extraction -. stream metadata .-> workstation_boundary
-    preview_preparation -. preview metadata .-> workstation_boundary
-    artifact_critique -. critique metadata .-> workstation_boundary
-    review -. decision metadata .-> workstation_boundary
-    finalization -. final payload .-> workstation_boundary
-    metadata_boundary -. future contract references .-> orchestration_boundary
-    workstation_boundary -. inspection context references .-> orchestration_boundary
-    orchestration_boundary -. future escalation context .-> hybrid_workflow_boundary
-    metadata_boundary -. V3 backbone references .-> hybrid_workflow_boundary
-    workstation_boundary -. review surface context .-> hybrid_workflow_boundary
-    hybrid_workflow_boundary -. future Studio context .-> hybrid_studio_boundary
-    metadata_boundary -. passive model/profile references .-> hybrid_studio_boundary
-    workstation_boundary -. Studio inspection context .-> hybrid_studio_boundary
-    hybrid_studio_boundary -. future multimodal context .-> multimodal_studio_boundary
-    workstation_boundary -. preview + timeline context .-> multimodal_studio_boundary
-    multimodal_studio_boundary -. hardening source coverage .-> hardening_boundary
-    failure -. terminal failure coverage .-> hardening_boundary
-    hardening_boundary -. advisory execution context .-> model_routing_boundary
-    routing -. stable route reference .-> model_routing_boundary
-    model_routing_boundary -. advisory routing posture .-> performance_boundary
-    hardening_boundary -. performance audit sources .-> performance_boundary
-    failure -. terminal failure coverage .-> performance_boundary
-    performance_boundary -. performance posture sources .-> observability_boundary
-    model_routing_boundary -. routing posture sources .-> observability_boundary
-    failure -. terminal failure coverage .-> observability_boundary
-    observability_boundary -. observability posture sources .-> adaptive_execution_boundary
-    model_routing_boundary -. routing posture sources .-> adaptive_execution_boundary
-    performance_boundary -. performance posture sources .-> adaptive_execution_boundary
-    failure -. terminal failure coverage .-> adaptive_execution_boundary
-
-    %% Failure paths
-    intake -. intake_error .-> failure
-    routing -. routing_error .-> failure
-    memory -. memory_error .-> failure
-    retrieval -. retrieval_error .-> failure
-    context_assembly -. context_error .-> failure
-    prompt_input -. prompt_input_error .-> failure
-    planning -. planning_error .-> failure
-    director -. director_error .-> failure
-    reasoning -. reasoning_error .-> failure
-    prompt_rendering -. prompt_rendering_error .-> failure
-    generation -. stream_error / provider_error .-> failure
-    artifact_extraction -. extraction_error .-> failure
-    preview_preparation -. preview_error .-> failure
-    artifact_critique -. critique_error .-> failure
-    review -. review_error .-> failure
-    refinement -. refinement_error .-> failure
-    finalization -. finalization_error .-> failure
-    failure --> finish
-
-    %% Node classes
-    class start boundary
-    class finish terminal
-    class intake,routing,memory,retrieval,context_assembly,prompt_input,planning,director,reasoning,prompt_rendering,generation,artifact_extraction,preview_preparation,artifact_critique,refinement,finalization implemented
-    class review gate
-    class failure failure
-    class metadata_boundary,workstation_boundary,orchestration_boundary,hybrid_workflow_boundary,hybrid_studio_boundary,multimodal_studio_boundary,hardening_boundary,model_routing_boundary,performance_boundary,observability_boundary,adaptive_execution_boundary relationship
-
-    %% Subgraph styling
-    style phase_1 rx:6px,ry:6px
-    style phase_2 rx:6px,ry:6px
-    style phase_3 rx:6px,ry:6px
-    style phase_4 rx:6px,ry:6px
+    %% Auto currently resolves Multi for ordinary default-map requests because every task mode has official_docs.
+    %% Multi ordering contract: prompt_input --> planning --> director --> reasoning --> prompt_rendering.
+    %% V4.3 hybrid workflow metadata boundary: no runtime escalation.
+    %% V4.4 hybrid studio metadata boundary: no Studio runtime.
+    %% V4.5 multimodal studio metadata boundary: no rendering execution.
+    %% V4.6 agentic studio hardening metadata boundary: terminal failure audit only.
+    %% V5.2 model routing metadata boundary: no provider/model switching.
+    %% V5.4 production observability metadata boundary: no live telemetry emission.
+    %% V5.5 adaptive execution policy boundary: no provider execution or routing mutation.

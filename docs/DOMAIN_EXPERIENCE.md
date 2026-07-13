@@ -55,8 +55,9 @@ Base is empty.
 
 Image attachments remain browser-local until explicit submission. The backend
 validates their declared format and size, keeps pixel payloads out of diagnostic
-metadata, and sends the selected pixels to the configured multimodal provider as
-visual input for that request. The composer clears them after submission and
+metadata, and includes selected pixels as visual input in the configured-provider
+request payload. Current evidence does not prove live provider receipt, use, or
+image influence. The composer clears them after submission and
 workspace persistence does not restore them. A project bundle exported before
 submission can still include queued images, so it must be reviewed before
 sharing. Audio upload and audio analysis are not available in the workstation;

@@ -1,105 +1,222 @@
 # Manual Demo Checklist
 
-Run this checklist before the Capstone demo rehearsal and again before the
-showcase session.
+Run this checklist on the presentation machine after the final repository
+checkout is selected. Do not pre-fill any pass. Record the observed state and
+use the matching fallback when a condition is unavailable.
 
-## Preflight
+## 1. Repository and privacy preflight
 
-- Confirm branch: `version-review/v8` during Grand Review rehearsal.
-- Confirm no merge, push, tag, or freeze action is planned without maintainer
-  approval.
-- Keep `README.md`, `docs/CAPSTONE_DEMO_SHOWCASE.md`, and
-  `docs/CAPSTONE_EVALUATION_ETHICS.md` open.
-- Keep `docs/V8_CAPSTONE_EVIDENCE_MATRIX.md` open for reviewer evidence
-  questions.
-- Keep `demo/golden_demo_dataset.json` and `demo/demo_prompt_library.md` open.
-- Open Creative Coding Assistant locally and use integrated `Demo Mode` as the
-  primary presenter surface.
-- Keep `demo/final_demo_launcher.html` ready from the local static QA server as
-  the fallback/reviewer evidence launcher.
-- Keep `demo/final_demo_suite.json` open for exact demo starts, success
-  criteria, fallback paths, and talking points.
-- Keep `demo/evaluation/` open for sanitized and redacted latest-live RAGAs
-  input/results.
-- Keep `demo/golden_artifacts/` open for generated p5.js, Three.js, GLSL, and
-  Hydra artifact QA evidence.
-- Confirm `assets/preview_current.png`, `assets/preview_v1.png`, and
-  `assets/preview_v2.png` exist.
+- [ ] `git status --short` shows only understood changes.
+- [ ] No real `.env`, credential, raw session, local database, or private image
+      is visible in screen-sharing folders, editor tabs, browser history, or
+      terminal scrollback.
+- [ ] `README.md`, `docs/CAPSTONE_DEMO_SHOWCASE.md`, the slide deck, and the
+      spoken script all describe ten Demo Mode flows.
+- [ ] The four showcase names are exactly Polyrhythmic constellation, Recursive
+      aurora garden, Kinetic orbit sculpture, and Fractal solar bloom.
+- [ ] Deterministic showcase artifacts are labeled non-provider evidence.
+- [ ] The reference image, if used, is synthetic or explicitly safe for a
+      public presentation.
+- [ ] Notifications, password managers, and unrelated browser profiles are
+      hidden.
 
-## Reliability
+## 2. Services
 
-- Start the local demo backend:
-  `.venv/bin/python -m creative_coding_assistant.api.dev_server --host 127.0.0.1 --port 8000`.
-- Start the local workstation:
-  `cd clients/nextjs` then `npm run dev`.
-- Open `http://127.0.0.1:3000`, select `Demo Mode`, and verify selecting a
-  scenario loads the prompt into the normal assistant composer.
-- Rehearse the full 10-minute demo:
-  1:15 problem/purpose, 1:30 architecture, 4:15 primary golden flow,
-  1:30 evaluation/ethics, 1:30 challenges/next steps.
-- Rehearse the 5-minute Q&A with the evidence matrix open:
-  data/sources, RAGAs, live execution versus Typed Domain Intelligence Layers, provider outage,
-  retrieval outage, preview limitations, deployment target, privacy, and
-  Chroma warnings.
-- Rehearse the primary flow in 7 minutes as a compressed fallback.
-- Rehearse the case-alignment summary in 90 seconds.
-- Rehearse the evaluation and ethics summary in 60 seconds.
-- Rehearse the offline fallback in 30 seconds.
-- Rehearse the top reviewer questions from the evidence matrix in 90 seconds.
-- Practice stating provider, retrieval, preview, network, and timing failures
-  clearly without implying live success.
+Start the backend:
 
-## Provider Failure Recovery
+```bash
+.venv/bin/python -m creative_coding_assistant.api.dev_server --host 127.0.0.1 --port 8000
+```
 
-If provider access fails:
+- [ ] The process starts without an unexpected traceback.
+- [ ] `curl --fail http://127.0.0.1:8000/api/health` succeeds.
+- [ ] `curl --fail http://127.0.0.1:8000/api/health/ready` returns the observed
+      readiness state; guarded configuration is not relabeled as ready.
 
-1. Say the provider path is unavailable in the current environment.
-2. Keep the selected Demo Mode prompt visible, or switch to the matching prompt
-   in `demo/golden_demo_dataset.json`.
-3. Show the prepared preview screenshot.
-4. Continue with architecture, evaluation, ethics, and limitations.
+Start the frontend in a second terminal:
 
-## Retrieval Failure Recovery
+```bash
+cd clients/nextjs
+npm run dev
+```
 
-If retrieval is unavailable:
+- [ ] `http://127.0.0.1:3000` opens.
+- [ ] The workstation finishes restoring and the composer is usable.
+- [ ] Browser console and terminal show no unexplained product error.
+- [ ] Demo Mode opens and lists ten scenarios.
+- [ ] Dashboard opens and lists all 16 pages.
 
-1. Say retrieval is not being run live.
-2. Show the retrieval demo pack and evaluation workflow references.
-3. Show the redacted latest-live RAGAs result rows and sanitized RAGAs evidence.
+## 3. Focused automated preflight
 
-## Preview Failure Recovery
+Run early enough to leave time for recovery:
 
-If preview is unavailable:
+```bash
+.venv/bin/python -m pytest -q \
+  tests/test_multimodal_provider_inputs.py \
+  tests/test_retrieval_demo_pack.py \
+  tests/test_langgraph_workflow_integration.py
 
-1. Use `assets/preview_current.png`.
-2. Explain the preview/runtime boundary without implying a live preview
-   succeeded.
-3. Show `demo/golden_artifacts/browser_full_runtime_qa_results.json` as browser QA
-   evidence:
-   p5, Three.js, and Hydra rendered nonblank through real temporary QA runtime
-   packages, and GLSL rendered nonblank through WebGL.
-4. Continue with code/artifact planning and critique/refinement explanation.
+cd clients/nextjs
+npm run typecheck
+npm run test -- src/lib/demo-mode.test.ts src/components/workstation-shell.test.tsx
+npm run test:e2e -- \
+  e2e/demo-showcase-smoke.spec.js \
+  e2e/phase3-product-exploration.spec.js \
+  e2e/preview-sandbox-three.spec.js
+```
 
-## Reviewer Answer Cards
+- [ ] Record pass/fail counts and date; do not copy an older count as a new run.
+- [ ] If a check fails, determine whether the presentation route is affected.
+- [ ] Do not weaken a test, force a click, or hide a failure for rehearsal.
 
-- What is the deployment target?
-  A local Capstone workstation demo: backend on `127.0.0.1:8000`, Next.js dev
-  server locally, no public deployment without maintainer approval.
-- What actually rendered in browser QA?
-  p5.js rendered nonblank with `p5@2.3.0`, Three.js rendered nonblank with
-  `three@0.185.1`, Hydra rendered nonblank with `hydra-synth@1.4.0`, and GLSL
-  rendered nonblank through WebGL. These packages were temporary QA
-  dependencies, not app dependency changes.
-- Is this a full performance benchmark?
-  No. It is render/failure-boundary QA with uncapped draw-loop frame timing, not
-  display FPS, load, soak, or deployment validation.
-- What should happen if a live dependency fails?
-  Keep the integrated Demo Mode path as the presenter frame, then switch to the
-  prepared offline dataset, prompt library, screenshots, sanitized RAGAs
-  evidence, static launcher fallback, golden artifact QA, and architecture
-  walkthrough without implying live success.
+## 4. Four canonical browser fixtures
 
-## Approval Gate
+The focused Playwright command is the deterministic fixture proof. For the
+spoken presentation, use only an ordinary product artifact prepared during the
+same-machine preflight and keep its provenance visible. If that artifact is
+unavailable, mark the live product step unavailable and show the matching
+browser evidence; do not seed or relabel a normal session during the talk.
 
-Stop for maintainer review before showcase upload, merge, push, tag, or
-freeze.
+### Polyrhythmic constellation
+
+- [ ] Exact artifact name is visible.
+- [ ] Tone.js runtime is ready and the spectrum is visible.
+- [ ] The scene is silent before Start audio.
+- [ ] Start audio is used only if room output and volume have passed preflight.
+- [ ] Stop/Mute returns to a safe state.
+- [ ] Fullscreen restore preserves the intended layout.
+- [ ] The slower-tempo refinement uses an ordinary pointer click.
+- [ ] Refined state survives reload.
+
+### Recursive aurora garden
+
+- [ ] The p5.js canvas is visible and animated.
+- [ ] Pointer movement produces parallax.
+- [ ] Fullscreen enter/exit restores sidebar, inspector, and preview state.
+- [ ] The colder-palette refinement uses an ordinary pointer click.
+- [ ] Refined state survives reload.
+
+### Kinetic orbit sculpture
+
+- [ ] The runtime identifies bundled Three.js revision 176.
+- [ ] The canvas is nonblank and visibly changing.
+- [ ] Sculpture, orbit rings, lighting, and camera motion are legible.
+- [ ] Fullscreen works without horizontal overflow.
+- [ ] The slower-motion refinement uses an ordinary pointer click.
+- [ ] Refined state survives reload.
+
+### Fractal solar bloom
+
+- [ ] The shader compiles and links in the bounded WebGL 1 surface.
+- [ ] The field is nonblank and animated.
+- [ ] Fullscreen restores cleanly.
+- [ ] The higher-contrast refinement uses an ordinary pointer click.
+- [ ] Refined state survives reload.
+
+For all four, state the provenance shown by the product. Call the automated
+artifact a “deterministic browser fixture”; do not infer a configured-provider
+run from visual quality or from an older session.
+
+## 5. Remaining six Demo Mode flows
+
+### Source-grounded design brief
+
+- [ ] Selected mode is Auto.
+- [ ] Retrieval status and source boundary are visible.
+- [ ] Current citations are shown only if current retrieval actually ran.
+- [ ] If unavailable, use the canonical report and state its date/boundary.
+
+### Multi-agent production plan
+
+- [ ] Requested mode is Multi-Agent.
+- [ ] Runtime evidence shows the resolved mode and bounded roles.
+- [ ] No claim of parallel agents or external-tool automation is made.
+
+### Single-agent line study
+
+- [ ] Requested/resolved mode is Single-Agent.
+- [ ] The direct generator route is visible.
+- [ ] The p5.js source and preview agree.
+
+### Export handoff package
+
+- [ ] The artifact is described as an inspectable handoff.
+- [ ] Export contents can be inspected.
+- [ ] The external target is not described as running inside the app.
+
+### Reference-guided palette study
+
+- [ ] Demo Mode disables the run until an image is attached.
+- [ ] The attached image is public-safe.
+- [ ] Image status is request-scoped and clears after submission.
+- [ ] Reloaded session contains no image bytes.
+- [ ] If configured-model visual influence was not captured, state that only
+      transport/privacy is proven.
+
+### Failure-recovery rehearsal
+
+- [ ] Use the controlled validation fixture, never a fabricated failure in a
+      normal session.
+- [ ] The outcome is Partial or unavailable as appropriate, not Success.
+- [ ] Retry and code/local-draft actions are visible.
+- [ ] No preview is claimed after an unavailable-renderer fallback.
+
+## 6. Dashboard and evidence
+
+- [ ] All pages open: Overview, Architecture, Workflow, Workspace, Runtime,
+      Preview, Artifacts, Domains, Knowledge Base, AI & agents, Memory,
+      Sessions, Telemetry, Evaluation, User Guide, and Settings.
+- [ ] Artifacts shows a live preview only for an eligible artifact.
+- [ ] Evaluation shows four separate lanes.
+- [ ] Retrieval evidence reads 7/7 queries, 18/19 domains, and 16/23 source
+      anchors for the dated report.
+- [ ] RAGAS reads 61.44% only as a four-row approved-fixture macro.
+- [ ] Faithfulness 29.58%, Answer Relevancy 47.43%, and missing Context Recall
+      remain visible.
+- [ ] No current-product RAGAS score is implied.
+- [ ] Typography and Workspace settings use the shared preference state.
+- [ ] Theme switching works for the intended presentation theme.
+
+## 7. Timed rehearsal
+
+- [ ] Present [the exact talk](../docs/TEN_MINUTE_PRESENTATION.md) in 10:00 or
+      less without skipping evaluation boundaries.
+- [ ] Leave Demo Mode and Dashboard pages pre-positioned to reduce navigation.
+- [ ] Practice the [five-minute Q&A](../docs/FIVE_MINUTE_QA.md) with the
+      canonical report and Evaluation Lab open.
+- [ ] Practice the configured-service, retrieval, preview, and audio fallback
+      sentences verbatim.
+- [ ] Rehearse once with the network unavailable.
+- [ ] Rehearse once without starting audio.
+- [ ] Confirm the slide deck opens from
+      `outputs/creative-coding-assistant-capstone.pptx`.
+
+## 8. Presentation-machine notes
+
+Record immediately before presenting:
+
+| Check | Observed state | Time |
+|---|---|---|
+| Backend health |  |  |
+| Backend readiness |  |  |
+| Frontend load |  |  |
+| Configured generation |  |  |
+| Local retrieval |  |  |
+| Tone.js silent-ready |  |  |
+| p5.js preview |  |  |
+| Three.js r176 preview |  |  |
+| WebGL 1 preview |  |  |
+| Fullscreen restore |  |  |
+| Refinement and reload |  |  |
+| Evaluation Lab |  |  |
+| Offline fallback |  |  |
+
+## 9. After rehearsal or presentation
+
+- [ ] Stop audio and local services.
+- [ ] Remove public-demo image references and temporary exports.
+- [ ] Review screenshots/video for credentials, personal paths, notifications,
+      private prompts, and unrelated sessions.
+- [ ] Keep observed failures in the rehearsal notes; do not convert them into a
+      pass after the fact.
+- [ ] Upload or publish only after the separate showcase checklist is complete.

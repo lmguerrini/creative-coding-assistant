@@ -1,83 +1,179 @@
 # Public Documentation Boundary Audit
 
-Date: 2026-07-08
-Branch: `version-review/v8`
+## Audit statement
 
-This audit classifies tracked files under `docs/` and `demo/` after the V8
-release-candidate excellence pass. The goal is to keep reviewer/user evidence
-and product documentation public while keeping private runtime evidence out of
-Git.
+This audit defines which repository material can support current public claims
+and which material is historical, local-only, conditional, or future work. The
+baseline inspected was commit `e817a8ad` on 2026-07-13; current-branch reviewer
+documents created after that baseline supersede earlier presentation wording.
 
-Internal product-polish working notes were reclassified as private engineering
-state and moved out of public docs to ignored private context. The public
-replacement is `docs/PRODUCT_QUALITY_CHECKLIST.md`, which describes the
-reviewer-facing quality bar without exposing internal milestones, private file
-paths, or internal approval process notes.
+The central rule is simple: use the strongest evidence that describes the same
+code, data, input condition, and execution path as the claim.
 
-Private live-session records, Runtime Pack state, local Chroma data,
-environment files, and generated test output remain outside the public
-docs/demo tree and are ignored.
+## Current reviewer path
 
-## Docs Classification
+These files form the intended public narrative after the current documentation
+update:
 
-| File | Classification | Action | Rationale |
-|---|---|---|---|
-| `docs/ARCHITECTURE_DECISIONS.md` | Public product documentation | Keep tracked | Explains architecture choices useful to reviewers and future maintainers. |
-| `docs/CAPSTONE_DEMO_SHOWCASE.md` | Public reviewer/user evidence | Keep tracked | Defines purpose, problem, solution, 10-minute demo, 5-minute Q&A, fallback, SCR, and SMART framing. |
-| `docs/CAPSTONE_EVALUATION_ETHICS.md` | Public reviewer/user evidence | Keep tracked | Documents evaluation evidence, ethics, privacy, and limitations. |
-| `docs/IMPLEMENTATION_ROADMAP.md` | Public product documentation | Keep tracked | Gives high-level product/version context without private runtime data. |
-| `docs/ORCHESTRATION_PACKAGE_BOUNDARIES.md` | Public product documentation | Keep tracked | Clarifies active/passive orchestration ownership and claim boundaries. |
-| `docs/PRODUCTION_DEPLOYMENT.md` | Public product documentation | Keep tracked | Provides production deployment posture and setup guidance. |
-| `docs/PROJECT_CONTEXT.md` | Public product documentation | Keep tracked | Summarizes project purpose and context. |
-| `docs/PRODUCT_QUALITY_CHECKLIST.md` | Public product documentation | Keep tracked | Public reviewer-facing quality checklist replacing internal working notes. |
-| `docs/PUBLIC_DOCUMENTATION_BOUNDARY_AUDIT.md` | Public reviewer/user evidence | Keep tracked | Records this public/private boundary review. |
-| `docs/RUNTIME_VALIDATION.md` | Public product documentation | Keep tracked | Documents runtime validation posture and supported validation paths. |
-| `docs/V8_CAPSTONE_EVIDENCE_MATRIX.md` | Public reviewer/user evidence | Keep tracked | Primary release-candidate evidence matrix. |
-| `docs/V8_FINAL_SMOKE_COVERAGE_MATRIX.md` | Public reviewer/user evidence | Keep tracked | Classifies final live provider, browser smoke, artifact QA, and accepted-boundary coverage for reviewer workflows. |
-| `docs/V8_GRAND_ENGINEERING_REVIEW.md` | Public reviewer/user evidence | Keep tracked | Final Grand Review release-candidate evidence and release-approval boundaries. |
-| `docs/eval.md` | Public product documentation | Keep tracked | Explains evaluation approach and reviewer-relevant commands. |
-| `docs/eval_pipeline.md` | Public product documentation | Keep tracked | Details manual eval/RAGAs pipeline and privacy boundaries. |
-| `docs/sync.md` | Public product documentation | Keep tracked | Documents source sync posture for the knowledge base. |
+| Artifact | Public role |
+|---|---|
+| `README.md` | Concise product purpose, problem, operation, setup, and reviewer start |
+| `docs/CAPSTONE_DEMO_SHOWCASE.md` | Current ten-flow product and evidence guide |
+| `docs/PORTFOLIO_CASE_STUDY.md` | Problem-to-outcome portfolio narrative |
+| `docs/DEMO_NARRATIVE.md` | Six-part presentation story |
+| `docs/TEN_MINUTE_PRESENTATION.md` | Exact timed talk and presenter actions |
+| `docs/FIVE_MINUTE_QA.md` | Timed reviewer-answer bank |
+| `docs/CHALLENGES_AND_LESSONS.md` | Technical decisions and residual gaps |
+| `docs/FUTURE_WORK.md` | Explicitly non-current roadmap |
+| `docs/COMMIT_HISTORY_AUDIT.md` | Bounded history-quality audit |
+| `docs/REPOSITORY_HYGIENE_AUDIT.md` | Bounded tracked-tree hygiene audit |
+| `demo/manual_demo_checklist.md` | Current local rehearsal protocol |
+| `demo/showcase_upload_preparation.md` | Manual public-upload gate |
 
-## Demo Classification
+The presentation deck is `outputs/creative-coding-assistant-capstone.pptx`.
+Its claims must remain consistent with the files above and the canonical
+machine-readable evidence below.
 
-| File | Classification | Action | Rationale |
-|---|---|---|---|
-| `demo/README.md` | Public reviewer/user evidence | Keep tracked | Explains demo mode, golden flow, local QA evidence, and claim boundaries. |
-| `demo/demo_prompt_library.md` | Public reviewer/user evidence | Keep tracked | Reviewer-facing prompt set for golden flows and fallback. |
-| `demo/evaluation/README.md` | Public reviewer/user evidence | Keep tracked | Explains sanitized RAGAs fixture privacy posture. |
-| `demo/evaluation/private_live_session_ragas_decision.json` | Public reviewer/user evidence | Keep tracked | Records the private live-session RAGAs privacy decision without exposing private row content. |
-| `demo/evaluation/sanitized_ragas_live_sessions.jsonl` | Public reviewer/user evidence | Keep tracked | Synthetic, schema-valid, privacy-approved RAGAs input fixture. |
-| `demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl` | Public reviewer/user evidence | Keep tracked | Exact sanitized RAGAs metric result rows. |
-| `demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl.manifest.json` | Public reviewer/user evidence | Keep tracked | Exact sanitized RAGAs run manifest and metric summary. |
-| `demo/evaluation/redacted_live_session_ragas_latest4.jsonl` | Public reviewer/user evidence | Keep tracked | Redacted latest-live RAGAs fixture derived from live-session structure without exposing private row text. |
-| `demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl` | Public reviewer/user evidence | Keep tracked | Exact redacted latest-live RAGAs metric result rows. |
-| `demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl.manifest.json` | Public reviewer/user evidence | Keep tracked | Exact redacted latest-live RAGAs run manifest and evaluator configuration. |
-| `demo/final_demo_launcher.html` | Public reviewer/user evidence | Keep tracked | Static fallback launcher for the eight-flow demo and evidence links; primary presenter path is integrated Demo Mode in the app. |
-| `demo/final_demo_suite.json` | Public reviewer/user evidence | Keep tracked | Eight-flow final demo suite with integrated Demo Mode start path, prompt, expected behavior, fallback, success criteria, validation path, and talking point. |
-| `demo/golden_artifacts/browser_full_runtime_qa.html` | Public reviewer/user evidence | Keep tracked | Full-runtime browser QA harness for temporary p5/Three/Hydra packages and GLSL WebGL checks. |
-| `demo/golden_artifacts/browser_full_runtime_qa_results.json` | Public reviewer/user evidence | Keep tracked | Exact full-runtime browser QA result, classifications, frame timing, and accepted boundaries. |
-| `demo/golden_artifacts/browser_render_qa.html` | Public reviewer/user evidence | Keep tracked | Offline browser QA harness for p5 shim, GLSL WebGL, and Three.js dependency-boundary checks. |
-| `demo/golden_artifacts/browser_render_qa_results.json` | Public reviewer/user evidence | Keep tracked | Exact browser/render QA result and limitations. |
-| `demo/golden_artifacts/README.md` | Public reviewer/user evidence | Keep tracked | Explains generated artifact scope and runtime boundaries. |
-| `demo/golden_artifacts/p5_generative_morphogenesis_sketch.js` | Public reviewer/user evidence | Keep tracked | Generated p5.js artifact for output/creative quality inspection. |
-| `demo/golden_artifacts/three_audio_reactive_scene.js` | Public reviewer/user evidence | Keep tracked | Generated Three.js artifact for output/creative quality inspection. |
-| `demo/golden_artifacts/glsl_kaleidoscope_field.frag` | Public reviewer/user evidence | Keep tracked | Generated GLSL artifact for output/creative quality inspection. |
-| `demo/golden_artifacts/hydra_feedback_lattice.js` | Public reviewer/user evidence | Keep tracked | Generated Hydra artifact for bounded hydra-synth browser QA inspection. |
-| `demo/golden_artifacts/qa_manifest.json` | Public reviewer/user evidence | Keep tracked | Static and browser QA evidence plus runtime boundaries. |
-| `demo/golden_demo_dataset.json` | Public reviewer/user evidence | Keep tracked | Rehearsal and offline fallback dataset aligned to the integrated Demo Mode scenario names. |
-| `demo/manual_demo_checklist.md` | Public reviewer/user evidence | Keep tracked | Manual timed-demo reliability checklist for integrated Demo Mode plus static fallback. |
-| `demo/showcase_upload_preparation.md` | Public reviewer/user evidence | Keep tracked | Showcase packaging and final public-claims review checklist. |
+## Canonical current product sources
 
-## Private/Obsolete Result
+| Question | Canonical source |
+|---|---|
+| What Demo Mode scenarios exist? | `clients/nextjs/src/lib/demo-mode.ts` |
+| Which ten scenario IDs and four showcase IDs are the fallback contract? | `demo/v9_5_golden_demo_dataset.json` |
+| What browser artifacts are exercised? | `clients/nextjs/e2e/support/demo-fixtures.js` |
+| What does the exact showcase smoke prove? | `clients/nextjs/e2e/demo-showcase-smoke.spec.js` |
+| What does the direct Three.js runtime smoke prove? | `clients/nextjs/e2e/preview-sandbox-three.spec.js` |
+| What are the current retrieval selections and fingerprints? | `demo/evaluation/canonical_retrieval_report.json` |
+| What does the approved RAGAS fixture measure? | `clients/nextjs/src/lib/current-ragas-evidence.ts` and `demo/evaluation/README.md` |
+| How are Single, Multi, and Auto resolved? | `src/creative_coding_assistant/orchestration/runtime/execution.py` |
+| How do image pixels reach the provider adapter? | `tests/test_multimodal_provider_inputs.py` |
+| What does CI run? | `.github/workflows/ci.yml` and `.github/workflows/backend-release-verification.yml` |
 
-Private engineering evidence moved to ignored Runtime Pack or context storage:
-the previous public internal tracker was moved to private ignored context.
+Narrative documents should link to or restate these sources without changing
+their evidence class.
 
-Obsolete/internal files removed or ignored: the previous public internal
-tracker was removed from tracked docs and replaced by the public quality
-checklist.
+## Current public machine-readable evidence
 
-Untracked sandbox-only RAGAs failure files created during the first network
-attempt were removed before commit. The committed RAGAs result is the successful
-privacy-approved external run over sanitized data.
+The following material is reviewer-safe within its stated boundary:
+
+- `demo/evaluation/canonical_retrieval_report.json` contains ranks, source IDs,
+  domains, distances, scores, counts, and fingerprints, but no retrieved
+  excerpt text.
+- `demo/evaluation/sanitized_ragas_live_sessions.jsonl` contains synthetic,
+  public-safe evaluation inputs.
+- `demo/evaluation/redacted_live_session_ragas_latest4*.jsonl*` preserves a
+  bounded historical structure while replacing private text.
+- `demo/v9_5_golden_demo_dataset.json` is rehearsal metadata. It is not a
+  provider response, retrieval result, or renderer execution record.
+- Browser E2E fixtures are deterministic test inputs. They prove product and
+  renderer behavior, not fresh configured-provider generation.
+
+## Historical public material
+
+At the audited baseline, the following tracked families retain earlier release
+framing or earlier demo catalogs:
+
+- `docs/V8_*.md`
+- `demo/final_demo_suite.json`
+- `demo/golden_demo_dataset.json`
+- `demo/final_demo_launcher.html`
+- earlier preview QA manifests and screenshots whose runtimes or scenario names
+  differ from the current product
+
+They may be kept for provenance, but they must not be the default current
+reviewer route. An older “pass,” scenario count, provider timing, runtime
+version, or release-ready statement does not override current source or current
+evaluation evidence.
+
+At baseline, `README.md`, `docs/CAPSTONE_DEMO_SHOWCASE.md`, and related demo
+checklists still described an eight-scenario catalog. This current-branch
+documentation update replaces that presentation path with the canonical ten
+flows and four browser-validated showcase fixtures. The mismatch should be
+checked again before public upload.
+
+## Local-only material
+
+The following classes remain outside public evidence:
+
+- real environment files and credentials;
+- raw workspace sessions and private prompts;
+- local Chroma contents and retrieved excerpt text unless separately reviewed;
+- locally generated artifacts that have not passed a public claim review;
+- raw live-session evaluation rows;
+- local engineering planning, task, and acceptance records;
+- browser profiles, screenshots, traces, or logs containing personal data or
+  machine paths.
+
+The tracked tree retains only environment placeholders, local-data directory
+placeholders, sanitized/redacted fixtures, and explicitly selected public
+artifacts.
+
+## Claim-boundary rules
+
+### Provider and fixtures
+
+- Say “configured-provider run” only for a captured run from that provider.
+- Say “deterministic browser fixture” for the canonical E2E streams.
+- A fixture may prove request serialization, parsing, rendering, interaction,
+  persistence, and recovery; it does not prove model quality.
+- Provider availability must be checked in the presentation environment and
+  must never be inferred from an API-key field or an older result.
+
+### Retrieval and RAGAS
+
+- Report 18/19 requested-domain coverage and 16/23 source-anchor overlap only
+  as the dated current retrieval report.
+- Report 61.44% only as the equal-weight macro across four measured dimensions
+  on four sanitized approved-fixture rows.
+- Do not compare those values as before/after scores; they use different data
+  and measure different stages.
+- Context Recall is missing, and current-product external evaluation is
+  unavailable under the present privacy boundary.
+
+### Multimodal input
+
+- Claim that valid image pixels can be serialized as a request-scoped
+  `input_image` beside text and excluded from persisted session snapshots.
+- Do not claim visual influence, image understanding quality, or Case 4
+  completion until a controlled configured-provider outcome is captured.
+
+### Runtime and artifact support
+
+- Claim live browser preview only when source eligibility, selected renderer,
+  runtime health, and visible output agree.
+- Tone.js is silent-ready until an explicit user action starts audio.
+- Plain bounded Three.js uses the bundled r176 runtime.
+- React components, standalone HTML, remote modules, and external creative
+  tools remain code/export/handoff paths unless separately validated.
+- A nonblank changing canvas is runtime evidence, not a frame-rate,
+  accessibility, or aesthetic benchmark.
+
+### Tests and acceptance
+
+- Test counts are dated local evidence for one checkout and environment.
+- Automated checks do not imply independent review, user research, public
+  deployment, or presentation-room acceptance.
+- A manual checklist may state “pending,” “passed on this machine,” or
+  “unavailable”; it must not pre-fill a pass.
+
+## Publication checklist
+
+- [ ] README and current guides say ten Demo Mode flows.
+- [ ] The four showcase names match `demo-mode.ts` exactly.
+- [ ] Deterministic fixtures are labeled non-provider evidence.
+- [ ] Retrieval and RAGAS results remain separate and dated.
+- [ ] Missing Context Recall and multimodal influence evidence are visible.
+- [ ] No private prompt, raw session, credential, personal path, or internal
+      task identifier appears in public media or text.
+- [ ] Historical release documents are not linked as current authority.
+- [ ] The PowerPoint, upload copy, and spoken script use the same claim matrix.
+- [ ] Internal Markdown links and referenced files resolve.
+- [ ] A final manual browser rehearsal is recorded without implying
+      independent acceptance.
+
+## Audit limitation
+
+This is a source-boundary and pattern audit, not legal review, a complete secret
+scan, dependency certification, privacy impact assessment, or guarantee that
+all historical Git objects are safe to publish. Run dedicated security and
+media reviews before making the repository or showcase public.

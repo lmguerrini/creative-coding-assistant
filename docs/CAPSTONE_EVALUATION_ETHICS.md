@@ -1,92 +1,103 @@
-# Capstone Evaluation And Ethical AI Summary
+# Capstone Evaluation and Ethical AI Summary
 
-This summary supports the V8.8 demo and showcase. It describes available
-evidence and ethical boundaries without overstating runtime behavior beyond
-the validated local demo paths.
+This is the reviewer-facing capstone summary for Creative Coding Assistant
+(CCA) as of 2026-07-13. It follows the repository evidence rule: current live
+behavior first, then current automated validation and evaluation, then current
+documentation; historical and planned evidence remain explicitly labeled.
 
-## Evaluation Evidence
+## Capstone alignment
 
-| Evidence | Status | Interpretation |
+CCA is a working AI-assisted creative-coding workstation. Its primary AI
+engineering case is retrieval-augmented generation over a registered/indexed
+creative-coding knowledge base. The product also demonstrates workflow/agent
+orchestration, code generation and refinement, a bounded request-scoped image
+path, and retrieval/evaluation tuning.
+
+The current reviewer experience includes:
+
+- Single Agent, Multi Agent, and Auto routes with a published workflow graph;
+- live browser previews for p5.js, Three.js, GLSL, and Tone.js;
+- request-scoped PNG/JPEG/WebP/GIF image references included in the
+  configured-provider payload only on explicit submission; current evidence
+  does not establish live provider receipt, use, or image influence;
+- local Chroma retrieval with source/chunk lineage;
+- Dashboard and Inspector evidence surfaces;
+- artifacts, local session persistence, refinement, fullscreen review, and
+  user-mediated exports.
+
+Hydra and React Three Fiber are code/export-only. TouchDesigner, Unreal Engine,
+Blender Geometry Nodes, and Houdini are external handoffs. CCA does not claim
+to execute, control, deploy to, or validate those tools.
+
+## Current evaluation evidence
+
+| Evidence | Result | Defensible interpretation |
 |---|---|---|
-| Retrieval demo scenarios | Ready | `build_capstone_retrieval_demo_pack()` defines capstone-oriented retrieval scenarios for creative-coding domains. |
-| Demo asset readiness | Ready | Existing demo asset readiness records inventory prompts, preview media, retrieval scenarios, workflow narrative, and talking points. |
-| Creative readiness review | Guarded | Existing readiness review is useful for demo preparation but does not evaluate generated output automatically. |
-| RAGAs workflow | Ready | `scripts/eval_live_sessions.py` and `docs/eval_pipeline.md` support sanitized and redacted provider-backed fixture evaluation. |
-| Sanitized RAGAs release-candidate run | Ready | Privacy-approved synthetic fixture scored 4 of 4 rows with zero skips and zero metric failures. Average context precision: 0.999999999925. |
-| Redacted latest-live RAGAs run | Ready | Redacted fixture derived from latest eligible live-session structure scored 4 of 4 rows with zero skips and zero metric failures across context precision, faithfulness, and answer relevancy. |
-| Golden runtime artifact QA | Ready | Generated p5.js, Three.js, and Hydra artifacts pass `node --check`; GLSL artifact passes static shader structure checks; all four runtimes have local browser QA evidence. |
-| Grand Review provider smoke | Ready | Minimal live OpenAI smoke validated configured provider connectivity, model resolution, bounded content, and usage metadata. |
-| Grand Review retrieval smoke | Ready | Local Chroma retrieval over committed capstone demo queries returned results for 7 of 7 scenarios with 9 expected-source overlaps. |
-| Preview media inventory | Ready | Existing screenshots support fallback showcase if live preview is unavailable. |
+| Canonical Demo Mode browser smoke | Four canonical live showcase paths covered | Current Chromium interaction/runtime evidence for the asserted paths, not artistic-quality judgment |
+| Approved-fixture RAGAS | 4/4 eligible, 0 skipped, 0 metric failures; macro `0.6143970054089596` (61.44%) | Dated 2026-07-13 synthetic/public fixture evidence; historical/fixture-scoped relative to current-product behavior, not a project grade |
+| RAGAS component means | context precision `0.999999999925`; faithfulness `0.29583333333333334`; answer relevancy `0.4742546883775048`; context relevancy `0.6875` | Weak dimensions remain visible; equal-weight macro uses these four measured metrics |
+| Context recall | no result | Missing evidence because no independently justified reference answers exist; not zero |
+| Current local retrieval | substantive expected-source overlap 16/23 (69.57%), from 9/23; requested-domain coverage 18/19 (94.74%), from 7/19; 7/7 queries returned five results | Fixed-query, top-five local coverage evidence; not RAGAS or answer-quality evidence |
+| Current-product end-to-end RAGAS | no result | `BLOCKED_BY_EXECUTION_ENVIRONMENT`: local Chroma excerpts are not approved for the external transfer required by that evaluation run |
+| Eight RAG-scoped golden contracts | 0/8 exact-query rows captured in an approved provider-scored fixture | Missing exact end-to-end evidence, not eight measured failures |
+| Human usability/aesthetic evaluation | no completed study | Human evidence remains missing; automation does not substitute for this judgment |
 
-## Metrics Summary
+The final retrieval number is intentionally lower than an apparent 19/23 peak:
+lineage review found title-only and index-only false positives, so they were
+removed. The remaining requested-domain gap is Shadertoy, whose focused source
+sync returned HTTP 403 and left no indexed chunks. Neither gap is concealed by
+pinning expected sources into results.
 
-- Retrieval scenario count: tracked through
-  `src/creative_coding_assistant/eval/retrieval_demo_pack.py`.
-- Demo asset readiness: tracked through
-  `build_production_demo_asset_plan()`.
-- Creative readiness: tracked through
-  `build_production_creative_readiness_review()`.
-- RAGAs context precision: supported as a manual local evaluation workflow.
-- Privacy-approved sanitized RAGAs run:
-  `demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl`
-  scored 4 rows with context precision values `0.9999999999`,
-  `0.9999999999`, `0.99999999995`, and `0.99999999995`; average
-  `0.999999999925`, minimum `0.9999999999`, maximum `0.99999999995`, zero
-  skipped samples, and zero metric failures.
-- Redacted latest-live RAGAs run:
-  `demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl` scored
-  4 rows with zero skipped samples and zero metric failures after the
-  public-safe wording refresh. Averages: context precision
-  `0.7006944444230672`, faithfulness `0.6875`, and answer relevancy
-  `0.4419141765019863`.
-- Raw private live-session RAGAs scoring is avoided because it would send
-  recorded local session text and retrieved contexts to an external evaluator.
-- Retrieval smoke: 7 of 7 capstone scenarios returned local Chroma results.
-- Golden artifact QA: `demo/golden_artifacts/p5_generative_morphogenesis_sketch.js`,
-  `demo/golden_artifacts/three_audio_reactive_scene.js`, and
-  `demo/golden_artifacts/hydra_feedback_lattice.js` pass `node --check`;
-  `demo/golden_artifacts/glsl_kaleidoscope_field.frag` includes the expected
-  fragment-shader uniforms, `void main()`, `gl_FragColor`, and balanced braces.
-  Browser QA rendered p5.js, Three.js, GLSL, and Hydra nonblank locally.
-- Live metric collection: not added by V8.8.
+Full definitions, provenance, fingerprints, and reproduction commands are in
+[EVALUATION_METRICS_SUMMARY.md](EVALUATION_METRICS_SUMMARY.md) and
+[eval.md](eval.md).
 
-## Ethical AI Considerations
+## Evaluation criteria mapping
 
-Source grounding:
-The assistant should distinguish retrieved creative-coding references from
-model-generated guidance. Claims should stay tied to registered/indexed sources.
+| Capstone criterion | Evidence to present | Limitation to state |
+|---|---|---|
+| Outcome quality | Running workstation, canonical live showcases, artifacts/refinement, browser smoke | No completed human artistic-quality or usability study |
+| Applied learning | RAG source/index/retrieval separation, workflow routes, code generation, image request path, retrieval tuning, tests | Provider/model labels do not prove a successful call |
+| Ethics and responsibility | Explicit data boundaries, secret handling, approved fixture, blocked private-data rerun, provenance and handoff labels | Local storage is not automatic encryption/retention; model/source bias remains |
+| Presentation | Reproducible reviewer path, current evidence labels, demo/recovery scenarios, concise limitations | Historical screenshots or fixture results cannot replace current live behavior |
 
-Creative ownership:
-The tool supports ideation and implementation guidance. It should not claim
-authorship of a user's artistic identity or cultural authority.
+## Ethical commitments
 
-Conceptual and geometric language:
-Conceptual, geometric, pattern, and narrative concepts must be framed as
-creative inspiration and operational design guidance, not religious,
-historical, medical, psychological, or metaphysical truth.
+- **Source grounding:** distinguish registered, indexed, retrieved, and cited
+  states. A citation or retrieved chunk does not guarantee correctness.
+- **Privacy:** do not expose keys, private session JSONL, local Chroma excerpts,
+  reference images, or unreviewed exports. Generation, embeddings, evaluation,
+  tracing, and public sharing are separate consent/data-transfer boundaries.
+- **Image consent:** accepted image pixels enter the configured-provider request
+  payload only with explicit submission. Current evidence does not establish
+  live provider receipt, use, or image influence. Attachments clear after
+  submission and do not restore with the session; a pre-submit export can still
+  include them.
+- **Creative ownership:** users retain responsibility for originality,
+  licensing, attribution, and rights to submitted images and published output.
+- **Cultural framing:** geometric, symbolic, spiritual, and narrative language
+  is creative inspiration, not religious, historical, medical, psychological,
+  or metaphysical authority.
+- **Provider transparency:** provider calls can fail and incur cost. A fallback
+  or dry run must not be presented as provider evidence.
+- **Agent transparency:** workflow labels describe bounded orchestration, not
+  sentience, independent autonomy, or unobserved parallel work.
+- **External handoffs:** export is not execution, deployment, compatibility, or
+  validation in a target tool.
 
-Provider and cost transparency:
-Provider calls may incur cost and can fail. The demo must state when fallback
-mode is used and must not imply a provider response happened when it did not.
+The detailed risk register and human review gate are in
+[ETHICS_PRIVACY_ASSESSMENT.md](ETHICS_PRIVACY_ASSESSMENT.md).
 
-Privacy:
-Local evaluation records under `data/eval/` are ignored runtime artifacts.
-Do not upload local session records without review.
-The public sanitized and redacted RAGAs fixtures under `demo/evaluation/`
-contain only synthetic or reviewer-safe redacted prompts/context, so they are
-approved for the external evaluator runs documented in this review.
+## Demo statement
 
-Limitations:
-No live external DCC/MCP execution, no autonomous immersive platform, no
-autonomous agent swarm, no generic document search beyond registered/indexed KB
-sources, and no automatic generated-output scoring are claimed for V8.8.
+> CCA demonstrates a working retrieval-grounded creative-coding assistant with
+> bounded agent workflows, four live browser runtimes, request-scoped image
+> input, and reproducible local retrieval evidence. The 61.44% RAGAS macro is an
+> approved synthetic-fixture result, while current retrieval gains are reported
+> separately. The exact current-product provider-scored rerun and human quality
+> evaluation remain explicitly blocked or missing rather than being overstated.
 
-## Demo Talking Point
-
-```text
-The evaluation story is intentionally conservative: CCA has retrieval scenario
-coverage, demo asset readiness, manual RAGAs evaluation support, bounded live
-provider smoke, local retrieval smoke, and explicit limitations. V8 Grand
-Engineering Review hardens this evidence before final release decisions.
-```
+Start the review with [REVIEWER_GUIDE.md](REVIEWER_GUIDE.md). Operational
+boundaries are in [USER_MANUAL.md](USER_MANUAL.md),
+[DATA_AND_KB.md](DATA_AND_KB.md), and
+[DOMAIN_EXPERIENCE.md](DOMAIN_EXPERIENCE.md).
