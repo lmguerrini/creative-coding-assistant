@@ -38,6 +38,12 @@ html[data-cca-theme="aqua"] {
   --scrollbar-track: #1a1a1a;
   --scrollbar-thumb: #4a4a4f;
   --ui-font-size: 15px;
+  --body-copy-size: 14px;
+  --heading-display-size: 28px;
+  --heading-section-size: 19px;
+  --heading-card-size: 16px;
+  --hero-heading-size: clamp(34px, 4.2vw, 54px);
+  --label-font-size: 12px;
   --code-font-size: 12px;
   --button-radius: 10px;
 }
@@ -51,9 +57,46 @@ html[data-cca-theme="aqua"] {
   --glow-teal: 0 0 0 1px rgba(76, 215, 200, 0.38), 0 0 24px rgba(76, 215, 200, 0.16);
 }
 
-html[data-cca-ui-font-size="small"] { --ui-font-size: 14px; }
-html[data-cca-ui-font-size="medium"] { --ui-font-size: 16px; }
-html[data-cca-ui-font-size="large"] { --ui-font-size: 17px; }
+html[data-cca-heading-font-size="small"] {
+  --heading-display-size: 25px;
+  --heading-section-size: 17px;
+  --heading-card-size: 15px;
+  --hero-heading-size: clamp(28px, 3.5vw, 44px);
+}
+
+html[data-cca-heading-font-size="medium"] {
+  --heading-display-size: 28px;
+  --heading-section-size: 19px;
+  --heading-card-size: 16px;
+  --hero-heading-size: clamp(34px, 4.2vw, 54px);
+}
+
+html[data-cca-heading-font-size="large"] {
+  --heading-display-size: 32px;
+  --heading-section-size: 22px;
+  --heading-card-size: 18px;
+  --hero-heading-size: clamp(38px, 4.6vw, 62px);
+}
+
+html[data-cca-ui-font-size="small"] {
+  --ui-font-size: 14px;
+  --body-copy-size: 13px;
+}
+
+html[data-cca-ui-font-size="medium"] {
+  --ui-font-size: 16px;
+  --body-copy-size: 14px;
+}
+
+html[data-cca-ui-font-size="large"] {
+  --ui-font-size: 17px;
+  --body-copy-size: 16px;
+}
+
+html[data-cca-label-font-size="small"] { --label-font-size: 11px; }
+html[data-cca-label-font-size="medium"] { --label-font-size: 12px; }
+html[data-cca-label-font-size="large"] { --label-font-size: 14px; }
+
 html[data-cca-code-font-size="small"] { --code-font-size: 11px; }
 html[data-cca-code-font-size="medium"] { --code-font-size: 13px; }
 html[data-cca-code-font-size="large"] { --code-font-size: 15px; }
@@ -268,6 +311,42 @@ html[data-cca-theme="codex"] {
   --surface-2: #222224;
   --surface-3: #29292c;
   --surface-accent: rgba(51, 156, 255, 0.1);
+  --section-divider: rgba(255, 255, 255, 0.1);
+  --panel-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --code-surface: #151515;
+  --scrollbar-track: #1a1a1a;
+  --scrollbar-thumb: #4a4a4f;
+}
+
+html[data-cca-theme="codex_white"] {
+  --background: #181818;
+  --background-rgb: 24, 24, 24;
+  --foreground: #ffffff;
+  --muted: #a1a1aa;
+  --muted-strong: #d4d4d8;
+  --panel: #1d1d1f;
+  --panel-strong: #242426;
+  --panel-soft: #222224;
+  --line: rgba(255, 255, 255, 0.12);
+  --line-strong: rgba(255, 255, 255, 0.22);
+  --teal: #f4f7fb;
+  --amber: #d4a72c;
+  --coral: #fa423e;
+  --blue: #f4f7fb;
+  --green: #40c977;
+  --diff-add: #40c977;
+  --diff-remove: #fa423e;
+  --skill: #ad7bf9;
+  --accent-rgb: 244, 247, 251;
+  --accent-ink: #181818;
+  --focus-outline: rgba(244, 247, 251, 0.82);
+  --glow-teal: 0 0 0 1px rgba(244, 247, 251, 0.38), 0 0 24px rgba(244, 247, 251, 0.12);
+  --shadow: 0 20px 64px rgba(0, 0, 0, 0.42);
+  --surface-0: #181818;
+  --surface-1: #1d1d1f;
+  --surface-2: #222224;
+  --surface-3: #29292c;
+  --surface-accent: rgba(244, 247, 251, 0.1);
   --section-divider: rgba(255, 255, 255, 0.1);
   --panel-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   --code-surface: #151515;
@@ -11029,30 +11108,30 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   text-decoration: underline;
 }
 
-html[data-cca-theme="codex"] {
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) {
   background: var(--background);
 }
 
-html[data-cca-theme="codex"] .workstation {
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .workstation {
   background: var(--background);
 }
 
-html[data-cca-theme="codex"] .topbar {
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .topbar {
   border-color: var(--line);
   background: #181818;
   box-shadow: none;
 }
 
-html[data-cca-theme="codex"] .sessionPanel,
-html[data-cca-theme="codex"] .demoModePanel,
-html[data-cca-theme="codex"] .previewShelf,
-html[data-cca-theme="codex"] .inspector {
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .sessionPanel,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .demoModePanel,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewShelf,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .inspector {
   border-color: var(--line);
   background: var(--panel);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.024);
 }
 
-html[data-cca-theme="codex"] .utilityPanel {
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .utilityPanel {
   border-color: var(--line);
   background: var(--panel-strong);
   box-shadow:
@@ -11060,104 +11139,104 @@ html[data-cca-theme="codex"] .utilityPanel {
     inset 0 1px 0 rgba(255, 255, 255, 0.026);
 }
 
-html[data-cca-theme="codex"] .brandMark,
-html[data-cca-theme="codex"] .sessionStatus,
-html[data-cca-theme="codex"] .sessionMetric,
-html[data-cca-theme="codex"] .toolbarToggle,
-html[data-cca-theme="codex"] .iconButton,
-html[data-cca-theme="codex"] .commandMenuGrid button,
-html[data-cca-theme="codex"] .themePresetButton,
-html[data-cca-theme="codex"] .settingsChoiceRow button,
-html[data-cca-theme="codex"] .settingsToggle button,
-html[data-cca-theme="codex"] .composerInputFrame,
-html[data-cca-theme="codex"] .artifactActions button,
-html[data-cca-theme="codex"] .codePanelActions button,
-html[data-cca-theme="codex"] .previewControlButton,
-html[data-cca-theme="codex"] .operatorCheckpointActions button {
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .brandMark,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .sessionStatus,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .sessionMetric,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .toolbarToggle,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .iconButton,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .commandMenuGrid button,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .themePresetButton,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .settingsChoiceRow button,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .settingsToggle button,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .composerInputFrame,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .artifactActions button,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .codePanelActions button,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewControlButton,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .operatorCheckpointActions button {
   border-color: var(--line);
   background: var(--surface-2);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.024);
 }
 
-html[data-cca-theme="codex"] .brandMark {
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .brandMark {
   color: var(--foreground);
 }
 
-html[data-cca-theme="codex"] .toolbarToggle,
-html[data-cca-theme="codex"] .iconButton,
-html[data-cca-theme="codex"] .previewControlButton,
-html[data-cca-theme="codex"] .composerAttachButton {
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .toolbarToggle,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .iconButton,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewControlButton,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .composerAttachButton {
   color: var(--muted-strong);
 }
 
-html[data-cca-theme="codex"] .toolbarToggle:hover,
-html[data-cca-theme="codex"] .iconButton:hover,
-html[data-cca-theme="codex"] .commandMenuGrid button:hover,
-html[data-cca-theme="codex"] .themePresetButton:hover,
-html[data-cca-theme="codex"] .settingsChoiceRow button:hover,
-html[data-cca-theme="codex"] .settingsToggle button:hover,
-html[data-cca-theme="codex"] .artifactActions button:hover,
-html[data-cca-theme="codex"] .codePanelActions button:hover,
-html[data-cca-theme="codex"] .previewControlButton:hover,
-html[data-cca-theme="codex"] .operatorCheckpointActions button:hover {
-  border-color: rgba(51, 156, 255, 0.5);
-  background: rgba(51, 156, 255, 0.12);
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .toolbarToggle:hover,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .iconButton:hover,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .commandMenuGrid button:hover,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .themePresetButton:hover,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .settingsChoiceRow button:hover,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .settingsToggle button:hover,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .artifactActions button:hover,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .codePanelActions button:hover,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewControlButton:hover,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .operatorCheckpointActions button:hover {
+  border-color: rgba(var(--accent-rgb), 0.5);
+  background: rgba(var(--accent-rgb), 0.12);
   box-shadow: none;
   color: var(--foreground);
 }
 
-html[data-cca-theme="codex"] .toolbarToggle[aria-pressed="true"],
-html[data-cca-theme="codex"] .iconButton[aria-expanded="true"],
-html[data-cca-theme="codex"] .commandMenuGrid button[data-active="true"],
-html[data-cca-theme="codex"] .themePresetButton[data-active="true"],
-html[data-cca-theme="codex"] .settingsChoiceRow button[data-active="true"],
-html[data-cca-theme="codex"] .settingsToggle button[data-active="true"],
-html[data-cca-theme="codex"] .inspectorTabs button[aria-selected="true"],
-html[data-cca-theme="codex"] .previewControlButton[aria-pressed="true"] {
-  border-color: rgba(51, 156, 255, 0.72);
-  background: rgba(51, 156, 255, 0.16);
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .toolbarToggle[aria-pressed="true"],
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .iconButton[aria-expanded="true"],
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .commandMenuGrid button[data-active="true"],
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .themePresetButton[data-active="true"],
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .settingsChoiceRow button[data-active="true"],
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .settingsToggle button[data-active="true"],
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .inspectorTabs button[aria-selected="true"],
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewControlButton[aria-pressed="true"] {
+  border-color: rgba(var(--accent-rgb), 0.72);
+  background: rgba(var(--accent-rgb), 0.16);
   box-shadow: none;
   color: var(--foreground);
 }
 
-html[data-cca-theme="codex"] .message,
-html[data-cca-theme="codex"] .emptyStateCard,
-html[data-cca-theme="codex"] .emptyPromptButton,
-html[data-cca-theme="codex"] .overviewTile,
-html[data-cca-theme="codex"] .demoScenarioButton,
-html[data-cca-theme="codex"] .demoScenarioDetail,
-html[data-cca-theme="codex"] .demoScenarioQuickFacts div,
-html[data-cca-theme="codex"] .workflowSummaryCard,
-html[data-cca-theme="codex"] .workflowTraceCard,
-html[data-cca-theme="codex"] .telemetryLifecycleCard,
-html[data-cca-theme="codex"] .telemetrySignalCard,
-html[data-cca-theme="codex"] .telemetryDashboardCard,
-html[data-cca-theme="codex"] .artifactItem,
-html[data-cca-theme="codex"] .artifactDetailCard,
-html[data-cca-theme="codex"] .retrievalSummaryCard,
-html[data-cca-theme="codex"] .retrievalEmptyCard,
-html[data-cca-theme="codex"] .retrievalInsightCard,
-html[data-cca-theme="codex"] .previewIndicator,
-html[data-cca-theme="codex"] .previewCopy,
-html[data-cca-theme="codex"] .previewSurfacePanelFrame,
-html[data-cca-theme="codex"] .savedOutputsHero,
-html[data-cca-theme="codex"] .savedOutputCard {
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .message,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .emptyStateCard,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .emptyPromptButton,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .overviewTile,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .demoScenarioButton,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .demoScenarioDetail,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .demoScenarioQuickFacts div,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .workflowSummaryCard,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .workflowTraceCard,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .telemetryLifecycleCard,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .telemetrySignalCard,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .telemetryDashboardCard,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .artifactItem,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .artifactDetailCard,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .retrievalSummaryCard,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .retrievalEmptyCard,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .retrievalInsightCard,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewIndicator,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewCopy,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewSurfacePanelFrame,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .savedOutputsHero,
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .savedOutputCard {
   border-color: var(--line);
   background: var(--surface-1);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
-html[data-cca-theme="codex"] .sendButton {
-  background: #339cff;
-  color: #ffffff;
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .sendButton {
+  background: rgb(var(--accent-rgb));
+  color: var(--accent-ink);
   box-shadow: none;
 }
 
-html[data-cca-theme="codex"] .sendButton[data-ready="true"]:hover {
-  background: #66b8ff;
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .sendButton[data-ready="true"]:hover {
+  background: color-mix(in srgb, rgb(var(--accent-rgb)) 76%, #ffffff);
 }
 
-html[data-cca-theme="codex"] .previewShelf[open] {
+html:is([data-cca-theme="codex"], [data-cca-theme="codex_white"]) .previewShelf[open] {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.026);
 }
 
@@ -11838,14 +11917,14 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 
   .workstation[data-sidebar-state="collapsed"] .workspaceLayout {
     grid-template-columns:
-      48px
+      var(--inspector-rail-width)
       minmax(0, 1fr)
       10px
       minmax(var(--inspector-rail-width), var(--inspector-width));
   }
 
   .workstation[data-sidebar-state="collapsed"][data-inspector-state="collapsed"] .workspaceLayout {
-    grid-template-columns: 48px minmax(0, 1fr);
+    grid-template-columns: var(--inspector-rail-width) minmax(0, 1fr);
   }
 
   .workstation[data-focus-mode="true"] .workspaceLayout {
@@ -11874,10 +11953,33 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .sessionSidebar--collapsed {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 6px;
+  display: grid;
+  padding: 0;
+}
+
+.sessionSidebarRail {
+  display: grid;
+  height: 100%;
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 14px 8px;
+}
+
+.sessionSidebarRail strong,
+.sessionSidebarRail span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: var(--muted-strong);
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sessionSidebarRail span {
+  color: var(--teal);
+  font-size: 10px;
 }
 
 .sessionSidebar > header {
@@ -13750,11 +13852,24 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 }
 
 .modelAvailabilityControl {
-  position: relative;
+  display: inline-flex;
   flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
 }
 
-.modelAvailabilityControl > summary {
+.modelAvailabilityControl > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 760;
+  white-space: nowrap;
+}
+
+.modelAvailabilityDisclosure {
+  position: relative;
+}
+
+.modelAvailabilityDisclosure > summary {
   display: inline-flex;
   min-height: 30px;
   align-items: center;
@@ -13769,20 +13884,20 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   white-space: nowrap;
 }
 
-.modelAvailabilityControl > summary::-webkit-details-marker { display: none; }
+.modelAvailabilityDisclosure > summary::-webkit-details-marker { display: none; }
 
-.modelAvailabilityControl > summary::after {
+.modelAvailabilityDisclosure > summary::after {
   content: "⌄";
   margin-left: 6px;
   color: var(--teal);
 }
 
-.modelAvailabilityControl[open] > summary {
+.modelAvailabilityDisclosure[open] > summary {
   border-color: rgba(var(--accent-rgb), 0.34);
   color: var(--foreground);
 }
 
-.modelAvailabilityControl > summary[aria-disabled="true"] {
+.modelAvailabilityDisclosure > summary[aria-disabled="true"] {
   pointer-events: none;
   opacity: 0.52;
 }
@@ -14127,6 +14242,282 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   .outputFeedback > label {
     grid-column: 1 / -1;
   }
+}
+
+/* Keep session typography preferences authoritative across every workstation surface. */
+html[data-cca-heading-font-size] .workstation h1 {
+  font-size: var(--heading-display-size) !important;
+}
+
+html[data-cca-heading-font-size] .workstation h2 {
+  font-size: var(--heading-section-size) !important;
+}
+
+html[data-cca-heading-font-size] .workstation .emptyWorkspace .emptyWorkspaceHero > strong {
+  max-width: 14ch;
+  font-size: var(--hero-heading-size) !important;
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  line-height: 0.92;
+}
+
+html[data-cca-heading-font-size] .workstation :is(
+  h3,
+  h4,
+  h5,
+  h6,
+  header > strong,
+  header > div > strong,
+  .emptyWorkspaceHero > strong,
+  .operatorCheckpointHeader strong,
+  .utilityPanelHeader > strong,
+  .settingsSectionHeader > strong
+) {
+  font-size: var(--heading-card-size) !important;
+}
+
+html[data-cca-ui-font-size] .workstation :is(
+  p,
+  li,
+  dd,
+  td,
+  th,
+  blockquote,
+  .messageContent,
+  .previewCopy
+) {
+  font-size: var(--body-copy-size) !important;
+  line-height: 1.5;
+}
+
+html[data-cca-label-font-size] .workstation :is(
+  button,
+  input,
+  select,
+  textarea,
+  label,
+  summary,
+  small,
+  dt,
+  [role="tab"],
+  [role="menuitem"],
+  [role="button"],
+  .eyebrow,
+  .sessionMetric > span,
+  .sessionStatus > span,
+  .productDashboardNav header > span,
+  .productDashboardNav button > small
+) {
+  font-size: var(--label-font-size) !important;
+}
+
+html[data-cca-code-font-size] .workstation :is(
+  code,
+  pre,
+  .codePanel,
+  .codePanel pre,
+  .codeViewer,
+  .codeViewer pre,
+  .activeDocumentBoard pre,
+  .artifactRegistry pre
+) {
+  font-size: var(--code-font-size) !important;
+}
+
+/* Composer controls use a deliberately compact reading measure inside the wider workspace. */
+.workstation .sessionPanel > .composer {
+  width: min(100%, 1120px) !important;
+  justify-self: center;
+}
+
+.workstation .composerInputFrame {
+  padding: 16px 18px 10px !important;
+}
+
+.workstation .composer textarea {
+  min-height: 96px !important;
+  font-size: clamp(15px, var(--body-copy-size), 18px) !important;
+  line-height: 1.55;
+}
+
+html[data-cca-label-font-size] .workstation .sessionPanel > .composer textarea {
+  font-size: clamp(15px, var(--body-copy-size), 18px) !important;
+}
+
+.workstation .composer textarea::placeholder {
+  color: var(--muted-strong);
+  font-size: inherit;
+  opacity: 1;
+}
+
+.workstation .composerActions {
+  display: grid !important;
+  grid-template-columns: minmax(36px, 1fr) auto minmax(77px, 1fr) !important;
+  gap: 16px !important;
+  min-height: 60px !important;
+  padding: 10px 14px !important;
+}
+
+.workstation .composerControlGroup {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  gap: clamp(20px, 2vw, 28px);
+}
+
+.workstation .composerControlGroup > :is(.workflowExecutionSelector, .modelAvailabilityControl) {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.workstation .composerControlGroup .workflowExecutionSelector {
+  margin: 0;
+}
+
+.workstation .composerControlGroup :is(
+  .workflowExecutionSelector,
+  .modelAvailabilityControl,
+  .creativityControl
+) {
+  font-size: var(--label-font-size);
+}
+
+.workstation .composerControlGroup .modelAvailabilityControl > span {
+  font-size: var(--label-font-size);
+}
+
+.workstation .composerControlGroup :is(
+  .workflowExecutionSelector select,
+  .modelAvailabilityDisclosure > summary,
+  .creativityControl select
+) {
+  min-height: 34px;
+  border-radius: 10px;
+}
+
+.workstation .composerAttach {
+  justify-self: start;
+}
+
+.workstation .sendButton {
+  justify-self: end;
+}
+
+html[data-cca-heading-font-size] .workstation header.topbar .sessionStatus strong,
+.workstation header.topbar .sessionStatus strong {
+  font-size: calc(var(--label-font-size) - 1px) !important;
+  font-weight: 700;
+}
+
+.modelAvailabilitySelected {
+  display: grid;
+  gap: 2px;
+  padding: 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.28);
+  border-radius: 9px;
+  background: rgba(var(--accent-rgb), 0.07);
+}
+
+.modelAvailabilitySelected > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.modelAvailabilitySelected > strong {
+  color: var(--foreground);
+  font-size: 13px;
+}
+
+.modelAvailabilitySelected > small {
+  color: var(--teal);
+}
+
+@media (max-width: 900px) {
+  .workstation .sessionPanel > .composer {
+    max-width: none;
+  }
+
+  .workstation .composerActions {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .workstation .composerControlGroup {
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  .workstation .composerControlGroup > :is(.workflowExecutionSelector, .modelAvailabilityControl) {
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .workstation .composerActions {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .workstation .composerControlGroup {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    flex-wrap: wrap;
+    justify-self: stretch;
+    justify-content: space-between;
+  }
+
+  .workstation .sendButton {
+    justify-self: end;
+  }
+}
+
+/* Session typography controls apply consistently to semantic text categories. */
+html[data-cca-heading-font-size] h1 {
+  font-size: var(--heading-display-size) !important;
+}
+
+html[data-cca-heading-font-size] h2 {
+  font-size: var(--heading-section-size) !important;
+}
+
+html[data-cca-heading-font-size] :is(h3, h4, h5, h6),
+html[data-cca-heading-font-size] .productDashboardNav header strong,
+html[data-cca-heading-font-size] .dashboardSettings > article > header strong,
+html[data-cca-heading-font-size] .dashboardFeature > header > div > strong,
+html[data-cca-heading-font-size] .productDashboardManual > article > header > div > strong,
+html[data-cca-heading-font-size] .utilityPanelHeader > strong,
+html[data-cca-heading-font-size] .settingsSectionHeader > strong {
+  font-size: var(--heading-card-size) !important;
+}
+
+html[data-cca-heading-font-size] .productDashboardContent article > header > strong,
+html[data-cca-heading-font-size] .productDashboardContent article > header > div > strong {
+  font-size: var(--heading-card-size) !important;
+}
+
+html[data-cca-ui-font-size] .workstation :is(p, li, dd, td, th, blockquote) {
+  font-size: var(--body-copy-size) !important;
+  line-height: 1.5;
+}
+
+html[data-cca-label-font-size] .workstation :is(
+  button,
+  input,
+  select,
+  textarea,
+  label,
+  summary,
+  [role="tab"],
+  [role="menuitem"],
+  dt,
+  .productDashboardNav header > span,
+  .productDashboardNav button > small
+) {
+  font-size: var(--label-font-size) !important;
 }
 
 /* V9.6 product UX finalization */
@@ -15578,12 +15969,166 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 
 .dashboardSettings > article { overflow: hidden; }
 
-.dashboardThemeChoices,
+.dashboardThemeChoices {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 0.42fr);
+  gap: 10px;
+  padding: 0 18px 18px;
+}
+
 .dashboardSettingRows {
   display: flex;
   flex-wrap: wrap;
   gap: 9px;
   padding: 0 18px 18px;
+}
+
+.dashboardGenerationRows {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 18px 18px;
+}
+
+.dashboardGenerationControl {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 8px;
+  min-height: 136px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.dashboardGenerationControl > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dashboardGenerationControl > strong {
+  color: var(--foreground);
+  font-size: 15px;
+}
+
+.dashboardGenerationControl > select {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  background: var(--surface-0);
+  color: var(--foreground);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 750;
+  padding: 0 30px 0 10px;
+}
+
+.dashboardGenerationControl > small {
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.dashboardProviderDisclosure {
+  position: relative;
+}
+
+.dashboardProviderDisclosure > summary {
+  display: inline-flex;
+  width: 100%;
+  min-height: 36px;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  background: var(--surface-0);
+  color: var(--foreground);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 750;
+  list-style: none;
+}
+
+.dashboardProviderDisclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.dashboardProviderDisclosure > summary::after {
+  margin-left: auto;
+  color: var(--teal);
+  content: "⌄";
+}
+
+.dashboardProviderDisclosure[open] > summary {
+  border-color: rgba(var(--accent-rgb), 0.52);
+  background: rgba(var(--accent-rgb), 0.09);
+}
+
+.dashboardProviderDisclosure[open] > summary::after {
+  content: "⌃";
+}
+
+.dashboardProviderAvailability {
+  display: grid;
+  gap: 3px;
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.26);
+  border-radius: 9px;
+  background: rgba(var(--accent-rgb), 0.06);
+}
+
+.dashboardProviderAvailability > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.dashboardProviderAvailability > strong {
+  color: var(--foreground);
+  font-size: 13px;
+}
+
+.dashboardProviderAvailability > small {
+  color: var(--teal);
+  font-size: 11px;
+}
+
+.dashboardThemeChoiceGroup {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.dashboardThemeChoiceGroup[data-group="monochrome"] {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.12));
+}
+
+.dashboardThemeChoiceGroup > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dashboardThemeChoiceGroup > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .dashboardThemeChoices button {
@@ -15603,7 +16148,26 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 
 .dashboardThemeChoices button[data-theme="aqua"] { box-shadow: inset 0 -2px #4cd7c8; }
 .dashboardThemeChoices button[data-theme="codex"] { box-shadow: inset 0 -2px #339cff; }
+.dashboardThemeChoices button[data-theme="codex_white"] { box-shadow: inset 0 -2px #f4f7fb; }
+.dashboardThemeChoices button[data-theme="light"] {
+  border-color: rgba(17, 19, 24, 0.34);
+  background: #ffffff;
+  box-shadow: inset 0 -4px #111318;
+  color: #111318;
+}
+
+.dashboardThemeChoices button[data-theme="light"]:hover,
+.dashboardThemeChoices button[data-theme="light"][aria-pressed="true"] {
+  border-color: #111318;
+  background: #ffffff;
+  box-shadow: inset 0 -4px #111318;
+  color: #111318;
+}
 .dashboardThemeChoices button[data-theme="matrix"] { box-shadow: inset 0 -2px #40c977; }
+.dashboardThemeChoices button[data-theme="terminal"] { box-shadow: inset 0 -2px #f1c56f; }
+.dashboardThemeChoices button[data-theme="horizon"] { box-shadow: inset 0 -2px #f4a36e; }
+.dashboardThemeChoices button[data-theme="zen"] { box-shadow: inset 0 -2px #8fd4c7; }
+.dashboardThemeChoices button[data-theme="blueprint"] { box-shadow: inset 0 -2px #7fd4ff; }
 
 .dashboardScaleControl {
   display: grid;
@@ -15619,6 +16183,49 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
 .dashboardScaleControl > strong { color: var(--foreground); font-size: 13px; }
 .dashboardScaleControl > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .dashboardScaleControl button { min-height: 30px; font-size: 11px; text-transform: capitalize; }
+
+.dashboardTypographyPreview {
+  display: block;
+  min-height: 22px;
+  margin-top: 1px;
+  color: var(--muted-strong);
+  line-height: 1.25;
+}
+
+.dashboardTypographyPreview[data-kind="heading"] {
+  color: var(--foreground);
+  font-size: var(--heading-card-size);
+  font-weight: 760;
+  letter-spacing: -0.02em;
+}
+
+.dashboardTypographyPreview[data-kind="body"] {
+  font-size: var(--body-copy-size);
+}
+
+.dashboardTypographyPreview[data-kind="label"] {
+  color: var(--muted);
+  font-size: var(--label-font-size);
+  font-weight: 780;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dashboardTypographyPreview[data-kind="code"] {
+  color: var(--teal);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: var(--code-font-size);
+}
+
+@media (max-width: 760px) {
+  .dashboardThemeChoices {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboardGenerationRows {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 
 .dashboardToggle {
   display: grid;
@@ -15735,4 +16342,1282 @@ html[data-cca-theme] .utilityPanel.utilityPanel--kb {
   .sessionRegistryTable > div {
     min-width: 760px;
   }
+}
+
+/* Knowledge Base V9.8: match the dashboard's readable card scale. */
+.knowledgeDashboardView .kbInventorySurface[data-header-mode="embedded"] {
+  padding: 20px 22px 24px;
+}
+
+.knowledgeDashboardView .kbInventorySurface[data-header-mode="embedded"] .kbInventoryMetrics {
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 10px;
+}
+
+.knowledgeDashboardView .kbInventoryMetrics > span {
+  display: grid;
+  align-content: space-between;
+  min-height: 76px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--line) 82%, var(--teal));
+  border-radius: 12px;
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.09), transparent 68%),
+    rgba(0, 0, 0, 0.1);
+}
+
+.knowledgeDashboardView .kbInventoryMetrics small {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.055em;
+}
+
+.knowledgeDashboardView .kbInventoryMetrics strong {
+  margin-top: 7px;
+  font-size: 16px;
+  font-weight: 780;
+}
+
+.knowledgeDashboardView .kbInventoryLegend {
+  grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.knowledgeDashboardView .kbInventoryLegend div {
+  min-height: 86px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--line) 84%, var(--teal));
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.knowledgeDashboardView .kbInventoryLegend dt {
+  font-size: 12px;
+}
+
+.knowledgeDashboardView .kbInventoryLegend dd {
+  margin-top: 5px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.knowledgeDashboardView .kbInventorySurface footer {
+  gap: 7px;
+  margin-top: 16px;
+}
+
+.knowledgeDashboardView .kbInventorySurface footer p {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.knowledgeDashboardView .kbSourceExplorer {
+  margin-top: 20px;
+  padding-top: 20px;
+}
+
+.knowledgeDashboardView .kbSourceExplorer > header {
+  gap: 24px;
+}
+
+.knowledgeDashboardView .kbSourceExplorerIntro > strong {
+  display: block;
+  color: var(--foreground);
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.knowledgeDashboardView .kbSourceExplorer > header p,
+.knowledgeDashboardView .kbSourceBoundary,
+.knowledgeDashboardView .kbOperationStatus,
+.knowledgeDashboardView .kbSourceExplorer article > p {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.knowledgeDashboardView .kbSourceExplorerControls {
+  flex-basis: min(100%, 620px);
+  width: min(100%, 620px);
+  gap: 9px;
+}
+
+.knowledgeDashboardView .kbSmartUpdateActions {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+}
+
+.knowledgeDashboardView .kbSmartUpdateActions > span {
+  flex: 1 1 auto;
+  max-width: none;
+  font-size: 12px;
+  line-height: 1.42;
+  order: 1;
+}
+
+.knowledgeDashboardView .kbSmartUpdateButton {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  min-height: 40px;
+  padding: 0.5rem 0.85rem;
+  font-size: 13px;
+  order: 2;
+}
+
+.knowledgeDashboardView .kbSourceActions {
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.knowledgeDashboardView .kbSourceActions button {
+  min-height: 38px;
+  padding: 0.42rem 0.68rem;
+  font-size: 12px;
+}
+
+.knowledgeDashboardView .kbActionGuide {
+  grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.knowledgeDashboardView .kbActionGuide li {
+  min-height: 92px;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.knowledgeDashboardView .kbActionGuide strong {
+  font-size: 13px;
+}
+
+.knowledgeDashboardView .kbActionGuide span {
+  font-size: 12px;
+  line-height: 1.42;
+}
+
+.knowledgeDashboardView .kbSmartUpdateHistory {
+  margin-top: 12px;
+  color: var(--muted-strong);
+  font-size: 12px;
+}
+
+.knowledgeDashboardView .kbSourceExplorer > div[role="list"] {
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.knowledgeDashboardView .kbSourceExplorer article {
+  padding: 16px;
+  border-radius: 14px;
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.045), transparent 46%),
+    rgba(0, 0, 0, 0.09);
+}
+
+.knowledgeDashboardView .kbSourceExplorer article header strong {
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.knowledgeDashboardView .kbSourceExplorer article header span,
+.knowledgeDashboardView .kbSourceExplorer article a,
+.knowledgeDashboardView .kbSourceExplorer article dd {
+  font-size: 13px;
+}
+
+.knowledgeDashboardView .kbSourceExplorer article header > div > span {
+  margin-top: 4px;
+  color: var(--muted-strong);
+}
+
+.knowledgeDashboardView .kbSourceSelect {
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.07);
+}
+
+.knowledgeDashboardView .kbSourceSelect input {
+  width: 16px;
+  height: 16px;
+}
+
+.knowledgeDashboardView .kbSourceSelect > span {
+  margin: 0;
+  color: var(--teal);
+  font-size: 12px;
+  font-weight: 780;
+  white-space: nowrap;
+}
+
+.knowledgeDashboardView .kbSourceExplorer article a {
+  margin-top: 12px;
+  color: var(--teal);
+  font-weight: 720;
+}
+
+.knowledgeDashboardView .kbSourceExplorer article dl {
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.knowledgeDashboardView .kbSourceExplorer article dl div {
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.knowledgeDashboardView .kbSourceExplorer article dt {
+  font-size: 11px;
+  font-weight: 780;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.knowledgeDashboardView .kbSourceExplorer article dd {
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+@media (max-width: 1100px) {
+  .knowledgeDashboardView .kbSourceExplorer > header {
+    display: grid;
+  }
+
+  .knowledgeDashboardView .kbSourceExplorerControls {
+    width: 100%;
+    justify-items: stretch;
+  }
+}
+
+@media (max-width: 760px) {
+  .knowledgeDashboardView .kbInventorySurface[data-header-mode="embedded"] {
+    padding: 16px;
+  }
+
+  .knowledgeDashboardView .kbInventoryMetrics,
+  .knowledgeDashboardView .kbInventoryLegend,
+  .knowledgeDashboardView .kbActionGuide {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .knowledgeDashboardView .kbSmartUpdateActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .knowledgeDashboardView .kbSmartUpdateButton {
+    align-self: flex-end;
+  }
+
+  .knowledgeDashboardView .kbSourceExplorer article > header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .knowledgeDashboardView .kbSourceSelect {
+    align-self: flex-start;
+  }
+}
+
+/* Dashboard V9.9: a shared visual contract for every dashboard category. */
+.productDashboardContent {
+  --dashboard-card-radius: 18px;
+  --dashboard-panel-background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.055), transparent 46%),
+    rgba(255, 255, 255, 0.025);
+  --dashboard-section-padding: 18px;
+}
+
+.productDashboardGroup,
+.productDashboardManual,
+.dashboardSettings {
+  gap: 16px;
+  padding: 16px;
+}
+
+.productDashboardGroupSection,
+.dashboardFeature,
+.dashboardSettings > article,
+.productDashboardManual article {
+  overflow: visible;
+  border-color: rgba(255, 255, 255, 0.13);
+  border-radius: var(--dashboard-card-radius);
+  background: var(--dashboard-panel-background);
+}
+
+.productDashboardManual article {
+  padding: 0;
+}
+
+.productDashboardGroupSection > header,
+.dashboardFeature > header,
+.dashboardSettings > article > header,
+.productDashboardManual article > header {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  padding: 17px var(--dashboard-section-padding);
+}
+
+.productDashboardManual article > header {
+  border-bottom: 1px solid var(--section-divider);
+}
+
+.productDashboardManual article > header > div > span {
+  display: block;
+  color: var(--teal);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.productDashboardManual article > header > div > strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--foreground);
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.productDashboardManual article > header > div > p {
+  margin: 6px 0 0;
+  color: var(--muted-strong);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+@media (max-width: 760px) {
+  .productDashboardGroup,
+  .productDashboardManual,
+  .dashboardSettings {
+    padding: 12px;
+  }
+
+  .productDashboardManual article > header {
+    padding: 15px 16px;
+  }
+}
+
+/* Keep the large official-source registry available without overwhelming the default view. */
+.knowledgeDashboardView .kbSourceListToggle {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px 12px;
+  width: 100%;
+  padding: 11px 42px 11px 12px;
+  border: 1px solid color-mix(in srgb, var(--teal) 38%, var(--line));
+  border-radius: 14px;
+  color: var(--foreground);
+  background: rgba(var(--accent-rgb), 0.07);
+  cursor: pointer;
+  text-align: left;
+}
+
+.knowledgeDashboardView .kbSourceListToggle > span {
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 780;
+}
+
+.knowledgeDashboardView .kbSourceListToggle > small {
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.knowledgeDashboardView .kbSourceListToggle::after {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--teal);
+  border-bottom: 2px solid var(--teal);
+  content: "";
+  transform: translateY(-68%) rotate(45deg);
+  transition: transform 160ms ease;
+}
+
+.knowledgeDashboardView .kbSourceListToggle[aria-expanded="true"] {
+  border-color: color-mix(in srgb, var(--teal) 64%, var(--line));
+  background: rgba(var(--accent-rgb), 0.12);
+}
+
+.knowledgeDashboardView .kbSourceListToggle[aria-expanded="true"]::after {
+  transform: translateY(-30%) rotate(225deg);
+}
+
+.knowledgeDashboardView .kbSourceListToggle:hover {
+  border-color: color-mix(in srgb, var(--teal) 70%, var(--line));
+  background: rgba(var(--accent-rgb), 0.13);
+}
+
+.knowledgeDashboardView .kbSourceExplorerCollapsedHint {
+  margin: 16px 0 0;
+  padding: 11px 13px;
+  border-left: 2px solid var(--teal);
+  border-radius: 0 10px 10px 0;
+  color: var(--muted-strong);
+  background: rgba(var(--accent-rgb), 0.06);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.knowledgeDashboardView .kbSourceExplorerDetails {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.knowledgeDashboardView .kbSourceExplorerDetails > .kbSourceActions {
+  justify-content: flex-start;
+}
+
+.knowledgeDashboardView .kbSourceExplorerDetails > div[role="list"] {
+  display: grid;
+  gap: 12px;
+  margin-top: 0;
+}
+
+@media (max-width: 760px) {
+  .knowledgeDashboardView .kbSourceListToggle {
+    padding: 10px 38px 10px 11px;
+  }
+
+  .knowledgeDashboardView .kbSourceExplorerDetails {
+    gap: 12px;
+  }
+}
+
+/* Curated studies use the same readable card language as the rest of the dashboard. */
+.knowledgeDashboardView .creativeStudyShelf {
+  margin: 0 18px 20px;
+  overflow: hidden;
+  border-color: rgba(255, 255, 255, 0.13);
+  border-radius: var(--dashboard-card-radius);
+  background: var(--dashboard-panel-background);
+}
+
+.knowledgeDashboardView .creativeStudyShelf > header {
+  gap: 14px;
+  padding: 17px 18px;
+  border-bottom-color: var(--section-divider);
+}
+
+.knowledgeDashboardView .creativeStudyShelf > header span {
+  color: var(--teal);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+}
+
+.knowledgeDashboardView .creativeStudyShelf > header strong {
+  margin-top: 5px;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.knowledgeDashboardView .creativeStudyShelf > div[role="list"] {
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 12px;
+  padding: 16px 18px 18px;
+}
+
+.knowledgeDashboardView .creativeStudyShelf article {
+  gap: 11px;
+  min-height: 194px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.045), transparent 52%),
+    rgba(0, 0, 0, 0.11);
+}
+
+.knowledgeDashboardView .creativeStudyShelf article > div {
+  gap: 5px;
+}
+
+.knowledgeDashboardView .creativeStudyShelf article > div strong {
+  font-size: 15px;
+  line-height: 1.28;
+}
+
+.knowledgeDashboardView .creativeStudyShelf article > div span {
+  font-size: 12px;
+  font-weight: 780;
+}
+
+.knowledgeDashboardView .creativeStudyShelf article > p {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.knowledgeDashboardView .creativeStudyShelf dl {
+  gap: 9px;
+}
+
+.knowledgeDashboardView .creativeStudyShelf dl div {
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.knowledgeDashboardView .creativeStudyShelf dt {
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.knowledgeDashboardView .creativeStudyShelf dd {
+  margin-top: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.42;
+}
+
+@media (max-width: 760px) {
+  .knowledgeDashboardView .creativeStudyShelf {
+    margin: 0 16px 18px;
+  }
+
+  .knowledgeDashboardView .creativeStudyShelf > header,
+  .knowledgeDashboardView .creativeStudyShelf > div[role="list"] {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .knowledgeDashboardView .creativeStudyShelf > div[role="list"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Dashboard V10: readable cards use the curated-study scale everywhere. */
+.productDashboardContent {
+  --dashboard-readable-card-min: 280px;
+  --dashboard-readable-card-padding: 16px;
+  --dashboard-readable-label-size: 11px;
+  --dashboard-readable-title-size: 16px;
+  --dashboard-readable-copy-size: 13px;
+}
+
+.dashboardSignalBoardGrid {
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.6fr);
+  gap: 14px;
+}
+
+.dashboardSignalLead,
+.architectureRouteGrid article,
+.workflowLivePath li,
+.aiAgentRoute article,
+.aiAgentSplit > section,
+.telemetrySignalGrid article,
+.creativeKnowledgeRecordGrid article,
+.artifactRegistry article {
+  padding: var(--dashboard-readable-card-padding);
+  border-radius: 14px;
+}
+
+.dashboardSignalLead {
+  min-height: 170px;
+}
+
+.dashboardSignalLead > span,
+.dashboardEvidenceCues li > span,
+.dashboardSignalMetrics dt,
+.architectureExecutionFacts span,
+.workflowLiveSummary span,
+.telemetryRunFacts span,
+.workflowTransitionRail span,
+.aiAgentRoute span,
+.aiAgentSplit header span,
+.telemetrySignalGrid span,
+.creativeKnowledgeRecordGrid article > header > span,
+.creativeKnowledgeRecordGrid dt,
+.artifactRegistry article header div > span,
+.artifactRegistry article header > span,
+.artifactRegistry article dt {
+  font-size: var(--dashboard-readable-label-size);
+}
+
+.dashboardSignalLead > p,
+.dashboardEvidenceCues p,
+.architectureRouteGrid article > p,
+.workflowLivePath p,
+.workflowTransitionRail small,
+.aiAgentRoute p,
+.aiAgentSplit p,
+.telemetrySignalGrid p,
+.creativeKnowledgeRecordGrid article > p,
+.artifactRegistry article header p {
+  font-size: var(--dashboard-readable-copy-size);
+  line-height: 1.45;
+}
+
+.dashboardSignalLead > small,
+.dashboardSignalMetrics small,
+.workflowLivePath small {
+  font-size: 12px;
+}
+
+.dashboardSignalMetrics {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.dashboardSignalMetrics > div,
+.architectureExecutionFacts > div,
+.workflowLiveSummary > div,
+.telemetryRunFacts > div,
+.activeDocumentBoard > dl > div,
+.previewReadinessMetrics > div,
+.userUsageOverview dl div {
+  min-height: 82px;
+  padding: 13px;
+  border-radius: 13px;
+}
+
+.dashboardEvidenceCues,
+.architectureRouteGrid,
+.workflowLivePath,
+.aiAgentRoute,
+.telemetrySignalGrid,
+.creativeKnowledgeRecordGrid,
+.artifactRegistry > div[role="list"] {
+  gap: 12px;
+}
+
+.dashboardEvidenceCues,
+.architectureRouteGrid,
+.aiAgentRoute,
+.telemetrySignalGrid {
+  grid-template-columns: repeat(auto-fit, minmax(var(--dashboard-readable-card-min), 1fr));
+}
+
+.dashboardEvidenceCues li {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.architectureRouteGrid article > strong,
+.workflowLivePath strong,
+.aiAgentRoute strong,
+.telemetrySignalGrid strong,
+.creativeKnowledgeRecordGrid article > header strong,
+.artifactRegistry article header div > strong {
+  font-size: var(--dashboard-readable-title-size);
+  line-height: 1.28;
+}
+
+.architectureRouteGrid article > p {
+  min-height: 0;
+}
+
+.architectureRouteGrid li,
+.workflowTransitionRail strong,
+.aiAgentSplit dd,
+.telemetrySignalGrid p {
+  font-size: 13px;
+}
+
+.architectureExecutionFacts,
+.workflowLiveSummary,
+.telemetryRunFacts,
+.activeDocumentBoard > dl,
+.previewReadinessMetrics,
+.previewLifecycle,
+.userUsageOverview > dl {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.architectureExecutionFacts strong,
+.workflowLiveSummary strong,
+.telemetryRunFacts strong,
+.activeDocumentBoard dd,
+.previewReadinessMetrics strong {
+  font-size: 15px;
+}
+
+.workflowLivePath {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.workflowLivePath li {
+  min-height: 112px;
+}
+
+.workflowTransitionRail {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.workflowTransitionRail li {
+  gap: 6px;
+  padding: 13px;
+  border-radius: 0 12px 12px 0;
+}
+
+.aiAgentSplit {
+  gap: 12px;
+}
+
+.aiAgentSplit > section {
+  gap: 13px;
+}
+
+.aiAgentSplit header strong {
+  font-size: 16px;
+}
+
+.aiAgentSplit dl {
+  gap: 9px;
+}
+
+.aiAgentSplit dl div,
+.creativeKnowledgeRecordGrid dl div,
+.artifactRegistry article dl div {
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.aiAgentSplit dt {
+  font-size: 11px;
+}
+
+.telemetrySignalGrid article {
+  min-height: 136px;
+  gap: 8px;
+}
+
+.creativeKnowledgeRecordGrid {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+  padding: 0 18px 20px;
+}
+
+.creativeKnowledgeRecordGrid article {
+  gap: 12px;
+  min-height: 330px;
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.045), transparent 52%),
+    rgba(0, 0, 0, 0.11);
+}
+
+.creativeKnowledgeRecordGrid article > header {
+  gap: 6px;
+}
+
+.creativeKnowledgeRecordGrid article > p {
+  font-size: var(--dashboard-readable-copy-size);
+}
+
+.creativeKnowledgeDomainChips,
+.creativeKnowledgeTagRow {
+  gap: 6px;
+}
+
+.creativeKnowledgeDomainChips span,
+.creativeKnowledgeTagRow span {
+  padding: 5px 7px;
+  font-size: 11px;
+}
+
+.creativeKnowledgeRecordGrid dl {
+  gap: 9px;
+}
+
+.creativeKnowledgeRecordGrid dd {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.42;
+}
+
+.creativeKnowledgeRecordGrid ol {
+  gap: 7px;
+}
+
+.creativeKnowledgeRecordGrid ol li {
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.creativeKnowledgeRecordGrid ol span {
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+}
+
+.activeDocumentBoard pre,
+.artifactRegistry pre {
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.previewLifecycle li {
+  min-height: 76px;
+  padding: 13px;
+  border-radius: 13px;
+}
+
+.previewLifecycle small {
+  font-size: 13px;
+}
+
+.artifactRegistry > div[role="list"] {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.artifactRegistry article {
+  gap: 14px;
+}
+
+.artifactRegistry article header p {
+  font-size: var(--dashboard-readable-copy-size);
+}
+
+.artifactRegistry article dl {
+  gap: 9px;
+}
+
+.artifactRegistry article dd {
+  margin-top: 5px;
+  font-size: 12px;
+}
+
+.artifactRegistry details summary {
+  padding: 11px 12px;
+  font-size: 12px;
+}
+
+.userUsageOverview dd {
+  font-size: 18px;
+}
+
+.domainExperienceGrid {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.domainCapabilityCard {
+  padding: var(--dashboard-readable-card-padding);
+  border-radius: 14px;
+}
+
+.domainCapabilityCard header p {
+  font-size: var(--dashboard-readable-copy-size);
+}
+
+.domainCapabilityMetrics > div {
+  padding: 10px;
+}
+
+.domainCapabilityMetrics dt {
+  font-size: 11px;
+}
+
+.domainCapabilityMetrics dd {
+  margin-top: 5px;
+  font-size: 13px;
+}
+
+.knowledgeDashboardView .kbActionGuide {
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.productIntelligenceMetrics dt,
+.creativeKnowledgeMetrics span,
+.activeDocumentBoard dt,
+.previewReadinessMetrics span,
+.previewLifecycle strong,
+.userUsageOverview dt {
+  font-size: var(--dashboard-readable-label-size);
+}
+
+@media (max-width: 760px) {
+  .dashboardSignalBoardGrid,
+  .dashboardEvidenceCues,
+  .architectureRouteGrid,
+  .aiAgentRoute,
+  .telemetrySignalGrid,
+  .creativeKnowledgeRecordGrid,
+  .artifactRegistry > div[role="list"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .creativeKnowledgeRecordGrid,
+  .artifactRegistry > div[role="list"] {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+}
+
+/* The dashboard navigation follows the same readable scale as its card content. */
+.productDashboardNav header {
+  padding: 22px 22px 18px;
+}
+
+.productDashboardNav header > span {
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.productDashboardNav header strong {
+  font-size: 20px;
+  line-height: 1.18;
+}
+
+.productDashboardNav > div {
+  gap: 4px;
+  padding: 12px;
+}
+
+.productDashboardNav button {
+  min-height: 46px;
+  padding: 11px 13px;
+}
+
+.productDashboardNav button > span {
+  font-size: 14px;
+  font-weight: 780;
+  line-height: 1.3;
+}
+
+@media (max-width: 760px) {
+  .productDashboard {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+    height: auto;
+    margin: 10px;
+  }
+
+  .productDashboardNav {
+    grid-template-rows: auto auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--section-divider);
+  }
+
+  .productDashboardNav header {
+    padding: 16px 18px 14px;
+  }
+
+  .productDashboardNav header strong {
+    font-size: 18px;
+  }
+
+  .productDashboardNav button {
+    min-width: 136px;
+    min-height: 44px;
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .productDashboardNav > div {
+    display: flex;
+    align-items: stretch;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px;
+  }
+}
+
+/* Dashboard-derived primitives: reuse these surface and card tokens in future workstation views. */
+.workstation {
+  --workstation-panel-radius: 18px;
+  --workstation-card-radius: 14px;
+  --workstation-panel-padding: 18px;
+  --workstation-card-padding: 16px;
+  --workstation-panel-surface: linear-gradient(145deg, rgba(var(--accent-rgb), 0.045), transparent 52%), var(--surface-1);
+  --workstation-card-surface: var(--surface-2);
+}
+
+.workstationSurface,
+.workstation .sessionSidebar:not(.sessionSidebar--collapsed),
+.workstation .sessionPanel,
+.workstation .previewShelf,
+.workstation .inspector,
+.workstation .demoModePanel,
+.workstation .utilityPanel {
+  border-color: var(--line);
+  border-radius: var(--workstation-panel-radius);
+  background: var(--workstation-panel-surface);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18), var(--panel-highlight);
+}
+
+.workstation .sessionSidebar:not(.sessionSidebar--collapsed),
+.workstation .sessionPanel,
+.workstation .demoModePanel {
+  gap: 16px;
+  padding: var(--workstation-panel-padding);
+}
+
+.workstationCard,
+.workstation :is(
+  .sessionMetric,
+  .sessionSidebarItem,
+  .emptyWorkspaceValue article,
+  .emptyWorkspaceSuggestions button,
+  .emptyWorkspaceGrid section,
+  .overviewTile,
+  .workflowSummaryCard,
+  .workflowTraceCard,
+  .artifactItem,
+  .retrievalItem,
+  .loopHint,
+  .demoScenarioButton,
+  .demoScenarioDetail,
+  .demoScenarioQuickFacts div,
+  .demoLiveSequence button,
+  .workstationDashboardCard
+) {
+  border-color: var(--line);
+  border-radius: var(--workstation-card-radius);
+  background: var(--workstation-card-surface);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.workstation :is(
+  .sessionMetric,
+  .emptyWorkspaceValue article,
+  .emptyWorkspaceSuggestions button,
+  .emptyWorkspaceGrid section,
+  .overviewTile,
+  .workflowSummaryCard,
+  .workflowTraceCard,
+  .artifactItem,
+  .retrievalItem,
+  .loopHint,
+  .demoScenarioButton,
+  .demoScenarioDetail,
+  .demoScenarioQuickFacts div,
+  .demoLiveSequence button,
+  .workstationDashboardCard
+) {
+  padding: var(--workstation-card-padding);
+}
+
+.workstation .sessionSidebarItem {
+  gap: 7px;
+  padding: 12px;
+}
+
+.workstation .sessionSidebarItem[data-active="true"] {
+  border-color: rgba(var(--accent-rgb), 0.42);
+  background: rgba(var(--accent-rgb), 0.1);
+}
+
+.workstation .sessionSidebar > header strong,
+.workstation :is(
+  .brandText strong,
+  .sessionSidebarSelect strong,
+  .sessionMetric strong,
+  .overviewTile strong,
+  .workflowSummaryCard strong,
+  .workflowTraceCard header strong,
+  .demoScenarioButton strong,
+  .demoScenarioDetail header strong,
+  .emptyWorkspaceHero > strong,
+  .emptyWorkspaceValue strong,
+  .emptyWorkspaceSuggestions button strong,
+  .emptyWorkspaceGrid section strong
+) {
+  font-size: var(--heading-card-size) !important;
+  line-height: 1.3;
+}
+
+.workstation :is(
+  .brandText span,
+  .sessionSidebarSelect span,
+  .sessionSidebarBoundary,
+  .sessionMetric span,
+  .sessionMetric small,
+  .overviewTile span,
+  .workflowSummaryCard span,
+  .workflowTraceCard header span,
+  .demoScenarioButton span,
+  .demoScenarioButton small,
+  .demoScenarioQuickFacts dt,
+  .emptyWorkspaceValue span,
+  .emptyWorkspaceSuggestions button small,
+  .emptyWorkspaceGrid section > span
+) {
+  font-size: var(--label-font-size) !important;
+}
+
+.workstation .sessionHeader {
+  gap: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--section-divider);
+}
+
+.workstation .sessionHeader p {
+  max-width: 76ch;
+  margin-top: 10px;
+  white-space: normal;
+}
+
+.workstation .emptyWorkspace {
+  gap: 18px;
+  padding: 22px;
+  border-color: var(--line);
+  border-radius: var(--workstation-panel-radius);
+  background: var(--workstation-panel-surface);
+}
+
+.workstation .emptyWorkspaceHero > strong,
+.workstation .demoModeHeader strong {
+  font-size: var(--heading-section-size) !important;
+  line-height: 1.18;
+}
+
+.workstation .demoModeBody {
+  gap: 16px;
+}
+
+.workstation .demoScenarioButton {
+  min-height: 88px;
+}
+
+.workstation .composer {
+  border-color: var(--line-strong);
+  border-radius: var(--workstation-panel-radius);
+  background: var(--workstation-panel-surface);
+  box-shadow: var(--panel-highlight);
+}
+
+.workstation .composerInputFrame {
+  padding: 14px 16px 8px;
+}
+
+.workstation .composer textarea {
+  min-height: 88px;
+  font-size: var(--body-copy-size);
+  line-height: 1.5;
+}
+
+.workstation .composerActions {
+  min-height: 54px;
+  padding: 8px 12px;
+  border-top-color: var(--section-divider);
+  background: var(--surface-2);
+}
+
+.workstation .inspectorHeader {
+  padding: 18px 18px 16px;
+}
+
+.workstation .inspectorTabs {
+  gap: 9px;
+  padding: 14px 16px;
+}
+
+.workstation .inspectorTabs button {
+  min-height: 58px;
+  border-radius: var(--workstation-card-radius);
+  background: var(--workstation-card-surface);
+  box-shadow: none;
+}
+
+.workstation .inspectorPanel {
+  padding: 18px;
+}
+
+@media (min-width: 761px) {
+  .workstation:not([data-sidebar-state="collapsed"]):not([data-inspector-state="collapsed"]):not([data-focus-mode="true"]) .workspaceLayout {
+    grid-template-columns: minmax(224px, 272px) minmax(0, 1fr) 10px minmax(var(--inspector-rail-width), var(--inspector-width));
+    gap: 20px;
+    padding: 20px;
+  }
+}
+
+/* The persisted scales must win over all individual surface declarations. */
+html[data-cca-heading-font-size] .workstation h1 {
+  font-size: var(--heading-display-size) !important;
+}
+
+html[data-cca-heading-font-size] .workstation h2 {
+  font-size: var(--heading-section-size) !important;
+}
+
+html[data-cca-heading-font-size] .workstation .emptyWorkspaceHero > strong {
+  max-width: 14ch;
+  font-size: var(--hero-heading-size) !important;
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  line-height: 0.92;
+}
+
+html[data-cca-heading-font-size] .workstation :is(
+  h3,
+  h4,
+  h5,
+  h6,
+  header > strong,
+  header > div > strong,
+  .emptyWorkspaceHero > strong,
+  .operatorCheckpointHeader strong,
+  .utilityPanelHeader > strong,
+  .settingsSectionHeader > strong
+) {
+  font-size: var(--heading-card-size) !important;
+}
+
+html[data-cca-ui-font-size] .workstation :is(
+  p,
+  li,
+  dd,
+  td,
+  th,
+  blockquote,
+  .messageContent,
+  .previewCopy
+) {
+  font-size: var(--body-copy-size) !important;
+  line-height: 1.5;
+}
+
+html[data-cca-label-font-size] .workstation :is(
+  button,
+  input,
+  select,
+  textarea,
+  label,
+  summary,
+  small,
+  dt,
+  [role="tab"],
+  [role="menuitem"],
+  [role="button"],
+  .eyebrow,
+  .sessionMetric > span,
+  .sessionStatus > span,
+  .productDashboardNav header > span,
+  .productDashboardNav button > small
+) {
+  font-size: var(--label-font-size) !important;
+}
+
+html[data-cca-code-font-size] .workstation :is(
+  code,
+  pre,
+  .codePanel,
+  .codePanel pre,
+  .codeViewer,
+  .codeViewer pre,
+  .activeDocumentBoard pre,
+  .artifactRegistry pre
+) {
+  font-size: var(--code-font-size) !important;
 }

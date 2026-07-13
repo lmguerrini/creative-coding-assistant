@@ -23,6 +23,7 @@ import type {
   WorkspacePreferences,
   WorkspaceSessionSummary
 } from "@/lib/workspace-persistence";
+import type { WorkflowExecutionMode } from "@/lib/workflow-execution";
 import type { SessionUsageSummary } from "@/lib/session-usage-ledger";
 import { formatUiStatusLabel } from "@/lib/ui-copy";
 import { morphogenesisPromptLibrary } from "@/lib/curated-prompt-library";
@@ -47,7 +48,9 @@ type DashboardSettingsControls = {
   onPreferencesChange: (preferences: Partial<WorkspacePreferences>) => void;
   onPreviewToggle: () => void;
   onSidebarToggle: () => void;
+  onWorkflowModeChange: (mode: WorkflowExecutionMode) => void;
   preferences: WorkspacePreferences;
+  workflowMode: WorkflowExecutionMode;
 };
 
 type DashboardSessionControls = {
@@ -1250,7 +1253,33 @@ function formatCompactUsage(value: number) {
 
 function DashboardSettings({ controls }: { controls: DashboardSettingsControls }) {
   const { layoutState, preferences } = controls;
-  const themes: WorkspacePreferences["theme"][] = ["aqua", "codex", "light", "matrix", "terminal", "horizon", "zen", "blueprint"];
+  const themeGroups = [
+    {
+      id: "colour",
+      label: "Colour themes",
+      themes: [
+        { value: "aqua", label: "Aqua" },
+        { value: "codex", label: "Deep Blue" },
+        { value: "matrix", label: "Matrix" },
+        { value: "terminal", label: "Terminal" },
+        { value: "horizon", label: "Horizon" },
+        { value: "zen", label: "Zen" },
+        { value: "blueprint", label: "Blueprint" }
+      ]
+    },
+    {
+      id: "monochrome",
+      label: "Black & white",
+      themes: [
+        { value: "codex_white", label: "Dark" },
+        { value: "light", label: "Light" }
+      ]
+    }
+  ] satisfies readonly {
+    id: string;
+    label: string;
+    themes: readonly { label: string; value: WorkspacePreferences["theme"] }[];
+  }[];
   const scales: WorkspacePreferences["uiFontSize"][] = ["small", "medium", "large"];
 
   return (
@@ -1261,19 +1290,28 @@ function DashboardSettings({ controls }: { controls: DashboardSettingsControls }
           <DashboardPanelHelp detail="Theme changes the saved visual palette for this browser workspace. It does not change the generated artifact or workflow configuration." label="Appearance settings" />
         </header>
         <div className="dashboardThemeChoices" role="group" aria-label="Theme options">
-          {themes.map((theme) => (
-            <button aria-pressed={preferences.theme === theme} data-theme={theme} key={theme} onClick={() => controls.onPreferencesChange({ theme })} type="button">{theme}</button>
+          {themeGroups.map((group) => (
+            <div className="dashboardThemeChoiceGroup" data-group={group.id} key={group.id}>
+              <span>{group.label}</span>
+              <div role="group" aria-label={group.label}>
+                {group.themes.map((theme) => (
+                  <button aria-pressed={preferences.theme === theme.value} data-theme={theme.value} key={theme.value} onClick={() => controls.onPreferencesChange({ theme: theme.value })} type="button">{theme.label}</button>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </article>
       <article>
         <header>
-          <div><span>Typography</span><strong>Comfortable reading</strong><p>Adjust the application and code scales independently. These settings are restored with this session.</p></div>
-          <DashboardPanelHelp detail="Interface and code sizes are saved per local workspace session, so the reading preference returns when that session is reopened." label="Typography settings" />
+          <div><span>Typography</span><strong>Comfortable reading</strong><p>Set headings, body copy, labels and controls, and code independently. These settings are restored with this session.</p></div>
+          <DashboardPanelHelp detail="Heading, body, label, control, and code scales are saved per local workspace session, so the reading preference returns when that session is reopened." label="Typography settings" />
         </header>
         <div className="dashboardSettingRows">
-          <DashboardScaleControl label="Interface text" onChange={(uiFontSize) => controls.onPreferencesChange({ uiFontSize })} scales={scales} value={preferences.uiFontSize} />
-          <DashboardScaleControl label="Code text" onChange={(codeFontSize) => controls.onPreferencesChange({ codeFontSize })} scales={scales} value={preferences.codeFontSize} />
+          <DashboardScaleControl label="Headings" onChange={(headingFontSize) => controls.onPreferencesChange({ headingFontSize })} preview="Heading" previewKind="heading" scales={scales} value={preferences.headingFontSize} />
+          <DashboardScaleControl label="Body text" onChange={(uiFontSize) => controls.onPreferencesChange({ uiFontSize })} preview="Body text" previewKind="body" scales={scales} value={preferences.uiFontSize} />
+          <DashboardScaleControl label="Labels and controls" onChange={(labelFontSize) => controls.onPreferencesChange({ labelFontSize })} preview="Label" previewKind="label" scales={scales} value={preferences.labelFontSize} />
+          <DashboardScaleControl label="Code text" onChange={(codeFontSize) => controls.onPreferencesChange({ codeFontSize })} preview="Code" previewKind="code" scales={scales} value={preferences.codeFontSize} />
         </div>
       </article>
       <article>
@@ -1291,12 +1329,62 @@ function DashboardSettings({ controls }: { controls: DashboardSettingsControls }
           <DashboardToggle label="Preview behavior" onClick={() => controls.onPreferencesChange({ autoOpenPreview: !preferences.autoOpenPreview })} value={preferences.autoOpenPreview ? "Automatic" : "Manual"} />
         </div>
       </article>
+      <article>
+        <header>
+          <div><span>Generation</span><strong>Prompt defaults</strong><p>Set the workflow route and creative profile used for new prompts. Provider routing remains securely configured for this workspace.</p></div>
+          <DashboardPanelHelp detail="These settings mirror the composer controls. Workflow and creativity apply to the next prompt, while the selected provider is shown for clarity and remains server-configured." label="Generation settings" />
+        </header>
+        <div className="dashboardGenerationRows" role="group" aria-label="Generation defaults">
+          <label className="dashboardGenerationControl">
+            <span>Workflow</span>
+            <select
+              aria-label="Default workflow"
+              onChange={(event) => controls.onWorkflowModeChange(event.currentTarget.value as WorkflowExecutionMode)}
+              value={controls.workflowMode}
+            >
+              <option value="auto">Auto</option>
+              <option value="single_agent">Single Agent</option>
+              <option value="multi_agent">Multi Agent</option>
+            </select>
+            <small>Choose the bounded route for each new request.</small>
+          </label>
+          <div className="dashboardGenerationControl" role="group" aria-label="AI Providers">
+            <span>AI Providers</span>
+            <details className="dashboardProviderDisclosure">
+              <summary aria-label="Selected AI provider: OpenAI">OpenAI</summary>
+              <div className="dashboardProviderAvailability">
+                <span>Selected provider</span>
+                <strong>OpenAI</strong>
+                <small>Configured server-side.</small>
+              </div>
+            </details>
+            <small>Review the configured provider for new prompts.</small>
+          </div>
+          <label className="dashboardGenerationControl">
+            <span>Creativity</span>
+            <select
+              aria-label="Default creativity"
+              onChange={(event) =>
+                controls.onPreferencesChange({
+                  creativity: event.currentTarget.value as WorkspacePreferences["creativity"]
+                })
+              }
+              value={preferences.creativity}
+            >
+              <option value="controlled">Controlled</option>
+              <option value="balanced">Balanced</option>
+              <option value="exploratory">Exploratory</option>
+            </select>
+            <small>Balance exploration with a reliable implementation path.</small>
+          </label>
+        </div>
+      </article>
     </section>
   );
 }
 
-function DashboardScaleControl({ label, onChange, scales, value }: { label: string; onChange: (value: WorkspacePreferences["uiFontSize"]) => void; scales: WorkspacePreferences["uiFontSize"][]; value: WorkspacePreferences["uiFontSize"]; }) {
-  return <div className="dashboardScaleControl"><strong>{label}</strong><div>{scales.map((scale) => <button aria-pressed={value === scale} key={scale} onClick={() => onChange(scale)} type="button">{scale}</button>)}</div></div>;
+function DashboardScaleControl({ label, onChange, preview, previewKind, scales, value }: { label: string; onChange: (value: WorkspacePreferences["uiFontSize"]) => void; preview: string; previewKind: "heading" | "body" | "label" | "code"; scales: WorkspacePreferences["uiFontSize"][]; value: WorkspacePreferences["uiFontSize"]; }) {
+  return <div className="dashboardScaleControl"><strong>{label}</strong><div>{scales.map((scale) => <button aria-pressed={value === scale} key={scale} onClick={() => onChange(scale)} type="button">{scale}</button>)}</div><span className="dashboardTypographyPreview" data-kind={previewKind}>{preview}</span></div>;
 }
 
 function DashboardToggle({ label, onClick, value }: { label: string; onClick: () => void; value: string }) {
@@ -1397,9 +1485,28 @@ function DashboardPanelHelp({
   guidance?: string;
   label: string;
 }) {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <details className="productIntelligenceHelp">
-      <summary aria-label={`Help with ${label}`}>
+    <details
+      className="productIntelligenceHelp"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setIsOpen(false);
+        }
+      }}
+      onFocus={() => setIsOpen(true)}
+      onMouseEnter={() => setIsOpen(true)}
+      onMouseLeave={() => setIsOpen(false)}
+      open={isOpen}
+    >
+      <summary
+        aria-label={`Help with ${label}`}
+        onClick={(event) => {
+          event.preventDefault();
+          setIsOpen((open) => !open);
+        }}
+      >
         <CircleHelp aria-hidden="true" size={15} />
       </summary>
       <div role="note">

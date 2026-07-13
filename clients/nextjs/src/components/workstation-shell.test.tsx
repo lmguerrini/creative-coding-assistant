@@ -1323,9 +1323,7 @@ describe("WorkstationShell", () => {
       screen.queryByRole("region", { name: "Selected artifact refinement" })
     ).not.toBeInTheDocument();
     expect(screen.getByLabelText("Current session")).toHaveTextContent("Ready");
-    expect(screen.getByLabelText("Current session")).toHaveTextContent(
-      "Start a prompt"
-    );
+    expect(screen.getByLabelText("Current session")).not.toHaveTextContent("Start a prompt");
     expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
       "Ready for first prompt"
     );
@@ -1360,6 +1358,13 @@ describe("WorkstationShell", () => {
     expect(attachButton).toBeVisible();
     expect(sendButton).toBeVisible();
     expect(sendButton).toBeDisabled();
+    expect(screen.getByLabelText("Generation controls")).toBeVisible();
+
+    expect(screen.getByText("AI Providers")).toBeVisible();
+    fireEvent.click(screen.getByLabelText("Selected AI provider: OpenAI"));
+    expect(screen.getByLabelText("Selected AI provider")).toHaveTextContent(
+      "OpenAI"
+    );
     expect(screen.queryByText("Type a prompt to begin")).not.toBeInTheDocument();
 
     fireEvent.change(promptInput, {
@@ -1447,7 +1452,8 @@ describe("WorkstationShell", () => {
 
     for (const [label, theme] of [
       ["Aqua", "aqua"],
-      ["Codex", "codex"],
+      ["Deep Blue", "codex"],
+      ["Dark", "codex_white"],
       ["Light", "light"],
       ["Matrix", "matrix"]
     ] as const) {

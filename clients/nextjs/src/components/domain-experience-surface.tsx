@@ -201,6 +201,7 @@ function KnowledgeBaseSourceExplorer({
   onInventoryChange: (inventory: KnowledgeBaseInventory) => void;
 }) {
   const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
+  const [sourcesExpanded, setSourcesExpanded] = useState(false);
   const [operationState, setOperationState] = useState<{
     detail: string;
     status: string;
@@ -473,44 +474,19 @@ function KnowledgeBaseSourceExplorer({
             </button>
             <span>Checks, updates changed reachable sources, rebuilds, then validates after one confirmation.</span>
           </div>
-          <div className="kbSourceActions" role="group" aria-label="Advanced Knowledge Base update actions">
-            <button
-              aria-pressed={areAllSourcesSelected}
-              disabled={operationRunning || sourceIds.length === 0}
-              onClick={toggleAllSources}
-              type="button"
-            >
-              {areAllSourcesSelected ? "Clear selection" : "Select all"}
-            </button>
-            <button
-              aria-label={runningAction === "check" ? "Checking selected official sources" : undefined}
-              disabled={operationRunning || selectedSourceIds.length === 0}
-              onClick={() => void runOperation("check")}
-              type="button"
-            >
-              {runningAction === "check" ? (
-                <><span aria-hidden="true" className="kbActionSpinner" />Checking sources</>
-              ) : "Check for updates"}
-            </button>
-            <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("update")} type="button">
-              Update selected
-            </button>
-            <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("rebuild")} type="button">
-              Rebuild selected
-            </button>
-            <button disabled={operationRunning} onClick={() => void runOperation("validate")} type="button">
-              Validate index
-            </button>
-          </div>
+          <button
+            aria-controls="official-source-management"
+            aria-expanded={sourcesExpanded}
+            aria-label={sourcesExpanded ? "Hide official sources" : `Show all ${sourceIds.length} official ${sourceIds.length === 1 ? "source" : "sources"}`}
+            className="kbSourceListToggle"
+            onClick={() => setSourcesExpanded((current) => !current)}
+            type="button"
+          >
+            <span>{sourcesExpanded ? "Hide official sources" : `Show all ${sourceIds.length} official ${sourceIds.length === 1 ? "source" : "sources"}`}</span>
+            <small>{sourcesExpanded ? "Advanced controls and the source registry are open." : "Browse, select, and manage individual sources."}</small>
+          </button>
         </div>
       </header>
-      <ul aria-label="Knowledge Base action guide" className="kbActionGuide">
-        <li><strong>Smart Update</strong><span>Checks first, then updates and rebuilds only changed reachable sources before validation.</span></li>
-        <li><strong>Check for updates</strong><span>Compares official content with local fingerprints. Read-only.</span></li>
-        <li><strong>Update selected</strong><span>Synchronizes selected official content after confirmation.</span></li>
-        <li><strong>Rebuild selected</strong><span>Re-runs the selected source build; a failure restores the prior index.</span></li>
-        <li><strong>Validate index</strong><span>Inspects the local index only. No official pages are fetched.</span></li>
-      </ul>
       {smartUpdateState ? (
         <section aria-live="polite" className="kbSmartUpdateStatus" data-status={smartUpdateState.status}>
           <header>
@@ -554,35 +530,79 @@ function KnowledgeBaseSourceExplorer({
           ) : null}
         </>
       ) : null}
-      <div role="list">
-        {inventory.sources.map((source) => (
-          <article data-indexed={source.indexed ? "true" : "false"} key={source.id} role="listitem">
-            <header>
-              <div>
-                <strong>{source.title}</strong>
-                <span>{source.publisher} · {source.domain} · {source.sourceType}</span>
-              </div>
-              <label className="kbSourceSelect">
-                <input
-                  aria-label={`Select ${source.title} for a Knowledge Base operation`}
-                  checked={selectedSourceIds.includes(source.id)}
-                  onChange={() => toggleSource(source.id)}
-                  type="checkbox"
-                />
-                <span>{source.indexed ? `${source.chunkCount} chunks` : "Not indexed"}</span>
-              </label>
-            </header>
-            <a href={source.url} rel="noreferrer" target="_blank">Open official documentation</a>
-            <dl>
-              <div><dt>Health</dt><dd>{formatSourceHealth(source.health)}</dd></div>
-              <div><dt>Last indexed</dt><dd>{formatIndexedAt(source.lastIndexedAt)}</dd></div>
-              <div><dt>Fingerprint</dt><dd>{source.fingerprint ? source.fingerprint.slice(0, 12) : "Not recorded"}</dd></div>
-              <div><dt>Provenance</dt><dd>{source.provenance}</dd></div>
-            </dl>
-            <p>{source.freshnessLimitation}</p>
-          </article>
-        ))}
-      </div>
+      {sourcesExpanded ? (
+        <div className="kbSourceExplorerDetails" id="official-source-management">
+          <div className="kbSourceActions" role="group" aria-label="Advanced Knowledge Base update actions">
+            <button
+              aria-pressed={areAllSourcesSelected}
+              disabled={operationRunning || sourceIds.length === 0}
+              onClick={toggleAllSources}
+              type="button"
+            >
+              {areAllSourcesSelected ? "Clear selection" : "Select all"}
+            </button>
+            <button
+              aria-label={runningAction === "check" ? "Checking selected official sources" : undefined}
+              disabled={operationRunning || selectedSourceIds.length === 0}
+              onClick={() => void runOperation("check")}
+              type="button"
+            >
+              {runningAction === "check" ? (
+                <><span aria-hidden="true" className="kbActionSpinner" />Checking sources</>
+              ) : "Check for updates"}
+            </button>
+            <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("update")} type="button">
+              Update selected
+            </button>
+            <button disabled={operationRunning || selectedSourceIds.length === 0} onClick={() => void runOperation("rebuild")} type="button">
+              Rebuild selected
+            </button>
+            <button disabled={operationRunning} onClick={() => void runOperation("validate")} type="button">
+              Validate index
+            </button>
+          </div>
+          <ul aria-label="Knowledge Base action guide" className="kbActionGuide">
+            <li><strong>Smart Update</strong><span>Checks first, then updates and rebuilds only changed reachable sources before validation.</span></li>
+            <li><strong>Check for updates</strong><span>Compares official content with local fingerprints. Read-only.</span></li>
+            <li><strong>Update selected</strong><span>Synchronizes selected official content after confirmation.</span></li>
+            <li><strong>Rebuild selected</strong><span>Re-runs the selected source build; a failure restores the prior index.</span></li>
+            <li><strong>Validate index</strong><span>Inspects the local index only. No official pages are fetched.</span></li>
+          </ul>
+          <div role="list">
+            {inventory.sources.map((source) => (
+              <article data-indexed={source.indexed ? "true" : "false"} key={source.id} role="listitem">
+                <header>
+                  <div>
+                    <strong>{source.title}</strong>
+                    <span>{source.publisher} · {source.domain} · {source.sourceType}</span>
+                  </div>
+                  <label className="kbSourceSelect">
+                    <input
+                      aria-label={`Select ${source.title} for a Knowledge Base operation`}
+                      checked={selectedSourceIds.includes(source.id)}
+                      onChange={() => toggleSource(source.id)}
+                      type="checkbox"
+                    />
+                    <span>{source.indexed ? `${source.chunkCount} chunks` : "Not indexed"}</span>
+                  </label>
+                </header>
+                <a href={source.url} rel="noreferrer" target="_blank">Open official documentation</a>
+                <dl>
+                  <div><dt>Health</dt><dd>{formatSourceHealth(source.health)}</dd></div>
+                  <div><dt>Last indexed</dt><dd>{formatIndexedAt(source.lastIndexedAt)}</dd></div>
+                  <div><dt>Fingerprint</dt><dd>{source.fingerprint ? source.fingerprint.slice(0, 12) : "Not recorded"}</dd></div>
+                  <div><dt>Provenance</dt><dd>{source.provenance}</dd></div>
+                </dl>
+                <p>{source.freshnessLimitation}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <p className="kbSourceExplorerCollapsedHint">
+          Individual source selection and advanced controls are hidden. Expand the registry to browse all {sourceIds.length} official {sourceIds.length === 1 ? "source" : "sources"}.
+        </p>
+      )}
     </section>
   );
 }

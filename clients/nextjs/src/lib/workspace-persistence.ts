@@ -69,6 +69,7 @@ export type WorkspaceDensity = "cozy" | "compact";
 export type WorkspaceThemePreset =
   | "aqua"
   | "codex"
+  | "codex_white"
   | "light"
   | "matrix"
   | "terminal"
@@ -90,7 +91,9 @@ export type WorkspacePreferences = {
   showDebugPanels: boolean;
   creativity: CreativityProfile;
   personalizationEnabled: boolean;
+  headingFontSize: FontScale;
   uiFontSize: FontScale;
+  labelFontSize: FontScale;
   codeFontSize: FontScale;
   feedbackSignals: FeedbackSignal[];
   evaluationHistory: EvaluationHistoryRecord[];
@@ -110,7 +113,9 @@ export const defaultWorkspacePreferences: WorkspacePreferences = {
   showDebugPanels: true,
   creativity: "balanced",
   personalizationEnabled: true,
+  headingFontSize: "medium",
   uiFontSize: "medium",
+  labelFontSize: "medium",
   codeFontSize: "medium",
   feedbackSignals: [],
   evaluationHistory: []
@@ -664,9 +669,15 @@ export function normalizeWorkspacePreferences(
       typeof preferences?.personalizationEnabled === "boolean"
         ? preferences.personalizationEnabled
         : defaultWorkspacePreferences.personalizationEnabled,
+    headingFontSize: isFontScale(preferences?.headingFontSize)
+      ? preferences.headingFontSize
+      : defaultWorkspacePreferences.headingFontSize,
     uiFontSize: isFontScale(preferences?.uiFontSize)
       ? preferences.uiFontSize
       : defaultWorkspacePreferences.uiFontSize,
+    labelFontSize: isFontScale(preferences?.labelFontSize)
+      ? preferences.labelFontSize
+      : defaultWorkspacePreferences.labelFontSize,
     codeFontSize: isFontScale(preferences?.codeFontSize)
       ? preferences.codeFontSize
       : defaultWorkspacePreferences.codeFontSize,
@@ -1387,6 +1398,7 @@ function isWorkspaceThemePreset(value: unknown): value is WorkspaceThemePreset {
   return (
     value === "aqua" ||
     value === "codex" ||
+    value === "codex_white" ||
     value === "light" ||
     value === "matrix" ||
     value === "terminal" ||
@@ -1424,7 +1436,9 @@ function isWorkspacePreferences(value: unknown): value is WorkspacePreferences {
     (value.creativity === undefined || isCreativityProfile(value.creativity)) &&
     (value.personalizationEnabled === undefined ||
       typeof value.personalizationEnabled === "boolean") &&
+    (value.headingFontSize === undefined || isFontScale(value.headingFontSize)) &&
     (value.uiFontSize === undefined || isFontScale(value.uiFontSize)) &&
+    (value.labelFontSize === undefined || isFontScale(value.labelFontSize)) &&
     (value.codeFontSize === undefined || isFontScale(value.codeFontSize)) &&
     (value.feedbackSignals === undefined || Array.isArray(value.feedbackSignals)) &&
     (value.evaluationHistory === undefined || Array.isArray(value.evaluationHistory))

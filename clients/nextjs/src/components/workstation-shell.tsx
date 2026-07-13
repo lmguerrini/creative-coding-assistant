@@ -36,7 +36,6 @@ import {
   Settings,
   Sparkles,
   TerminalSquare,
-  WandSparkles,
   X
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -418,10 +417,17 @@ const themePresetOptions = [
   },
   {
     value: "codex",
-    label: "Codex",
-    description: "Neutral graphite with restrained, high-contrast accents.",
+    label: "Deep Blue",
+    description: "Neutral graphite with cool blue, high-contrast accents.",
     accent: "#339cff",
     surface: "linear-gradient(135deg, rgba(51, 156, 255, 0.18), rgba(24, 24, 24, 0.94))"
+  },
+  {
+    value: "codex_white",
+    label: "Dark",
+    description: "Neutral graphite with crisp white accents and panel outlines.",
+    accent: "#f4f7fb",
+    surface: "linear-gradient(135deg, rgba(244, 247, 251, 0.16), rgba(24, 24, 24, 0.94))"
   },
   {
     value: "light",
@@ -620,16 +626,22 @@ export function WorkstationShell({
 
   useEffect(() => {
     document.documentElement.dataset.ccaTheme = workspacePreferences.theme;
+    document.documentElement.dataset.ccaHeadingFontSize = workspacePreferences.headingFontSize;
     document.documentElement.dataset.ccaUiFontSize = workspacePreferences.uiFontSize;
+    document.documentElement.dataset.ccaLabelFontSize = workspacePreferences.labelFontSize;
     document.documentElement.dataset.ccaCodeFontSize = workspacePreferences.codeFontSize;
 
     return () => {
       delete document.documentElement.dataset.ccaTheme;
+      delete document.documentElement.dataset.ccaHeadingFontSize;
       delete document.documentElement.dataset.ccaUiFontSize;
+      delete document.documentElement.dataset.ccaLabelFontSize;
       delete document.documentElement.dataset.ccaCodeFontSize;
     };
   }, [
     workspacePreferences.codeFontSize,
+    workspacePreferences.headingFontSize,
+    workspacePreferences.labelFontSize,
     workspacePreferences.theme,
     workspacePreferences.uiFontSize
   ]);
@@ -3447,7 +3459,7 @@ export function WorkstationShell({
           data-state={streamState}
         >
           <span>{displayedSessionStatusLabel}</span>
-          <strong>{displayedSessionStatusDetail}</strong>
+          {!isPristineSession ? <strong>{displayedSessionStatusDetail}</strong> : null}
           <small>{formatSessionTelemetryLabel(providerTelemetry)}</small>
         </div>
 
@@ -3589,7 +3601,9 @@ export function WorkstationShell({
             onPreviewToggle: handlePreviewShelfFromControl,
             onSidebarToggle: () =>
               updateLayout({ sidebarCollapsed: !layoutState.sidebarCollapsed }),
-            preferences: workspacePreferences
+            onWorkflowModeChange: setWorkflowMode,
+            preferences: workspacePreferences,
+            workflowMode
           }}
         />
       ) : (
@@ -3882,19 +3896,21 @@ export function WorkstationShell({
                     </div>
                   ) : null}
                 </div>
-                <WorkflowExecutionSelector
-                  disabled={isStreaming}
-                  mode={workflowMode}
-                  onChange={setWorkflowMode}
-                />
-                <ModelAvailabilityControl disabled={isStreaming} />
-                <CreativityControl
-                  disabled={isStreaming}
-                  onChange={(creativity) =>
-                    updateWorkspacePreferences({ creativity })
-                  }
-                  profile={workspacePreferences.creativity}
-                />
+                <div aria-label="Generation controls" className="composerControlGroup">
+                  <WorkflowExecutionSelector
+                    disabled={isStreaming}
+                    mode={workflowMode}
+                    onChange={setWorkflowMode}
+                  />
+                  <ModelAvailabilityControl disabled={isStreaming} />
+                  <CreativityControl
+                    disabled={isStreaming}
+                    onChange={(creativity) =>
+                      updateWorkspacePreferences({ creativity })
+                    }
+                    profile={workspacePreferences.creativity}
+                  />
+                </div>
                 <button
                   aria-label="Send prompt"
                   className="sendButton"
@@ -7000,13 +7016,23 @@ function WorkspaceSettingsPanel({
       <div className="settingsSection">
         <div className="settingsSectionHeader">
           <strong>Typography</strong>
-          <p>Use the system UI and monospace fonts at a comfortable reading scale.</p>
+          <p>Set separate reading scales for headings, body copy, labels and controls, and code.</p>
         </div>
         <div className="settingsFontRows">
           <FontScaleControl
-            label="UI font size"
+            label="Heading size"
+            onChange={(headingFontSize) => onPreferencesChange({ headingFontSize })}
+            value={preferences.headingFontSize}
+          />
+          <FontScaleControl
+            label="Body text size"
             onChange={(uiFontSize) => onPreferencesChange({ uiFontSize })}
             value={preferences.uiFontSize}
+          />
+          <FontScaleControl
+            label="Label and control size"
+            onChange={(labelFontSize) => onPreferencesChange({ labelFontSize })}
+            value={preferences.labelFontSize}
           />
           <FontScaleControl
             label="Code font size"
@@ -7227,7 +7253,6 @@ function CreativityControl({
   const controls = buildGenerationControls(profile);
   return (
     <label className="creativityControl" title={controls.detail}>
-      <WandSparkles aria-hidden="true" size={15} />
       <span>Creativity</span>
       <select
         aria-label="Creativity"
@@ -7270,15 +7295,19 @@ function SessionSidebar({
   if (collapsed) {
     return (
       <aside className="sessionSidebar sessionSidebar--collapsed" aria-label="Sessions">
-        <button
-          aria-label="Expand session sidebar"
-          className="iconButton"
-          onClick={onToggle}
-          title="Expand session sidebar"
-          type="button"
-        >
-          <PanelLeft size={18} />
-        </button>
+        <div className="sessionSidebarRail">
+          <button
+            aria-label="Expand session sidebar"
+            className="iconButton"
+            onClick={onToggle}
+            title="Expand session sidebar"
+            type="button"
+          >
+            <PanelLeft size={18} />
+          </button>
+          <strong>Sessions</strong>
+          <span>{sessions.length} saved</span>
+        </div>
       </aside>
     );
   }

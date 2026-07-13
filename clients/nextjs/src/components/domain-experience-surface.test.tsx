@@ -67,6 +67,10 @@ function jsonResponse(payload: Record<string, unknown>, ok = true) {
   return { json: async () => payload, ok };
 }
 
+function expandOfficialSources() {
+  fireEvent.click(screen.getByRole("button", { name: /Show all \d+ official source/ }));
+}
+
 describe("KnowledgeBaseInventorySurface", () => {
   beforeEach(() => {
     window.localStorage.clear();
@@ -90,6 +94,8 @@ describe("KnowledgeBaseInventorySurface", () => {
     vi.stubGlobal("fetch", fetcher);
 
     render(<KnowledgeBaseInventorySurface detailed inventory={inventory} />);
+
+    expandOfficialSources();
 
     const check = screen.getByRole("button", { name: "Check for updates" });
     expect(check).toBeDisabled();
@@ -140,6 +146,7 @@ describe("KnowledgeBaseInventorySurface", () => {
 
     render(<KnowledgeBaseInventorySurface detailed inventory={inventory} />);
 
+    expandOfficialSources();
     fireEvent.click(screen.getByRole("button", { name: "Select all" }));
     fireEvent.click(screen.getByRole("button", { name: "Check for updates" }));
 
@@ -163,6 +170,7 @@ describe("KnowledgeBaseInventorySurface", () => {
 
     render(<KnowledgeBaseInventorySurface detailed inventory={inventory} />);
 
+    expandOfficialSources();
     fireEvent.click(screen.getByRole("button", { name: "Select all" }));
     fireEvent.click(screen.getByRole("button", { name: "Check for updates" }));
 
@@ -210,6 +218,7 @@ describe("KnowledgeBaseInventorySurface", () => {
     );
     expect(screen.getByText(/1 unavailable source was skipped; validation passed/i)).toBeVisible();
     expect(screen.getByText(/Last successful Smart Update:/)).toBeVisible();
+    expandOfficialSources();
     expect(
       screen.getByRole("checkbox", {
         name: "Select three.js Documentation for a Knowledge Base operation"
@@ -284,5 +293,22 @@ describe("KnowledgeBaseInventorySurface", () => {
 
     expect(await screen.findByText("Smart Update complete")).toBeVisible();
     expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps the source registry closed until the user explicitly expands it", () => {
+    render(<KnowledgeBaseInventorySurface detailed inventory={inventory} />);
+
+    const toggle = screen.getByRole("button", { name: "Show all 1 official source" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("checkbox", {
+      name: "Select three.js Documentation for a Knowledge Base operation"
+    })).not.toBeInTheDocument();
+
+    fireEvent.click(toggle);
+
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("checkbox", {
+      name: "Select three.js Documentation for a Knowledge Base operation"
+    })).toBeVisible();
   });
 });

@@ -27,6 +27,8 @@ WorkspaceDensity = Literal["cozy", "compact"]
 WorkspaceThemePreset = Literal[
     "aqua",
     "codex",
+    "codex_white",
+    "light",
     "matrix",
     "terminal",
     "horizon",
@@ -238,7 +240,13 @@ class WorkspaceSessionPreferences(BaseModel):
     show_debug_panels: bool = Field(default=True, alias="showDebugPanels")
     creativity: WorkspaceCreativityProfile = "balanced"
     personalization_enabled: bool = Field(default=True, alias="personalizationEnabled")
+    heading_font_size: WorkspaceFontScale = Field(
+        default="medium", alias="headingFontSize"
+    )
     ui_font_size: WorkspaceFontScale = Field(default="medium", alias="uiFontSize")
+    label_font_size: WorkspaceFontScale = Field(
+        default="medium", alias="labelFontSize"
+    )
     code_font_size: WorkspaceFontScale = Field(default="medium", alias="codeFontSize")
     feedback_signals: tuple[WorkspaceFeedbackSignal, ...] = Field(
         default_factory=tuple,

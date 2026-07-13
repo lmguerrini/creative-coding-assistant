@@ -424,7 +424,9 @@ describe("workspace persistence client", () => {
       showDebugPanels: false,
       creativity: "balanced",
       personalizationEnabled: true,
+      headingFontSize: "medium",
       uiFontSize: "medium",
+      labelFontSize: "medium",
       codeFontSize: "medium",
       feedbackSignals: [],
       evaluationHistory: []
@@ -434,6 +436,9 @@ describe("workspace persistence client", () => {
         theme: "invalid" as never
       })
     ).toEqual(defaultWorkspacePreferences);
+    expect(normalizeWorkspacePreferences({ theme: "codex_white" }).theme).toBe(
+      "codex_white"
+    );
   });
 
   it("restores messages, active tab, artifact, and preview state", () => {

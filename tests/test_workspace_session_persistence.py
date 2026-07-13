@@ -45,6 +45,23 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
         self.assertEqual(record.preferences.theme, "blueprint")
         self.assertEqual(record.layout.preview_height, 520)
 
+    def test_record_accepts_codex_white_and_typography_preferences(self) -> None:
+        payload = _session_payload(theme="codex_white")
+        preferences = payload["preferences"]
+        assert isinstance(preferences, dict)
+        preferences.update(
+            {
+                "headingFontSize": "large",
+                "labelFontSize": "small",
+            }
+        )
+
+        record = WorkspaceSessionRecord.model_validate(payload)
+
+        self.assertEqual(record.preferences.theme, "codex_white")
+        self.assertEqual(record.preferences.heading_font_size, "large")
+        self.assertEqual(record.preferences.label_font_size, "small")
+
     def test_record_preserves_terminal_product_outcome(self) -> None:
         record = WorkspaceSessionRecord.model_validate(
             _session_payload(product_outcome=True)

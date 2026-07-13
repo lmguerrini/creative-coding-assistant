@@ -60,24 +60,28 @@ export function WorkflowExecutionSelector({
  */
 export function ModelAvailabilityControl({ disabled = false }: { disabled?: boolean }) {
   return (
-    <details className="modelAvailabilityControl">
-      <summary aria-label="AI models" aria-disabled={disabled ? "true" : undefined}>
-        AI models
-      </summary>
-      <div aria-label="AI model availability" className="modelAvailabilityMenu">
-        <details className="modelAvailabilityGroup">
-          <summary>Local</summary>
-          <p>No local models are available in this workspace.</p>
-        </details>
-        <details className="modelAvailabilityGroup">
-          <summary>Cloud</summary>
-          <p>
+    <div className="modelAvailabilityControl">
+      <span>AI Providers</span>
+      <details className="modelAvailabilityDisclosure">
+        <summary
+          aria-label="Selected AI provider: OpenAI"
+          aria-disabled={disabled ? "true" : undefined}
+        >
+          OpenAI
+        </summary>
+        <div aria-label="AI provider availability" className="modelAvailabilityMenu">
+          <section aria-label="Selected AI provider" className="modelAvailabilitySelected">
+            <span>Selected provider</span>
             <strong>OpenAI</strong>
             <small>Configured server-side</small>
-          </p>
-        </details>
-      </div>
-    </details>
+          </section>
+          <details className="modelAvailabilityGroup">
+            <summary>Local</summary>
+            <p>No local models are available in this workspace.</p>
+          </details>
+        </div>
+      </details>
+    </div>
   );
 }
 
