@@ -86,6 +86,7 @@ describe("RightInspector", () => {
     const overview = within(tablist).getByRole("tab", { name: "Overview" });
     const runtime = within(tablist).getByRole("tab", { name: "Runtime" });
     const panel = screen.getByRole("tabpanel", { name: "Runtime" });
+    const inspector = screen.getByRole("complementary", { name: "Right inspector" });
 
     expect(runtime).toHaveAttribute("aria-selected", "true");
     expect(runtime).toHaveAttribute("aria-controls", "runtime-panel");
@@ -93,6 +94,9 @@ describe("RightInspector", () => {
     expect(panel).toHaveAttribute("aria-labelledby", "runtime-panel-tab");
     expect(overview).toHaveAttribute("aria-selected", "false");
     expect(overview).toHaveAttribute("tabindex", "-1");
+    expect(
+      inspector.querySelector(".dashboardSidebarHeaderIcon .lucide-search")
+    ).not.toBeNull();
   });
 
   it("moves and selects tabs with ArrowLeft, ArrowRight, Home, and End", () => {

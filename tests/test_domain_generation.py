@@ -401,6 +401,37 @@ class DomainGenerationTests(unittest.TestCase):
         self.assertEqual(artifacts[0].renderer_id, "surface.p5")
         self.assertEqual(artifacts[0].status, "Generated")
 
+    def test_p5_parenthesized_return_expression_is_not_treated_as_a_call(self) -> None:
+        request = AssistantRequest(
+            query="Create a p5.js aurora garden.",
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```javascript filename=recursive-aurora-garden.p5.js",
+                    "function setup() { createCanvas(640, 360); }",
+                    "function boundedMax(a, b) { return (a > b) ? a : b; }",
+                    "function draw() {",
+                    "  background(8);",
+                    "  circle(width / 2, height / 2, boundedMax(24, 32));",
+                    "}",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        self.assertTrue(artifacts[0].preview_eligible)
+        self.assertEqual(artifacts[0].runtime, "p5")
+        self.assertEqual(artifacts[0].renderer_id, "surface.p5")
+        self.assertEqual(artifacts[0].status, "Generated")
+
     def test_p5_standard_degrees_helper_is_marked_preview_ready(self) -> None:
         request = AssistantRequest(
             query="Create a p5.js flow-field sketch with a colour gradient.",

@@ -1,7 +1,9 @@
 "use client";
 
 import {
+  ChevronDown,
   RotateCcw,
+  SendHorizontal,
   SlidersHorizontal,
   Sparkles
 } from "lucide-react";
@@ -11,6 +13,7 @@ import {
   type FormEvent
 } from "react";
 import type { ArtifactSummary } from "@/lib/assistant-client";
+import type { WorkstationError } from "@/lib/workstation-errors";
 import {
   buildArtifactRefinementInstruction,
   createArtifactParameterValues,
@@ -29,10 +32,12 @@ import {
   readCompletedRefinementPasses,
   refinementStoppedBeforeLimit
 } from "@/lib/refinement-passes";
+import { SubsystemErrorCallout } from "./subsystem-error-callout";
 
 type ArtifactRefinementPanelProps = {
   artifact: ArtifactSummary;
   disabled: boolean;
+  error?: WorkstationError | null;
   onArtifactRefine: (
     artifact: ArtifactSummary,
     instruction: string
@@ -50,6 +55,7 @@ const artifactRefinementSuggestions = [
 export function ArtifactRefinementPanel({
   artifact,
   disabled,
+  error = null,
   onArtifactRefine
 }: ArtifactRefinementPanelProps) {
   const parameterModel = useMemo(
@@ -60,6 +66,7 @@ export function ArtifactRefinementPanel({
     createArtifactParameterValues(parameterModel)
   );
   const [instruction, setInstruction] = useState("");
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
   const passHistory = readCompletedRefinementPasses(artifact);
   const nextPass = nextRefinementPassNumber(artifact);
   const passAvailable = canRunRefinementPass(artifact);
@@ -81,15 +88,22 @@ export function ArtifactRefinementPanel({
       return;
     }
 
-    await onArtifactRefine(
-      artifact,
-      buildArtifactRefinementInstruction({
-        guidance: parameterGuidance,
-        instruction: trimmedInstruction
-      })
-    );
-    setInstruction("");
-    setParameterValues(createArtifactParameterValues(parameterModel));
+    setSubmissionError(null);
+    try {
+      await onArtifactRefine(
+        artifact,
+        buildArtifactRefinementInstruction({
+          guidance: parameterGuidance,
+          instruction: trimmedInstruction
+        })
+      );
+      setInstruction("");
+      setParameterValues(createArtifactParameterValues(parameterModel));
+    } catch {
+      setSubmissionError(
+        "The refinement could not start. Your instruction is still here; review it and try again."
+      );
+    }
   }
 
   function handleParameterChange(
@@ -113,9 +127,9 @@ export function ArtifactRefinementPanel({
     >
       <header>
         <div>
-          <span>Iterate</span>
-          <strong>Refine selected artifact</strong>
-          <p>{`Target ${artifact.title} without regenerating every candidate.`}</p>
+          <span>Refinement</span>
+          <strong>Create a refined version</strong>
+          <p>{`Apply one focused change to ${artifact.title}. The current version stays saved.`}</p>
         </div>
         {artifact.refinedFromTitle ? (
           <span className="artifactRefinedBadge">Refined</span>
@@ -129,30 +143,20 @@ export function ArtifactRefinementPanel({
             : ""}
         </p>
       ) : null}
-      <RefinementPassHistory
-        history={passHistory}
-        nextPass={nextPass}
-        passAvailable={passAvailable}
-        stoppedBeforeLimit={stoppedBeforeLimit}
-      />
       <form className="artifactRefinementForm" onSubmit={handleSubmit}>
-        <ArtifactParameterControlPanel
-          disabled={disabled}
-          model={parameterModel}
-          onChange={handleParameterChange}
-          onReset={() =>
-            setParameterValues(createArtifactParameterValues(parameterModel))
-          }
-          values={parameterValues}
-        />
-        <label htmlFor={`artifact-refinement-${artifact.id}`}>
-          Refinement instruction
+        <label
+          className="artifactRefinementInstructionLabel"
+          htmlFor={`artifact-refinement-${artifact.id}`}
+        >
+          <span>What should change?</span>
+          <small>Describe the result in plain language.</small>
         </label>
         <textarea
+          aria-label="Refinement instruction"
           disabled={disabled}
           id={`artifact-refinement-${artifact.id}`}
           onChange={(event) => setInstruction(event.target.value)}
-          placeholder="Describe an additional targeted improvement, or submit the parameter changes directly."
+          placeholder="For example: Make it brighter while preserving the current motion."
           rows={3}
           value={instruction}
         />
@@ -168,22 +172,76 @@ export function ArtifactRefinementPanel({
             </button>
           ))}
         </div>
-        <button
-          className="artifactRefinementSubmit"
-          disabled={!canSubmit}
-          type="submit"
-        >
-          {disabled
-            ? "Refinement running"
-            : stoppedBeforeLimit
-              ? "Refinement stopped"
-            : !passAvailable
-              ? "Refinement limit reached"
-            : parameterGuidance
-              ? "Refine with parameter changes"
-              : "Refine selected artifact"}
-        </button>
+        <div className="artifactRefinementActionBar">
+          <p aria-live="polite">
+            {disabled
+              ? "Creating the next version…"
+              : stoppedBeforeLimit
+                ? "No further pass is available for this version."
+                : !passAvailable
+                  ? "The refinement pass limit has been reached."
+                  : canSubmit
+                    ? "Ready to create a new saved version."
+                    : "Add an instruction or change an advanced parameter."}
+          </p>
+          <button
+            className="artifactRefinementSubmit"
+            disabled={!canSubmit}
+            type="submit"
+          >
+            <SendHorizontal aria-hidden="true" size={14} />
+            <span>
+              {disabled
+                ? "Refining…"
+                : stoppedBeforeLimit
+                  ? "Refinement stopped"
+                  : !passAvailable
+                    ? "Refinement limit reached"
+                    : parameterGuidance
+                      ? "Apply instruction + parameters"
+                      : "Apply refinement"}
+            </span>
+          </button>
+        </div>
+        {submissionError ? (
+          <p className="artifactRefinementInlineError" role="alert">
+            {submissionError}
+          </p>
+        ) : null}
+        {error ? (
+          <SubsystemErrorCallout
+            className="artifactRefinementError"
+            error={error}
+            role="alert"
+            title="Refinement interrupted"
+          />
+        ) : null}
+        <details className="artifactRefinementAdvanced">
+          <summary>
+            <span>
+              <SlidersHorizontal aria-hidden="true" size={14} />
+              Advanced parameters
+            </span>
+            <small>Optional derived controls</small>
+            <ChevronDown aria-hidden="true" size={14} />
+          </summary>
+          <ArtifactParameterControlPanel
+            disabled={disabled}
+            model={parameterModel}
+            onChange={handleParameterChange}
+            onReset={() =>
+              setParameterValues(createArtifactParameterValues(parameterModel))
+            }
+            values={parameterValues}
+          />
+        </details>
       </form>
+      <RefinementPassHistory
+        history={passHistory}
+        nextPass={nextPass}
+        passAvailable={passAvailable}
+        stoppedBeforeLimit={stoppedBeforeLimit}
+      />
     </section>
   );
 }

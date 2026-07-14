@@ -97,16 +97,20 @@ describe("PreviewWorkspace", () => {
     const reloadRuntime = within(fullscreen).getByRole("button", {
       name: "Reload preview runtime"
     });
+    const reviewCode = within(fullscreen).getByRole("button", {
+      name: "Open generated code"
+    });
 
     expect(runtime).toHaveAttribute("data-runtime-state", "error");
     expect(within(fullscreen).getByRole("alert")).toHaveTextContent(
-      "Renderer runtime failed"
+      "Preview could not start"
     );
+    expect(reviewCode).toBeVisible();
     expect(reloadRuntime).toBeVisible();
 
     frame.focus();
     dispatchRuntimeKeyboardBoundary(frame, { key: "Tab", shiftKey: false });
-    expect(reloadRuntime).toHaveFocus();
+    expect(reviewCode).toHaveFocus();
     frame.focus();
     dispatchRuntimeKeyboardBoundary(frame, { key: "Tab", shiftKey: true });
     expect(exitFullscreen).toHaveFocus();
@@ -117,7 +121,7 @@ describe("PreviewWorkspace", () => {
       screen.getByRole("dialog", { name: "Fullscreen artwork canvas" })
     ).toBeInTheDocument();
     expect(within(fullscreen).getByRole("alert")).toHaveTextContent(
-      "Renderer runtime failed"
+      "Preview could not start"
     );
 
     frame.focus();

@@ -1,6 +1,7 @@
 """State transition selectors for the assistant workflow runtime graph."""
 from __future__ import annotations
 
+from creative_coding_assistant.orchestration.routing import RouteName
 from creative_coding_assistant.orchestration.runtime.nodes.contracts import (
     AssistantWorkflowGraphState,
     _GraphTransitionSelector,
@@ -51,6 +52,18 @@ def next_node_after_prompt_input(state: AssistantWorkflowGraphState) -> str:
     if execution_plan is not None and execution_plan.is_single_agent:
         return WorkflowStep.PROMPT_RENDERING.value
     return WorkflowStep.PLANNING.value
+
+
+def next_node_after_generation(state: AssistantWorkflowGraphState) -> str:
+    if _has_pending_failure(state):
+        return WorkflowStep.FAILURE.value
+    workflow_state = _workflow_state(state)
+    if (
+        workflow_state.route_decision is not None
+        and workflow_state.route_decision.route is RouteName.EXPLAIN
+    ):
+        return WorkflowStep.FINALIZATION.value
+    return WorkflowStep.ARTIFACT_EXTRACTION.value
 
 
 def next_node_after_preview_preparation(state: AssistantWorkflowGraphState) -> str:

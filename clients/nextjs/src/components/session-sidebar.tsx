@@ -6,7 +6,6 @@ import {
   PanelLeft,
   Pencil,
   Plus,
-  ShieldCheck,
   Trash2
 } from "lucide-react";
 import type { WorkspaceSessionSummary } from "@/lib/workspace-persistence";
@@ -189,7 +188,6 @@ export function SessionSidebar({
                     className="sessionSidebarSelect"
                     detail={formatSessionUpdatedAt(session.updatedAt)}
                     eyebrow={artifactLabel}
-                    icon={History}
                     idleLabel="Open"
                     onClick={() => onSelect(session.sessionId)}
                     selected={active}
@@ -197,7 +195,11 @@ export function SessionSidebar({
                     title={session.title}
                   />
                   {active ? (
-                    <div aria-label="Current session actions" className="sessionSidebarActions">
+                    <div
+                      aria-label="Current session actions"
+                      className="sessionSidebarActions"
+                      role="group"
+                    >
                       <button
                         aria-label={`Rename ${session.title}`}
                         onClick={() => startRename(session)}
@@ -206,7 +208,6 @@ export function SessionSidebar({
                         type="button"
                       >
                         <Pencil aria-hidden="true" size={13} />
-                        <span>Rename</span>
                       </button>
                       <button
                         aria-label={`Delete ${session.title}`}
@@ -215,7 +216,6 @@ export function SessionSidebar({
                         type="button"
                       >
                         <Trash2 aria-hidden="true" size={13} />
-                        <span>Delete</span>
                       </button>
                     </div>
                   ) : null}
@@ -230,7 +230,6 @@ export function SessionSidebar({
         as="footer"
         className="sessionSidebarBoundary"
         detail="Stored only in this browser profile; damaged records are skipped."
-        icon={ShieldCheck}
         title="Browser-local history"
         tone="info"
       />

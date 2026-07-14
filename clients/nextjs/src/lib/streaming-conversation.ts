@@ -9,6 +9,7 @@ export type ConversationEntryPhase =
   | "connecting"
   | "thinking"
   | "streaming"
+  | "answering"
   | "planning"
   | "retrieving"
   | "generating"
@@ -114,7 +115,12 @@ export function toPersistedConversation(
 ): AssistantMessage[] {
   return entries
     .filter((entry) => !entry.pending)
-    .map(({ content, role, time }) => ({ content, role, time }));
+    .map(({ content, requestMode, role, time }) => ({
+      content,
+      role,
+      time,
+      ...(requestMode ? { requestMode } : {})
+    }));
 }
 
 export function getConversationPhaseBadge(phase: ConversationEntryPhase) {
@@ -125,6 +131,8 @@ export function getConversationPhaseBadge(phase: ConversationEntryPhase) {
       return "Planning";
     case "retrieving":
       return "Retrieving";
+    case "answering":
+      return "Answering";
     case "generating":
     case "streaming":
       return "Generating";
@@ -154,6 +162,8 @@ export function getConversationPhasePlaceholder(phase: ConversationEntryPhase) {
       return "Planning the requested work...";
     case "retrieving":
       return "Retrieving relevant context...";
+    case "answering":
+      return "Writing the answer...";
     case "generating":
     case "streaming":
       return "Generating the requested artifact...";

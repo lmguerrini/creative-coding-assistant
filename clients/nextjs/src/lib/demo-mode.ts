@@ -1,4 +1,5 @@
 import {
+  boundedP5DemoSurfaceContract,
   demoShowcasePromptLibrary,
   rhythmicLineStudyPrompt
 } from "./curated-prompt-library";
@@ -157,8 +158,7 @@ export const demoModeScenarioCatalog = [
     workflowMode: "auto",
     workflow: "Auto-routed retrieval-grounded runnable-code generation",
     inputRequirement: "No upload is needed; the request draws only on current-run retrieval when available.",
-    prompt:
-      "Use current-run retrieval only when sources exist. Return only one global .p5.js artifact named source-grounded-chladni.p5.js with setup() and draw(): a compact Chladni line field with pointer attraction and a source-boundary comment. No imports, HTML, Markdown, or prose.",
+    prompt: `Use current-run retrieval only when sources exist. Return only one global .p5.js artifact named source-grounded-chladni.p5.js with setup() and draw(): a compact Chladni line field with pointer attraction and a source-boundary comment. ${boundedP5DemoSurfaceContract}`,
     expectedArtifact: "source-grounded-chladni.p5.js with current-run retrieval evidence",
     expectedPreview: "One controlled p5.js canvas; retrieval remains visible as evidence rather than an external execution claim.",
     expectedInteraction: "Move the pointer in the canvas, then open Retrieval in Developer Mode to inspect current-run source grounding.",
@@ -183,8 +183,7 @@ export const demoModeScenarioCatalog = [
     workflowMode: "multi_agent",
     workflow: "Multi-agent runnable-code generation with visible route evidence",
     inputRequirement: "No upload is needed; the workflow selection is the input under demonstration.",
-    prompt:
-      "Use the Multi-Agent workflow. Return only one global .p5.js artifact named multi-agent-orbit-study.p5.js with setup() and draw(): a dark orbit study with pointer input and comment naming researcher, creative director, generator, and reviewer. No imports, HTML, Markdown, or prose.",
+    prompt: `Use the Multi-Agent workflow. Return only one global .p5.js artifact named multi-agent-orbit-study.p5.js with setup() and draw(): a dark orbit study with pointer input and a comment naming researcher, creative director, generator, and reviewer. ${boundedP5DemoSurfaceContract}`,
     expectedArtifact: "multi-agent-orbit-study.p5.js with visible role-aware route evidence",
     expectedPreview: "One controlled p5.js canvas after the multi-agent route completes.",
     expectedInteraction: "Keep Developer Mode visible to inspect the selected execution route and agent roles, then move the pointer in the canvas.",
@@ -262,8 +261,7 @@ export const demoModeScenarioCatalog = [
     workflow: "Single-agent image-guided runnable-code generation",
     inputRequirement: "Attach one PNG, JPEG, WebP, or GIF reference image before Send; do not attach private material for a public demo.",
     requiresImageAttachment: true,
-    prompt:
-      "Using the attached image only as palette and composition guidance, create exactly one global-mode .p5.js artifact named reference-palette-study.p5.js with setup() and draw(). Make a self-contained abstract field with no image loading, external assets, imports, HTML, Markdown, or prose. Return only the artifact.",
+    prompt: `Using the attached image only as palette and composition guidance, create exactly one global-mode .p5.js artifact named reference-palette-study.p5.js with setup() and draw(). Make a self-contained abstract field that never loads or embeds the image. ${boundedP5DemoSurfaceContract} Return only the artifact.`,
     expectedArtifact: "reference-palette-study.p5.js guided by the request-scoped image; no attachment record is persisted with the session",
     expectedPreview: "One self-contained p5.js canvas; the source must not fetch or embed the uploaded image.",
     expectedInteraction: "Attach the reference, inspect the image-reference status, then move the pointer over the generated canvas.",

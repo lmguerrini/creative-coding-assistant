@@ -12,7 +12,7 @@ type SubsystemErrorCalloutProps = {
 export function SubsystemErrorCallout({
   error,
   className = "",
-  role = "status",
+  role = "alert",
   title
 }: SubsystemErrorCalloutProps) {
   const classes = ["subsystemErrorCallout", className].filter(Boolean).join(" ");
@@ -32,7 +32,10 @@ export function SubsystemErrorCallout({
         <small>{error.recoverable ? "Recoverable" : "Action required"}</small>
       </header>
       <p className="subsystemErrorMessage">{error.userMessage}</p>
-      <p className="subsystemErrorAction">{error.suggestedAction}</p>
+      <div className="subsystemErrorAction">
+        <span>Next step</span>
+        <p>{error.suggestedAction}</p>
+      </div>
       <dl className="subsystemErrorMeta">
         <div>
           <dt>Type</dt>
@@ -60,9 +63,10 @@ export function SubsystemErrorCallout({
         ) : null}
       </dl>
       {error.debugMessage ? (
-        <p className="subsystemErrorDebug">
+        <details className="subsystemErrorDebug">
+          <summary>Technical details</summary>
           <code>{error.debugMessage}</code>
-        </p>
+        </details>
       ) : null}
     </article>
   );

@@ -20,8 +20,6 @@ import {
   Gauge,
   LayoutDashboard,
   LayoutGrid,
-  Maximize2,
-  Minimize2,
   Paintbrush,
   PanelRight,
   Play,
@@ -53,6 +51,10 @@ import {
   type AssistantStreamEvent,
   type AssistantStreamRequest
 } from "@/lib/assistant-stream";
+import {
+  resolveAssistantRequestMode,
+  type AssistantRequestMode
+} from "@/lib/assistant-intent";
 import {
   createWorkspacePersistenceClient,
   createWorkspaceSessionRecord,
@@ -137,6 +139,7 @@ import {
   appendRefinementPassRecord,
   enrichArtifactRefinementRequest
 } from "@/lib/refinement-passes";
+import { resolveArtifactFollowUp } from "@/lib/artifact-follow-up";
 import {
   hydrateWorkspaceFromArtifactExtractedEvent,
   hydrateWorkspaceFromFinalEvent,
@@ -156,8 +159,10 @@ import {
   type CreativeCostRunRecord
 } from "@/lib/creative-cost-intelligence";
 import {
+  deleteSessionUsage,
   readSessionUsageSummaries,
   recordSessionUsageRun,
+  renameSessionUsage,
   type SessionUsageSummary
 } from "@/lib/session-usage-ledger";
 import {
@@ -513,6 +518,8 @@ export function WorkstationShell({
   const approvalIdCounterRef = useRef(0);
   const localRuntimeSequenceRef = useRef(1000);
   const activeRequestPromptRef = useRef("");
+  const activeRequestModeRef = useRef<AssistantRequestMode>("generate");
+  const forcePreviewOpenForRequestRef = useRef(false);
   const streamingAssistantIdRef = useRef<string | null>(null);
   const hasPreviewRuntimeEventRef = useRef(false);
   const pendingArtifactRefinementRef = useRef<PendingArtifactRefinement | null>(
@@ -1383,6 +1390,19 @@ export function WorkstationShell({
     streamState === "streaming" || streamState === "executing"
       ? workflowRuntime.summary.activity
       : null;
+  const presentedWorkflowActivity = activeWorkflowActivity
+    ? {
+        ...activeWorkflowActivity,
+        label:
+          activeRequestModeRef.current === "explain"
+            ? "Answering"
+            : activeWorkflowActivity.label,
+        detail: conversationActivityForRequestMode(
+          activeWorkflowActivity,
+          activeRequestModeRef.current
+        )
+      }
+    : null;
   const persistenceStatusLabel =
     persistenceStateLabels[persistenceState] ?? "Local session ready";
   const hasWorkspaceArtifacts = snapshot.artifacts.length > 0;
@@ -1400,6 +1420,9 @@ export function WorkstationShell({
       ? workspaceSessions
       : [current, ...workspaceSessions];
   }, [snapshot, workspaceIdentity, workspaceSessions]);
+  const currentSessionUsage = sessionUsageSummaries.find(
+    (usage) => usage.sessionId === workspaceIdentity.sessionId
+  ) ?? null;
   const hasPreviewOutcomeToExplain =
     workflowRuntime.summary.productOutcome.product_outcome === "PARTIAL" ||
     workflowRuntime.summary.productOutcome.product_outcome === "FAILURE" ||
@@ -1421,16 +1444,16 @@ export function WorkstationShell({
   );
   const sessionStatusLabel = blockingApprovalRequest
     ? getHitlApprovalStateLabel(blockingApprovalRequest.state)
-    : activeWorkflowActivity?.label ??
+    : presentedWorkflowActivity?.label ??
       semanticSessionStatus?.label ??
       workstationState.status.label;
   const sessionStatusDetail = blockingApprovalRequest
     ? blockingApprovalRequest.title
-    : activeWorkflowActivity?.detail ??
+    : presentedWorkflowActivity?.detail ??
       semanticSessionStatus?.detail ??
       workstationState.status.detail;
   const userSessionStatus = formatUserModeSessionStatus({
-    activity: activeWorkflowActivity,
+    activity: presentedWorkflowActivity,
     hasFailedPreviewRuntime: runtimeConsole.health.signal === "failed",
     hasWorkspaceArtifacts,
     isDemoModeOpen,
@@ -1630,6 +1653,7 @@ export function WorkstationShell({
     setComposerValue("");
     setStreamEvents(nextSnapshot.debug.events);
     setWorkflowTraceEvents([]);
+    setCreativeCostRunHistory([]);
     setWorkflowRunId(0);
     setStreamError(null);
     setClarification(null);
@@ -1697,6 +1721,13 @@ export function WorkstationShell({
         ...snapshot,
         session: { ...snapshot.session, title: nextTitle }
       });
+      setSessionUsageSummaries(
+        renameSessionUsage(
+          workspaceIdentity.userId,
+          sessionId,
+          nextTitle
+        )
+      );
       setWorkspaceSessions(listLocalWorkspaceSessions(workspaceIdentity.userId));
       return;
     }
@@ -1714,6 +1745,9 @@ export function WorkstationShell({
         session: { ...loaded.record.snapshot.session, title: nextTitle }
       }
     });
+    setSessionUsageSummaries(
+      renameSessionUsage(workspaceIdentity.userId, sessionId, nextTitle)
+    );
     setWorkspaceSessions(listLocalWorkspaceSessions(workspaceIdentity.userId));
   }
 
@@ -1738,6 +1772,9 @@ export function WorkstationShell({
             userId: workspaceIdentity.userId
           }
         });
+        setSessionUsageSummaries(
+          deleteSessionUsage(workspaceIdentity.userId, sessionId)
+        );
         const remaining = listLocalWorkspaceSessions(workspaceIdentity.userId);
         setWorkspaceSessions(remaining);
         if (sessionId === workspaceIdentity.sessionId) {
@@ -1973,6 +2010,47 @@ export function WorkstationShell({
         }
       }
     });
+
+    if (status.state === "error") {
+      const fallbackArtifact = resolveRefinedPreviewFallbackArtifact({
+        artifacts: snapshotRef.current.artifacts,
+        failedArtifactIds: [
+          route.sourceArtifactId,
+          route.selectedArtifactId,
+          previewArtifactId
+        ],
+        failedArtifactTitle: source.title
+      });
+
+      if (fallbackArtifact) {
+        const fallbackOverride = createPreviewSessionOverride(
+          fallbackArtifact.id,
+          "reloading"
+        );
+
+        setPreviewArtifactId(fallbackArtifact.id);
+        setPreviewSessionOverride(fallbackOverride);
+        setPreviewRuntimeLive(null);
+        appendLocalRuntimeEvent({
+          event_type: "status",
+          sequence: localRuntimeSequenceRef.current++,
+          payload: {
+            code: "preview_refinement_fallback_requested",
+            message: `The refined preview failed to run. Restoring ${fallbackArtifact.title} while keeping ${source.title} as a saved artifact.`,
+            category: "preview_runtime",
+            subsystem: `${kind}_sandbox_runtime`,
+            preview_runtime: {
+              artifact: fallbackArtifact.title,
+              failed_artifact: source.title,
+              kind,
+              renderer_id: route.rendererId,
+              runtime_id: runtimeId,
+              state: "reloading"
+            }
+          }
+        });
+      }
+    }
   }
 
   function appendPreviewRuntimeFrameEvent({
@@ -2649,6 +2727,7 @@ export function WorkstationShell({
     setOpenUtilityPanel(null);
     setIsAttachmentMenuOpen(false);
     void submitAssistantRequest({
+      forcePreviewOpen: true,
       prompt: scenario.prompt,
       workflowModeOverride: scenario.workflowMode
     });
@@ -2697,12 +2776,25 @@ export function WorkstationShell({
       return;
     }
 
+    const artifactFollowUp = resolveArtifactFollowUp({
+      activeArtifact,
+      artifacts: interactiveSnapshot.artifacts,
+      prompt
+    });
+    if (artifactFollowUp.kind === "refinement") {
+      await handleArtifactRefine(artifactFollowUp.artifact, prompt, {
+        displayMessage: prompt
+      });
+      return;
+    }
+
     await submitAssistantRequest({ prompt });
   }
 
   async function handleArtifactRefine(
     artifact: ArtifactSummary,
-    instruction: string
+    instruction: string,
+    options: { displayMessage?: string } = {}
   ) {
     const prompt = instruction.trim();
 
@@ -2724,7 +2816,8 @@ export function WorkstationShell({
 
     await submitAssistantRequest({
       artifactRefinement,
-      prompt
+      prompt,
+      userMessageContent: options.displayMessage
     });
   }
 
@@ -2746,12 +2839,16 @@ export function WorkstationShell({
   async function submitAssistantRequest({
     artifactRefinement,
     clarificationResponse,
+    forcePreviewOpen = false,
     prompt,
+    userMessageContent,
     workflowModeOverride
   }: {
     artifactRefinement?: AssistantArtifactRefinementRequest;
     clarificationResponse?: string;
+    forcePreviewOpen?: boolean;
     prompt: string;
+    userMessageContent?: string;
     workflowModeOverride?: WorkflowExecutionMode;
   }) {
     if (isStreaming || isImageUploadPending) {
@@ -2761,30 +2858,44 @@ export function WorkstationShell({
     const timestamp = formatMessageTime();
     const userMessageId = createConversationEntryId();
     const assistantMessageId = createConversationEntryId();
+    const requestMode = resolveAssistantRequestMode({
+      hasArtifactRefinement: Boolean(artifactRefinement),
+      hasClarificationResponse: Boolean(clarificationResponse),
+      prompt
+    });
     const pendingRefinement = artifactRefinement
       ? {
           ...artifactRefinement,
           requestedAt: new Date().toISOString()
         }
       : null;
-    const userMessageContent = clarificationResponse
-      ? `Clarification: ${clarificationResponse}`
-      : artifactRefinement
-      ? `Refine ${artifactRefinement.title}: ${prompt}`
-      : prompt;
+    const visibleUserMessage =
+      userMessageContent ??
+      (clarificationResponse
+        ? `Clarification: ${clarificationResponse}`
+        : artifactRefinement
+          ? `Refine ${artifactRefinement.title}: ${prompt}`
+          : prompt);
     const initialWorkflowActivity = deriveWorkflowRuntimeActivity({
-      currentNode: artifactRefinement ? "refinement" : "planning",
+      currentNode:
+        artifactRefinement
+          ? "refinement"
+          : requestMode === "explain"
+            ? "routing"
+            : "planning",
       productOutcome: null,
       workflowStatus: "running"
     });
 
     pendingArtifactRefinementRef.current = pendingRefinement;
     activeRequestPromptRef.current = prompt;
+    activeRequestModeRef.current = requestMode;
+    forcePreviewOpenForRequestRef.current = forcePreviewOpen;
     streamingAssistantIdRef.current = assistantMessageId;
     setConversationEntries((currentMessages) => [
       ...currentMessages,
       {
-        content: userMessageContent,
+        content: visibleUserMessage,
         activity: null,
         id: userMessageId,
         pending: false,
@@ -2794,10 +2905,17 @@ export function WorkstationShell({
       },
       {
         content: "",
-        activity: initialWorkflowActivity.detail,
+        activity: conversationActivityForRequestMode(
+          initialWorkflowActivity,
+          requestMode
+        ),
         id: assistantMessageId,
         pending: true,
-        phase: conversationPhaseForWorkflowActivity(initialWorkflowActivity),
+        phase: conversationPhaseForRequestActivity(
+          initialWorkflowActivity,
+          requestMode
+        ),
+        requestMode,
         role: "assistant",
         time: timestamp
       }
@@ -2847,7 +2965,7 @@ export function WorkstationShell({
         generationControls: {
           profile: buildGenerationControls(workspacePreferences.creativity).profile
         },
-        mode: "generate",
+        mode: requestMode,
         personalizationContext: {
           categories: personalizationContext.categories,
           enabled: personalizationContext.enabled,
@@ -2889,9 +3007,15 @@ export function WorkstationShell({
             streamedAnswer += delta;
             startTransition(() => {
               updateStreamingAssistantMessage({
-                activity: latestWorkflowActivity.detail,
-                content: streamingConversationSummary,
-                phase: conversationPhaseForWorkflowActivity(latestWorkflowActivity)
+                activity: conversationActivityForRequestMode(
+                  latestWorkflowActivity,
+                  requestMode
+                ),
+                content: streamingConversationSummaryForMode(requestMode),
+                phase: conversationPhaseForRequestActivity(
+                  latestWorkflowActivity,
+                  requestMode
+                )
               });
             });
           }
@@ -2915,7 +3039,7 @@ export function WorkstationShell({
           );
           finalizeStreamingAssistantMessage({
             activity: conversationOutcome.activity,
-            content: buildAssistantConversationSummary(streamedAnswer),
+            content: buildAssistantConversationSummary(streamedAnswer, requestMode),
             phase: conversationOutcome.phase
           });
         }
@@ -2942,7 +3066,8 @@ export function WorkstationShell({
             activity: failedActivity.detail,
             content: streamedAnswer
               ? `${buildAssistantConversationSummary(
-                  streamedAnswer
+                  streamedAnswer,
+                  requestMode
                 )}\n\nLive response error: ${error.userMessage}`
               : `Live response error: ${error.userMessage}`,
             phase: terminalConversationPhaseForWorkflowActivity(failedActivity)
@@ -2960,7 +3085,7 @@ export function WorkstationShell({
             });
         finalizeStreamingAssistantMessage({
           activity: completedActivity.detail,
-          content: buildAssistantConversationSummary(streamedAnswer),
+          content: buildAssistantConversationSummary(streamedAnswer, requestMode),
           phase: terminalConversationPhaseForWorkflowActivity(completedActivity)
         });
       } else if (!receivedTerminalStreamError && streamingAssistantIdRef.current) {
@@ -3019,6 +3144,8 @@ export function WorkstationShell({
         pendingArtifactRefinementRef.current = null;
       }
       activeRequestPromptRef.current = "";
+      activeRequestModeRef.current = "generate";
+      forcePreviewOpenForRequestRef.current = false;
       setIsStreaming(false);
     }
   }
@@ -3110,12 +3237,21 @@ export function WorkstationShell({
       streamEvent.event_type !== "error"
     ) {
       updateStreamingAssistantMessage({
-        activity: workflowActivity.detail,
-        phase: conversationPhaseForWorkflowActivity(workflowActivity)
+        activity: conversationActivityForRequestMode(
+          workflowActivity,
+          activeRequestModeRef.current
+        ),
+        phase: conversationPhaseForRequestActivity(
+          workflowActivity,
+          activeRequestModeRef.current
+        )
       });
     }
 
-    if (streamEvent.event_type === "artifact_extracted") {
+    if (
+      streamEvent.event_type === "artifact_extracted" &&
+      activeRequestModeRef.current !== "explain"
+    ) {
       const hydration = annotateRefinedHydration(
         hydrateWorkspaceFromArtifactExtractedEvent(currentSnapshot, streamEvent, {
           prompt: activeRequestPromptRef.current
@@ -3133,10 +3269,20 @@ export function WorkstationShell({
         setActiveArtifactId(hydration.activeArtifactId);
         setPreviewArtifactId(hydration.previewArtifactId);
         setPreviewSessionOverride(null);
+        if (
+          hydration.previewAvailable &&
+          forcePreviewOpenForRequestRef.current
+        ) {
+          handlePreviewOpenChange(true);
+          setActiveTab("Preview");
+        }
       }
     }
 
-    if (streamEvent.event_type === "preview_artifact") {
+    if (
+      streamEvent.event_type === "preview_artifact" &&
+      activeRequestModeRef.current !== "explain"
+    ) {
       const previewUpdate = readPreviewArtifactUpdate(streamEvent);
       const nextPreviewArtifactId =
         previewUpdate?.previewArtifactId ?? previewUpdate?.artifactId ?? null;
@@ -3159,6 +3305,22 @@ export function WorkstationShell({
 
       if (!previewCanOpen) {
         hasPreviewRuntimeEventRef.current = false;
+        const fallbackArtifact = previewArtifact
+          ? resolveRefinedPreviewFallbackArtifact({
+              artifacts: currentSnapshot.artifacts,
+              failedArtifactIds: [previewArtifact.id, nextPreviewArtifactId],
+              failedArtifactTitle: previewArtifact.title
+            })
+          : null;
+
+        if (fallbackArtifact) {
+          setPreviewArtifactId(fallbackArtifact.id);
+          setPreviewSessionOverride(
+            createPreviewSessionOverride(fallbackArtifact.id, "reloading")
+          );
+          setPreviewRuntimeLive(null);
+          return;
+        }
         if (previewArtifact && !isArtifactPreviewable(previewArtifact)) {
           setPreviewArtifactId("");
         }
@@ -3186,7 +3348,10 @@ export function WorkstationShell({
       ) {
         setPreviewArtifactId(previewArtifact.id);
       }
-      if (workspacePreferences.autoOpenPreview) {
+      if (
+        workspacePreferences.autoOpenPreview ||
+        forcePreviewOpenForRequestRef.current
+      ) {
         handlePreviewOpenChange(true);
         setActiveTab("Preview");
       }
@@ -3196,7 +3361,10 @@ export function WorkstationShell({
       const hydration = annotateRefinedHydration(
         hydrateWorkspaceFromFinalEvent(currentSnapshot, streamEvent, {
           prompt: activeRequestPromptRef.current,
-          skipPlainTextArtifact: hasPreviewRuntimeEventRef.current
+          skipArtifacts: activeRequestModeRef.current === "explain",
+          skipPlainTextArtifact:
+            activeRequestModeRef.current === "explain" ||
+            hasPreviewRuntimeEventRef.current
         }),
         pendingArtifactRefinementRef.current,
         currentSnapshot
@@ -3208,6 +3376,13 @@ export function WorkstationShell({
             ? { ...hydration.snapshot, creativePlan: creativePlanUpdate }
             : hydration.snapshot
         );
+        if (
+          hydration.previewAvailable &&
+          forcePreviewOpenForRequestRef.current
+        ) {
+          handlePreviewOpenChange(true);
+          setActiveTab("Preview");
+        }
         return;
       }
 
@@ -3220,9 +3395,15 @@ export function WorkstationShell({
       setPreviewArtifactId(hydration.previewArtifactId);
       setPreviewSessionOverride(null);
       handlePreviewOpenChange(
-        hydration.previewAvailable && workspacePreferences.autoOpenPreview
+        hydration.previewAvailable &&
+          (workspacePreferences.autoOpenPreview ||
+            forcePreviewOpenForRequestRef.current)
       );
-      if (hydration.previewAvailable && workspacePreferences.autoOpenPreview) {
+      if (
+        hydration.previewAvailable &&
+        (workspacePreferences.autoOpenPreview ||
+          forcePreviewOpenForRequestRef.current)
+      ) {
         setActiveTab("Preview");
       }
     }
@@ -3853,12 +4034,18 @@ export function WorkstationShell({
         <div
           className="sessionStatus"
           aria-label="Current session"
-          data-activity={activeWorkflowActivity?.state}
+          data-activity={
+            activeRequestModeRef.current === "explain" && activeWorkflowActivity
+              ? "answering"
+              : activeWorkflowActivity?.state
+          }
           data-state={streamState}
         >
           <span>{displayedSessionStatusLabel}</span>
           {!isPristineSession ? <strong>{displayedSessionStatusDetail}</strong> : null}
-          <small>{formatSessionTelemetryLabel(providerTelemetry)}</small>
+          <small>
+            {formatSessionTelemetryLabel(providerTelemetry, currentSessionUsage)}
+          </small>
         </div>
 
         <div
@@ -3877,25 +4064,6 @@ export function WorkstationShell({
           >
             <Play size={16} />
             <span>Demo Mode</span>
-          </button>
-          <button
-            aria-label={
-              isFocusMode
-                ? "Exit Fullscreen Creative Session"
-                : "Enter Fullscreen Creative Session"
-            }
-            aria-pressed={isFocusMode}
-            className="toolbarToggle"
-            onClick={handleFocusModeToggle}
-            title={
-              isFocusMode
-                ? "Restore sidebars and preview"
-                : "Collapse sidebars for a fullscreen creative session"
-            }
-            type="button"
-          >
-            {isFocusMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-            <span>{isFocusMode ? "Exit session" : "Session fullscreen"}</span>
           </button>
           <button
             aria-label="Open Product Intelligence Dashboard"
@@ -4343,7 +4511,10 @@ export function WorkstationShell({
                     retrievalRuntime={retrievalRuntime}
                     showDebugPanels={workspacePreferences.showDebugPanels}
                     snapshot={interactiveSnapshot}
+                    streamError={streamError}
+                    sessionUsage={currentSessionUsage}
                     telemetryDashboard={telemetryDashboard}
+                    providerTelemetry={providerTelemetry}
                     transferFeedback={transferFeedback}
                     workflowExecution={workflowExecution}
                     workflowMode={workflowMode}
@@ -4392,12 +4563,6 @@ function EmptyWorkspaceState({
       detail: "Plan, generate, inspect, preview, export, and recover clearly."
     }
   ];
-  const promptIcons: Record<(typeof homepagePromptLibrary)[number]["id"], LucideIcon> = {
-    "physarum-drift": Braces,
-    "kinetic-orbit-sculpture": LayoutGrid,
-    "chladni-light-field": Gauge,
-    "cymatic-audio-study": Activity
-  };
   const journey = [
     { title: "Write the brief", detail: "Describe the idea, medium, and constraints." },
     { title: "Choose the route", detail: "Auto selects a bounded execution path." },
@@ -4431,19 +4596,15 @@ function EmptyWorkspaceState({
         title="Choose a proven creative starting point"
       >
         <DashboardCardGrid className="emptyWorkspaceSuggestionGrid" label="Prompt suggestion cards" layout="quad" role="group">
-          {homepagePromptLibrary.map((prompt) => {
-            const PromptIcon = promptIcons[prompt.id];
-            return (
-              <DashboardActionCard
-                badge={prompt.runtime}
-                detail={prompt.description}
-                icon={PromptIcon}
-                key={prompt.id}
-                onClick={() => onSelectPrompt(prompt.prompt)}
-                title={prompt.title}
-              />
-            );
-          })}
+          {homepagePromptLibrary.map((prompt) => (
+            <DashboardActionCard
+              badge={prompt.runtime}
+              detail={prompt.description}
+              key={prompt.id}
+              onClick={() => onSelectPrompt(prompt.prompt)}
+              title={prompt.title}
+            />
+          ))}
         </DashboardCardGrid>
         <DashboardDisclosure className="emptyWorkspaceJourneyDisclosure" summary="How it works">
           <DashboardProcessRail className="emptyWorkspaceJourney" label="Creative workflow" steps={journey} />
@@ -4520,7 +4681,10 @@ type InspectorPanelProps = {
   retrievalRuntime: RetrievalRuntimeModel;
   showDebugPanels: boolean;
   snapshot: AssistantWorkspaceSnapshot;
+  streamError: WorkstationError | null;
+  sessionUsage: SessionUsageSummary | null;
   telemetryDashboard: TelemetryDashboardModel;
+  providerTelemetry: ProviderTelemetryModel;
   transferFeedback: ArtifactActionFeedback | null;
   workflowExecution: WorkflowExecutionModel;
   workflowMode: WorkflowExecutionMode;
@@ -4552,7 +4716,10 @@ function InspectorPanel({
   retrievalRuntime,
   showDebugPanels,
   snapshot,
+  streamError,
+  sessionUsage,
   telemetryDashboard,
+  providerTelemetry,
   transferFeedback,
   workflowExecution,
   workflowMode,
@@ -4612,7 +4779,11 @@ function InspectorPanel({
 
   if (activeTab === "Telemetry") {
     return (
-      <TelemetryInspector dashboard={telemetryDashboard} />
+      <TelemetryInspector
+        dashboard={telemetryDashboard}
+        providerTelemetry={providerTelemetry}
+        sessionUsage={sessionUsage}
+      />
     );
   }
 
@@ -4632,6 +4803,7 @@ function InspectorPanel({
         onArtifactRename={onArtifactRename}
         onArtifactSelect={onArtifactSelect}
         productOutcome={workflowRuntime.summary.productOutcome}
+        refinementError={streamError}
         showDebugPanels={showDebugPanels}
         transferFeedback={transferFeedback}
       />
@@ -4687,31 +4859,10 @@ function OverviewInspector({
     steps: runtime.steps
   });
   const workflowProgress = getWorkflowRuntimeProgress(visibleWorkflowSteps);
-  const activeWorkflowStepIndex = visibleWorkflowSteps.findIndex(
-    (step) => step.state === "active" || step.state === "failed"
-  );
-  const recentWorkflowSteps = visibleWorkflowSteps
-    .filter(
-      (step) =>
-        step.state === "complete" ||
-        step.state === "active" ||
-        step.state === "failed"
-    )
-    .slice(-5);
-  const overviewWorkflowSteps =
-    activeWorkflowStepIndex >= 0
-      ? visibleWorkflowSteps.slice(
-          Math.max(0, activeWorkflowStepIndex - 2),
-          activeWorkflowStepIndex + 3
-        )
-      : recentWorkflowSteps.length > 0
-        ? recentWorkflowSteps
-        : visibleWorkflowSteps.slice(0, 5);
   const workflowRouteLabel = formatWorkflowGraphRoute({
     execution: workflowExecution,
     requestedMode: workflowMode
   });
-  const latestTransitions = runtime.transitions.slice(-3);
 
   return (
     <section
@@ -4754,8 +4905,8 @@ function OverviewInspector({
             label="Overview workflow progress"
             progress={workflowProgress}
           />
-          <div className="miniWorkflow" aria-label="Latest live workflow checkpoints">
-            {overviewWorkflowSteps.map((step) => (
+          <div className="miniWorkflow" aria-label="Full live workflow">
+            {visibleWorkflowSteps.map((step) => (
               <div
                 aria-current={
                   step.state === "active" || step.state === "failed"
@@ -4773,26 +4924,6 @@ function OverviewInspector({
                 </div>
               </div>
             ))}
-          </div>
-          {visibleWorkflowSteps.length > overviewWorkflowSteps.length ? (
-            <small className="inspectorCockpitBoundary">
-              {`${overviewWorkflowSteps.length} of ${visibleWorkflowSteps.length} checkpoints shown · Dashboard contains the full graph`}
-            </small>
-          ) : null}
-          <div className="workflowMiniTransitions" aria-label="Workflow transitions">
-            {latestTransitions.length > 0 ? (
-              latestTransitions.map((transition) => (
-                <div
-                  className="workflowTransitionPill"
-                  data-kind={transition.kind}
-                  key={`${transition.sequence}-${transition.label}`}
-                >
-                  {transition.label}
-                </div>
-              ))
-            ) : (
-              <p>Waiting for runtime transitions.</p>
-            )}
           </div>
         </div>
         <div className="overviewTile" role="group" aria-label="Artifacts summary">
@@ -5287,9 +5418,13 @@ function WorkflowInspector({
 }
 
 function TelemetryInspector({
-  dashboard
+  dashboard,
+  providerTelemetry,
+  sessionUsage
 }: {
   dashboard: TelemetryDashboardModel;
+  providerTelemetry: ProviderTelemetryModel;
+  sessionUsage: SessionUsageSummary | null;
 }) {
   return (
     <section
@@ -5311,6 +5446,19 @@ function TelemetryInspector({
           <small>{dashboard.summary.runtimeLabel}</small>
         </div>
       </header>
+
+      <div aria-label="Session usage" className="telemetrySessionUsage" role="group">
+        <article>
+          <span>Latest request</span>
+          <strong>{formatLatestUsageLabel(providerTelemetry, sessionUsage)}</strong>
+          <p>Provider-published tokens and estimated cost for the most recent completed request.</p>
+        </article>
+        <article>
+          <span>Current session total</span>
+          <strong>{formatUsageTotalLabel(sessionUsage)}</strong>
+          <p>{sessionUsage ? `${sessionUsage.runCount} retained request${sessionUsage.runCount === 1 ? "" : "s"}` : "No completed request retained yet."}</p>
+        </article>
+      </div>
 
       <div className="telemetrySignalGrid" aria-label="Telemetry signal summary">
         {dashboard.signals.map((signal) => (
@@ -5347,6 +5495,7 @@ type ArtifactsInspectorProps = {
   onArtifactRename: (artifact: ArtifactSummary, requestedTitle: string) => string | null;
   onArtifactSelect: (artifact: ArtifactSummary) => void;
   productOutcome: WorkflowRuntimeModel["summary"]["productOutcome"];
+  refinementError: WorkstationError | null;
   showDebugPanels: boolean;
   transferFeedback: ArtifactActionFeedback | null;
 };
@@ -5365,6 +5514,7 @@ function ArtifactsInspector({
   onArtifactRename,
   onArtifactSelect,
   productOutcome,
+  refinementError,
   showDebugPanels,
   transferFeedback
 }: ArtifactsInspectorProps) {
@@ -5385,10 +5535,13 @@ function ArtifactsInspector({
         activeArtifactId={activeArtifactId}
         artifacts={artifacts}
         copyFeedback={copyFeedback}
+        isStreaming={isStreaming}
         onArtifactAction={onArtifactAction}
         onArtifactDelete={onArtifactDelete}
+        onArtifactRefine={onArtifactRefine}
         onArtifactRename={onArtifactRename}
         onArtifactSelect={onArtifactSelect}
+        refinementError={refinementError}
         transferFeedback={transferFeedback}
       />
     );
@@ -5488,6 +5641,7 @@ function ArtifactsInspector({
           <ArtifactRefinementPanel
             artifact={activeArtifact}
             disabled={isStreaming}
+            error={refinementError}
             key={activeArtifact.id}
             onArtifactRefine={onArtifactRefine}
           />
@@ -5536,20 +5690,26 @@ function UserArtifactsInspector({
   activeArtifactId,
   artifacts,
   copyFeedback,
+  isStreaming,
   onArtifactAction,
   onArtifactDelete,
+  onArtifactRefine,
   onArtifactRename,
   onArtifactSelect,
+  refinementError,
   transferFeedback
 }: {
   activeArtifact: ArtifactSummary;
   activeArtifactId: string;
   artifacts: ArtifactSummary[];
   copyFeedback: ArtifactActionFeedback | null;
+  isStreaming: boolean;
   onArtifactAction: (action: ArtifactAction, artifact: ArtifactSummary) => void;
   onArtifactDelete: (artifact: ArtifactSummary) => void;
+  onArtifactRefine: (artifact: ArtifactSummary, instruction: string) => Promise<void>;
   onArtifactRename: (artifact: ArtifactSummary, requestedTitle: string) => string | null;
   onArtifactSelect: (artifact: ArtifactSummary) => void;
+  refinementError: WorkstationError | null;
   transferFeedback: ArtifactActionFeedback | null;
 }) {
   const actionMessage = getArtifactActionMessage(
@@ -5601,6 +5761,15 @@ function UserArtifactsInspector({
             );
           })}
         </div>
+      ) : null}
+      {activeArtifact.type === "code" && activeArtifact.actions.length > 0 ? (
+        <ArtifactRefinementPanel
+          artifact={activeArtifact}
+          disabled={isStreaming}
+          error={refinementError}
+          key={activeArtifact.id}
+          onArtifactRefine={onArtifactRefine}
+        />
       ) : null}
       <UserArtifactActionRow
         artifact={activeArtifact}
@@ -6601,9 +6770,10 @@ function annotateRefinedHydration(
   const refinedArtifactId = idCollidesWithSource
     ? createRefinedArtifactId(refinement.artifactId, sourceSnapshot.artifacts)
     : hydration.artifact.id;
-  const refinedArtifactTitle = idCollidesWithSource
-    ? createRefinedArtifactTitle(hydration.artifact.title)
-    : hydration.artifact.title;
+  const refinedArtifactTitle = createRefinedArtifactTitle(
+    refinement.title,
+    sourceSnapshot.artifacts
+  );
   const refinementPasses = appendRefinementPassRecord({
     refinement,
     resultArtifact: {
@@ -6642,8 +6812,24 @@ function annotateRefinedHydration(
   const refinedPreviewWasPromoted =
     hydration.snapshot.preview.sourceArtifactId === hydration.artifact.id ||
     hydration.previewArtifactId === hydration.artifact.id;
+  const sourcePreviewFallback =
+    refinedPreviewWasPromoted &&
+    !isArtifactPreviewable(refinedArtifact) &&
+    sourceArtifact &&
+    isArtifactPreviewable(sourceArtifact)
+      ? sourceArtifact
+      : null;
   const preview =
-    refinedPreviewWasPromoted
+    sourcePreviewFallback
+      ? {
+          ...sourceSnapshot.preview,
+          available: true,
+          artifactName: sourcePreviewFallback.title,
+          sourceArtifactId: sourcePreviewFallback.id,
+          sourceArtifactName: sourcePreviewFallback.title,
+          summary: `The refined output is saved for review, but its source is not runnable. Preview remains on ${sourcePreviewFallback.title}.`
+        }
+      : refinedPreviewWasPromoted
       ? {
           ...hydration.snapshot.preview,
           artifactName: refinedArtifact.title,
@@ -6659,10 +6845,14 @@ function annotateRefinedHydration(
     activeArtifactId: refinedArtifact.id,
     artifact: refinedArtifact,
     previewArtifactId:
-      refinedPreviewWasPromoted
+      sourcePreviewFallback
+        ? sourcePreviewFallback.id
+        : refinedPreviewWasPromoted
         ? refinedArtifact.id
         : hydration.previewArtifactId,
-    previewAvailable: hydration.previewAvailable,
+    previewAvailable: sourcePreviewFallback
+      ? true
+      : hydration.previewAvailable,
     snapshot: {
       ...hydration.snapshot,
       artifacts: nextArtifacts,
@@ -6670,6 +6860,45 @@ function annotateRefinedHydration(
       preview
     }
   };
+}
+
+function resolveRefinedPreviewFallbackArtifact({
+  artifacts,
+  failedArtifactIds,
+  failedArtifactTitle
+}: {
+  artifacts: ArtifactSummary[];
+  failedArtifactIds: Array<string | null | undefined>;
+  failedArtifactTitle: string;
+}) {
+  const candidateArtifacts = [
+    ...failedArtifactIds
+      .filter((artifactId): artifactId is string => Boolean(artifactId))
+      .map((artifactId) =>
+        artifacts.find((artifact) => artifact.id === artifactId)
+      )
+      .filter((artifact): artifact is ArtifactSummary => Boolean(artifact)),
+    ...artifacts.filter((artifact) => artifact.title === failedArtifactTitle)
+  ];
+  const failedArtifact =
+    candidateArtifacts.find(
+      (artifact) =>
+        artifact.title === failedArtifactTitle &&
+        Boolean(artifact.refinedFromArtifactId)
+    ) ??
+    candidateArtifacts.find((artifact) =>
+      Boolean(artifact.refinedFromArtifactId)
+    ) ??
+    null;
+  const sourceArtifact = failedArtifact?.refinedFromArtifactId
+    ? artifacts.find(
+        (artifact) => artifact.id === failedArtifact.refinedFromArtifactId
+      ) ?? null
+    : null;
+
+  return sourceArtifact && isArtifactPreviewable(sourceArtifact)
+    ? sourceArtifact
+    : null;
 }
 
 function createRefinedArtifactId(
@@ -6688,14 +6917,54 @@ function createRefinedArtifactId(
   return candidate;
 }
 
-function createRefinedArtifactTitle(title: string) {
+function createRefinedArtifactTitle(
+  title: string,
+  artifacts: ArtifactSummary[]
+) {
   const extensionIndex = title.lastIndexOf(".");
 
   if (extensionIndex <= 0) {
-    return `${title}-refined`;
+    const stem = title.replace(/-refined(?:-\d+)?$/i, "");
+    return createAvailableRefinedTitle({
+      artifacts,
+      extension: "",
+      separator: "-",
+      stem
+    });
   }
 
-  return `${title.slice(0, extensionIndex)}.refined${title.slice(extensionIndex)}`;
+  const stem = title
+    .slice(0, extensionIndex)
+    .replace(/\.refined(?:-\d+)?$/i, "");
+  return createAvailableRefinedTitle({
+    artifacts,
+    extension: title.slice(extensionIndex),
+    separator: ".",
+    stem
+  });
+}
+
+function createAvailableRefinedTitle({
+  artifacts,
+  extension,
+  separator,
+  stem
+}: {
+  artifacts: ArtifactSummary[];
+  extension: string;
+  separator: "." | "-";
+  stem: string;
+}) {
+  const existingTitles = new Set(artifacts.map((artifact) => artifact.title));
+  let version = 1;
+  let candidate = `${stem}${separator}refined${extension}`;
+
+  while (existingTitles.has(candidate)) {
+    version += 1;
+    candidate = `${stem}${separator}refined-${version}${extension}`;
+  }
+
+  return candidate;
 }
 
 function buildRefinedArtifactSummary(
@@ -7094,7 +7363,13 @@ function resolveClarificationNumericAnswer(
   return options[optionIndex] ?? null;
 }
 
-function formatSessionTelemetryLabel(telemetry: ProviderTelemetryModel) {
+function formatSessionTelemetryLabel(
+  telemetry: ProviderTelemetryModel,
+  usage: SessionUsageSummary | null
+) {
+  if (usage) {
+    return `Total ${formatUsageTotalLabel(usage)}`;
+  }
   const hasTokenUsage = telemetry.tokenUsage.totalTokens != null;
   const hasCostEstimate = telemetry.cost.totalCost != null;
 
@@ -7103,6 +7378,29 @@ function formatSessionTelemetryLabel(telemetry: ProviderTelemetryModel) {
   }
 
   return `${telemetry.summary.tokenLabel} · ${telemetry.summary.costLabel}`;
+}
+
+function formatLatestUsageLabel(
+  telemetry: ProviderTelemetryModel,
+  usage: SessionUsageSummary | null
+) {
+  const tokens = telemetry.tokenUsage.totalTokens ?? usage?.latestTokens ?? null;
+  const cost = telemetry.cost.totalCost ?? usage?.latestCost ?? null;
+  return `${formatUsageTokens(tokens)} · ${formatUsageCost(cost)}`;
+}
+
+function formatUsageTotalLabel(usage: SessionUsageSummary | null) {
+  return `${formatUsageTokens(usage?.totalTokens ?? null)} · ${formatUsageCost(
+    usage?.totalCost ?? null
+  )}`;
+}
+
+function formatUsageTokens(value: number | null) {
+  return value == null ? "Tokens not reported" : `${formatCompactNumber(value)} tokens`;
+}
+
+function formatUsageCost(value: number | null) {
+  return value == null ? "Cost not reported" : `$${value.toFixed(4)}`;
 }
 
 function formatWorkflowModeLabel(mode: WorkflowExecutionMode) {
@@ -7251,6 +7549,39 @@ function conversationPhaseForWorkflowActivity(
   | "failed"
 > {
   return activity.state;
+}
+
+function conversationPhaseForRequestActivity(
+  activity: WorkflowRuntimeActivity,
+  mode: AssistantRequestMode
+): ConversationEntryPhase {
+  if (
+    mode === "explain" &&
+    !activity.terminal &&
+    activity.state !== "retrieving"
+  ) {
+    return "answering";
+  }
+  return conversationPhaseForWorkflowActivity(activity);
+}
+
+function conversationActivityForRequestMode(
+  activity: WorkflowRuntimeActivity,
+  mode: AssistantRequestMode
+) {
+  if (mode !== "explain" || activity.terminal) {
+    return activity.detail;
+  }
+  switch (activity.state) {
+    case "retrieving":
+      return "Retrieving context for the answer.";
+    case "finalizing":
+      return "Finalizing the answer.";
+    case "reviewing":
+      return "Checking the answer.";
+    default:
+      return "Writing the answer.";
+  }
 }
 
 function terminalConversationPhaseForWorkflowActivity(
@@ -7864,8 +8195,11 @@ function formatMessageTime() {
   }).format(new Date());
 }
 
-const streamingConversationSummary =
-  "Generating the requested artifact. Code and long-form output will appear in the Code panel, artifacts, and preview surfaces when the run completes.";
+function streamingConversationSummaryForMode(mode: AssistantRequestMode) {
+  return mode === "explain"
+    ? "Answering your question. The complete response will appear here when it is ready."
+    : "Generating the requested artifact. Code and long-form output will appear in the Code panel, artifacts, and preview surfaces when the run completes.";
+}
 
 const generatedCodePattern =
   /```|<!doctype|<html|<script|function\s+(setup|draw)\s*\(|import\s+\*\s+as\s+THREE|gl_FragColor|void\s+main\s*\(/i;
@@ -7874,7 +8208,11 @@ function getConversationDisplayContent(
   message: ConversationEntry,
   showDebugPanels: boolean
 ) {
-  if (message.role !== "assistant" || showDebugPanels) {
+  if (
+    message.role !== "assistant" ||
+    showDebugPanels ||
+    message.requestMode === "explain"
+  ) {
     return message.content;
   }
 
@@ -7906,21 +8244,23 @@ function buildUserModeAssistantSummary(content: string) {
     return `${summary}\n\nCode and long-form output are in Code, Artifacts, and Preview.`;
   }
 
-  if (strippedContent.length > 520) {
-    return `${truncateConversationSummary(
-      strippedContent,
-      360
-    )}\n\nOpen Developer Mode for the full response details.`;
-  }
-
   return strippedContent;
 }
 
-function buildAssistantConversationSummary(answer: string) {
+function buildAssistantConversationSummary(
+  answer: string,
+  mode: AssistantRequestMode = "generate"
+) {
   const trimmedAnswer = answer.trim();
 
   if (!trimmedAnswer) {
-    return "Response completed. Check Code, Preview, and Retrieval for output details.";
+    return mode === "explain"
+      ? "The response completed without any answer text. Please retry the question."
+      : "Response completed. Check Code, Preview, and Retrieval for output details.";
+  }
+
+  if (mode === "explain") {
+    return trimmedAnswer;
   }
 
   const lineCount = trimmedAnswer.split(/\r?\n/).length;

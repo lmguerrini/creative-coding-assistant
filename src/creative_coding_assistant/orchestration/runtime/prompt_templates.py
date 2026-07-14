@@ -605,8 +605,9 @@ Refinement Target:
 {% if prompt_input.user_input.artifact_refinement.refinement_passes -%}
 - Prior Refinement Passes:
 {% for pass_record in prompt_input.user_input.artifact_refinement.refinement_passes -%}
-  - Pass {{ pass_record.pass_number or pass_record.passNumber }}:
-    {{ pass_record.stop_reason or pass_record.stopReason or "recorded" }}
+{% set pass_number = pass_record.get('pass_number', pass_record.get('passNumber')) -%}
+{% set stop_reason = pass_record.get('stop_reason', pass_record.get('stopReason', 'recorded')) -%}
+  - Pass {{ pass_number or loop.index }}: {{ stop_reason or "recorded" }}
 {% endfor %}
 {% endif %}
 {% if prompt_input.user_input.artifact_refinement.critique_rationale -%}

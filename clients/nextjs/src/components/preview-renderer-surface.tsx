@@ -23,6 +23,7 @@ type PreviewRendererSurfaceProps = {
   captureHostKeyboard?: boolean;
   chrome?: "comparison" | "default" | "immersive";
   onKeyboardBoundary?: PreviewRuntimeCallbackProps["onKeyboardBoundary"];
+  onOpenCode?: (() => void) | undefined;
   onRuntimeDiagnostics?: PreviewRuntimeCallbackProps["onRuntimeDiagnostics"];
   onReload?: (() => void) | undefined;
   onRuntimeFrame?: PreviewRuntimeCallbackProps["onRuntimeFrame"];
@@ -75,6 +76,7 @@ export function PreviewRendererSurface({
   captureHostKeyboard = false,
   chrome = "default",
   onKeyboardBoundary,
+  onOpenCode,
   onRuntimeDiagnostics,
   onReload,
   onRuntimeFrame,
@@ -113,6 +115,7 @@ export function PreviewRendererSurface({
         captureHostKeyboard,
         chrome,
         onKeyboardBoundary,
+        onOpenCode,
         onRuntimeDiagnostics,
         onReload,
         onRuntimeFrame,
@@ -148,6 +151,7 @@ function renderPreviewSurfaceStage({
   captureHostKeyboard = false,
   chrome,
   onKeyboardBoundary,
+  onOpenCode,
   onRuntimeDiagnostics,
   onReload,
   onRuntimeFrame,
@@ -205,6 +209,7 @@ function renderPreviewSurfaceStage({
           captureHostKeyboard={captureHostKeyboard}
           kind={runtimeKind}
           onKeyboardBoundary={onKeyboardBoundary}
+          onOpenCode={onOpenCode}
           onRuntimeDiagnostics={onRuntimeDiagnostics}
           onReload={onReload}
           onRuntimeFrame={onRuntimeFrame}

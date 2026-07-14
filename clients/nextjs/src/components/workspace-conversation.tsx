@@ -15,6 +15,7 @@ import {
   getConversationPhasePlaceholder,
   type ConversationEntry
 } from "@/lib/streaming-conversation";
+import { ConversationMarkdown } from "./conversation-markdown";
 
 type WorkspaceConversationProps = {
   emptyState?: ReactNode;
@@ -144,12 +145,21 @@ export function WorkspaceConversation({
                   <time>{message.time}</time>
                 </div>
               </div>
-              <p>
-                {displayContent || getConversationPhasePlaceholder(message.phase)}
-                {message.phase === "streaming" ? (
-                  <span className="workspaceStreamingCaret" aria-hidden="true" />
-                ) : null}
-              </p>
+              {message.role === "assistant" && displayContent ? (
+                <div className="workspaceMessageResponse">
+                  <ConversationMarkdown content={displayContent} />
+                  {message.phase === "streaming" ? (
+                    <span className="workspaceStreamingCaret" aria-hidden="true" />
+                  ) : null}
+                </div>
+              ) : (
+                <p>
+                  {displayContent || getConversationPhasePlaceholder(message.phase)}
+                  {message.phase === "streaming" ? (
+                    <span className="workspaceStreamingCaret" aria-hidden="true" />
+                  ) : null}
+                </p>
+              )}
               {message.activity && message.phase !== "complete" ? (
                 <div
                   className="workspaceMessageActivity"

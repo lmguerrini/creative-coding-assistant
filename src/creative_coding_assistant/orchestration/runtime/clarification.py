@@ -72,7 +72,7 @@ _EXPLICIT_RUNTIME_SIGNAL = re.compile(
 )
 _STYLE_RUNTIME_CONFLICT_SIGNAL = (
     (
-        re.compile(r"\b(?:tone(?:\.js)?|web\s+audio|synth|audio)\b"),
+        re.compile(r"\b(?:tone(?:\.js|\s+js)|web\s+audio|synth|audio)\b"),
         re.compile(r"\b(?:fragment\s+shader|glsl|shader|shadertoy)\b"),
     ),
     (
@@ -80,6 +80,7 @@ _STYLE_RUNTIME_CONFLICT_SIGNAL = (
         re.compile(r"\b(?:three(?:\.js)?|react\s+three\s+fiber|r3f)\b"),
     ),
 )
+_MAX_CLARIFICATION_ORIGINAL_QUERY_CHARS = 800
 _AUDIOVISUAL_BRIDGE_SIGNAL = re.compile(
     r"\b(?:audio[\s-]?reactive|audiovisual|sound[\s-]?reactive|visuali[sz]er)\b"
 )
@@ -286,11 +287,21 @@ def _clarification(
         reason=reason,
         confidence=confidence,
         summary=summary,
-        original_query=query,
+        original_query=_bounded_original_query(query),
         questions=questions[:3],
         suggested_options=first_question.suggested_options,
         default_recommendation=first_question.default_recommendation,
         signal_summary=signal_summary,
+    )
+
+
+def _bounded_original_query(query: str) -> str:
+    normalized = query.strip()
+    if len(normalized) <= _MAX_CLARIFICATION_ORIGINAL_QUERY_CHARS:
+        return normalized
+    return (
+        normalized[: _MAX_CLARIFICATION_ORIGINAL_QUERY_CHARS - 1].rstrip()
+        + "…"
     )
 
 

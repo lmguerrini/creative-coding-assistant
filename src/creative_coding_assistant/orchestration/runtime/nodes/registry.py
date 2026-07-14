@@ -152,6 +152,18 @@ def _linear_workflow_edge_spec(
                 WorkflowStep.FAILURE.value: WorkflowStep.FAILURE.value,
             },
         )
+    if current_node == WorkflowStep.GENERATION.value:
+        return _WorkflowGraphConditionalEdgeSpec(
+            source=current_node,
+            selector=transitions.next_node_after_generation,
+            targets={
+                WorkflowStep.ARTIFACT_EXTRACTION.value: (
+                    WorkflowStep.ARTIFACT_EXTRACTION.value
+                ),
+                WorkflowStep.FINALIZATION.value: WorkflowStep.FINALIZATION.value,
+                WorkflowStep.FAILURE.value: WorkflowStep.FAILURE.value,
+            },
+        )
     if current_node == WorkflowStep.PREVIEW_PREPARATION.value:
         return _WorkflowGraphConditionalEdgeSpec(
             source=current_node,

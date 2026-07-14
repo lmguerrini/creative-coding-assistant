@@ -439,19 +439,21 @@ function toPreviewRuntimeStatus(
   kind: PreviewExecutableRuntimeKind,
   status: PreviewSandboxRuntimeStatusPayload
 ): PreviewRuntimeStatus {
+  const runtimeError = status.error
+    ? createSandboxRuntimeError({
+        debugMessage: status.error.debugMessage ?? null,
+        kind,
+        message: status.error.message,
+        type: status.error.type ?? "preview_sandbox_runtime_failed"
+      })
+    : null;
+
   return {
-    detail: status.detail,
-    diagnostics: status.diagnostics,
+    detail: runtimeError?.userMessage ?? status.detail,
+    diagnostics: runtimeError ? undefined : status.diagnostics,
     label: status.label,
     state: status.state,
-    error: status.error
-      ? createSandboxRuntimeError({
-          debugMessage: status.error.debugMessage ?? null,
-          kind,
-          message: status.error.message,
-          type: status.error.type ?? "preview_sandbox_runtime_failed"
-        })
-      : null
+    error: runtimeError
   };
 }
 
@@ -466,18 +468,74 @@ function createSandboxRuntimeError({
   message: string;
   type: string;
 }): WorkstationError {
+  const normalizedType = normalizeSandboxRuntimeErrorType({ kind, message, type });
+  const presentation = describeSandboxRuntimeError(normalizedType);
+
   return createWorkstationError({
-    type,
+    type: normalizedType,
     category: "renderer",
     subsystem: `${kind}_sandbox_runtime`,
-    userMessage: message,
-    debugMessage,
+    userMessage: presentation.message ?? message,
+    debugMessage:
+      debugMessage ?? (presentation.message === null ? null : message),
     recoverable: true,
-    suggestedAction:
-      "Reload the preview state or reset the preview session before trying again.",
-    retryLabel: "Reload preview state",
-    resetLabel: "Reset preview session"
+    suggestedAction: presentation.action,
+    retryLabel: "Reload preview",
+    resetLabel: null
   });
+}
+
+function normalizeSandboxRuntimeErrorType({
+  kind,
+  message,
+  type
+}: {
+  kind: PreviewExecutableRuntimeKind;
+  message: string;
+  type: string;
+}) {
+  if (kind === "glsl" && /did not define main\(\) or mainImage\(\)/i.test(message)) {
+    return "shader_source_invalid";
+  }
+  if (
+    kind === "glsl" &&
+    /(?:syntax error|shader did not compile|ERROR:\s*\d+:\d+)/i.test(message)
+  ) {
+    return "shader_compile_failed";
+  }
+  if (/WebGL is unavailable/i.test(message)) {
+    return "webgl_unavailable";
+  }
+  return type;
+}
+
+function describeSandboxRuntimeError(type: string) {
+  if (type === "shader_compile_failed") {
+    return {
+      action:
+        "Review the reported shader line in Code, regenerate the artifact if needed, then reload the preview.",
+      message:
+        "The generated shader contains a syntax error, so the preview could not start."
+    };
+  }
+  if (type === "shader_source_invalid") {
+    return {
+      action:
+        "Open Code and add one valid main() entry point, or regenerate the artifact.",
+      message:
+        "The generated shader does not include a valid WebGL entry point."
+    };
+  }
+  if (type === "webgl_unavailable") {
+    return {
+      action: "Reload the preview. If WebGL remains unavailable, continue from Code.",
+      message: "WebGL is not available for this preview session."
+    };
+  }
+  return {
+    action: "Review the generated code, then try reloading the preview.",
+    message: null
+  };
 }
 
 function createSandboxRuntimeSourceMismatchError({
@@ -613,12 +671,19 @@ const sandboxRuntimeScriptSource = String.raw`function sandboxRuntimeScript(runt
 
   function fail(error, label) {
     const message = error && error.message ? error.message : String(error);
+    const errorType = runtime.kind === "glsl" && /did not define main\(\) or mainImage\(\)/i.test(message)
+      ? "shader_source_invalid"
+      : runtime.kind === "glsl" && /(?:syntax error|shader did not compile|ERROR:\s*\d+:\d+)/i.test(message)
+        ? "shader_compile_failed"
+        : /WebGL is unavailable/i.test(message)
+          ? "webgl_unavailable"
+          : "preview_sandbox_runtime_failed";
     status("error", label || "Runtime failed", message, {
       diagnostics: [message],
       error: {
         debugMessage: error && error.stack ? error.stack : message,
         message,
-        type: "preview_sandbox_runtime_failed"
+        type: errorType
       }
     });
   }

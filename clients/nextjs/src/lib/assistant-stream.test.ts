@@ -2572,6 +2572,27 @@ describe("assistant stream client", () => {
     });
   });
 
+  it("keeps prompt-rendering internals out of the primary error message", () => {
+    const event: AssistantStreamEvent = {
+      event_type: "error",
+      sequence: 4,
+      payload: {
+        code: "workflow_prompt_rendering_failed",
+        message: "'dict object' has no attribute 'pass_number'"
+      }
+    };
+
+    expect(readStreamEventError(event)).toMatchObject({
+      category: "stream",
+      subsystem: "assistant_workflow",
+      type: "workflow_prompt_rendering_failed",
+      userMessage: "The workflow could not prepare this request for generation.",
+      debugMessage: "'dict object' has no attribute 'pass_number'",
+      suggestedAction:
+        "Retry the refinement. If it repeats, reopen the source artifact and submit the instruction again."
+    });
+  });
+
   it("maps backend events to workflow nodes", () => {
     const events: AssistantStreamEvent[] = [
       {

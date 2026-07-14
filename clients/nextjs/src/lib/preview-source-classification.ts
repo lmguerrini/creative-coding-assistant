@@ -42,6 +42,9 @@ export function getGlslRuntimeSourceSupportIssue(
   if (rawSource.length > 6000) {
     return "The fragment shader is too large for this lightweight runtime.";
   }
+  if (/```/.test(rawSource)) {
+    return "Markdown fences cannot run in the GLSL preview. Return the executable fragment shader source only.";
+  }
   const executableSource = stripCommentsAndStrings(rawSource);
   if (/^\s*#version\b/m.test(executableSource)) {
     return "GLSL #version declarations cannot run in the controlled WebGL 1 fragment preview.";
@@ -49,10 +52,33 @@ export function getGlslRuntimeSourceSupportIssue(
   if (/\b(?:while|sampler2D|samplerCube|texture|texture2D|textureCube|discard)\b/i.test(executableSource)) {
     return "The fragment shader uses features outside the current bounded runtime subset.";
   }
+  if (hasUnexpectedGlslColon(executableSource)) {
+    return "The fragment shader contains non-GLSL colon syntax. Return executable GLSL source only, without type annotations or prose labels.";
+  }
   if (!/void\s+(?:main|mainImage)\s*\(/i.test(executableSource)) {
     return `The fragment shader needs void main() or mainImage(). ${glslRuntimeContractMessage}`;
   }
   return null;
+}
+
+function hasUnexpectedGlslColon(source: string) {
+  let pendingTernaryBranches = 0;
+
+  for (const character of source) {
+    if (character === "?") {
+      pendingTernaryBranches += 1;
+      continue;
+    }
+    if (character !== ":") {
+      continue;
+    }
+    if (pendingTernaryBranches === 0) {
+      return true;
+    }
+    pendingTernaryBranches -= 1;
+  }
+
+  return false;
 }
 
 const supportedP5GlobalFunctions = new Set([
@@ -126,12 +152,19 @@ const supportedJavaScriptGlobalFunctions = new Set([
 ]);
 
 const controlFlowKeywords = new Set([
+  "await",
   "catch",
+  "delete",
   "for",
   "function",
   "if",
+  "return",
   "switch",
-  "while"
+  "throw",
+  "typeof",
+  "void",
+  "while",
+  "yield"
 ]);
 
 export function getP5RuntimeSourceSupportIssue(

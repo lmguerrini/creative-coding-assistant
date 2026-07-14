@@ -214,6 +214,67 @@ describe("Product Intelligence surfaces", () => {
     expect(onSubmitFeedback).toHaveBeenCalledWith("positive", "");
   });
 
+  it("contrasts the direct and five-role LangGraph routes without overstating agent autonomy", () => {
+    const model = buildModel();
+    model.details = {
+      workflowExecution: {
+        state: "available",
+        requestedMode: "auto",
+        resolvedMode: "multi_agent",
+        rationale: "The request benefits from planning and bounded review.",
+        agentRoles: ["planner", "researcher", "generator", "critic", "reviewer"],
+        researcherRequired: true,
+        researcherReason: "Official documentation is relevant.",
+        maxRefinementLoops: 1,
+        source: "stream"
+      },
+      workflowRuntime: { steps: [] }
+    } as unknown as NonNullable<ProductIntelligenceModel["details"]>;
+
+    render(
+      <ProductIntelligenceDashboard
+        activeCategory="Architecture"
+        model={model}
+        onCategoryChange={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+
+    const comparison = screen.getByRole("region", {
+      name: "LangGraph workflow comparison"
+    });
+    const single = within(comparison).getByRole("article", {
+      name: "Single Agent workflow"
+    });
+    const multi = within(comparison).getByRole("article", {
+      name: "Multi Agent workflow"
+    });
+
+    expect(single).not.toHaveAttribute("aria-current");
+    expect(multi).toHaveAttribute("aria-current", "true");
+    expect(within(single).getByRole("heading", { name: "Generator" })).toBeVisible();
+    expect(within(single).queryByRole("heading", { name: "Planner" }))
+      .not.toBeInTheDocument();
+    expect(within(single).getByText("retrieval")).toBeVisible();
+    expect(within(single).getByText("artifact_critique")).toBeVisible();
+
+    for (const role of ["Researcher", "Planner", "Generator", "Critic", "Reviewer"]) {
+      expect(within(multi).getByRole("heading", { name: role })).toBeVisible();
+    }
+    expect(within(multi).getAllByText("Bounded agent role")).toHaveLength(5);
+    expect(
+      within(multi).getByRole("list", { name: "Planner LangGraph nodes" })
+    ).toHaveTextContent(/planning.*director.*reasoning/);
+    expect(within(multi).getByText(/not parallel LLM workers/i)).toBeVisible();
+
+    expect(
+      within(comparison).getByRole("complementary", {
+        name: "Why Multi Agent can improve output"
+      })
+    ).toHaveTextContent(/Only generation invokes the configured provider/i);
+    expect(comparison).toHaveTextContent(/cannot guarantee subjective quality/i);
+  });
+
   it("gives every retained artifact a visual surface or an explicit export boundary", () => {
     const model = buildModel();
     model.activeArtifactId = "export-only";
@@ -460,6 +521,40 @@ describe("Product Intelligence surfaces", () => {
         .getByText("Operator state")
         .closest("div")
     ).toHaveClass("dashboardInnerCard");
+  });
+
+  it("lists every retained session and excludes deleted-session usage from the grand total", () => {
+    render(
+      <ProductIntelligenceDashboard
+        activeCategory="Telemetry"
+        model={buildModel()}
+        onCategoryChange={vi.fn()}
+        onClose={vi.fn()}
+        sessions={{
+          activeSessionId: "session-1",
+          onCreate: vi.fn(),
+          onDelete: vi.fn(),
+          onRename: vi.fn(),
+          onSelect: vi.fn(),
+          sessions: [
+            { artifactCount: 1, projectId: "project", sessionId: "session-1", title: "Aurora", updatedAt: null },
+            { artifactCount: 2, projectId: "project", sessionId: "session-2", title: "Chladni", updatedAt: null }
+          ],
+          usage: [
+            { sessionId: "session-1", title: "Aurora", runCount: 2, latestTokens: 70, latestCost: 0.007, knownTokenRunCount: 2, totalTokens: 120, knownCostRunCount: 2, totalCost: 0.012, currency: "USD", updatedAt: null },
+            { sessionId: "session-2", title: "Chladni", runCount: 1, latestTokens: 80, latestCost: 0.008, knownTokenRunCount: 1, totalTokens: 80, knownCostRunCount: 1, totalCost: 0.008, currency: "USD", updatedAt: null },
+            { sessionId: "deleted", title: "Deleted", runCount: 1, latestTokens: 999, latestCost: 9, knownTokenRunCount: 1, totalTokens: 999, knownCostRunCount: 1, totalCost: 9, currency: "USD", updatedAt: null }
+          ]
+        }}
+      />
+    );
+
+    const table = screen.getByRole("table", { name: "Session token and cost totals" });
+    expect(table).toHaveTextContent("Aurora");
+    expect(table).toHaveTextContent("Chladni");
+    expect(table).not.toHaveTextContent("Deleted");
+    expect(within(table).getByText("Grand total").closest('[role="row"]'))
+      .toHaveTextContent(/3.*200 tokens.*\$0\.0200/);
   });
 
   it("uses the same model for a compact Inspector category", () => {

@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { CreativeCostRunRecord } from "./creative-cost-intelligence";
 import {
+  deleteSessionUsage,
   readSessionUsageSummaries,
-  recordSessionUsageRun
+  recordSessionUsageRun,
+  renameSessionUsage
 } from "./session-usage-ledger";
 
 describe("session usage ledger", () => {
@@ -17,10 +19,43 @@ describe("session usage ledger", () => {
 
     expect(readSessionUsageSummaries("user", storage)).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ sessionId: "session-a", runCount: 1, totalTokens: 120, totalCost: 0.004 }),
+        expect.objectContaining({ sessionId: "session-a", runCount: 1, latestTokens: 120, latestCost: 0.004, totalTokens: 120, totalCost: 0.004 }),
         expect.objectContaining({ sessionId: "session-b", runCount: 1, totalTokens: 80, totalCost: 0.002 })
       ])
     );
+  });
+
+  it("renames and deletes a session together with its retained usage", () => {
+    const storage = new MemoryStorage();
+    recordSessionUsageRun({ run: run({ id: "run-a" }), sessionId: "session-a", title: "A", userId: "user", storage });
+    recordSessionUsageRun({ run: run({ id: "run-b" }), sessionId: "session-b", title: "B", userId: "user", storage });
+
+    expect(renameSessionUsage("user", "session-a", "Aurora", storage)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ sessionId: "session-a", title: "Aurora" })
+      ])
+    );
+    expect(deleteSessionUsage("user", "session-a", storage)).toEqual([
+      expect.objectContaining({ sessionId: "session-b", totalTokens: 120 })
+    ]);
+    expect(readSessionUsageSummaries("user", storage)).toHaveLength(1);
+  });
+
+  it("reports the latest request separately from cumulative session totals", () => {
+    const storage = new MemoryStorage();
+    recordSessionUsageRun({ run: run({ id: "run-a", totalTokens: 120, cost: 0.004 }), sessionId: "session-a", title: "A", userId: "user", storage });
+    const summaries = recordSessionUsageRun({ run: run({ id: "run-b", totalTokens: 80, cost: 0.002 }), sessionId: "session-a", title: "A", userId: "user", storage });
+
+    expect(summaries).toEqual([
+      expect.objectContaining({
+        sessionId: "session-a",
+        runCount: 2,
+        latestTokens: 80,
+        latestCost: 0.002,
+        totalTokens: 200,
+        totalCost: 0.006
+      })
+    ]);
   });
 });
 

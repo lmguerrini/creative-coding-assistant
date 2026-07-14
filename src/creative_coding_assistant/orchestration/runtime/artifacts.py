@@ -277,7 +277,21 @@ _P5_SAFE_JAVASCRIPT_GLOBAL_FUNCTIONS = frozenset(
     {"Array", "Boolean", "Number", "Object", "String", "isFinite", "isNaN", "parseFloat", "parseInt"}
 )
 _P5_CONTROL_FLOW_KEYWORDS = frozenset(
-    {"catch", "for", "function", "if", "switch", "while"}
+    {
+        "await",
+        "catch",
+        "delete",
+        "for",
+        "function",
+        "if",
+        "return",
+        "switch",
+        "throw",
+        "typeof",
+        "void",
+        "while",
+        "yield",
+    }
 )
 _P5_GLOBAL_MODE_CONTRACT = (
     "Use a plain JavaScript global-mode sketch with function setup() and function draw(); "

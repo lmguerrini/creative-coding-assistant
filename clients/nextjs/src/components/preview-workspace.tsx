@@ -396,6 +396,7 @@ export function PreviewWorkspace({
             captureHostKeyboard={controller.isFullscreen}
             chrome="immersive"
             onKeyboardBoundary={handleKeyboardBoundary}
+            onOpenCode={onOpenCode}
             onReload={onReload}
             onRuntimeDiagnostics={onRuntimeDiagnostics}
             onRuntimeFrame={onRuntimeFrame}
@@ -474,7 +475,7 @@ export function resolvePreviewShelfPanelHeight(
 function getFullscreenFocusableControls(fullscreenLayer: HTMLElement) {
   return Array.from(
     fullscreenLayer.querySelectorAll<HTMLElement>(
-      '[data-action="exit"], iframe.previewRuntimeFrame:not([aria-hidden="true"]), .previewRuntimeRecoveryButton:not(:disabled)'
+      '[data-action="exit"], iframe.previewRuntimeFrame:not([aria-hidden="true"]), .previewRuntimeActionButton:not(:disabled)'
     )
   ).filter(
     (control) =>

@@ -60,6 +60,39 @@ function composerProps(
 }
 
 describe("WorkspaceConversation", () => {
+  it("renders explanatory Markdown and fenced code as readable message content", () => {
+    render(
+      <WorkspaceConversation
+        {...conversationProps({
+          entries: [
+            createEntry({
+              content: [
+                "## Quick example",
+                "Use `p5.js` for a small sketch:",
+                "",
+                "```javascript",
+                "function setup() {",
+                "  createCanvas(640, 360);",
+                "}",
+                "```"
+              ].join("\n"),
+              requestMode: "explain"
+            })
+          ]
+        })}
+      />
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Quick example" })
+    ).toBeVisible();
+    expect(screen.getByText("p5.js", { selector: "code" })).toBeVisible();
+    expect(screen.getByLabelText("JavaScript code example")).toHaveTextContent(
+      "function setup()"
+    );
+    expect(screen.queryByText("```javascript")).not.toBeInTheDocument();
+  });
+
   it("exposes an accessible transcript while keeping streaming status separate", () => {
     const entries = [
       createEntry({

@@ -30,7 +30,7 @@ test.describe("V9.8 canonical showcase browser smoke (local deterministic fixtur
         expect(generationPayload.query).toContain(token);
       }
 
-      await expect(page.getByRole("log", { name: "Conversation" })).toHaveAttribute(
+      await expect(page.getByRole("form", { name: "Creative request composer" })).toHaveAttribute(
         "aria-busy",
         "false"
       );
@@ -47,7 +47,7 @@ test.describe("V9.8 canonical showcase browser smoke (local deterministic fixtur
         domains: [showcase.artifact.domain],
         mode: "generate",
         query: showcase.followUp,
-        workflowMode: "single_agent",
+        workflowMode: "auto",
         artifactRefinement: {
           artifactId: showcase.artifact.id,
           content: showcase.artifact.content,
@@ -58,7 +58,7 @@ test.describe("V9.8 canonical showcase browser smoke (local deterministic fixtur
           title: showcase.artifact.title
         }
       });
-      await expect(page.getByRole("log", { name: "Conversation" })).toHaveAttribute(
+      await expect(page.getByRole("form", { name: "Creative request composer" })).toHaveAttribute(
         "aria-busy",
         "false"
       );
@@ -196,8 +196,11 @@ async function assertCreativeSessionFullscreenRestore(page) {
   }));
 
   expect(before).toEqual({ inspector: "open", preview: "open", sidebar: "open" });
+  await page.getByRole("button", { name: "Settings" }).click();
   await page
-    .getByRole("button", { name: "Enter Fullscreen Creative Session" })
+    .getByRole("button", {
+      name: "Toggle Fullscreen Creative Session from quick actions"
+    })
     .click();
   await expect(workstation).toHaveAttribute("data-focus-mode", "true");
   await expect(workstation).toHaveAttribute("data-inspector-state", "collapsed");
@@ -205,8 +208,11 @@ async function assertCreativeSessionFullscreenRestore(page) {
   await expect(workstation).toHaveAttribute("data-sidebar-state", "collapsed");
   await expect(page.getByRole("region", { name: "Creative session" })).toBeVisible();
 
+  await page.getByRole("button", { name: "Settings" }).click();
   await page
-    .getByRole("button", { name: "Exit Fullscreen Creative Session" })
+    .getByRole("button", {
+      name: "Toggle Fullscreen Creative Session from quick actions"
+    })
     .click();
   await expect(workstation).toHaveAttribute("data-focus-mode", "false");
   const restored = await workstation.evaluate((element) => ({
@@ -226,7 +232,7 @@ async function submitShowcaseRefinement(page, showcase) {
 
   await refinement.getByLabel("Refinement instruction").fill(showcase.followUp);
   const requestPromise = page.waitForRequest("**/api/assistant/stream");
-  const submit = refinement.getByRole("button", { name: "Refine selected artifact" });
+  const submit = refinement.getByRole("button", { name: "Apply refinement" });
   await submit.click();
   return requestPromise;
 }

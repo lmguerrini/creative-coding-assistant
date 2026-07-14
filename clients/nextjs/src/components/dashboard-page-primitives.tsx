@@ -227,7 +227,7 @@ export function DashboardActionCard({
   badge?: string;
   className?: string;
   detail: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
   onClick: () => void;
   title: string;
   tone?: string;
@@ -242,13 +242,16 @@ export function DashboardActionCard({
       aria-describedby={badgeId ? `${badgeId} ${detailId}` : detailId}
       aria-labelledby={titleId}
       className={joinClassNames("dashboardInnerCard", "dashboardActionCard", className)}
+      data-has-icon={Icon ? "true" : "false"}
       data-tone={tone}
       onClick={onClick}
       type="button"
     >
-      <span className="dashboardActionCardIcon" aria-hidden="true">
-        <Icon size={19} />
-      </span>
+      {Icon ? (
+        <span className="dashboardActionCardIcon" aria-hidden="true">
+          <Icon size={19} />
+        </span>
+      ) : null}
       {badge ? <span className="dashboardActionCardBadge" id={badgeId}>{badge}</span> : null}
       <span className="dashboardActionCardTitle" id={titleId}>{title}</span>
       <span className="dashboardActionCardDetail" id={detailId}>{detail}</span>
@@ -276,7 +279,7 @@ export function DashboardChoiceCard({
   detail: string;
   eyebrow: string;
   idleLabel?: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
   onClick: () => void;
   selected: boolean;
   selectedLabel?: string;
@@ -294,13 +297,16 @@ export function DashboardChoiceCard({
       aria-labelledby={titleId}
       aria-pressed={ariaPressed ? selected : undefined}
       className={joinClassNames("dashboardInnerCard", "dashboardChoiceCard", className)}
+      data-has-icon={Icon ? "true" : "false"}
       data-selected={selected ? "true" : undefined}
       onClick={onClick}
       type="button"
     >
-      <span aria-hidden="true" className="dashboardChoiceCardIcon">
-        <Icon size={18} />
-      </span>
+      {Icon ? (
+        <span aria-hidden="true" className="dashboardChoiceCardIcon">
+          <Icon size={18} />
+        </span>
+      ) : null}
       <span className="dashboardChoiceCardEyebrow" id={eyebrowId}>{eyebrow}</span>
       <span aria-hidden="true" className="dashboardChoiceCardState">
         {selected ? selectedLabel : idleLabel}
@@ -448,14 +454,18 @@ export function DashboardCallout({
   children?: ReactNode;
   className?: string;
   detail: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
   title: string;
   tone?: "info" | "success" | "warning";
 }) {
   const Element = as;
   return (
-    <Element className={joinClassNames("dashboardCallout", className)} data-tone={tone}>
-      <Icon aria-hidden="true" size={19} />
+    <Element
+      className={joinClassNames("dashboardCallout", className)}
+      data-has-icon={Icon ? "true" : "false"}
+      data-tone={tone}
+    >
+      {Icon ? <Icon aria-hidden="true" size={19} /> : null}
       <div>
         <strong>{title}</strong>
         <p>{detail}</p>

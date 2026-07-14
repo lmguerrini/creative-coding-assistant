@@ -224,6 +224,52 @@ function snapshotWithGlslPreview(): AssistantWorkspaceSnapshot {
   };
 }
 
+function snapshotWithRefinedGlslPreview(): AssistantWorkspaceSnapshot {
+  const snapshot = snapshotWithGlslPreview();
+  const source = [
+    "void main() {",
+    "  vec2 uv = gl_FragCoord.xy / u_resolution.xy;",
+    "  float field = sin((uv.x + u_time) * 8.0);",
+    "  gl_FragColor = vec4(uv.x, field * 0.5 + 0.5, uv.y, 1.0);",
+    "}"
+  ].join("\n");
+  const sourceArtifact = {
+    ...snapshot.artifacts[0],
+    id: "chladni-light-field-source",
+    title: "chladni-light-field-2.frag",
+    content: source,
+    domain: "glsl",
+    previewEligible: true,
+    rendererId: "surface.glsl",
+    runtime: "glsl"
+  };
+  const refinedArtifact = {
+    ...sourceArtifact,
+    id: "improve-performance-refined",
+    title: "improve-performance.refined.frag",
+    status: "Refined",
+    refinedFromArtifactId: sourceArtifact.id,
+    refinedFromTitle: sourceArtifact.title,
+    refinementInstruction: "Improve performance"
+  };
+
+  return {
+    ...snapshot,
+    artifacts: [refinedArtifact, sourceArtifact, ...snapshot.artifacts.slice(1)],
+    preview: {
+      ...snapshot.preview,
+      artifactName: refinedArtifact.title,
+      sourceArtifactId: refinedArtifact.id,
+      sourceArtifactName: refinedArtifact.title
+    },
+    code: {
+      ...snapshot.code,
+      title: refinedArtifact.title,
+      excerpt: source.split("\n")
+    }
+  };
+}
+
 function snapshotWithThreePreview(): AssistantWorkspaceSnapshot {
   const snapshot = getLocalWorkspaceSnapshot();
   const title = "projection-scene.three.ts";
@@ -1188,8 +1234,8 @@ describe("WorkstationShell", () => {
     expect(screen.queryByRole("button", { name: "Command menu" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Theme" })).toBeVisible();
     expect(
-      screen.getByRole("button", { name: "Enter Fullscreen Creative Session" })
-    ).toBeVisible();
+      screen.queryByRole("button", { name: "Enter Fullscreen Creative Session" })
+    ).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Settings" })).toBeVisible();
     expect(screen.getByRole("combobox", { name: "Workflow" })).toHaveValue("auto");
     expect(screen.queryByText("Type a prompt to begin")).not.toBeInTheDocument();
@@ -1867,6 +1913,80 @@ describe("WorkstationShell", () => {
     );
   });
 
+  it("forces the multi-agent Demo preview open and recovers unsupported provider source", async () => {
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "final",
+          sequence: 0,
+          payload: {
+            answer: "The multi-agent orbit study is ready.",
+            artifacts: [
+              {
+                id: "multi-agent-orbit-demo",
+                title: "multi-agent-orbit-study-2.p5.js",
+                language: "JavaScript + p5.js",
+                runtime: "p5",
+                content: [
+                  "function setup() { createCanvas(640, 360); }",
+                  "function draw() { createGraphics(20, 20); }"
+                ].join("\n"),
+                preview_eligible: true
+              }
+            ]
+          }
+        }
+      ])
+    );
+
+    renderShell(getInitialWorkspaceSnapshot(), {
+      streamAssistantEvents: backendStream
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    const settingsPanel = screen.getByRole("dialog", { name: "Workspace settings" });
+    fireEvent.click(
+      within(settingsPanel).getByRole("button", { name: "Preview auto-open" })
+    );
+    closeWorkspaceSettingsPanel();
+
+    fireEvent.click(screen.getByRole("button", { name: "Demo Mode" }));
+    const demoMode = screen.getByRole("region", { name: "Demo Mode" });
+    const demoScenarioList = within(demoMode).getByRole("list", {
+      name: "Demo Mode scenarios"
+    });
+    fireEvent.click(
+      within(demoScenarioList).getByRole("button", {
+        name: /Multi-agent production plan/
+      })
+    );
+    fireEvent.click(
+      within(demoMode).getByRole("button", { name: /Load prompt & run/ })
+    );
+
+    await waitFor(() =>
+      expect(backendStream).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.stringContaining("multi-agent-orbit-study.p5.js"),
+          workflowMode: "multi_agent"
+        })
+      )
+    );
+    const preview = await screen.findByRole("region", {
+      name: "Preview workspace"
+    });
+    expect(preview.querySelector("details")).toHaveAttribute("open");
+    expect(within(preview).getByText("Preview open", { selector: "summary small" })).toBeVisible();
+    expect(within(preview).getByText("P5 sketch surface")).toBeVisible();
+    expect(screen.getByRole("tab", { name: "Preview" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
+      "multi-agent-orbit-study.p5.js"
+    );
+  });
+
   it("requires an image reference before the reference-guided Demo can run", async () => {
     renderShell(getInitialWorkspaceSnapshot());
 
@@ -2000,6 +2120,14 @@ describe("WorkstationShell", () => {
       name: "Saved"
     });
     expect(within(savedPanel).getAllByText("Hydra Pattern").length).toBeGreaterThan(0);
+    expect(
+      within(savedPanel).getByRole("region", {
+        name: "Selected artifact refinement"
+      })
+    ).toBeVisible();
+    expect(
+      within(savedPanel).getByRole("button", { name: "Apply refinement" })
+    ).toBeVisible();
     expect(within(savedPanel).queryByText("feedback-lattice.hydra.js")).not.toBeInTheDocument();
   });
 
@@ -2059,7 +2187,12 @@ describe("WorkstationShell", () => {
     expect(screen.queryByText("Ways to work")).not.toBeInTheDocument();
     expect(screen.getByText("How it works")).toBeVisible();
     const promptSuggestions = screen.getByLabelText("Prompt suggestions");
-    expect(within(promptSuggestions).getAllByRole("button")).toHaveLength(4);
+    const starterCards = within(promptSuggestions).getAllByRole("button");
+    expect(starterCards).toHaveLength(4);
+    for (const starterCard of starterCards) {
+      expect(starterCard).toHaveAttribute("data-has-icon", "false");
+      expect(starterCard.querySelector(".dashboardActionCardIcon")).toBeNull();
+    }
     const kineticStarter = screen.getByRole("button", {
       name: "Kinetic orbit sculpture"
     });
@@ -2352,10 +2485,10 @@ describe("WorkstationShell", () => {
     expect(screen.getByRole("region", { name: "Preview workspace" })).toBeVisible();
   });
 
-  it("keeps the compact workflow graph scoped to live checkpoints", () => {
+  it("updates the complete workflow graph from the selected route", () => {
     renderShell();
     const selector = screen.getByRole("combobox", { name: "Workflow" });
-    const graph = screen.getByLabelText("Latest live workflow checkpoints");
+    const graph = screen.getByLabelText("Full live workflow");
 
     fireEvent.change(selector, { target: { value: "single_agent" } });
     expect(selector).toHaveValue("single_agent");
@@ -2365,8 +2498,8 @@ describe("WorkstationShell", () => {
 
     fireEvent.change(selector, { target: { value: "multi_agent" } });
     expect(selector).toHaveValue("multi_agent");
-    expect(within(graph).queryByText("Planning")).not.toBeInTheDocument();
-    expect(within(graph).queryByText("Review")).not.toBeInTheDocument();
+    expect(within(graph).getByText("Planning")).toBeVisible();
+    expect(within(graph).getByText("Review")).toBeVisible();
     expect(within(graph).getByText("Generation")).toBeVisible();
   });
 
@@ -3017,6 +3150,137 @@ describe("WorkstationShell", () => {
     expect(previewRuntime).toHaveTextContent("Runtime ready");
     expect(
       within(previewPanel).queryByRole("group", { name: "Preview canvas status" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("answers informational questions without creating a visual artifact", async () => {
+    const answer = [
+      "Creative coding uses programming as an expressive medium.",
+      "It combines algorithms, interaction, motion, sound, and visual systems to make work whose behavior is part of the design.",
+      "Unlike conventional application development, the primary goal is often exploration, aesthetic expression, or an interactive experience.",
+      "",
+      "```javascript",
+      "function setup() { createCanvas(640, 360); }",
+      "```"
+    ].join("\n\n");
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "status",
+          sequence: 0,
+          payload: {
+            code: "route_selected",
+            route: {
+              execution: {
+                requested_mode: "auto",
+                resolved_mode: "single_agent",
+                rationale: "Auto selected Single Agent for a lightweight explanation.",
+                agent_roles: ["generator"],
+                researcher_required: false,
+                researcher_reason: "A separate researcher is not needed.",
+                max_refinement_loops: 0
+              }
+            },
+            workflow: {
+              current_step: "routing",
+              phase: "running",
+              status: "running"
+            }
+          }
+        },
+        {
+          event_type: "artifact_extracted",
+          sequence: 1,
+          payload: {
+            artifacts: [
+              {
+                id: "stale-explanation-artifact",
+                title: "what-creative-coding.p5.js",
+                content: "function setup() { createCanvas(640, 360); }",
+                language: "JavaScript",
+                runtime: "p5",
+                preview_eligible: true
+              }
+            ]
+          }
+        },
+        {
+          event_type: "preview_artifact",
+          sequence: 2,
+          payload: {
+            artifact_id: "stale-explanation-artifact",
+            status: "succeeded"
+          }
+        },
+        {
+          event_type: "final",
+          sequence: 3,
+          payload: {
+            answer,
+            artifacts: [
+              {
+                id: "stale-explanation-artifact",
+                title: "what-creative-coding.p5.js",
+                content: "function setup() { createCanvas(640, 360); }",
+                language: "JavaScript",
+                runtime: "p5",
+                preview_eligible: true
+              }
+            ],
+            workflow: {
+              current_step: "finalization",
+              phase: "completed",
+              status: "completed"
+            }
+          }
+        }
+      ])
+    );
+
+    renderShell(getInitialWorkspaceSnapshot(), {
+      streamAssistantEvents: backendStream
+    });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "what's creative coding?" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    const conversation = screen.getByRole("log", { name: "Conversation" });
+    await waitFor(() =>
+      expect(conversation).toHaveTextContent(
+        "Creative coding uses programming as an expressive medium."
+      )
+    );
+    expect(conversation).toHaveTextContent(
+      "It combines algorithms, interaction, motion, sound"
+    );
+    expect(conversation).toHaveTextContent(
+      "the primary goal is often exploration"
+    );
+    expect(
+      within(conversation).getByLabelText("JavaScript code example")
+    ).toHaveTextContent("function setup()");
+    expect(backendStream).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: "explain",
+        query: "what's creative coding?",
+        workflowMode: "auto"
+      })
+    );
+    expect(screen.getByText("Auto (Single Agent)")).toBeVisible();
+    expect(screen.queryByText("assistant-response.md")).not.toBeInTheDocument();
+    expect(screen.queryByText("what-creative-coding.p5.js")).not.toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Overview" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(screen.getByRole("tab", { name: "Preview" })).toHaveAttribute(
+      "aria-selected",
+      "false"
+    );
+    expect(
+      screen.queryByLabelText("Workflow transitions")
     ).not.toBeInTheDocument();
   });
 
@@ -4326,6 +4590,69 @@ describe("WorkstationShell", () => {
       await within(conversation).findByText(/Code and long-form output are available/)
     ).toBeVisible();
     expect(within(conversation).queryByText(/function draw/)).not.toBeInTheDocument();
+  });
+
+  it("presents informational work as answering instead of artifact generation", async () => {
+    const beforeFinal = createDeferred<void>();
+    const backendStream = vi.fn(async function* () {
+      yield {
+        event_type: "status",
+        sequence: 0,
+        payload: {
+          code: "route_selected",
+          workflow: {
+            current_step: "generation",
+            phase: "running",
+            status: "running"
+          }
+        }
+      } satisfies AssistantStreamEvent;
+      await beforeFinal.promise;
+      yield {
+        event_type: "final",
+        sequence: 1,
+        payload: {
+          answer: "Creative coding uses software as an expressive medium.",
+          workflow: {
+            current_step: "finalization",
+            phase: "completed",
+            status: "completed"
+          }
+        }
+      } satisfies AssistantStreamEvent;
+    });
+
+    renderUserShell(getLocalWorkspaceSnapshot(), {
+      streamAssistantEvents: backendStream
+    });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "what's creative coding?" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    const assistantMessages = await screen.findAllByRole("article", {
+      name: /Assistant message/
+    });
+    const assistantMessage = assistantMessages.at(-1)!;
+    await waitFor(() =>
+      expect(within(assistantMessage).getByText("Answering")).toBeVisible()
+    );
+    expect(within(assistantMessage).getAllByText("Writing the answer.").length).toBeGreaterThan(0);
+    expect(
+      within(assistantMessage).queryByText(/Generating the requested artifact/i)
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Current session")).toHaveTextContent("Answering");
+    expect(screen.getByLabelText("Current session")).toHaveTextContent(
+      "Writing the answer."
+    );
+
+    beforeFinal.resolve();
+    expect(
+      await screen.findByText(
+        "Creative coding uses software as an expressive medium."
+      )
+    ).toBeVisible();
   });
 
   it("keeps an unterminated generated code fence out of the conversation", async () => {
@@ -5754,9 +6081,8 @@ describe("WorkstationShell", () => {
       state: "error"
     });
     expect(
-      await within(surface).findByText("Three.js runtime failed")
+      await within(surface).findByText("WebGL is unavailable")
     ).toBeVisible();
-    expect(within(surface).getByText("Renderer runtime failed")).toBeVisible();
     expect(screen.getByLabelText("Current session")).not.toHaveTextContent("Failure");
 
     const failedRuntimeId = frame.dataset.runtimeId;
@@ -5831,9 +6157,8 @@ describe("WorkstationShell", () => {
     });
 
     expect(
-      await within(surface).findByText("Preview fallback available")
+      await within(surface).findByText("Preview fallback ready")
     ).toBeVisible();
-    expect(within(surface).getByText("Preview fallback ready")).toBeVisible();
     expect(within(surface).queryByText("Renderer runtime failed")).toBeNull();
     expect(
       within(surface).queryByText("WebGL is unavailable in the preview frame.")
@@ -5891,7 +6216,9 @@ describe("WorkstationShell", () => {
 
     expect(health).toHaveTextContent("Failure");
     expect(diagnostics).toHaveTextContent("1 active");
-    expect(diagnostics).toHaveTextContent("WebGL is unavailable in the preview frame.");
+    expect(diagnostics).toHaveTextContent(
+      "WebGL is not available for this preview session."
+    );
     expect(
       within(runtimePanel).queryByRole("group", { name: "Runtime event history" })
     ).not.toBeInTheDocument();
@@ -5943,16 +6270,74 @@ describe("WorkstationShell", () => {
       "GLSL preview runtime frame"
     );
     dispatchSandboxRuntimeStatus(frame, {
-      detail: "Shader did not compile.",
+      detail: "ERROR: 0:123: '' : syntax error",
       error: {
-        message: "Shader did not compile.",
+        message: "ERROR: 0:123: '' : syntax error",
         type: "shader_compile_failed"
       },
       label: "GLSL runtime failed",
       state: "error"
     });
-    expect(await within(surface).findByText("GLSL runtime failed")).toBeVisible();
-    expect(within(surface).getByText("Renderer runtime failed")).toBeVisible();
+    expect(
+      await within(surface).findByText("Shader needs a quick repair")
+    ).toBeVisible();
+    expect(within(surface).getByText("Shader line 123")).toBeVisible();
+    expect(
+      within(surface).getByText(
+        "The generated shader contains a syntax error, so the preview could not start."
+      )
+    ).toBeVisible();
+    expect(
+      within(surface).getByRole("button", { name: "Open generated code" })
+    ).toBeVisible();
+    expect(within(surface).getByText("Technical details")).toBeVisible();
+  });
+
+  it("restores the source preview when a refined GLSL artifact fails to compile", async () => {
+    renderShell(snapshotWithRefinedGlslPreview());
+
+    const preview = screen.getByRole("region", { name: "Preview workspace" });
+    const summary = within(preview).getByText("Preview available").closest("summary");
+
+    expect(summary).not.toBeNull();
+    fireEvent.click(summary as HTMLElement);
+
+    const surface = within(preview).getByRole("group", {
+      name: "Preview renderer surface"
+    });
+    const failedFrame = await waitForSandboxRuntimeFrame(
+      surface,
+      "GLSL preview runtime frame"
+    );
+    const failedRuntimeId = failedFrame.dataset.runtimeId;
+
+    dispatchSandboxRuntimeStatus(failedFrame, {
+      detail: "ERROR: 0:74: ':' syntax error",
+      error: {
+        message: "ERROR: 0:74: ':' syntax error",
+        type: "shader_compile_failed"
+      },
+      label: "GLSL runtime failed",
+      state: "error"
+    });
+
+    await waitFor(() => {
+      expect(
+        within(preview).getByText("chladni-light-field-2.frag", {
+          selector: "summary span"
+        })
+      ).toBeVisible();
+      const restoredFrame = within(surface).getByLabelText(
+        "GLSL preview runtime frame"
+      );
+      expect(restoredFrame.dataset.runtimeId).toMatch(/^preview-runtime-/);
+      expect(restoredFrame.dataset.runtimeId).not.toBe(failedRuntimeId);
+    });
+
+    expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
+      "improve-performance.refined.frag"
+    );
+    expect(within(surface).queryByText("Renderer runtime failed")).not.toBeInTheDocument();
   });
 
   it.each([
@@ -6212,15 +6597,13 @@ describe("WorkstationShell", () => {
       name: "Selected artifact refinement"
     });
     const submitButton = within(refinement).getByRole("button", {
-      name: "Refine selected artifact"
+      name: "Apply refinement"
     });
 
-    expect(
-      within(refinement).getAllByText("Refine selected artifact").length
-    ).toBeGreaterThan(1);
+    expect(within(refinement).getByText("Create a refined version")).toBeVisible();
     expect(
       within(refinement).getByText(
-        "Target aurora-field.p5.js without regenerating every candidate."
+        "Apply one focused change to aurora-field.p5.js. The current version stays saved."
       )
     ).toBeVisible();
     expect(submitButton).toBeDisabled();
@@ -6231,6 +6614,80 @@ describe("WorkstationShell", () => {
       "Make this faster"
     );
     expect(submitButton).toBeEnabled();
+  });
+
+  it("resolves a clear chat follow-up against the active artifact without asking for modality", async () => {
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "artifact_extracted",
+          sequence: 0,
+          payload: {
+            artifacts: [
+              {
+                id: "make-it-brighter-output",
+                title: "make-it-brighter-visual.p5.js",
+                type: "code",
+                language: "p5.js",
+                content: [
+                  "function setup() { createCanvas(320, 180); }",
+                  "function draw() { background(42); circle(160, 90, 80); }"
+                ].join("\n"),
+                domain: "p5_js",
+                runtime: "p5",
+                renderer_id: "surface.p5",
+                preview_eligible: true,
+                summary: "Brighter version of the active sketch."
+              }
+            ]
+          }
+        },
+        {
+          event_type: "preview_artifact",
+          sequence: 1,
+          payload: {
+            artifact_id: "make-it-brighter-output",
+            status: "succeeded"
+          }
+        },
+        {
+          event_type: "final",
+          sequence: 2,
+          payload: {
+            answer: "Brightness refinement received."
+          }
+        }
+      ])
+    );
+
+    renderShell(snapshotWithArtifactComparison(), {
+      streamAssistantEvents: backendStream
+    });
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "make it brighter" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    expect(await screen.findByText("Brightness refinement received.")).toBeVisible();
+    expect(backendStream).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: "make it brighter",
+        artifactRefinement: expect.objectContaining({
+          artifactId: "source-sketch",
+          title: "aurora-field.p5.js",
+          instruction: "make it brighter",
+          content: expect.stringContaining("function draw()")
+        })
+      })
+    );
+    expect(screen.getAllByLabelText(/You message at/).at(-1)).toHaveTextContent(
+      "make it brighter"
+    );
+    expect(screen.queryByText(/Clarification:/)).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
+      "aurora-field.p5.refined.js"
+    );
   });
 
   it("serializes local artifact parameter changes into refinement context", async () => {
@@ -6254,6 +6711,8 @@ describe("WorkstationShell", () => {
       name: "Selected artifact refinement"
     });
 
+    fireEvent.click(within(refinement).getByText("Advanced parameters"));
+
     fireEvent.change(
       within(refinement).getByLabelText("Movement complexity parameter"),
       {
@@ -6262,7 +6721,7 @@ describe("WorkstationShell", () => {
     );
     fireEvent.click(
       within(refinement).getByRole("button", {
-        name: "Refine with parameter changes"
+        name: "Apply instruction + parameters"
       })
     );
 
@@ -6341,7 +6800,7 @@ describe("WorkstationShell", () => {
     );
     fireEvent.click(
       within(refinement).getByRole("button", {
-        name: "Refine selected artifact"
+        name: "Apply refinement"
       })
     );
 
@@ -7632,6 +8091,7 @@ describe("WorkstationShell", () => {
     expect(screen.getByLabelText("Current session")).toHaveTextContent(
       "1,500 tokens · $0.0009"
     );
+    expect(screen.getByLabelText("Current session")).toHaveTextContent("Total");
     expect(
       screen.queryByRole("group", { name: "Telemetry summary" })
     ).not.toBeInTheDocument();
@@ -7659,6 +8119,12 @@ describe("WorkstationShell", () => {
     const telemetryPanel = screen.getByRole("tabpanel", {
       name: "Telemetry"
     });
+    expect(
+      within(telemetryPanel).getByRole("group", { name: "Session usage" })
+    ).toHaveTextContent("Latest request1,500 tokens · $0.0009");
+    expect(
+      within(telemetryPanel).getByRole("group", { name: "Session usage" })
+    ).toHaveTextContent("Current session total1,500 tokens · $0.0009");
     expect(
       within(telemetryPanel).getByRole("group", { name: "Provider signal" })
     ).toHaveTextContent("openai / $0.0009");
@@ -7831,6 +8297,13 @@ describe("WorkstationShell", () => {
     expect(
       within(observatory).getByLabelText("Run measurement facts")
     ).toHaveTextContent("Cost pending");
+    const profileUsage = within(dashboard).getByLabelText("Browser profile usage");
+    expect(
+      within(profileUsage).getByRole("table", { name: "Session token and cost totals" })
+    ).toHaveTextContent("Grand total");
+    expect(
+      within(profileUsage).getByRole("table", { name: "Session token and cost totals" })
+    ).toHaveTextContent("150 tokens");
     const evidenceDisclosure = within(observatory)
       .getByText("Provider, observability, and evaluation evidence")
       .closest("details");

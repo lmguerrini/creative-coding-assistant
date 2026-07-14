@@ -21,7 +21,7 @@ import {
   mountPreviewSandboxRuntime,
   type PreviewSandboxKeyboardBoundaryEvent
 } from "@/lib/preview-sandbox-runtime";
-import { SubsystemErrorCallout } from "./subsystem-error-callout";
+import { PreviewRuntimeErrorCard } from "./preview-runtime-error-card";
 
 export type PreviewRuntimeTelemetryEvent = {
   kind: PreviewExecutableRuntimeKind;
@@ -42,6 +42,7 @@ type PreviewRuntimeStageProps = {
     | ((event: PreviewSandboxKeyboardBoundaryEvent) => void)
     | undefined;
   onRuntimeDiagnostics?: (event: PreviewRuntimeDiagnosticsEvent) => void;
+  onOpenCode?: (() => void) | undefined;
   onRuntimeFrame?: (
     event: PreviewRuntimeTelemetryEvent & { sample: PreviewRuntimeFrameSample }
   ) => void;
@@ -60,6 +61,7 @@ export function PreviewRuntimeStage({
   captureHostKeyboard = false,
   kind,
   onKeyboardBoundary,
+  onOpenCode,
   onRuntimeDiagnostics,
   onRuntimeFrame,
   onRuntimeStatus,
@@ -282,58 +284,59 @@ export function PreviewRuntimeStage({
         tabIndex={canMountRuntime ? 0 : -1}
         title={`${route.rendererLabel} preview runtime`}
       />
-      <div className="previewRuntimeOverlay">
-        <div
-          aria-atomic="true"
-          aria-live="polite"
-          className="previewRuntimeStatus"
-        >
-          <div className="previewRuntimeOverlayHeader">
-            <small>{presenterStatusLabel}</small>
-            <span
-              className="previewRuntimeOverlayHealth"
-              data-tone={overlay.healthTone}
-            >
-              {overlay.healthLabel}
-            </span>
-          </div>
-          <span>{presenterStatusDetail}</span>
-        </div>
-        {showDiagnostics ? (
+      {status.error ? null : (
+        <div className="previewRuntimeOverlay">
           <div
-            aria-label="Renderer health overlay"
-            className="previewRuntimeMetrics"
-            role="list"
+            aria-atomic="true"
+            aria-live="polite"
+            className="previewRuntimeStatus"
           >
-            {overlay.metrics.map((metric) => (
-              <div
-                className="previewRuntimeMetric"
-                data-tone={metric.tone}
-                key={metric.id}
-                role="listitem"
+            <div className="previewRuntimeOverlayHeader">
+              <small>{presenterStatusLabel}</small>
+              <span
+                className="previewRuntimeOverlayHealth"
+                data-tone={overlay.healthTone}
               >
-                <span>{metric.label}</span>
-                <strong>{metric.value}</strong>
-              </div>
-            ))}
+                {overlay.healthLabel}
+              </span>
+            </div>
+            <span>{presenterStatusDetail}</span>
           </div>
-        ) : null}
-        {showDiagnostics && overlay.diagnostics.length > 0 ? (
-          <div className="previewRuntimeDiagnostics" aria-label="Runtime notes">
-            {overlay.diagnostics.map((diagnostic) => (
-              <span key={diagnostic}>{diagnostic}</span>
-            ))}
-          </div>
-        ) : null}
-      </div>
+          {showDiagnostics ? (
+            <div
+              aria-label="Renderer health overlay"
+              className="previewRuntimeMetrics"
+              role="list"
+            >
+              {overlay.metrics.map((metric) => (
+                <div
+                  className="previewRuntimeMetric"
+                  data-tone={metric.tone}
+                  key={metric.id}
+                  role="listitem"
+                >
+                  <span>{metric.label}</span>
+                  <strong>{metric.value}</strong>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          {showDiagnostics && overlay.diagnostics.length > 0 ? (
+            <div className="previewRuntimeDiagnostics" aria-label="Runtime notes">
+              {overlay.diagnostics.map((diagnostic) => (
+                <span key={diagnostic}>{diagnostic}</span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      )}
       {status.error ? (
         <div className="previewRuntimeErrorBoundary">
           {showDiagnostics ? (
-            <SubsystemErrorCallout
-              className="previewRuntimeErrorCallout"
+            <PreviewRuntimeErrorCard
               error={status.error}
-              role="alert"
-              title="Renderer runtime failed"
+              onOpenCode={onOpenCode}
+              onReload={onReload}
             />
           ) : (
             <div className="previewRuntimePresenterFallback" role="alert">
@@ -345,15 +348,15 @@ export function PreviewRuntimeStage({
               </p>
             </div>
           )}
-          {onReload ? (
+          {!showDiagnostics && onReload ? (
             <button
               aria-label="Reload preview runtime"
-              className="previewRuntimeRecoveryButton"
+              className="previewRuntimeActionButton"
               data-action="reload"
               onClick={onReload}
               type="button"
             >
-              Reload preview
+              Try reload
             </button>
           ) : null}
         </div>

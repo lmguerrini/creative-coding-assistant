@@ -618,6 +618,102 @@ describe("live artifact hydration", () => {
     expect(result.previewArtifactId).toBe("constrained-p5");
   });
 
+  it("recovers the curated aurora demo when provider source cannot enter the p5 runtime", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        artifacts: [
+          {
+            id: "broken-aurora",
+            title: "recursive-aurora-garden.p5.js",
+            language: "javascript",
+            runtime: "p5",
+            status: "Runnable artifact extraction failed",
+            content: "function setup() { createCanvas(640, 360); }\nfunction draw() { createGraphics(20, 20); }"
+          }
+        ],
+        workflow: {
+          phase: "completed",
+          status: "completed",
+          product_outcome: {
+            orchestration_status: "COMPLETED",
+            provider_status: "COMPLETED",
+            generation_status: "COMPLETED",
+            deliverable_status: "USABLE",
+            artifact_extraction_status: "EXTRACTED",
+            artifact_runnability: "UNSUPPORTED",
+            preview_status: "UNAVAILABLE",
+            runtime_health: "NOT_AVAILABLE",
+            product_outcome: "PARTIAL",
+            summary: "A usable artifact was produced, but live preview is unavailable.",
+            recovery_action: "Open Code to use the artifact."
+          }
+        }
+      }),
+      {
+        prompt:
+          "Create exactly one runnable .p5.js artifact named recursive-aurora-garden.p5.js."
+      }
+    );
+
+    expect(result.previewAvailable).toBe(true);
+    expect(result.previewArtifactId).toBe("broken-aurora");
+    expect(result.artifact).toMatchObject({
+      previewEligible: true,
+      rendererId: "surface.p5",
+      runtime: "p5",
+      status: "Recovered locally"
+    });
+    expect(result.artifact?.content).toContain("seed < 160");
+    expect(result.artifact?.content).toContain("mouseX");
+    expect(result.artifact?.content).not.toContain("createGraphics");
+    expect(result.snapshot.workflow.productOutcome).toMatchObject({
+      artifact_runnability: "RUNNABLE",
+      preview_status: "PREPARED",
+      product_outcome: "PARTIAL",
+      summary: "The live demo is running from its browser-safe local recovery artifact."
+    });
+  });
+
+  it("recovers the curated multi-agent orbit demo with a previewable role-aware sketch", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        artifacts: [
+          {
+            id: "broken-multi-agent-orbit",
+            title: "multi-agent-orbit-study-2.p5.js",
+            language: "javascript",
+            runtime: "p5",
+            status: "Generated",
+            content: [
+              "function setup() { createCanvas(640, 360); }",
+              "function draw() { createGraphics(20, 20); }"
+            ].join("\n")
+          }
+        ]
+      }),
+      {
+        prompt:
+          "Use the Multi-Agent workflow. Return one artifact named multi-agent-orbit-study.p5.js."
+      }
+    );
+
+    expect(result.previewAvailable).toBe(true);
+    expect(result.previewArtifactId).toBe("broken-multi-agent-orbit");
+    expect(result.artifact).toMatchObject({
+      previewEligible: true,
+      rendererId: "surface.p5",
+      runtime: "p5",
+      status: "Recovered locally"
+    });
+    expect(result.artifact?.content).toContain(
+      "researcher, creative director, generator, reviewer"
+    );
+    expect(result.artifact?.content).toContain("ring < 18");
+    expect(result.artifact?.content).not.toContain("createGraphics");
+  });
+
   it("selects a lifecycle-ready p5 block over unrelated JavaScript", () => {
     const result = hydrateWorkspaceFromFinalEvent(
       getLocalWorkspaceSnapshot(),

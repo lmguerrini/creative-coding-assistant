@@ -2370,6 +2370,7 @@ export type AssistantMessage = {
   role: "user" | "assistant";
   time: string;
   content: string;
+  requestMode?: "explain" | "generate";
 };
 
 export type ImageAttachmentSummary = {

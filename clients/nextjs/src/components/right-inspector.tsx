@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   PanelRight,
   Plus,
+  Search,
   X,
   type LucideIcon
 } from "lucide-react";
@@ -264,7 +265,7 @@ export function RightInspector<TabId extends string>({
         className="inspectorHeader"
         detail={detail}
         eyebrow="Inspector"
-        icon={active?.icon ?? PanelRight}
+        icon={Search}
         title={activeLabel}
         titleAs="h2"
       />

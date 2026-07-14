@@ -334,6 +334,76 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
         self.assertTrue(plan.researcher_required)
         self.assertEqual(plan.max_refinement_loops, 1)
 
+    def test_auto_uses_single_agent_for_a_generic_explanation(self) -> None:
+        request = AssistantRequest(
+            query="What's creative coding?",
+            mode=AssistantMode.EXPLAIN,
+            workflow_mode=WorkflowExecutionMode.AUTO,
+        )
+        decision = RouteDecision(
+            route=RouteName.EXPLAIN,
+            mode=AssistantMode.EXPLAIN,
+            capabilities=(
+                RouteCapability.MEMORY_CONTEXT,
+                RouteCapability.OFFICIAL_DOCS,
+                RouteCapability.LIVE_EVALUATION,
+            ),
+        )
+
+        plan = resolve_workflow_execution_plan(request, decision)
+
+        self.assertEqual(plan.resolved_mode, WorkflowExecutionMode.SINGLE_AGENT)
+        self.assertEqual(plan.agent_roles, ("generator",))
+        self.assertFalse(plan.researcher_required)
+        self.assertEqual(plan.max_refinement_loops, 0)
+
+    def test_explanation_with_code_skips_artifact_and_preview_nodes(self) -> None:
+        graph = build_assistant_workflow_graph()
+        request = AssistantRequest(
+            query="What's creative coding? Show a small p5.js example.",
+            mode=AssistantMode.EXPLAIN,
+            workflow_mode=WorkflowExecutionMode.AUTO,
+        )
+        answer = "\n".join(
+            [
+                "Creative coding uses code as an expressive medium.",
+                "",
+                "```javascript",
+                "function setup() { createCanvas(640, 360); }",
+                "```",
+            ]
+        )
+
+        events = tuple(
+            stream_assistant_workflow_events(
+                graph=graph,
+                request=request,
+                runtime=_runtime(
+                    route_fn=_route_explain,
+                    stream_generation=_single_generation(answer),
+                ),
+            )
+        )
+
+        started_nodes = _node_payloads(events, StreamEventType.NODE_STARTED)
+        self.assertNotIn("artifact_extraction", started_nodes)
+        self.assertNotIn("preview_preparation", started_nodes)
+        self.assertNotIn(StreamEventType.ARTIFACT_EXTRACTED, _event_types(events))
+        self.assertNotIn(StreamEventType.PREVIEW_ARTIFACT, _event_types(events))
+        self.assertEqual(events[-1].payload["answer"], answer)
+        self.assertEqual(events[-1].payload["artifacts"], [])
+        self.assertEqual(events[-1].payload["preview_results"], [])
+        generation_completed = _first_transition(
+            events,
+            StreamEventType.NODE_COMPLETED,
+            source="generation",
+            target="finalization",
+        )
+        self.assertEqual(
+            generation_completed.payload["decision_reason"],
+            "response_answer_generated",
+        )
+
     def test_graph_plans_between_prompt_input_and_prompt_rendering(self) -> None:
         graph = build_assistant_workflow_graph()
         request = _request(
@@ -1822,6 +1892,18 @@ def _route_generate(request: AssistantRequest) -> RouteDecision:
         mode=request.mode,
         domain=request.domain,
         capabilities=(RouteCapability.TOOL_USE,),
+    )
+
+
+def _route_explain(request: AssistantRequest) -> RouteDecision:
+    return RouteDecision(
+        route=RouteName.EXPLAIN,
+        mode=request.mode,
+        capabilities=(
+            RouteCapability.MEMORY_CONTEXT,
+            RouteCapability.OFFICIAL_DOCS,
+            RouteCapability.LIVE_EVALUATION,
+        ),
     )
 
 

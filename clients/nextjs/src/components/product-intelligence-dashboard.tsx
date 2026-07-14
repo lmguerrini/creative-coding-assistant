@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -51,7 +51,10 @@ import type {
   WorkspacePreferences,
   WorkspaceSessionSummary
 } from "@/lib/workspace-persistence";
-import type { WorkflowExecutionMode } from "@/lib/workflow-execution";
+import type {
+  WorkflowExecutionMode,
+  WorkflowExecutionModel
+} from "@/lib/workflow-execution";
 import { formatWorkflowGraphRoute } from "@/lib/workflow-graph";
 import type { SessionUsageSummary } from "@/lib/session-usage-ledger";
 import { formatUiStatusLabel } from "@/lib/ui-copy";
@@ -647,7 +650,9 @@ function DashboardGroupBody({
       {group.id === "artifacts" ? <ArtifactRegistry model={model} /> : null}
       {group.id === "sessions" && sessions ? <SessionRegistry controls={sessions} /> : null}
       {group.id === "telemetry" ? <TelemetryObservatory model={model} /> : null}
-      {group.id === "telemetry" && sessions ? <UserUsageOverview usage={sessions.usage} /> : null}
+      {group.id === "telemetry" && sessions ? (
+        <UserUsageOverview sessions={sessions.sessions} usage={sessions.usage} />
+      ) : null}
       {group.id === "ai_agents" && feedback ? (
         <DashboardSection
           action={<DashboardPanelHelp detail="Feedback records an explicit local response to the current artifact. It is not silently sent to an external provider." label="Output feedback" />}
@@ -879,6 +884,348 @@ function OverviewDashboardSurface({ model }: { model: ProductIntelligenceModel }
   );
 }
 
+type ArchitectureWorkflowNode = {
+  id: string;
+  label: string;
+  note?: string;
+};
+
+type ArchitectureWorkflowStage = {
+  capabilities?: readonly string[];
+  detail: string;
+  icon: LucideIcon;
+  id: string;
+  kind: "agent" | "system";
+  nodes: readonly ArchitectureWorkflowNode[];
+  title: string;
+};
+
+const singleAgentWorkflowStages = [
+  {
+    id: "single-request-control",
+    title: "Request control",
+    detail: "Normalizes the brief, chooses the route, and reads request-scoped memory.",
+    icon: GitBranch,
+    kind: "system",
+    nodes: [
+      { id: "intake", label: "Intake" },
+      { id: "routing", label: "Routing" },
+      { id: "memory", label: "Memory" }
+    ]
+  },
+  {
+    id: "single-context",
+    title: "Context shaping",
+    detail: "Builds a safe, provider-neutral request without a research pass.",
+    icon: FileOutput,
+    kind: "system",
+    nodes: [
+      { id: "context_assembly", label: "Context assembly" },
+      { id: "prompt_input", label: "Prompt input" }
+    ]
+  },
+  {
+    id: "single-generator",
+    title: "Generator",
+    detail: "Owns the direct production path from rendered prompt to inspectable artifact.",
+    icon: Bot,
+    kind: "agent",
+    nodes: [
+      { id: "prompt_rendering", label: "Prompt rendering" },
+      { id: "generation", label: "Generation", note: "Provider boundary" },
+      { id: "artifact_extraction", label: "Artifact extraction" },
+      { id: "preview_preparation", label: "Preview preparation" }
+    ],
+    capabilities: [
+      "Builds the provider-ready prompt and calls the configured generation model once.",
+      "Extracts browser-ready code and publishes preview metadata for inspection."
+    ]
+  },
+  {
+    id: "single-publish",
+    title: "Publish",
+    detail: "Packages the answer, run evidence, and terminal state.",
+    icon: ShieldCheck,
+    kind: "system",
+    nodes: [{ id: "finalization", label: "Finalization" }]
+  }
+] satisfies readonly ArchitectureWorkflowStage[];
+
+const multiAgentWorkflowStages = [
+  {
+    id: "multi-request-control",
+    title: "Request control",
+    detail: "Normalizes the brief, resolves Multi Agent, and reads request-scoped memory.",
+    icon: GitBranch,
+    kind: "system",
+    nodes: [
+      { id: "intake", label: "Intake" },
+      { id: "routing", label: "Routing" },
+      { id: "memory", label: "Memory" }
+    ]
+  },
+  {
+    id: "multi-researcher",
+    title: "Researcher",
+    detail: "Grounds the request in approved official documentation when retrieval is configured.",
+    icon: Database,
+    kind: "agent",
+    nodes: [{ id: "retrieval", label: "Retrieval", note: "Conditional" }],
+    capabilities: [
+      "Embeds the request and searches the approved local Chroma knowledge base.",
+      "Returns bounded source chunks; it does not browse the open web."
+    ]
+  },
+  {
+    id: "multi-context",
+    title: "Context shaping",
+    detail: "Combines memory and retrieved evidence into a safe structured input.",
+    icon: FileOutput,
+    kind: "system",
+    nodes: [
+      { id: "context_assembly", label: "Context assembly" },
+      { id: "prompt_input", label: "Prompt input" }
+    ]
+  },
+  {
+    id: "multi-planner",
+    title: "Planner",
+    detail: "Turns the brief into typed creative decisions before provider generation.",
+    icon: Brain,
+    kind: "agent",
+    nodes: [
+      { id: "planning", label: "Planning" },
+      { id: "director", label: "Director" },
+      { id: "reasoning", label: "Reasoning" }
+    ],
+    capabilities: [
+      "Derives creative, runtime, constraint, and artifact plans from the assembled context.",
+      "Prioritizes constraints and translates them into implementation-facing guidance."
+    ]
+  },
+  {
+    id: "multi-generator",
+    title: "Generator",
+    detail: "Produces the deliverable from the richer planned and grounded prompt.",
+    icon: Bot,
+    kind: "agent",
+    nodes: [
+      { id: "prompt_rendering", label: "Prompt rendering" },
+      { id: "generation", label: "Generation", note: "Provider boundary" },
+      { id: "artifact_extraction", label: "Artifact extraction" },
+      { id: "preview_preparation", label: "Preview preparation" }
+    ],
+    capabilities: [
+      "Renders the complete provider-neutral prompt with selected plans and evidence.",
+      "Calls the configured model, extracts code, and prepares preview metadata."
+    ]
+  },
+  {
+    id: "multi-critic",
+    title: "Critic",
+    detail: "Inspects the generated artifact before it can be accepted.",
+    icon: Eye,
+    kind: "agent",
+    nodes: [{ id: "artifact_critique", label: "Artifact critique" }],
+    capabilities: [
+      "Scores inspectable artifact properties and publishes concrete recommendations.",
+      "Uses deterministic application checks rather than inventing a second provider opinion."
+    ]
+  },
+  {
+    id: "multi-reviewer",
+    title: "Reviewer",
+    detail: "Gates completion and can send one bounded correction back to generation.",
+    icon: ShieldCheck,
+    kind: "agent",
+    nodes: [
+      { id: "review", label: "Review" },
+      { id: "refinement", label: "Refinement", note: "At most once" }
+    ],
+    capabilities: [
+      "Checks required deliverables and the critic's bounded quality findings.",
+      "May append explicit guidance and request one regeneration pass."
+    ]
+  },
+  {
+    id: "multi-publish",
+    title: "Publish",
+    detail: "Packages the accepted answer, quality evidence, and terminal state.",
+    icon: ShieldCheck,
+    kind: "system",
+    nodes: [{ id: "finalization", label: "Finalization" }]
+  }
+] satisfies readonly ArchitectureWorkflowStage[];
+
+const singleAgentSkippedNodes = [
+  "retrieval",
+  "planning",
+  "director",
+  "reasoning",
+  "artifact_critique",
+  "review",
+  "refinement"
+] as const;
+
+function ArchitectureWorkflowComparison({
+  execution
+}: {
+  execution: WorkflowExecutionModel | undefined;
+}) {
+  const resolvedMode = execution?.state === "available" ? execution.resolvedMode : null;
+
+  return (
+    <section
+      aria-label="LangGraph workflow comparison"
+      className="architectureWorkflowComparison"
+    >
+      <header className="architectureWorkflowComparisonHeader">
+        <div>
+          <span>LangGraph route anatomy</span>
+          <h3 id="architecture-workflow-comparison-title">
+            One direct producer or a five-role quality pipeline
+          </h3>
+          <p>
+            Both routes use the same registered StateGraph. Agent-owned work is
+            distinguished from system nodes so each role&apos;s real scope is visible.
+          </p>
+        </div>
+        <div aria-label="Workflow comparison legend" className="architectureWorkflowLegend">
+          <span data-kind="system">System node</span>
+          <span data-kind="agent">Bounded agent role</span>
+        </div>
+      </header>
+
+      <div className="architectureWorkflowRouteGrid">
+        <ArchitectureWorkflowRoute
+          badge="1 role · direct pass"
+          detail="The Generator moves straight from structured input to production, with no independent planning or post-generation quality gate."
+          label="Single Agent workflow"
+          selected={resolvedMode === "single_agent"}
+          stages={singleAgentWorkflowStages}
+          title="Single Agent"
+        >
+          <div className="architectureSkippedNodes">
+            <strong>Skipped on this route</strong>
+            <div>
+              {singleAgentSkippedNodes.map((node) => <code key={node}>{node}</code>)}
+            </div>
+            <p>Fast and bounded, but it does not get a separate research, planning, critique, or review pass.</p>
+          </div>
+        </ArchitectureWorkflowRoute>
+
+        <ArchitectureWorkflowRoute
+          badge="5 roles · quality gates"
+          detail="Researcher, Planner, Generator, Critic, and Reviewer contribute sequentially around one configured provider boundary."
+          label="Multi Agent workflow"
+          selected={resolvedMode === "multi_agent"}
+          stages={multiAgentWorkflowStages}
+          title="Multi Agent"
+        >
+          <div className="architectureAgentBoundary">
+            <strong>What “agent” means here</strong>
+            <p>
+              These are explicit sequential responsibilities with typed inputs and outputs,
+              not parallel LLM workers. Planner and Generator span several nodes; Researcher
+              and Critic are focused one-node specialists.
+            </p>
+          </div>
+        </ArchitectureWorkflowRoute>
+      </div>
+
+      <aside className="architectureQualityRationale" aria-label="Why Multi Agent can improve output">
+        <div>
+          <span>Why Multi can improve output</span>
+          <strong>More useful context before generation</strong>
+          <p>Approved retrieval and typed planning can make the provider prompt more grounded, constrained, and implementation-ready.</p>
+        </div>
+        <div>
+          <span>After generation</span>
+          <strong>A visible correction path</strong>
+          <p>Critique and review inspect the artifact and may request one bounded regeneration with explicit guidance.</p>
+        </div>
+        <div>
+          <span>Truthful boundary</span>
+          <strong>Better coverage, not a guarantee</strong>
+          <p>Only <code>generation</code> invokes the configured provider; extra deterministic gates can improve consistency but cannot guarantee subjective quality.</p>
+        </div>
+      </aside>
+    </section>
+  );
+}
+
+function ArchitectureWorkflowRoute({
+  badge,
+  children,
+  detail,
+  label,
+  selected,
+  stages,
+  title
+}: {
+  badge: string;
+  children: ReactNode;
+  detail: string;
+  label: string;
+  selected: boolean;
+  stages: readonly ArchitectureWorkflowStage[];
+  title: string;
+}) {
+  return (
+    <article
+      aria-current={selected ? "true" : undefined}
+      aria-label={label}
+      className="architectureWorkflowRoute"
+      data-selected={selected ? "true" : undefined}
+    >
+      <header>
+        <span aria-hidden="true" className="architectureWorkflowRouteIcon">
+          {title === "Single Agent" ? <Bot size={20} /> : <Network size={20} />}
+        </span>
+        <div>
+          <small>{selected ? "Current resolved route" : "Available route"}</small>
+          <h4>{title}</h4>
+          <p>{detail}</p>
+        </div>
+        <strong>{badge}</strong>
+      </header>
+
+      <div className="architectureWorkflowStages">
+        {stages.map((stage) => {
+          const StageIcon = stage.icon;
+          return (
+            <section className="architectureWorkflowStage" data-kind={stage.kind} key={stage.id}>
+              <header>
+                <span aria-hidden="true"><StageIcon size={16} /></span>
+                <div>
+                  <small>{stage.kind === "agent" ? "Bounded agent role" : "Workflow phase"}</small>
+                  <h5>{stage.title}</h5>
+                  <p>{stage.detail}</p>
+                </div>
+              </header>
+              <ol aria-label={`${stage.title} LangGraph nodes`}>
+                {stage.nodes.map((node) => (
+                  <li key={node.id}>
+                    <code>{node.id}</code>
+                    <span>{node.label}</span>
+                    {node.note ? <em>{node.note}</em> : null}
+                  </li>
+                ))}
+              </ol>
+              {stage.capabilities ? (
+                <ul aria-label={`${stage.title} capabilities`} className="architectureAgentCapabilities">
+                  {stage.capabilities.map((capability) => <li key={capability}>{capability}</li>)}
+                </ul>
+              ) : null}
+            </section>
+          );
+        })}
+      </div>
+      {children}
+    </article>
+  );
+}
+
 function ArchitectureRouteGuide({ model }: { model: ProductIntelligenceModel }) {
   const execution = model.details?.workflowExecution;
   const runtime = model.details?.workflowRuntime;
@@ -938,6 +1285,7 @@ function ArchitectureRouteGuide({ model }: { model: ProductIntelligenceModel }) 
           />
         ))}
       </DashboardCardGrid>
+      <ArchitectureWorkflowComparison execution={execution} />
       <DashboardMetricGrid
         className="architectureExecutionFacts"
         label="Published execution decision"
@@ -2130,9 +2478,19 @@ function SessionRegistry({ controls }: { controls: DashboardSessionControls }) {
   );
 }
 
-function UserUsageOverview({ usage }: { usage: SessionUsageSummary[] }) {
-  const knownTokenSessions = usage.filter((entry) => entry.totalTokens != null);
-  const knownCostSessions = usage.filter((entry) => entry.totalCost != null);
+function UserUsageOverview({
+  sessions,
+  usage
+}: {
+  sessions: WorkspaceSessionSummary[];
+  usage: SessionUsageSummary[];
+}) {
+  const registeredSessionIds = new Set(sessions.map((session) => session.sessionId));
+  const registeredUsage = usage.filter((entry) =>
+    registeredSessionIds.has(entry.sessionId)
+  );
+  const knownTokenSessions = registeredUsage.filter((entry) => entry.totalTokens != null);
+  const knownCostSessions = registeredUsage.filter((entry) => entry.totalCost != null);
   const totalTokens = knownTokenSessions.reduce(
     (total, entry) => total + (entry.totalTokens ?? 0),
     0
@@ -2141,7 +2499,7 @@ function UserUsageOverview({ usage }: { usage: SessionUsageSummary[] }) {
     (total, entry) => total + (entry.totalCost ?? 0),
     0
   );
-  const runCount = usage.reduce((total, entry) => total + entry.runCount, 0);
+  const runCount = registeredUsage.reduce((total, entry) => total + entry.runCount, 0);
 
   return (
     <DashboardSection
@@ -2162,12 +2520,52 @@ function UserUsageOverview({ usage }: { usage: SessionUsageSummary[] }) {
         className="userUsageMetrics"
         label="Browser profile usage totals"
         metrics={[
-          { label: "Sessions", value: usage.length },
+          { label: "Sessions", value: sessions.length },
           { label: "Completed runs", value: runCount },
           { label: "Known tokens", value: knownTokenSessions.length ? formatCompactUsage(totalTokens) : "Not reported" },
-          { label: "Known cost", value: knownCostSessions.length ? `$${totalCost.toFixed(4)}` : "Not reported" }
+          { label: "Estimated cost", value: knownCostSessions.length ? `$${totalCost.toFixed(4)}` : "Not reported" }
         ]}
       />
+      <DashboardTableFrame className="browserUsageTableFrame">
+        <div className="sessionRegistryTable browserUsageTable" role="table" aria-label="Session token and cost totals">
+          <div role="row">
+            <span role="columnheader">Session</span>
+            <span role="columnheader">Runs</span>
+            <span role="columnheader">Latest request</span>
+            <span role="columnheader">Total tokens</span>
+            <span role="columnheader">Total estimated cost</span>
+          </div>
+          {sessions.map((session) => {
+            const summary = registeredUsage.find(
+              (entry) => entry.sessionId === session.sessionId
+            );
+            return (
+              <div key={session.sessionId} role="row">
+                <strong role="cell">{session.title}</strong>
+                <span role="cell">{summary?.runCount ?? 0}</span>
+                <span role="cell">
+                  {summary
+                    ? `${formatUsageTokens(summary.latestTokens)} · ${formatUsageMoney(summary.latestCost)}`
+                    : "Not reported"}
+                </span>
+                <span role="cell">{formatUsageTokens(summary?.totalTokens ?? null)}</span>
+                <span role="cell">{formatUsageMoney(summary?.totalCost ?? null)}</span>
+              </div>
+            );
+          })}
+          <div className="browserUsageGrandTotal" role="row">
+            <strong role="cell">Grand total</strong>
+            <strong role="cell">{runCount}</strong>
+            <span role="cell">All retained sessions</span>
+            <strong role="cell">
+              {knownTokenSessions.length ? formatUsageTokens(totalTokens) : "Not reported"}
+            </strong>
+            <strong role="cell">
+              {knownCostSessions.length ? formatUsageMoney(totalCost) : "Not reported"}
+            </strong>
+          </div>
+        </div>
+      </DashboardTableFrame>
     </DashboardSection>
   );
 }
@@ -2185,6 +2583,14 @@ function formatCompactUsage(value: number) {
     notation: "compact",
     maximumFractionDigits: 1
   }).format(value);
+}
+
+function formatUsageTokens(value: number | null) {
+  return value == null ? "Not reported" : `${formatCompactUsage(value)} tokens`;
+}
+
+function formatUsageMoney(value: number | null) {
+  return value == null ? "Not reported" : `$${value.toFixed(4)}`;
 }
 
 function DashboardSettings({ controls }: { controls: DashboardSettingsControls }) {

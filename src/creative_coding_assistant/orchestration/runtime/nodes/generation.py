@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from langgraph.runtime import Runtime
 
+from creative_coding_assistant.orchestration.routing import RouteName
 from creative_coding_assistant.orchestration.runtime.nodes.contracts import (
     AssistantWorkflowGraphContext,
     AssistantWorkflowGraphState,
@@ -119,12 +120,25 @@ def _generation_node(
                 "failure_event_emitted": True,
                 "generation_result": None,
             }
+        is_explanation = (
+            workflow_state.route_decision is not None
+            and workflow_state.route_decision.route is RouteName.EXPLAIN
+        )
         return {
             "workflow_state": _complete_node(
                 workflow_state,
                 runtime_context,
                 WorkflowStep.GENERATION,
-                decision_reason="generation_completed",
+                transition_target=(
+                    WorkflowStep.FINALIZATION.value
+                    if is_explanation
+                    else WorkflowStep.ARTIFACT_EXTRACTION.value
+                ),
+                decision_reason=(
+                    "response_answer_generated"
+                    if is_explanation
+                    else "generation_completed"
+                ),
             ),
             "generation_result": generation_result,
         }

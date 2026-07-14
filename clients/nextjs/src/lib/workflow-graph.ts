@@ -23,11 +23,18 @@ export function resolveWorkflowGraphRoute({
   execution: WorkflowExecutionModel;
   requestedMode: WorkflowExecutionMode;
 }): ResolvedWorkflowGraphRoute | null {
-  if (execution.state === "available" && execution.resolvedMode) {
+  if (requestedMode !== "auto") {
+    return requestedMode;
+  }
+
+  if (
+    execution.state === "available" &&
+    execution.resolvedMode
+  ) {
     return execution.resolvedMode;
   }
 
-  return requestedMode === "auto" ? null : requestedMode;
+  return null;
 }
 
 export function selectWorkflowGraphSteps({
@@ -59,7 +66,7 @@ export function formatWorkflowGraphRoute({
 
   if (requestedMode === "auto") {
     return route
-      ? `Auto → ${formatResolvedRoute(route)}`
+      ? `Auto (${formatResolvedRoute(route)})`
       : "Auto · route pending";
   }
 

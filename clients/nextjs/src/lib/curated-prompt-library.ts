@@ -10,6 +10,69 @@ export type CuratedPrompt = {
   fallback: string;
 };
 
+export const boundedP5DemoSurfaceContract =
+  "Use only these supported p5 calls: createCanvas, pixelDensity, colorMode, background, push, pop, translate, rotate, stroke, strokeWeight, strokeCap, noStroke, fill, noFill, line, circle, sin, cos, sqrt, noise, map, constrain, lerp, floor, min, and max. Use frameCount for time, use p5's PI constant directly, and declare every custom helper function. Never redeclare p5 globals. Do not use createGraphics, millis, lerpColor, drawingContext, shaders, DOM, loading APIs, imports, HTML, assets, Markdown, or prose.";
+
+export const recursiveAuroraGardenFallbackSource = [
+  "let phase = 0;",
+  "function setup() {",
+  "  createCanvas(windowWidth, windowHeight);",
+  "  pixelDensity(1);",
+  "  colorMode(HSL, 360, 100, 100, 1);",
+  "  noStroke();",
+  "}",
+  "function draw() {",
+  "  phase += 0.008;",
+  "  background(232, 54, 6, 0.2);",
+  "  translate(width * 0.5, height * 0.52);",
+  "  for (let seed = 0; seed < 160; seed += 1) {",
+  "    const goldenAngle = seed * 2.399963;",
+  "    const radius = 7.2 * sqrt(seed);",
+  "    const breath = 1 + 0.08 * sin(phase * 2 + seed * 0.11);",
+  "    const x = cos(goldenAngle + phase) * radius * breath + (mouseX - width * 0.5) * 0.025;",
+  "    const y = sin(goldenAngle + phase) * radius * 0.62 * breath + (mouseY - height * 0.5) * 0.018;",
+  "    fill((178 + seed * 0.72) % 360, 82, 64, 0.54);",
+  "    circle(x, y, 4 + 4 * sin(seed * 0.17 + phase));",
+  "  }",
+  "}"
+].join("\n");
+
+export const multiAgentOrbitStudyFallbackSource = [
+  "// researcher, creative director, generator, reviewer",
+  "function setup() {",
+  "  createCanvas(windowWidth, windowHeight);",
+  "  pixelDensity(1);",
+  "  colorMode(HSL, 360, 100, 100, 1);",
+  "  strokeCap(ROUND);",
+  "}",
+  "function draw() {",
+  "  const time = frameCount * 0.008;",
+  "  background(228, 58, 6, 0.24);",
+  "  translate(width * 0.5 + (mouseX - width * 0.5) * 0.035, height * 0.5 + (mouseY - height * 0.5) * 0.025);",
+  "  noFill();",
+  "  for (let ring = 0; ring < 18; ring += 1) {",
+  "    const radius = 24 + ring * min(width, height) * 0.024;",
+  "    const hue = 178 + ring * 4.6;",
+  "    stroke(hue, 88, 68, 0.38);",
+  "    strokeWeight(1 + (ring % 4) * 0.45);",
+  "    let px = cos(time + ring * 0.31) * radius;",
+  "    let py = sin(time + ring * 0.31) * radius * 0.62;",
+  "    for (let step = 1; step <= 52; step += 1) {",
+  "      const angle = step * PI / 26 + time * (0.32 + ring * 0.012) + ring * 0.31;",
+  "      const pulse = 1 + 0.1 * sin(time * 2 + step * 0.24 + ring);",
+  "      const x = cos(angle) * radius * pulse;",
+  "      const y = sin(angle) * radius * 0.62 * pulse;",
+  "      line(px, py, x, y);",
+  "      px = x;",
+  "      py = y;",
+  "    }",
+  "  }",
+  "  noStroke();",
+  "  fill(42, 96, 70, 0.9);",
+  "  circle(0, 0, 12 + 4 * sin(time * 3));",
+  "}"
+].join("\n");
+
 export const homepagePromptLibrary = [
   {
     id: "physarum-drift",
@@ -80,8 +143,7 @@ export const demoShowcasePromptLibrary = [
     description: "A golden-angle field that grows into an interactive luminous garden.",
     concept: "Recursive growth, phyllotaxis, and pointer parallax",
     runtime: "p5.js browser preview",
-    prompt:
-      "Create exactly one runnable .p5.js artifact named recursive-aurora-garden.p5.js. In compact global-mode JavaScript with setup() and draw(), compose 160 golden-angle seeds into a deep-night aurora garden with recursive-looking branching ribbons, translucent cyan/gold glow, slow breathing motion, and pointer parallax. Use only the supported p5 drawing surface; no imports, HTML, assets, Markdown, or prose. Return only one closed ```javascript filename=recursive-aurora-garden.p5.js code fence and keep source below 3,200 characters.",
+    prompt: `Create exactly one runnable .p5.js artifact named recursive-aurora-garden.p5.js. In compact global-mode JavaScript with setup() and draw(), compose 160 golden-angle seeds into a deep-night aurora garden with recursive-looking branching ribbons, translucent cyan/gold glow, slow breathing motion, and pointer parallax. ${boundedP5DemoSurfaceContract} Return exactly one closed \`\`\`javascript filename=recursive-aurora-garden.p5.js code fence and keep source below 3,000 characters.`,
     expectedArtifact: "recursive-aurora-garden.p5.js",
     previewBoundary: "Runs in the controlled global-mode p5.js preview.",
     fallback: "Inspect the source and retry with the same compact global-mode contract."
@@ -105,7 +167,7 @@ export const demoShowcasePromptLibrary = [
     concept: "Analytical fractal repetition and solar interference",
     runtime: "GLSL browser preview",
     prompt:
-      "Create exactly one compact .frag artifact named fractal-solar-bloom.frag. Return only WebGL 1 fragment shader source with void main(), u_time, u_resolution, and gl_FragColor. Render a cinematic recursive-looking solar bloom from analytic polar folds, nested sine detail, a dark indigo field, and cyan/gold radiance. Do not use #version, textures, samplers, loops, discard, HTML, Markdown, or prose.",
+      "Create fractal-solar-bloom.frag as compile-ready WebGL 1 source under 80 lines. Return only code with uniform float u_time; uniform vec2 u_resolution; and void main() writing gl_FragColor. Before main define float spiral(vec2 p,float scale,float twist) using only length, atan, log, sin and smoothstep; call it exactly 6 times. Fill frame with asymmetric logarithmic nautilus curls, nested clusters and scalloped filigree. Palette: navy-black, cobalt/ultramarine, cyan-white rims and amber-gold cores; avoid a centered flower, flat rings, radial symmetry or empty areas. End every statement with a semicolon; balance braces/parentheses and end with main's closing brace. No #version, arrays, structs, macros, recursion, loops, textures, samplers, discard, HTML, Markdown or prose.",
     expectedArtifact: "fractal-solar-bloom.frag",
     previewBoundary: "Runs only in the bounded WebGL 1 fragment preview.",
     fallback: "Inspect the shader source if WebGL is unavailable."
@@ -295,8 +357,7 @@ export const rhythmicLineStudyPrompt = {
   description: "A modular line-system prompt inspired by open generative practice.",
   concept: "Modular moving lines",
   runtime: "p5.js browser preview",
-  prompt:
-    "Create one global-mode .p5.js artifact named rhythmic-line-study.p5.js with setup() and draw(). Compose a field of independently drifting lines with a limited palette, rounded caps, and a gentle pointer disturbance. Return only JavaScript source.",
+  prompt: `Create one global-mode .p5.js artifact named rhythmic-line-study.p5.js with setup() and draw(). Compose a field of independently drifting lines with a limited palette, rounded caps, and a gentle pointer disturbance. ${boundedP5DemoSurfaceContract} Return only JavaScript source.`,
   expectedArtifact: "rhythmic-line-study.p5.js",
   previewBoundary: "Controlled p5.js preview only.",
   fallback: "Inspect the runnable code artifact."

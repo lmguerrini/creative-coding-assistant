@@ -26,6 +26,10 @@ import {
 } from "./assistant-stream";
 import { normalizeCreativeTranslation } from "./creative-translation";
 import { assignSemanticArtifactTitles } from "./artifact-naming";
+import {
+  multiAgentOrbitStudyFallbackSource,
+  recursiveAuroraGardenFallbackSource
+} from "./curated-prompt-library";
 import { hasGsapPreviewSignal } from "./gsap-runtime";
 import {
   hasCanvasPreviewSignal,
@@ -52,6 +56,7 @@ export type LiveArtifactHydrationResult = {
 
 export type LiveArtifactHydrationOptions = {
   prompt?: string;
+  skipArtifacts?: boolean;
   skipPlainTextArtifact?: boolean;
 };
 
@@ -154,6 +159,21 @@ export function hydrateWorkspaceFromFinalEvent(
       previewAvailable: snapshot.preview.available,
       snapshot
     };
+  }
+
+  if (options.skipArtifacts) {
+    return withFinalEventProductOutcome(
+      {
+        activeArtifactId: snapshot.artifacts[0]?.id ?? "",
+        artifact: null,
+        previewArtifactId: snapshot.preview.available
+          ? snapshot.preview.sourceArtifactId
+          : "",
+        previewAvailable: snapshot.preview.available,
+        snapshot
+      },
+      event
+    );
   }
 
   const answer = readString(event.payload.answer);
@@ -272,6 +292,25 @@ function reconcileProductOutcomeForHydratedPreview({
     };
   }
 
+  if (
+    hydratedArtifact?.status === "Recovered locally" &&
+    previewAvailable
+  ) {
+    return {
+      ...productOutcome,
+      artifact_extraction_status: "EXTRACTED",
+      artifact_runnability: "RUNNABLE",
+      deliverable_status: "USABLE",
+      preview_status: "PREPARED",
+      runtime_health: "PENDING_BROWSER_VALIDATION",
+      product_outcome: "PARTIAL" as const,
+      summary:
+        "The live demo is running from its browser-safe local recovery artifact.",
+      recovery_action:
+        "Inspect Preview and retry generation later if provider-authored source is required."
+    };
+  }
+
   const hasClientVerifiablePreview =
     hydratedArtifact !== null &&
     previewAvailable &&
@@ -347,7 +386,8 @@ function hydrateWorkspaceFromSources(
     };
   }
 
-  const inferredArtifacts = inferGeneratedArtifacts(sources);
+  const recoveredSources = recoverCuratedDemoSources(sources, options.prompt);
+  const inferredArtifacts = inferGeneratedArtifacts(recoveredSources);
   const artifactSummaries = assignSemanticArtifactTitles({
     artifacts: inferredArtifacts.map((inferred) =>
       buildArtifactSummary(inferred, options.artifactHydrationSource)
@@ -410,6 +450,71 @@ function hydrateWorkspaceFromSources(
       preview
     }
   };
+}
+
+function recoverCuratedDemoSources(
+  sources: GeneratedArtifactSource[],
+  prompt: string | undefined
+) {
+  const recovery = resolveP5DemoRecovery(prompt);
+  if (!recovery) {
+    return sources;
+  }
+
+  let recovered = false;
+  return sources.map((source) => {
+    if (recovered || !isAuroraP5Source(source)) {
+      return source;
+    }
+    if (!getP5RuntimeSourceSupportIssue(trimCodeBlock(source.content))) {
+      return source;
+    }
+
+    recovered = true;
+    return {
+      ...source,
+      content: recovery.content,
+      language: "javascript",
+      previewEligible: true,
+      previewTarget: "browser_sandbox",
+      rendererId: "surface.p5",
+      runtime: "p5",
+      status: "Recovered locally",
+      summary:
+        `The provider source did not satisfy the controlled p5 runtime contract, so Demo Mode restored its bundled browser-safe ${recovery.label} fixture.`
+    };
+  });
+}
+
+function resolveP5DemoRecovery(prompt: string | undefined) {
+  if (/recursive-aurora-garden\.p5\.js/i.test(prompt ?? "")) {
+    return {
+      content: recursiveAuroraGardenFallbackSource,
+      label: "aurora"
+    };
+  }
+  if (/multi-agent-orbit-study\.p5\.js/i.test(prompt ?? "")) {
+    return {
+      content: multiAgentOrbitStudyFallbackSource,
+      label: "multi-agent orbit"
+    };
+  }
+  return null;
+}
+
+function isAuroraP5Source(source: GeneratedArtifactSource) {
+  const identity = [
+    source.title,
+    source.runtime,
+    source.rendererId,
+    source.language,
+    source.content
+  ]
+    .filter(Boolean)
+    .join(" ");
+  return /recursive-aurora-garden|\.p5\.js|\bp5\b|createCanvas|function\s+setup/i.test(
+    identity
+  );
 }
 
 function latestWorkspacePrompt(snapshot: AssistantWorkspaceSnapshot) {

@@ -62,14 +62,45 @@ describe("workflow graph route projection", () => {
     };
 
     expect(formatWorkflowGraphRoute({ execution, requestedMode: "auto" })).toBe(
-      "Auto → Single Agent"
+      "Auto (Single Agent)"
     );
+    expect(
+      formatWorkflowGraphRoute({
+        execution: { ...execution, resolvedMode: "multi_agent" },
+        requestedMode: "auto"
+      })
+    ).toBe("Auto (Multi Agent)");
     expect(
       selectWorkflowGraphSteps({ execution, requestedMode: "auto", steps }).map(
         (step) => step.nodeId
       )
     ).toEqual(["intake", "generation", "finalization"]);
   });
+
+  it("lets a new explicit selection replace the route published by an earlier run", () => {
+    const previousExecution: WorkflowExecutionModel = {
+      ...idleExecution,
+      state: "available",
+      requestedMode: "auto",
+      resolvedMode: "single_agent",
+      source: "stream"
+    };
+
+    expect(
+      formatWorkflowGraphRoute({
+        execution: previousExecution,
+        requestedMode: "multi_agent"
+      })
+    ).toBe("Multi Agent");
+    expect(
+      selectWorkflowGraphSteps({
+        execution: previousExecution,
+        requestedMode: "multi_agent",
+        steps
+      }).map((step) => step.nodeId)
+    ).toEqual(steps.map((step) => step.nodeId));
+  });
+
 });
 
 function workflowStep(nodeId: WorkflowRuntimeStep["nodeId"]): WorkflowRuntimeStep {

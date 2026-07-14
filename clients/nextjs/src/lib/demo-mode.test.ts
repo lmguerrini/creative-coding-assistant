@@ -90,7 +90,7 @@ describe("demo mode scenarios", () => {
     expect(recovery?.expectedPreview).toContain("No live preview");
   });
 
-  it("keeps workflow prompts inside the bounded planning-summary range", () => {
+  it("keeps workflow prompts bounded while including their runtime contract", () => {
     for (const id of [
       "retrieval-grounded-design-brief",
       "multi-agent-production-plan",
@@ -98,7 +98,20 @@ describe("demo mode scenarios", () => {
     ]) {
       const scenario = demoModeScenarios.find((item) => item.id === id);
 
-      expect(scenario?.prompt.length).toBeLessThanOrEqual(280);
+      expect(scenario?.prompt.length).toBeLessThanOrEqual(850);
+    }
+  });
+
+  it("gives every p5 browser demo an explicit executable surface", () => {
+    const p5Scenarios = demoModeScenarios.filter((scenario) =>
+      scenario.runtime.includes("p5.js browser preview")
+    );
+
+    expect(p5Scenarios).toHaveLength(5);
+    for (const scenario of p5Scenarios) {
+      expect(scenario.prompt).toContain("Use only these supported p5 calls");
+      expect(scenario.prompt).toContain("Use frameCount for time");
+      expect(scenario.prompt).toContain("declare every custom helper function");
     }
   });
 

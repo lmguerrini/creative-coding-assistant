@@ -10457,13 +10457,15 @@ export function readStreamEventError(
       ? event.payload.message
       : "The live response stopped before completion.");
   const recoverable = parsed?.recoverable ?? true;
+  const userMessage = normalizeStreamUserMessage(code, rawMessage);
 
   return createWorkstationError({
     type: code,
     category: "stream",
     subsystem: parsed?.subsystem ?? inferStreamSubsystem(code),
-    userMessage: normalizeStreamUserMessage(code, rawMessage),
-    debugMessage: parsed?.debugMessage,
+    userMessage,
+    debugMessage:
+      parsed?.debugMessage ?? (userMessage === rawMessage ? null : rawMessage),
     recoverable,
     suggestedAction:
       parsed?.suggestedAction ?? defaultStreamSuggestedAction(code, recoverable),
@@ -10618,12 +10620,20 @@ function normalizeStreamUserMessage(code: string, message: string) {
     return "The model provider is unavailable for this live response.";
   }
 
+  if (code === "workflow_prompt_rendering_failed") {
+    return "The workflow could not prepare this request for generation.";
+  }
+
   return message;
 }
 
 function defaultStreamSuggestedAction(code: string, recoverable: boolean) {
   if (code === "provider_unavailable") {
     return "Retry the request after the provider recovers, or continue with the local fallback path.";
+  }
+
+  if (code === "workflow_prompt_rendering_failed") {
+    return "Retry the refinement. If it repeats, reopen the source artifact and submit the instruction again.";
   }
 
   if (recoverable) {

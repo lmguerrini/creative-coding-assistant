@@ -224,6 +224,10 @@
     transform 160ms ease;
 }
 
+.dashboardActionCard[data-has-icon="false"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .dashboardActionCardIcon {
   display: grid;
   width: 34px;
@@ -316,6 +320,15 @@
   border-radius: 10px;
   color: var(--teal);
   background: rgba(var(--accent-rgb), 0.07);
+}
+
+.dashboardChoiceCard[data-has-icon="false"] {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.dashboardChoiceCard[data-has-icon="false"] .dashboardChoiceCardTitle,
+.dashboardChoiceCard[data-has-icon="false"] .dashboardChoiceCardDetail {
+  grid-column: 1 / -1;
 }
 
 .dashboardChoiceCardEyebrow,
@@ -952,6 +965,14 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.browserUsageOverview .browserUsageTable {
+  padding: 0;
+}
+
+.browserUsageTable > div:not(:last-child) {
+  border-bottom: 1px solid var(--section-divider);
+}
+
 .telemetryEvidenceDetails > .dashboardDisclosureBody {
   padding: var(--dashboard-space-3);
 }
@@ -1346,6 +1367,7 @@
 }
 
 .workstation .sessionSidebarItem {
+  position: relative;
   display: grid;
   min-width: 0;
   gap: var(--dashboard-space-1);
@@ -1360,6 +1382,11 @@
   width: 100%;
   min-height: 78px;
   padding: 10px;
+}
+
+.workstation .sessionSidebarItem[data-active="true"] .sessionSidebarSelect {
+  min-height: 102px;
+  padding-bottom: 42px;
 }
 
 .workstation .sessionSidebarSelect .dashboardChoiceCardDetail {
@@ -1377,8 +1404,11 @@
 }
 
 .workstation .sessionSidebarActions {
+  position: absolute;
+  z-index: 2;
+  right: 10px;
+  bottom: 9px;
   justify-content: flex-end;
-  padding-inline: 4px;
 }
 
 .workstation .sessionSidebarActions button,
@@ -1396,6 +1426,12 @@
   cursor: pointer;
   font-size: var(--label-font-size);
   font-weight: 760;
+}
+
+.workstation .sessionSidebarActions button {
+  width: 28px;
+  min-height: 28px;
+  padding: 0;
 }
 
 .workstation .sessionSidebarActions button:hover,
@@ -1442,13 +1478,10 @@
 }
 
 .workstation .sessionSidebarBoundary.dashboardCallout p {
-  display: -webkit-box;
-  overflow: hidden;
   margin-top: 2px;
-  font-size: 10px;
-  line-height: 1.4;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
+  font-size: 9px;
+  line-height: 1.32;
 }
 
 .workstation .sessionSidebar--collapsed {
@@ -1883,6 +1916,51 @@
 .workstation .inspector--dashboardSystem .overviewClarificationTile,
 .workstation .inspector--dashboardSystem .overviewPlanningTile {
   grid-column: 1 / -1;
+}
+
+.workstation .inspector--dashboardSystem .overviewWorkflowTile {
+  gap: 8px;
+  padding: 10px;
+}
+
+.workstation .inspector--dashboardSystem .overviewWorkflowTile .workflowSummaryMeta {
+  gap: 5px;
+}
+
+.workstation .inspector--dashboardSystem .overviewWorkflowTile .workflowSummaryMeta span {
+  padding: 3px 6px;
+  font-size: 8px;
+}
+
+.workstation .inspector--dashboardSystem .overviewWorkflowTile .miniWorkflow {
+  gap: 7px;
+}
+
+.workstation .inspector--dashboardSystem .overviewWorkflowTile .miniStep {
+  grid-template-columns: 10px minmax(0, 1fr);
+  gap: 7px;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.workstation .inspector--dashboardSystem .overviewWorkflowTile .miniStep > span {
+  width: 7px;
+  height: 7px;
+}
+
+.workstation .inspector--dashboardSystem .overviewWorkflowTile .miniStep[data-state="active"] > span {
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12);
+}
+
+.workstation .inspector--dashboardSystem .overviewWorkflowTile .miniStep strong {
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.workstation .inspector--dashboardSystem .overviewWorkflowTile .miniStep small {
+  margin-top: 2px;
+  font-size: 8.5px;
+  line-height: 1.2;
 }
 
 .workstation .inspector--dashboardSystem .inspectorCockpitBoundary {
@@ -2677,6 +2755,31 @@
   margin: 0;
 }
 
+.emptyWorkspaceHero.dashboardPageHero {
+  padding: 20px 22px;
+}
+
+.emptyWorkspaceHero .dashboardPageHeroCopy h1 {
+  max-width: 780px;
+  font-size: var(--hero-heading-size) !important;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.emptyWorkspaceStarters.dashboardVisualSection {
+  gap: 12px;
+  padding: 16px 18px;
+}
+
+.emptyWorkspaceStarters.dashboardVisualSection > .dashboardSectionHeader {
+  padding-bottom: 10px;
+}
+
+.emptyWorkspaceSuggestionGrid .dashboardActionCard {
+  min-height: 148px;
+  padding: 14px;
+}
+
 .emptyWorkspaceCapabilityGrid.dashboardCardGrid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -3283,6 +3386,7 @@
 
 .workspaceMessageMetaDetail small:is(
   [data-phase="streaming"],
+  [data-phase="answering"],
   [data-phase="thinking"],
   [data-phase="connecting"],
   [data-phase="planning"],
@@ -3313,6 +3417,92 @@
   font-size: var(--body-copy-size);
   line-height: 1.5;
   white-space: pre-wrap;
+}
+
+.workspaceMessageResponse,
+.conversationMarkdown {
+  min-width: 0;
+}
+
+.conversationMarkdown {
+  display: grid;
+  gap: 10px;
+  color: var(--muted-strong);
+  font-size: var(--body-copy-size);
+  line-height: 1.55;
+}
+
+.conversationMarkdown :is(h2, h3, h4) {
+  margin: 4px 0 0;
+  color: var(--foreground);
+  font-size: 1em;
+  line-height: 1.35;
+}
+
+.conversationMarkdown :is(ul, ol) {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.conversationMarkdown li {
+  padding-left: 2px;
+}
+
+.conversationMarkdown blockquote {
+  margin: 0;
+  padding: 8px 10px;
+  border-left: 2px solid var(--teal);
+  border-radius: 0 var(--dashboard-radius-control) var(--dashboard-radius-control) 0;
+  background: color-mix(in srgb, var(--teal) 7%, transparent);
+}
+
+.conversationMarkdown :not(pre) > code {
+  padding: 1px 5px;
+  border: 1px solid color-mix(in srgb, var(--blue) 22%, var(--dashboard-border));
+  border-radius: 5px;
+  color: var(--blue);
+  background: var(--dashboard-surface-inset);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+
+.conversationCodeBlock {
+  min-width: 0;
+  margin: 2px 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--blue) 24%, var(--dashboard-border));
+  border-radius: var(--dashboard-radius-control);
+  background: color-mix(in srgb, var(--dashboard-surface-inset) 92%, black);
+}
+
+.conversationCodeBlock figcaption {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--dashboard-border);
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 6%, transparent);
+  font-size: 9px;
+  font-weight: 820;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.conversationCodeBlock pre {
+  max-width: 100%;
+  margin: 0;
+  overflow: auto;
+  padding: 12px;
+  color: var(--foreground);
+  font-family: var(--font-mono);
+  font-size: var(--code-font-size);
+  line-height: 1.55;
+  overscroll-behavior: contain;
+}
+
+.conversationCodeBlock code {
+  font: inherit;
+  white-space: pre;
 }
 
 .workspaceMessageActivity {
@@ -3453,6 +3643,8 @@
 
 .workspaceComposer textarea::placeholder {
   color: var(--muted-strong);
+  font-size: clamp(16px, 1vw, 18px);
+  line-height: 1.45;
   opacity: 0.88;
 }
 
@@ -3460,7 +3652,7 @@
   display: grid;
   min-width: 0;
   min-height: 56px;
-  grid-template-columns: minmax(36px, 1fr) auto minmax(78px, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--dashboard-space-3);
   padding: 8px var(--dashboard-space-3);
@@ -4007,11 +4199,11 @@ button.workspaceAttachmentOption:focus-visible {
   }
 
   .workspaceComposerControlsSlot {
-    justify-self: end;
+    justify-self: center;
   }
 
   .workspaceGenerationControls {
-    justify-content: flex-end;
+    justify-content: center;
     gap: 12px;
   }
 }
@@ -4240,7 +4432,7 @@ button.workspaceAttachmentOption:focus-visible {
 
 .previewShelf .previewArtworkControls .previewControlButton:focus-visible,
 .previewFullscreenClose .previewControlButton:focus-visible,
-.previewRuntimeRecoveryButton:focus-visible {
+.previewRuntimeActionButton:focus-visible {
   box-shadow:
     0 0 0 2px #05080c,
     0 0 0 4px var(--preview-hud-accent);
@@ -4367,24 +4559,14 @@ button.workspaceAttachmentOption:focus-visible {
   --surface-2: rgba(24, 31, 41, 0.96);
   --accent-rgb: 103, 185, 255;
   --teal: var(--preview-hud-accent);
-  right: 12px;
   z-index: 6;
-  width: min(360px, calc(100% - 24px));
-  max-height: calc(100% - 24px);
-  overflow: auto;
-  padding: 10px;
-  border: 1px solid rgba(255, 150, 135, 0.3);
-  border-radius: var(--dashboard-radius-card, 14px);
-  background: rgba(5, 8, 12, 0.93);
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.36);
-  scrollbar-width: thin;
 }
 
 .previewSurface[data-chrome="immersive"] .previewRuntimeErrorBoundary {
   bottom: 12px;
 }
 
-.previewRuntimeErrorBoundary .subsystemErrorCallout,
+.previewRuntimeErrorCard,
 .previewRuntimePresenterFallback {
   border-color: rgba(255, 150, 135, 0.28);
   background:
@@ -4400,14 +4582,14 @@ button.workspaceAttachmentOption:focus-visible {
   color: var(--preview-hud-muted);
 }
 
-.previewRuntimeRecoveryButton {
+.previewRuntimeActionButton--primary {
   border-color: rgba(103, 185, 255, 0.44);
   color: var(--preview-hud-text);
   background: rgba(31, 93, 146, 0.5);
 }
 
-.previewRuntimeRecoveryButton:hover,
-.previewRuntimeRecoveryButton:focus-visible {
+.previewRuntimeActionButton:hover,
+.previewRuntimeActionButton:focus-visible {
   border-color: rgba(103, 185, 255, 0.72);
   background: rgba(39, 112, 175, 0.68);
   outline: none;
@@ -4564,8 +4746,10 @@ button.workspaceAttachmentOption:focus-visible {
   .previewRuntimeErrorBoundary {
     right: 8px;
     bottom: 8px;
-    width: calc(100% - 16px);
+    left: 8px;
+    width: auto;
     max-height: calc(100% - 56px);
+    transform: none;
   }
 }
 
@@ -4599,9 +4783,413 @@ button.workspaceAttachmentOption:focus-visible {
   }
 }
 
+.architectureWorkflowComparison {
+  display: grid;
+  gap: 14px;
+  margin: 0 18px 18px;
+  padding: 16px;
+  border: 1px solid var(--dashboard-border, var(--line));
+  border-radius: var(--dashboard-radius-panel, 16px);
+  background:
+    radial-gradient(circle at 82% 0%, rgba(var(--accent-rgb), 0.12), transparent 34%),
+    var(--dashboard-surface-inset, rgba(0, 0, 0, 0.12));
+  box-shadow: var(--dashboard-shadow-inset, var(--panel-highlight));
+}
+
+.architectureWorkflowComparisonHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 18px;
+}
+
+.architectureWorkflowComparisonHeader > div:first-child {
+  display: grid;
+  gap: 5px;
+}
+
+.architectureWorkflowComparisonHeader > div:first-child > span,
+.architectureQualityRationale span {
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.architectureWorkflowComparisonHeader h3 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: clamp(19px, 1.55vw, 24px);
+  letter-spacing: -0.025em;
+  line-height: 1.12;
+}
+
+.architectureWorkflowComparisonHeader p {
+  max-width: 790px;
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.48;
+}
+
+.architectureWorkflowLegend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.architectureWorkflowLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 9px;
+  border: 1px solid var(--dashboard-border, var(--line));
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 10px;
+  font-weight: 760;
+}
+
+.architectureWorkflowLegend span::before {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+  content: "";
+}
+
+.architectureWorkflowLegend span[data-kind="agent"] {
+  border-color: rgba(var(--accent-rgb), 0.28);
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.07);
+}
+
+.architectureWorkflowLegend span[data-kind="agent"]::before {
+  background: rgb(var(--accent-rgb));
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12);
+}
+
+.architectureWorkflowRouteGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+  align-items: start;
+  gap: 12px;
+}
+
+.architectureWorkflowRoute {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--dashboard-border, var(--line));
+  border-radius: var(--dashboard-radius-card, 14px);
+  background: var(--dashboard-surface-card, rgba(255, 255, 255, 0.025));
+  box-shadow: var(--dashboard-shadow-inset, var(--panel-highlight));
+}
+
+.architectureWorkflowRoute[data-selected="true"] {
+  border-color: rgba(var(--accent-rgb), 0.58);
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.11), transparent 54%),
+    var(--dashboard-surface-card, rgba(255, 255, 255, 0.025));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(var(--accent-rgb), 0.08);
+}
+
+.architectureWorkflowRoute > header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+}
+
+.architectureWorkflowRouteIcon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid rgba(var(--accent-rgb), 0.25);
+  border-radius: 11px;
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.075);
+}
+
+.architectureWorkflowRoute > header > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.architectureWorkflowRoute > header small,
+.architectureWorkflowStage > header small {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 820;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.architectureWorkflowRoute > header h4 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 17px;
+  line-height: 1.18;
+}
+
+.architectureWorkflowRoute > header p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.42;
+}
+
+.architectureWorkflowRoute > header > strong {
+  padding: 5px 8px;
+  border: 1px solid var(--dashboard-border, var(--line));
+  border-radius: 999px;
+  color: var(--muted-strong);
+  background: rgba(0, 0, 0, 0.12);
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.architectureWorkflowRoute[data-selected="true"] > header > strong {
+  border-color: rgba(var(--accent-rgb), 0.3);
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.09);
+}
+
+.architectureWorkflowStages {
+  display: grid;
+  gap: 8px;
+}
+
+.architectureWorkflowStage {
+  position: relative;
+  display: grid;
+  gap: 9px;
+  padding: 11px;
+  border: 1px solid var(--dashboard-border, var(--line));
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.architectureWorkflowStage + .architectureWorkflowStage::before {
+  position: absolute;
+  top: -9px;
+  left: 28px;
+  width: 1px;
+  height: 8px;
+  background: var(--dashboard-border-strong, var(--line-strong));
+  content: "";
+}
+
+.architectureWorkflowStage[data-kind="agent"] {
+  border-color: rgba(var(--accent-rgb), 0.27);
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.075), transparent 62%),
+    rgba(0, 0, 0, 0.1);
+}
+
+.architectureWorkflowStage > header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 9px;
+}
+
+.architectureWorkflowStage > header > span {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border: 1px solid var(--dashboard-border, var(--line));
+  border-radius: 8px;
+  color: var(--muted-strong);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.architectureWorkflowStage[data-kind="agent"] > header > span {
+  border-color: rgba(var(--accent-rgb), 0.25);
+  color: var(--teal);
+  background: rgba(var(--accent-rgb), 0.08);
+}
+
+.architectureWorkflowStage > header > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.architectureWorkflowStage h5 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.architectureWorkflowStage > header p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 10.5px;
+  line-height: 1.42;
+}
+
+.architectureWorkflowStage > ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.architectureWorkflowStage > ol > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 7px;
+  min-width: min(100%, 124px);
+  padding: 6px 8px;
+  border: 1px solid var(--dashboard-border, var(--line));
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.architectureWorkflowStage > ol code,
+.architectureSkippedNodes code {
+  color: var(--teal);
+  font-family: "SFMono-Regular", "Cascadia Code", "Liberation Mono", monospace;
+  font-size: 9px;
+  font-weight: 720;
+}
+
+.architectureWorkflowStage > ol span {
+  grid-column: 1 / -1;
+  color: var(--muted-strong);
+  font-size: 9px;
+}
+
+.architectureWorkflowStage > ol em {
+  color: var(--muted);
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 760;
+  white-space: nowrap;
+}
+
+.architectureAgentCapabilities {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.architectureAgentCapabilities li {
+  position: relative;
+  padding-left: 13px;
+  color: var(--muted-strong);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.architectureAgentCapabilities li::before {
+  position: absolute;
+  top: 0.54em;
+  left: 1px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgb(var(--accent-rgb));
+  content: "";
+}
+
+.architectureSkippedNodes,
+.architectureAgentBoundary {
+  display: grid;
+  gap: 7px;
+  padding: 11px;
+  border: 1px dashed var(--dashboard-border-strong, var(--line-strong));
+  border-radius: 11px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.architectureSkippedNodes > strong,
+.architectureAgentBoundary > strong {
+  color: var(--foreground);
+  font-size: 11px;
+}
+
+.architectureSkippedNodes > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.architectureSkippedNodes code {
+  padding: 4px 6px;
+  border: 1px solid var(--dashboard-border, var(--line));
+  border-radius: 7px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.025);
+  text-decoration: line-through;
+  text-decoration-color: rgba(var(--accent-rgb), 0.65);
+}
+
+.architectureSkippedNodes p,
+.architectureAgentBoundary p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 10px;
+  line-height: 1.42;
+}
+
+.architectureQualityRationale {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.architectureQualityRationale > div {
+  display: grid;
+  gap: 5px;
+  padding: 11px;
+  border: 1px solid var(--dashboard-border, var(--line));
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.architectureQualityRationale strong {
+  color: var(--foreground);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.architectureQualityRationale p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 10px;
+  line-height: 1.42;
+}
+
+.architectureQualityRationale code {
+  color: var(--teal);
+  font-family: "SFMono-Regular", "Cascadia Code", "Liberation Mono", monospace;
+  font-size: 0.92em;
+}
+
 @media (max-width: 1120px) {
   .dashboardProcessRail[data-variant="journey"] {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .architectureWorkflowRouteGrid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .dashboardProcessRail[data-variant="journey"] .dashboardProcessRailConnector {
@@ -4625,11 +5213,34 @@ button.workspaceAttachmentOption:focus-visible {
   .evaluationRagasMetricGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .architectureWorkflowComparisonHeader,
+  .architectureQualityRationale {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .architectureWorkflowLegend {
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 760px) {
   .dashboardPage > .dashboardPageHero {
     margin: 12px 12px 0;
+  }
+
+  .architectureWorkflowComparison {
+    margin: 0 12px 12px;
+    padding: 12px;
+  }
+
+  .architectureWorkflowRoute > header {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .architectureWorkflowRoute > header > strong {
+    grid-column: 1 / -1;
+    justify-self: start;
   }
 
   .dashboardSettings .dashboardThemeChoices,

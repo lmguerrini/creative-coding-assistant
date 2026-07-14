@@ -227,6 +227,15 @@ class PromptTemplateFoundationTests(unittest.TestCase):
                 previewEligible=True,
                 qualityScore=0.91,
                 qualityRank=1,
+                passNumber=2,
+                maxPasses=3,
+                refinementObjective="Increase luminance while preserving structure.",
+                refinementPasses=(
+                    {
+                        "passNumber": 1,
+                        "stopReason": "quality_improved",
+                    },
+                ),
                 critiqueRationale="Strong visual candidate.",
                 refinementGuidance="Soften particle motion.",
             ),
@@ -263,6 +272,8 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         self.assertIn("- Artifact ID: source-sketch", user_section.content)
         self.assertIn("- Runtime: p5", user_section.content)
         self.assertIn("- Quality Score: 0.91", user_section.content)
+        self.assertIn("- Refinement Pass: 2", user_section.content)
+        self.assertIn("- Pass 1: quality_improved", user_section.content)
         self.assertIn("Strong visual candidate.", user_section.content)
         self.assertIn("function draw() { background(0); }", user_section.content)
 

@@ -69,6 +69,19 @@ describe("p5 preview source classification", () => {
 
     expect(getP5RuntimeSourceSupportIssue(source)).toBeNull();
   });
+
+  it("does not mistake a parenthesized return expression for a function call", () => {
+    const source = [
+      "function setup() { createCanvas(320, 180); }",
+      "function boundedMax(a, b) { return (a > b) ? a : b; }",
+      "function draw() {",
+      "  background(8);",
+      "  circle(width / 2, height / 2, boundedMax(24, 32));",
+      "}"
+    ].join("\n");
+
+    expect(getP5RuntimeSourceSupportIssue(source)).toBeNull();
+  });
 });
 
 describe("GLSL preview source classification", () => {
@@ -91,6 +104,27 @@ describe("GLSL preview source classification", () => {
     expect(
       getGlslRuntimeSourceSupportIssue(
         "// texture is not used here\nvoid main() { gl_FragColor = vec4(1.0); }"
+      )
+    ).toBeNull();
+  });
+
+  it("rejects common refinement contamination before WebGL compilation", () => {
+    expect(
+      getGlslRuntimeSourceSupportIssue(
+        "float field(vec2 uv): float { return uv.x; }\nvoid main() { gl_FragColor = vec4(field(vec2(0.5))); }"
+      )
+    ).toContain("non-GLSL colon syntax");
+    expect(
+      getGlslRuntimeSourceSupportIssue(
+        "```glsl\nvoid main() { gl_FragColor = vec4(1.0); }\n```"
+      )
+    ).toContain("Markdown fences");
+  });
+
+  it("keeps valid GLSL ternary expressions previewable", () => {
+    expect(
+      getGlslRuntimeSourceSupportIssue(
+        "void main() { float value = u_time > 1.0 ? 1.0 : 0.0; gl_FragColor = vec4(value); }"
       )
     ).toBeNull();
   });

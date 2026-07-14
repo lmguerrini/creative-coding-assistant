@@ -41,7 +41,12 @@ describe("SessionSidebar", () => {
 
     const sidebar = screen.getByRole("complementary", { name: "Sessions" });
     expect(within(sidebar).getByText("Workspace")).toBeVisible();
-    expect(within(sidebar).getByText("Browser-local history")).toBeVisible();
+    const historyBoundary = within(sidebar)
+      .getByText("Browser-local history")
+      .closest("footer");
+    expect(historyBoundary).toBeVisible();
+    expect(historyBoundary).toHaveAttribute("data-has-icon", "false");
+    expect(historyBoundary?.querySelector("svg")).not.toBeInTheDocument();
     expect(
       within(within(sidebar).getByRole("list", { name: "Saved sessions" }))
         .getAllByRole("listitem")
@@ -52,7 +57,14 @@ describe("SessionSidebar", () => {
     });
     expect(currentSession).toHaveAttribute("aria-current", "true");
     expect(currentSession).not.toHaveAttribute("aria-pressed");
+    expect(currentSession).toHaveAttribute("data-has-icon", "false");
     expect(currentSession).toHaveAccessibleDescription(/2 artifacts.*Saved/i);
+
+    const currentActions = within(sidebar).getByRole("group", {
+      name: "Current session actions"
+    });
+    expect(within(currentActions).queryByText("Rename")).not.toBeInTheDocument();
+    expect(within(currentActions).queryByText("Delete")).not.toBeInTheDocument();
 
     fireEvent.click(within(sidebar).getByRole("button", { name: "New session" }));
     expect(props.onCreate).toHaveBeenCalledOnce();

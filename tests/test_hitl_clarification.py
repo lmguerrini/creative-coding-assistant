@@ -72,6 +72,49 @@ class HitlClarificationTests(unittest.TestCase):
             clarification.questions[0].suggested_options,
         )
 
+    def test_shader_tone_mapping_is_not_mistaken_for_tone_js(self) -> None:
+        query = (
+            "Create a WebGL fragment shader with a luminous solar bloom, soft "
+            "tone mapping, and a gentle gamma lift. "
+            + "Keep the full-frame petal detail bright and legible. " * 18
+        )
+        route_decision = _route_decision()
+        translation = derive_creative_translation(
+            query,
+            domains=route_decision.domains,
+        )
+
+        clarification = derive_hitl_clarification(
+            query=query,
+            route_decision=route_decision,
+            creative_translation=translation,
+        )
+        prompt_input = StructuredPromptInputBuilder().build(
+            build_prompt_input_request(
+                assistant_request=AssistantRequest(query=query),
+                route_decision=route_decision,
+                assembled_context=None,
+            )
+        )
+
+        self.assertGreater(len(query), 800)
+        self.assertIsNone(clarification)
+        self.assertIsNone(prompt_input.clarification)
+
+    def test_long_ambiguous_query_keeps_bounded_clarification_metadata(
+        self,
+    ) -> None:
+        query = "Make something evocative about rain. " + (
+            "Preserve the atmosphere and emotional pacing. " * 24
+        )
+
+        clarification = _clarification_for(query)
+
+        self.assertIsNotNone(clarification)
+        assert clarification is not None
+        self.assertEqual(len(clarification.original_query), 800)
+        self.assertTrue(clarification.original_query.endswith("…"))
+
     def test_high_cost_multi_candidate_request_gets_direction_questions(
         self,
     ) -> None:

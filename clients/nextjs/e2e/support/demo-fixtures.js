@@ -94,13 +94,20 @@ const fractalSolarBloomSource = [
   "  vec2 uv = (2.0 * gl_FragCoord.xy - u_resolution.xy) / min(u_resolution.x, u_resolution.y);",
   "  float angle = atan(uv.y, uv.x);",
   "  float radius = length(uv);",
-  "  float fold = abs(sin(angle * 8.0 + sin(angle * 3.0) * 1.8));",
-  "  float petals = exp(-5.0 * abs(radius - 0.32 - fold * 0.13));",
-  "  float corona = 0.025 / max(abs(radius - 0.62 + 0.05 * sin(angle * 16.0 + u_time)), 0.012);",
-  "  vec3 indigo = vec3(0.015, 0.02, 0.11);",
-  "  vec3 cyan = vec3(0.08, 0.82, 1.0);",
-  "  vec3 gold = vec3(1.0, 0.57, 0.12);",
-  "  vec3 color = indigo + cyan * petals + gold * corona * (0.32 + 0.18 * sin(u_time));",
+  "  float breath = 0.5 + 0.5 * sin(u_time * 0.65);",
+  "  float fold = abs(sin(angle * 8.0 + sin(angle * 3.0 - u_time * 0.12) * 1.8));",
+  "  float petalRadius = 0.34 + fold * 0.16 + breath * 0.025;",
+  "  float petals = exp(-11.0 * abs(radius - petalRadius));",
+  "  float inner = exp(-8.0 * radius) * (1.15 + 0.25 * sin(angle * 12.0));",
+  "  float corona = 0.04 / max(abs(radius - 0.62 + 0.045 * sin(angle * 18.0 + u_time * 0.3)), 0.02);",
+  "  float rays = pow(0.5 + 0.5 * cos(angle * 24.0 - u_time * 0.25), 10.0) * exp(-2.4 * radius);",
+  "  vec3 indigo = mix(vec3(0.035, 0.055, 0.20), vec3(0.16, 0.035, 0.25), 0.5 + 0.5 * uv.y);",
+  "  vec3 cyan = vec3(0.10, 0.95, 1.20);",
+  "  vec3 gold = vec3(1.35, 0.62, 0.12);",
+  "  vec3 coral = vec3(1.15, 0.18, 0.34);",
+  "  vec3 color = indigo + cyan * petals * 0.85 + gold * (inner + corona * 0.58) + coral * petals * fold * 0.55 + cyan * rays * 0.28;",
+  "  color = vec3(1.0) - exp(-color * 1.15);",
+  "  color = pow(max(color, vec3(0.0)), vec3(0.78));",
   "  gl_FragColor = vec4(color, 1.0);",
   "}"
 ].join("\n");
@@ -228,7 +235,7 @@ const showcaseSmokeCases = [
     },
     requestTokens: [
       "fractal-solar-bloom.frag",
-      "analytic polar folds",
+      "float spiral(vec2 p,float scale,float twist)",
       "gl_FragColor"
     ],
     qualityTokens: [

@@ -98,7 +98,14 @@ export const demoShowcaseValidationFixtures = [
   {
     scenarioId: "physarum-p5-hero",
     runtimeKind: "p5",
-    requiredPromptTokens: ["setup()", "draw()", "golden-angle", "pointer parallax"],
+    requiredPromptTokens: [
+      "setup()",
+      "draw()",
+      "golden-angle",
+      "pointer parallax",
+      "Use only these supported p5 calls",
+      "Use frameCount for time"
+    ],
     smokeChecks: completeShowcaseSmokeChecks,
     visibleOutputContract: "Nonblank animated aurora garden with visible pointer parallax."
   },
@@ -206,8 +213,18 @@ export function validateDemoPromptContracts(
 
   for (const scenario of scenarios) {
     const fixtureKind = fixtureKindForScenario(scenario);
-    if (fixtureKind === "browser_runtime" && !/return only/i.test(scenario.prompt)) {
+    if (
+      fixtureKind === "browser_runtime" &&
+      !/return (?:only|exactly)/i.test(scenario.prompt)
+    ) {
       issues.push(`${scenario.id}: browser-runtime prompt must request an artifact only.`);
+    }
+    if (
+      /p5\.js browser preview/i.test(scenario.runtime) &&
+      (!scenario.prompt.includes("Use only these supported p5 calls") ||
+        !scenario.prompt.includes("Use frameCount for time"))
+    ) {
+      issues.push(`${scenario.id}: p5 demo prompt must include the bounded runtime surface.`);
     }
     if (fixtureKind === "controlled_failure" && !/do not claim/i.test(scenario.prompt)) {
       issues.push(`${scenario.id}: failure rehearsal must prohibit a false preview claim.`);

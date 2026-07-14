@@ -24,6 +24,8 @@ describe("ArtifactRefinementPanel", () => {
       />
     );
 
+    fireEvent.click(screen.getByText("Advanced parameters"));
+
     const parameterPanel = screen.getByRole("region", {
       name: "Artifact parameter controls"
     });
@@ -51,7 +53,7 @@ describe("ArtifactRefinementPanel", () => {
     await act(async () => {
       fireEvent.click(
         screen.getByRole("button", {
-          name: "Refine with parameter changes"
+          name: "Apply instruction + parameters"
         })
       );
     });
@@ -82,6 +84,8 @@ describe("ArtifactRefinementPanel", () => {
       />
     );
 
+    fireEvent.click(screen.getByText("Advanced parameters"));
+
     fireEvent.change(screen.getByLabelText("Movement complexity parameter"), {
       target: { value: "9" }
     });
@@ -93,7 +97,7 @@ describe("ArtifactRefinementPanel", () => {
       "3"
     );
     expect(
-      screen.getByRole("button", { name: "Refine selected artifact" })
+      screen.getByRole("button", { name: "Apply refinement" })
     ).toBeDisabled();
     expect(onArtifactRefine).not.toHaveBeenCalled();
   });
@@ -120,13 +124,14 @@ describe("ArtifactRefinementPanel", () => {
       />
     );
 
+    fireEvent.click(screen.getByText("Advanced parameters"));
     expect(screen.getByText("No safe parameters derived")).toBeVisible();
     fireEvent.change(screen.getByLabelText("Refinement instruction"), {
       target: { value: "Make the output more concise." }
     });
     await act(async () => {
       fireEvent.click(
-        screen.getByRole("button", { name: "Refine selected artifact" })
+        screen.getByRole("button", { name: "Apply refinement" })
       );
     });
 
@@ -183,6 +188,34 @@ describe("ArtifactRefinementPanel", () => {
     expect(
       screen.getByRole("button", { name: "Refinement limit reached" })
     ).toBeDisabled();
+  });
+
+  it("keeps the instruction and renders an accessible inline error when submission rejects", async () => {
+    const onArtifactRefine = vi.fn(async () => {
+      throw new Error("Connection lost");
+    });
+
+    render(
+      <ArtifactRefinementPanel
+        artifact={visualArtifact()}
+        disabled={false}
+        onArtifactRefine={onArtifactRefine}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText("Refinement instruction"), {
+      target: { value: "Make it brighter" }
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Apply refinement" }));
+    });
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "The refinement could not start"
+    );
+    expect(screen.getByLabelText("Refinement instruction")).toHaveValue(
+      "Make it brighter"
+    );
   });
 });
 

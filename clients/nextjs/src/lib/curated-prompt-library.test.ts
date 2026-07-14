@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  boundedP5DemoSurfaceContract,
   demoShowcasePromptLibrary,
   domainStarterPromptLibrary,
   homepagePromptLibrary,
@@ -46,6 +47,17 @@ describe("curated prompt library", () => {
     ).toEqual([]);
   });
 
+  it("keeps generated p5 demos inside the preview allowlist", () => {
+    const aurora = demoShowcasePromptLibrary.find(
+      (candidate) => candidate.id === "recursive-aurora-garden"
+    );
+
+    expect(boundedP5DemoSurfaceContract).toContain("Use frameCount for time");
+    expect(boundedP5DemoSurfaceContract).toContain("Do not use createGraphics");
+    expect(aurora?.prompt).toContain(boundedP5DemoSurfaceContract);
+    expect(rhythmicLineStudyPrompt.prompt).toContain(boundedP5DemoSurfaceContract);
+  });
+
   it("authors the Three.js demo hero around geometry, camera, and parent transforms", () => {
     const prompt = demoShowcasePromptLibrary.find(
       (candidate) => candidate.id === "kinetic-orbit-capstone"
@@ -67,6 +79,21 @@ describe("curated prompt library", () => {
     expect(prompt?.prompt).toContain("TorusKnotGeometry");
     expect(prompt?.prompt).toContain("warm-gold sculpture");
     expect(prompt?.prompt).toContain("never call setHSL");
+  });
+
+  it("keeps the GLSL demo close to the blue-gold spiral reference", () => {
+    const prompt = demoShowcasePromptLibrary.find(
+      (candidate) => candidate.id === "fractal-solar-bloom"
+    );
+
+    expect(prompt?.prompt).toContain("compile-ready WebGL 1 source under 80 lines");
+    expect(prompt?.prompt).toContain("uniform float u_time; uniform vec2 u_resolution;");
+    expect(prompt?.prompt).toContain("float spiral(vec2 p,float scale,float twist)");
+    expect(prompt?.prompt).toContain("asymmetric logarithmic nautilus curls");
+    expect(prompt?.prompt).toContain("cyan-white rims and amber-gold cores");
+    expect(prompt?.prompt).toContain("avoid a centered flower");
+    expect(prompt?.prompt).toContain("balance braces/parentheses");
+    expect(prompt?.prompt.length).toBeLessThanOrEqual(800);
   });
 
   it("records all canonical morphogenesis inspirations without claiming external execution", () => {

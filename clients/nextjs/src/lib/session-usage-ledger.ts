@@ -27,7 +27,10 @@ type UsageLedger = {
 
 export type SessionUsageSummary = {
   sessionId: string;
+  title: string;
   runCount: number;
+  latestTokens: number | null;
+  latestCost: number | null;
   knownTokenRunCount: number;
   totalTokens: number | null;
   knownCostRunCount: number;
@@ -70,7 +73,7 @@ export function recordSessionUsageRun({
   };
   const runs = existing?.runs.some((entry) => entry.id === run.id)
     ? existing.runs
-    : [...(existing?.runs ?? []), nextRun].slice(-80);
+    : [...(existing?.runs ?? []), nextRun];
   const nextEntry: StoredSessionUsage = {
     sessionId,
     title,
@@ -85,14 +88,45 @@ export function recordSessionUsageRun({
   return ledger.users[userId].map(summarizeSessionUsage);
 }
 
+export function deleteSessionUsage(
+  userId: string,
+  sessionId: string,
+  storage: Storage | null = resolveStorage()
+): SessionUsageSummary[] {
+  const ledger = readLedger(storage);
+  ledger.users[userId] = (ledger.users[userId] ?? []).filter(
+    (entry) => entry.sessionId !== sessionId
+  );
+  writeLedger(ledger, storage);
+  return ledger.users[userId].map(summarizeSessionUsage);
+}
+
+export function renameSessionUsage(
+  userId: string,
+  sessionId: string,
+  title: string,
+  storage: Storage | null = resolveStorage()
+): SessionUsageSummary[] {
+  const ledger = readLedger(storage);
+  ledger.users[userId] = (ledger.users[userId] ?? []).map((entry) =>
+    entry.sessionId === sessionId ? { ...entry, title } : entry
+  );
+  writeLedger(ledger, storage);
+  return ledger.users[userId].map(summarizeSessionUsage);
+}
+
 function summarizeSessionUsage(entry: StoredSessionUsage): SessionUsageSummary {
+  const latestRun = entry.runs.at(-1) ?? null;
   const knownTokenRuns = entry.runs.filter((run) => run.totalTokens != null);
   const knownCostRuns = entry.runs.filter((run) => run.cost != null);
   const currencies = new Set(knownCostRuns.map((run) => run.currency));
 
   return {
     sessionId: entry.sessionId,
+    title: entry.title,
     runCount: entry.runs.length,
+    latestTokens: latestRun?.totalTokens ?? null,
+    latestCost: latestRun?.cost ?? null,
     knownTokenRunCount: knownTokenRuns.length,
     totalTokens:
       knownTokenRuns.length > 0

@@ -267,19 +267,62 @@ pre,
 }
 
 .subsystemErrorMessage,
-.subsystemErrorAction,
 .subsystemErrorDebug {
   margin: 0;
 }
 
-.subsystemErrorAction,
-.subsystemErrorDebug,
 .subsystemErrorMeta dt {
   color: var(--muted);
   font-size: 12px;
 }
 
+.subsystemErrorMessage,
+.subsystemErrorAction p,
+.subsystemErrorMeta dd,
 .subsystemErrorDebug code {
+  overflow-wrap: anywhere;
+}
+
+.subsystemErrorAction {
+  display: grid;
+  gap: 3px;
+  padding: 9px 10px;
+  border-left: 2px solid rgba(255, 122, 102, 0.5);
+  border-radius: 0 9px 9px 0;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.subsystemErrorAction span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.subsystemErrorAction p {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.subsystemErrorDebug {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.subsystemErrorDebug summary {
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.subsystemErrorDebug code {
+  display: block;
+  margin-top: 7px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
   white-space: pre-wrap;
 }
 
@@ -307,6 +350,7 @@ pre,
   margin: 0;
   color: var(--foreground);
   font-size: 12px;
+  overflow-wrap: anywhere;
 }
 
 .chatErrorCallout,
@@ -328,16 +372,168 @@ pre,
 
 .previewRuntimeErrorBoundary {
   position: absolute;
-  right: 10px;
-  bottom: 54px;
-  z-index: 2;
-  display: grid;
-  gap: 8px;
-  width: min(320px, calc(100% - 20px));
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  z-index: 6;
+  display: flex;
+  justify-content: center;
+  max-height: calc(100% - 24px);
+  overflow: auto;
+  scrollbar-width: thin;
 }
 
-.previewRuntimeErrorCallout {
-  width: 100%;
+.previewRuntimeErrorCard {
+  display: grid;
+  gap: 9px;
+  width: min(520px, 100%);
+  padding: 13px;
+  border: 1px solid rgba(255, 150, 135, 0.32);
+  border-radius: 14px;
+  color: var(--foreground);
+  background:
+    linear-gradient(135deg, rgba(255, 118, 96, 0.1), transparent 58%),
+    rgba(10, 14, 20, 0.96);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+}
+
+.previewRuntimeErrorCardHeader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.previewRuntimeErrorIcon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid rgba(255, 150, 135, 0.3);
+  border-radius: 9px;
+  color: #ff9c88;
+  background: rgba(255, 118, 96, 0.1);
+}
+
+.previewRuntimeErrorCardHeader div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.previewRuntimeErrorCardHeader div > span,
+.previewRuntimeErrorCardHeader small {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.previewRuntimeErrorCardHeader h3 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.previewRuntimeErrorCardHeader small {
+  padding: 4px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.previewRuntimeErrorMessage,
+.previewRuntimeErrorGuidance {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.previewRuntimeErrorMessage {
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.previewRuntimeErrorGuidance {
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.previewRuntimeErrorLocation {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid rgba(103, 185, 255, 0.24);
+  border-radius: 999px;
+  color: #9ed4ff;
+  background: rgba(51, 156, 255, 0.1);
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.previewRuntimeErrorActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.previewRuntimeActionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 9px;
+  color: var(--foreground);
+  background: rgba(255, 255, 255, 0.055);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.previewRuntimeActionButton--primary {
+  border-color: rgba(103, 185, 255, 0.44);
+  background: rgba(31, 93, 146, 0.5);
+}
+
+.previewRuntimeActionButton:hover,
+.previewRuntimeActionButton:focus-visible {
+  border-color: rgba(103, 185, 255, 0.7);
+  background: rgba(39, 112, 175, 0.62);
+  outline: none;
+}
+
+.previewRuntimeErrorDetails {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.previewRuntimeErrorDetails summary {
+  width: fit-content;
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.previewRuntimeErrorDetails code {
+  display: block;
+  max-height: 96px;
+  margin-top: 7px;
+  overflow: auto;
+  padding: 8px;
+  border-radius: 8px;
+  color: var(--muted-strong);
+  background: rgba(0, 0, 0, 0.28);
+  font-size: 10px;
+  line-height: 1.4;
+  white-space: pre-wrap;
 }
 
 .previewRuntimePresenterFallback {
@@ -363,27 +559,6 @@ pre,
   color: var(--muted-strong);
   font-size: 12px;
   line-height: 1.35;
-}
-
-.previewRuntimeRecoveryButton {
-  justify-self: end;
-  padding: 7px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 999px;
-  background: rgba(var(--accent-rgb), 0.18);
-  color: var(--foreground);
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.previewRuntimeRecoveryButton:hover,
-.previewRuntimeRecoveryButton:focus-visible {
-  border-color: rgba(var(--accent-rgb), 0.38);
-  background: rgba(var(--accent-rgb), 0.26);
 }
 
 html[data-cca-theme="codex"] {
@@ -2588,7 +2763,6 @@ a {
 }
 
 .workflowSummaryMeta span,
-.workflowTransitionPill,
 .workflowNodeMeta span,
 .workflowTraceCard header span {
   padding: 4px 8px;
@@ -3234,28 +3408,6 @@ a {
 
 .miniStep[data-state="failed"] strong {
   color: var(--foreground);
-}
-
-.workflowMiniTransitions {
-  display: grid;
-  gap: 8px;
-}
-
-.workflowMiniTransitions p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-.workflowTransitionPill[data-kind="retry"] {
-  border-color: rgba(243, 184, 82, 0.24);
-  color: var(--amber);
-}
-
-.workflowTransitionPill[data-kind="failure"] {
-  border-color: rgba(255, 122, 102, 0.24);
-  color: var(--coral);
 }
 
 .overviewTelemetryTile[data-state="complete"] {
@@ -4409,6 +4561,44 @@ a {
 
 .telemetrySignalGrid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.telemetrySessionUsage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.telemetrySessionUsage article {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  gap: 5px;
+  padding: 11px;
+  border: 1px solid rgba(var(--accent-rgb), 0.22);
+  border-radius: 15px;
+  background: rgba(var(--accent-rgb), 0.065);
+}
+
+.telemetrySessionUsage span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.telemetrySessionUsage strong {
+  overflow-wrap: anywhere;
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.telemetrySessionUsage p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 10px;
+  line-height: 1.4;
 }
 
 .telemetryDashboardGrid {
@@ -6361,13 +6551,14 @@ a {
 
 .artifactRefinementCard {
   display: grid;
-  gap: 10px;
-  padding: 10px;
-  border: 1px solid rgba(var(--accent-rgb), 0.18);
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(var(--accent-rgb), 0.26);
   border-radius: 14px;
   background:
-    linear-gradient(135deg, rgba(var(--accent-rgb), 0.07), transparent 70%),
-    rgba(255, 255, 255, 0.035);
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.09), transparent 64%),
+    var(--panel-soft);
+  box-shadow: var(--panel-highlight);
 }
 
 .artifactRefinementCard > header {
@@ -6389,6 +6580,15 @@ a {
 .artifactRefinementCard header strong {
   display: block;
   color: var(--foreground);
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.artifactRefinementCard > header p {
+  margin: 4px 0 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .artifactRefinedBadge {
@@ -6809,8 +7009,24 @@ a {
 
 .artifactRefinementForm {
   display: grid;
-  gap: 8px;
+  gap: 9px;
   isolation: isolate;
+}
+
+.artifactRefinementInstructionLabel {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.artifactRefinementInstructionLabel small {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: normal;
+  text-align: right;
+  text-transform: none;
 }
 
 .artifactRefinementForm textarea {
@@ -6821,7 +7037,7 @@ a {
   border: 1px solid var(--line);
   border-radius: 12px;
   color: var(--foreground);
-  background: rgba(5, 8, 12, 0.42);
+  background: var(--dashboard-surface-inset, rgba(5, 8, 12, 0.56));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   font: inherit;
   font-size: 12px;
@@ -6869,10 +7085,30 @@ a {
 .artifactRefinementSubmit {
   position: relative;
   z-index: 1;
-  justify-self: start;
-  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 13px;
   border-color: rgba(var(--accent-rgb), 0.28);
+  color: var(--accent-ink);
+  background: rgb(var(--accent-rgb));
   scroll-margin-block: 12px;
+}
+
+.artifactRefinementActionBar {
+  display: grid;
+  gap: 7px;
+  padding-top: 2px;
+}
+
+.artifactRefinementActionBar p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
 }
 
 .artifactRefinementSuggestions button:hover,
@@ -6892,7 +7128,79 @@ a {
 }
 
 .artifactRefinementSubmit:hover {
+  border-color: rgba(var(--accent-rgb), 0.62);
+  color: var(--accent-ink);
+  background: rgb(var(--accent-rgb));
+  filter: brightness(1.07);
   transform: none;
+}
+
+.artifactRefinementAdvanced {
+  overflow: clip;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.artifactRefinementAdvanced > summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 10px;
+  color: var(--foreground);
+  cursor: pointer;
+  list-style: none;
+}
+
+.artifactRefinementAdvanced > summary::-webkit-details-marker {
+  display: none;
+}
+
+.artifactRefinementAdvanced > summary > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.artifactRefinementAdvanced > summary > span svg {
+  color: var(--teal);
+}
+
+.artifactRefinementAdvanced > summary small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.artifactRefinementAdvanced > summary > svg {
+  color: var(--muted);
+  transition: transform 160ms ease;
+}
+
+.artifactRefinementAdvanced[open] > summary > svg {
+  transform: rotate(180deg);
+}
+
+.artifactRefinementAdvanced > .artifactParameterPanel {
+  margin: 0 8px 8px;
+}
+
+.artifactRefinementInlineError {
+  margin: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 122, 102, 0.28);
+  border-radius: 10px;
+  color: var(--foreground);
+  background: rgba(255, 122, 102, 0.09);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.artifactRefinementError {
+  margin: 0;
 }
 
 .multiPreviewWorkspace {
@@ -11333,7 +11641,7 @@ html[data-cca-theme="blueprint"] .codeViewer {
   padding: 22px;
 }
 
-.productDashboardNav header > span,
+.productDashboardNav .dashboardSidebarHeaderCopy > span,
 .productDashboardContentHeader > div > span,
 .productIntelligenceHero > span {
   display: block;
@@ -11345,14 +11653,14 @@ html[data-cca-theme="blueprint"] .codeViewer {
   text-transform: uppercase;
 }
 
-.productDashboardNav header strong {
+.productDashboardNav .dashboardSidebarHeaderCopy > :is(strong, h2) {
   display: block;
   color: var(--foreground);
   font-size: 16px;
   letter-spacing: -0.02em;
 }
 
-.productDashboardNav header p,
+.productDashboardNav .dashboardSidebarHeaderCopy > p,
 .productDashboardContentHeader p,
 .productIntelligenceHero p,
 .productIntelligenceNotes p {
@@ -11895,7 +12203,7 @@ html[data-cca-label-font-size] .workstation :is(
   .eyebrow,
   .sessionMetric > span,
   .sessionStatus > span,
-  .productDashboardNav header > span,
+  .productDashboardNav .dashboardSidebarHeaderCopy > span,
   .productDashboardNav button > small
 ) {
   font-size: var(--label-font-size) !important;
@@ -12399,6 +12707,10 @@ html[data-cca-heading-font-size] .workstation .dashboardNavSection > h2 {
   background: rgba(var(--accent-rgb), 0.055);
 }
 
+.dashboardCallout[data-has-icon="false"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .dashboardCallout[data-tone="success"] {
   border-color: color-mix(in srgb, var(--green) 36%, var(--line));
   color: var(--green);
@@ -12738,7 +13050,7 @@ html[data-cca-heading-font-size] h2 {
 }
 
 html[data-cca-heading-font-size] :is(h3, h4, h5, h6),
-html[data-cca-heading-font-size] .productDashboardNav header strong,
+html[data-cca-heading-font-size] .productDashboardNav .dashboardSidebarHeaderCopy > :is(strong, h2),
 html[data-cca-heading-font-size] .productDashboardManual > article > header > div > strong,
 html[data-cca-heading-font-size] .settingsSectionHeader > strong {
   font-size: var(--heading-card-size) !important;
@@ -12764,7 +13076,7 @@ html[data-cca-label-font-size] .workstation :is(
   [role="tab"],
   [role="menuitem"],
   dt,
-  .productDashboardNav header > span,
+  .productDashboardNav .dashboardSidebarHeaderCopy > span,
   .productDashboardNav button > small
 ) {
   font-size: var(--label-font-size) !important;
@@ -12845,7 +13157,7 @@ html[data-cca-label-font-size] .workstation :is(
 }
 
 .productDashboardGroupSection > header span,
-.productDashboardManual span {
+.productDashboardManual > article > header span {
   display: block;
   color: var(--muted);
   font-size: 10px;
@@ -12855,7 +13167,7 @@ html[data-cca-label-font-size] .workstation :is(
 }
 
 .productDashboardGroupSection > header strong,
-.productDashboardManual strong {
+.productDashboardManual > article > header strong {
   display: block;
   margin-top: 4px;
   color: var(--foreground);
@@ -12864,7 +13176,7 @@ html[data-cca-label-font-size] .workstation :is(
 }
 
 .productDashboardGroupSection > header p,
-.productDashboardManual p {
+.productDashboardManual > article > header p {
   margin: 5px 0 0;
   color: var(--muted-strong);
   font-size: 12px;
@@ -12881,14 +13193,14 @@ html[data-cca-label-font-size] .workstation :is(
   padding: 14px;
 }
 
-.productDashboardManual article {
+.productDashboardManual > article {
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: 15px;
   background: var(--surface-2);
 }
 
-.productDashboardManual article > header {
+.productDashboardManual > article > header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
@@ -13743,6 +14055,14 @@ html[data-cca-label-font-size] .workstation :is(
 
 .sessionRegistryTable > div:not(:first-child) { background: rgba(255, 255, 255, 0.035); }
 .sessionRegistryTable > div[data-active="true"] { background: rgba(var(--accent-rgb), 0.1); }
+.browserUsageTable > div {
+  grid-template-columns: minmax(170px, 1.35fr) 0.38fr minmax(190px, 1.15fr) minmax(130px, 0.8fr) minmax(120px, 0.7fr);
+}
+.browserUsageTable > .browserUsageGrandTotal {
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  color: var(--foreground);
+  background: rgba(var(--accent-rgb), 0.12);
+}
 .sessionRegistryTable button { min-height: 30px; padding: 0 8px; font-size: 11px; }
 .sessionRegistryTable div[role="cell"]:last-child { display: flex; flex-wrap: wrap; gap: 6px; }
 .sessionRegistryTable form { display: flex; gap: 6px; }
@@ -13809,7 +14129,7 @@ html[data-cca-label-font-size] .workstation :is(
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .productDashboardManual article > header {
+  .productDashboardManual > article > header {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
@@ -14124,29 +14444,29 @@ html[data-cca-label-font-size] .workstation :is(
 }
 
 .productDashboardGroupSection,
-.productDashboardManual article {
+.productDashboardManual > article {
   overflow: visible;
   border-color: rgba(255, 255, 255, 0.13);
   border-radius: var(--dashboard-card-radius);
   background: var(--dashboard-panel-background);
 }
 
-.productDashboardManual article {
+.productDashboardManual > article {
   padding: 0;
 }
 
 .productDashboardGroupSection > header,
-.productDashboardManual article > header {
+.productDashboardManual > article > header {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 14px;
   padding: 17px var(--dashboard-section-padding);
 }
 
-.productDashboardManual article > header {
+.productDashboardManual > article > header {
   border-bottom: 1px solid var(--section-divider);
 }
 
-.productDashboardManual article > header > div > span {
+.productDashboardManual > article > header > div > span {
   display: block;
   color: var(--teal);
   font-size: 11px;
@@ -14155,7 +14475,7 @@ html[data-cca-label-font-size] .workstation :is(
   text-transform: uppercase;
 }
 
-.productDashboardManual article > header > div > strong {
+.productDashboardManual > article > header > div > strong {
   display: block;
   margin-top: 5px;
   color: var(--foreground);
@@ -14163,7 +14483,7 @@ html[data-cca-label-font-size] .workstation :is(
   line-height: 1.2;
 }
 
-.productDashboardManual article > header > div > p {
+.productDashboardManual > article > header > div > p {
   margin: 6px 0 0;
   color: var(--muted-strong);
   font-size: 13px;
@@ -14365,7 +14685,7 @@ html[data-cca-label-font-size] .workstation :is(
     padding: 12px;
   }
 
-  .productDashboardManual article > header {
+  .productDashboardManual > article > header {
     padding: 15px 16px;
   }
 
@@ -14876,13 +15196,13 @@ html[data-cca-label-font-size] .workstation :is(
   padding: 22px 22px 18px;
 }
 
-.productDashboardNav header > span {
+.productDashboardNav .dashboardSidebarHeaderCopy > span {
   margin-bottom: 8px;
   font-size: 11px;
   font-weight: 850;
 }
 
-.productDashboardNav header strong {
+.productDashboardNav .dashboardSidebarHeaderCopy > :is(strong, h2) {
   font-size: 20px;
   line-height: 1.18;
 }
@@ -14921,7 +15241,7 @@ html[data-cca-label-font-size] .workstation :is(
     padding: 16px 18px 14px;
   }
 
-  .productDashboardNav header strong {
+  .productDashboardNav .dashboardSidebarHeaderCopy > :is(strong, h2) {
     font-size: 18px;
   }
 
@@ -14961,22 +15281,28 @@ html[data-cca-label-font-size] .workstation :is(
   border-bottom: 1px solid var(--section-divider);
 }
 
-.dashboardNavHeaderIcon {
+.productDashboardNav .dashboardSidebarHeaderIcon {
   display: grid;
   width: 38px;
   height: 38px;
+  align-self: start;
   place-items: center;
+  margin: 0;
   border: 1px solid rgba(var(--accent-rgb), 0.22);
   border-radius: 11px;
   color: var(--teal);
   background: rgba(var(--accent-rgb), 0.07);
 }
 
-.productDashboardNav .dashboardNavHeader > div:last-child {
+.productDashboardNav .dashboardSidebarHeaderIcon > svg {
+  display: block;
+}
+
+.productDashboardNav .dashboardNavHeader > .dashboardSidebarHeaderCopy {
   min-width: 0;
 }
 
-.productDashboardNav .dashboardNavHeader > div > span {
+.productDashboardNav .dashboardNavHeader > .dashboardSidebarHeaderCopy > span {
   display: block;
   margin: 0 0 4px;
   color: var(--teal);
@@ -15314,7 +15640,7 @@ html[data-cca-label-font-size] .workstation :is(
   .eyebrow,
   .sessionMetric > span,
   .sessionStatus > span,
-  .productDashboardNav header > span,
+  .productDashboardNav .dashboardSidebarHeaderCopy > span,
   .productDashboardNav button > small
 ) {
   font-size: var(--label-font-size) !important;

@@ -394,7 +394,7 @@ async function expectRendererFailureReloadRecovery(page) {
   const error = runtime.getByRole("alert");
   await expect(error).toBeVisible();
   await expect(runtime).toHaveAttribute("data-runtime-state", "error");
-  await expect(error).toContainText("Renderer runtime failed");
+  await expect(error).toContainText("Preview could not start");
   await expect(error).toContainText("E2E injected renderer failure");
   const reload = runtime.getByRole("button", { name: "Reload preview runtime" });
   await expect(reload).toBeVisible();
