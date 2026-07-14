@@ -1,0 +1,78 @@
+flowchart TB
+    classDef client fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px
+    classDef runtime fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px
+    classDef store fill:#FEF3C7,stroke:#A16207,color:#713F12,stroke-width:1.5px
+    classDef external fill:#FFF7ED,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px
+    classDef evidence fill:#EDE9FE,stroke:#6D28D9,color:#4C1D95,stroke-width:1.5px
+
+    user["Creative coder / reviewer"]:::client
+
+    subgraph request["Next.js workspace — request"]
+        direction LR
+        composer["Creative Session<br/>prompt · mode · attachments"]:::client
+    end
+
+    subgraph backend["Python API and orchestration"]
+        direction TB
+        api["Exact-path WSGI API"]:::runtime
+        workflow["Compiled LangGraph"]:::runtime
+        artifact["Artifact + preview contracts"]:::runtime
+        services["Session + KB APIs"]:::runtime
+        evaluation["Evaluation + RAGAS pipeline"]:::runtime
+
+        api --> workflow --> artifact
+        api --> services
+        api --> evaluation
+    end
+
+    subgraph result["Next.js workspace — finalized result"]
+        direction LR
+        hydrate["Hydrated answer + artifacts"]:::client
+        preview["Controlled preview"]:::client
+        surfaces["Dashboard + Inspector"]:::evidence
+
+        hydrate --> preview --> surfaces
+        hydrate --> surfaces
+    end
+
+    subgraph state["Local state — separate persistence boundaries"]
+        direction LR
+        official_chroma[("Chroma<br/>official docs")]:::store
+        memory_chroma[("Chroma<br/>memory collections")]:::store
+        sqlite[("SQLite<br/>workspace sessions")]:::store
+        browser_cache[("localStorage<br/>workspace fallback")]:::store
+        artifact_files[("Files<br/>artifacts")]:::store
+        eval_files[("JSON / JSONL<br/>eval evidence")]:::store
+
+        official_chroma ~~~ memory_chroma ~~~ sqlite ~~~ browser_cache ~~~ artifact_files ~~~ eval_files
+    end
+
+    subgraph providers["Explicit external boundaries"]
+        direction LR
+        openai["OpenAI<br/>Responses + embeddings"]:::external
+        official["Approved official URLs"]:::external
+        langsmith["LangSmith<br/>optional trace metadata"]:::external
+
+        openai ~~~ official ~~~ langsmith
+    end
+
+    user --> composer
+    composer -->|"JSON request"| api
+    api -->|"NDJSON event stream"| hydrate
+
+    workflow -. "retrieval" .-> official_chroma
+    workflow -. "memory" .-> memory_chroma
+    services -.-> official_chroma
+    services -.-> sqlite
+    hydrate -. "session JSON API" .-> api
+    hydrate -.-> browser_cache
+    hydrate -. "browser export" .-> artifact_files
+    evaluation -.-> eval_files
+
+    workflow --> openai
+    services --> openai
+    services --> official
+    evaluation --> openai
+    workflow -. "when enabled" .-> langsmith
+
+    eval_files ~~~ openai

@@ -48,20 +48,28 @@ Dashboard → Workflow.
 
 > The Python backend exposes a local WSGI service. Its compiled workflow handles
 > intake, routing, optional retrieval, prompt construction, generation,
-> artifact extraction, preview preparation, critique, one bounded refinement,
-> and finalization. SQLite stores sessions; local Chroma stores indexed
-> technical knowledge; provider calls remain explicit and environment-dependent.
+> artifact extraction, preview preparation, critique, up to two bounded
+> refinements, and finalization. SQLite stores sessions; local Chroma stores
+> indexed technical knowledge; provider calls remain explicit and
+> environment-dependent.
 >
 > The Next.js workstation consumes the stream and turns it into conversation,
 > artifact, source, preview, workflow, recovery, and session state. Supported
 > browser code runs through controlled runtime surfaces. Unsupported outputs
-> stay code or export-only rather than being called live previews.
+> stay code or export-only rather than being called live previews. Browser
+> frame status and telemetry remain local after hydration; they do not feed
+> backend critique or review.
 >
 > Workflow choice changes execution. Single uses one generator path and skips
 > the separate research, planning, critique, and review stages. Multi uses those
-> roles with at most one refinement. Auto resolves one of the bounded routes.
-> Requested mode, resolved mode, executed nodes, and rationale are emitted in
-> the stream, so the graph describes the run instead of decorating it.
+> roles with up to two refinement attempts, for at most three generation calls
+> including the initial call. Auto resolves Single only for Explain or Debug
+> with no attachments and no resolved domains; every other Auto request resolves
+> Multi. Successful Explain generation goes directly to finalization without
+> the artifact and review path. Requested mode, resolved mode, executed nodes,
+> and rationale are emitted in the stream, so the graph describes the run
+> instead of decorating it. The published maximum-refinement field still says
+> one, a documented drift from the executable two-attempt limit.
 
 ## 3:30–4:45 — Hardest challenge: retrieval without moving the goalposts
 
@@ -123,7 +131,9 @@ and reload. Briefly name the other three showcase runtimes.
 > The former 61.44 percent four-row fixture is retained in History. It was
 > obsolete as a primary score because it did not execute the current retrieval,
 > prompt, generation, and benchmark paths. The current score is still not a
-> project grade or human artistic-quality judgment.
+> project grade or human artistic-quality judgment. Dashboard current-product
+> runs do not overwrite the committed canonical summary; publication is a
+> separate explicitly gated CLI action, and private diagnostics are CLI-only.
 >
 > Reference images are also bounded. The backend tests prove that accepted
 > pixels are included in the configured-provider request payload, then removed
@@ -190,3 +200,7 @@ Use only the sentence that matches the observed failure.
 > remain narrower than human acceptance.
 
 Then continue with the final 45-second close.
+
+The [Architecture Diagram Guide](../architecture/README.md) is the visual
+companion for the architecture, workflow, preview, recovery, and evaluation
+claims in this script.

@@ -6,6 +6,10 @@ This document maps each criterion to evidence a reviewer can inspect now. It
 does not invent rubric weights or turn repository metrics into a predicted
 grade.
 
+Use the [Architecture Diagram Guide](../architecture/README.md) to connect each
+claim to the corresponding system, route, preview, recovery, or evaluation
+view.
+
 ## Evidence hierarchy
 
 When two claims conflict, use this order:
@@ -48,12 +52,16 @@ is its purpose and achieved outcome clear?
 |---|---|---|---|
 | Clear purpose | The first README paragraph states goal, problem, and mechanism | Ask the presenter for the same one-sentence explanation | A strong statement is not proof of usability |
 | Interactive application | Next.js workstation with composer, workspace, Dashboard, Inspector, sessions, Demo Mode, and fullscreen | Start both services and submit one flagship prompt | Provider-backed behavior depends on credentials/network |
-| End-to-end artifact | Stream → artifact extraction → source → preview contract → browser renderer → saved session | Generate p5.js or Three.js, inspect source, interact, reload session | A generated artifact can fail preview validation |
-| Workflow choice | Published Single, Multi, and Auto request/resolution payloads | Compare explicit Single and Multi; let Auto publish its resolution | Current default Auto resolves Multi for normal requests |
+| End-to-end artifact | Stream → artifact extraction → source → preview contract → browser renderer → saved session | Generate p5.js or Three.js, inspect source, interact, reload session | A generated artifact can fail preview validation; local frame telemetry does not feed backend critique |
+| Workflow choice | Published Single, Multi, and Auto request/resolution payloads | Compare explicit Single and Multi; let Auto publish its resolution | Auto selects Single only for Explain/Debug with no attachments and no resolved domains; every other Auto request resolves Multi |
 | Multimodal request | Image validation at browser/backend plus configured-provider `input_image` payload construction | Run Reference-guided palette study with a public image | No proof of live provider receipt/use/influence, durable image restoration, or local pixel analysis |
 | Failure handling | Typed subsystem errors, terminal workflow failure, retry/recovery UI | Inspect a controlled failure fixture or disconnect dependency deliberately in test | Recovery does not make an unavailable preview successful |
 | Persistent creative session | SQLite lifecycle and browser fallback | Create, rename, switch, reload, and delete a session | Local single-user storage posture |
 | Professional documentation | README, reviewer guide, architecture, capability, ethics/evaluation, and presentation artifacts | Follow links without reading source first | Documentation ranks below live behavior |
+
+Successful Explain generation is intentionally shorter than an artifact route:
+it branches directly to finalization and skips extraction, preview preparation,
+critique, review, and refinement.
 
 ### Automated evidence
 
@@ -109,11 +117,11 @@ and was system quality measured and improved deliberately?
 | Engineering topic | Applied learning | Evidence |
 |---|---|---|
 | LLM API | Provider-neutral generation contracts translated to OpenAI Responses; streaming, typed errors, usage, and image content | [OpenAI adapter](../src/creative_coding_assistant/llm/openai_adapter.py) |
-| Orchestration | Compiled LangGraph, explicit state, registered nodes, conditional edges, one bounded refinement loop, terminal failures | [workflow graph](../architecture/workflow_graph.md) |
+| Orchestration | Compiled LangGraph, explicit state, registered nodes, conditional edges, up to two executable refinements, terminal failures | [workflow graph](../architecture/workflow_graph.md); the published `max_refinement_loops=1` remains documented drift from the executable limit |
 | RAG | Source governance, normalization/chunking, embeddings, Chroma, intent/domain filters, diversity, lineage, recoverable empty context | [System Overview](SYSTEM_OVERVIEW.md) |
 | Prompt engineering | Structured inputs, Jinja sections, untrusted-context isolation, domain/runtime/artifact constraints | [Architecture Walkthrough](ARCHITECTURE_WALKTHROUGH.md) |
 | Agents | Direct and sequential team routes with visible roles and no hidden concurrency claim | [Capability Matrix](CAPABILITY_MATRIX.md) |
-| Evaluation | Fixed-query retrieval report, RAGAS components, privacy classes, missing/blocked states, fingerprints | [evaluation fixture notes](../demo/evaluation/README.md) |
+| Evaluation | Fixed-query retrieval report, current-product RAGAS, historical fixture separation, privacy classes, missing/blocked states, fingerprints | [evaluation workflow](../architecture/evaluation_workflow.md) and [fixture notes](../demo/evaluation/README.md) |
 | Application design | WSGI/Next separation, exact API contracts, local stores, browser execution boundary, recovery state | [System Overview](SYSTEM_OVERVIEW.md) |
 | Testing | Deterministic providers, WSGI integration, frontend unit tests, Playwright smoke, docs/Mermaid gates | Repository tests and CI workflows |
 
@@ -160,13 +168,20 @@ The former 61.44% four-row fixture remains historical evidence with no
 context-recall denominator. Showing it as primary was classified
 `EVALUATION_PIPELINE_DEFECT` and has been corrected.
 
+The Dashboard queues and polls only current-product runs. Dry-run is prepared
+but unscored, and a Dashboard run does not publish the committed canonical
+summary. Canonical publication is a separate provenance-gated CLI action;
+historical-fixture access is a direct API lane, and private diagnostics are
+written only by the explicit CLI path under ignored `data/eval/`.
+
 ### Learning Application conclusion
 
 The best learning evidence is the separation of concerns and the willingness
 to lower a headline metric after provenance revealed false positives. The
 largest remaining technical learning opportunities are stronger grounded
-answer construction, genuinely reachable Auto route diversity, broader but
-privacy-approved end-to-end evaluation, and disciplined renderer expansion.
+answer construction, broader Auto route diversity beyond its narrow
+Explain/Debug condition, broader but privacy-approved end-to-end evaluation,
+and disciplined renderer expansion.
 
 ## 3. Ethical Considerations
 
@@ -183,7 +198,8 @@ boundaries, and the risks of generated outputs?
 | Image reference | Browser-local until submit; stripped from durable session attachment state | Pixels enter the configured-provider payload only on explicit submit; live receipt/use/influence need separate evidence | Use public non-sensitive images; remove before submit or do not submit |
 | Official KB source text | Chunks and vectors stored in local Chroma | Source is fetched from approved URL; chunk text goes to OpenAI embeddings; selected excerpts may enter generation | Select/check/update sources explicitly |
 | Raw local evaluation sessions | Stored under ignored `data/eval/` | External evaluation remains excluded | Use only reviewed committed public/sanitized/redacted datasets |
-| Evaluation fixture | Committed current-product public benchmark or historical synthetic/redacted rows | Goes to evaluator only after explicit live-call authorization | Dry-run first; inspect dataset, fingerprints, and cost warning |
+| Evaluation fixture | Dashboard uses the committed current-product public benchmark; the four-row synthetic/redacted fixture is historical API evidence | Current-product rows go to the evaluator only after explicit live-call authorization | Dry-run first; inspect dataset, fingerprints, cost warning, and publication lane |
+| Browser preview telemetry | Held in local client/workspace state after final-response hydration | Not sent back into backend artifact critique or workflow review | Inspect source, renderer status, and frame signals as separate evidence |
 | Trace metadata | Local stream contains safe status/lineage | Optional LangSmith metadata only when tracing and key are enabled | Keep tracing disabled by default |
 | Secrets | Local `.env`, secret-bearing Pydantic settings | Used only to authenticate selected services | Never commit or display `.env`/keys |
 
@@ -237,9 +253,9 @@ defend trade-offs in 5 minutes of questions?
 | Concise goal/problem/how | [README](../README.md) opening paragraph | Say it without reading a feature list |
 | Problem → solution narrative | [SCR Presentation](SCR_PRESENTATION.md) | Fragmented tools → unverifiable generated code → evidence-aware workstation |
 | Specific measurable framing | [SMART Presentation](SMART_PRESENTATION.md) | Four live runtimes, exact route evidence, current retrieval/RAGAS components, explicit limits |
-| Architecture and models | [Architecture Walkthrough](ARCHITECTURE_WALKTHROUGH.md) | Next → WSGI → LangGraph → Chroma/OpenAI → artifact → browser preview |
+| Architecture and models | [Architecture Diagram Guide](../architecture/README.md) and [Architecture Walkthrough](ARCHITECTURE_WALKTHROUGH.md) | Next → WSGI → LangGraph → Chroma/OpenAI → artifact → browser preview |
 | Data explanation | [System Overview](SYSTEM_OVERVIEW.md) | Official sources, local stores, embedding/generation/evaluator boundaries |
-| Evaluation | This document and Dashboard Evaluation | Separate current retrieval, fixture RAGAS, product smoke, and human evidence |
+| Evaluation | This document, [evaluation workflow](../architecture/evaluation_workflow.md), and Dashboard Evaluation | Separate current retrieval/current-product RAGAS, historical fixture, product smoke, and human evidence |
 | Live outcome | Demo Mode flagship | Generate, inspect source, preview, fullscreen, refine, reload |
 | Hardest challenge | Retrieval evolution or genuine multimodal boundary | Show diagnosis, measured iteration, and narrower truthful claim |
 | Limitations and next steps | [Capability Matrix](CAPABILITY_MATRIX.md) | Name a few high-value gaps, not a speculative feature catalogue |
@@ -266,7 +282,7 @@ defend trade-offs in 5 minutes of questions?
 
 - Why does Single Agent skip RAG?
 - Is Multi Agent really multiple LLMs or parallel work?
-- Why does Auto currently resolve Multi?
+- When does Auto resolve Single, and why do other requests resolve Multi?
 - What does 68.03% mean—and what does it not mean?
 - Why is 61.44% historical, and why did the Evaluation pipeline show it before?
 - Why are context precision and answer relevancy still weak?

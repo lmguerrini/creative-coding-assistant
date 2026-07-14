@@ -1,9 +1,14 @@
 # Sacred Geometry and Sacred Mathematics Engine
 
-V8.3 adds a bounded Sacred Geometry and Sacred Mathematics Engine for Creative
-Coding Assistant. It translates geometric, mathematical, harmonic, recursive,
+The V8.3 catalog defines a bounded Sacred Geometry and Sacred Mathematics
+Engine. It translates geometric, mathematical, harmonic, recursive,
 fractal, morphogenetic, and proportion-based creative intent into deterministic
 creative coding guidance.
+
+> **Reference notice:** This is a deterministic guidance-contract reference,
+> not a separate runtime subsystem or delivery roadmap. For executable
+> behavior, see [System Architecture Overview](system_architecture_overview.md)
+> and [Single and Multi Runtime Routes](workflow_graph.md).
 
 The implementation lives in:
 
@@ -28,7 +33,7 @@ The implementation lives in:
 - Sacred, cultural, ritual, and metaphysical wording remains creative/user
   framing only, not proof, authority, or efficacy.
 
-## Implemented V8.3 Surfaces
+## Cataloged V8.3 Surfaces
 
 - Golden ratio, harmonic proportion, polygon/circle/grid, mandala, yantra,
   tessellation, Islamic-inspired tiling, recursive spiral, fractal, L-system,
@@ -54,7 +59,8 @@ of duplicating their responsibilities.
 ## Partial or HITL Boundaries
 
 - Geometry to architecture is implemented only as spatial layout guidance.
-  V8.4 architecture and reverse-engineering behavior is not started.
+  architecture and reverse-engineering runtime behavior is outside this
+  contract.
 - Interactive geometry preview requires product/HITL scope because the V8.3
   request explicitly avoids broad preview changes.
 - Geometry demo assets require product/HITL selection of target scenes and

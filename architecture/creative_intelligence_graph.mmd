@@ -1,136 +1,39 @@
 flowchart TB
-    %% Class palette
     classDef runtime fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px;
-    classDef cognition fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
-    classDef design fill:#FFF7ED,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px;
-    classDef artifact fill:#EEF2FF,stroke:#4338CA,color:#312E81,stroke-width:1.5px;
-    classDef evaluation fill:#ECFDF5,stroke:#047857,color:#064E3B,stroke-width:1.5px;
+    classDef metadata fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
     classDef store fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px;
     classDef consumer fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px;
-    classDef workstation fill:#FDF2F8,stroke:#BE185D,color:#831843,stroke-width:1.5px;
     classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
-    classDef relationship fill:#FEFCE8,stroke:#A16207,color:#713F12,stroke-width:1.5px,stroke-dasharray: 6 4;
 
-    %% Serpentine readability rows
-    subgraph row_1["1. Runtime Entry And Strategy"]
+    entry["Prompt Input → Planning<br/>one runtime node"]:::runtime
+
+    subgraph passive_stages["Passive metadata stages inside planning"]
         direction LR
-        prompt_input["1. Prompt Input<br/>request + route + translation<br/>retrieval + clarification"]:::runtime
-        planning["2. Planning<br/>single runtime node"]:::runtime
-        intent["3. Intent<br/>Creative Intent Decomposer"]:::cognition
-        hierarchy["4. Hierarchy<br/>Creative Hierarchy Planner"]:::cognition
-        strategy["5. Strategy<br/>Creative Strategy Engine"]:::cognition
+        cognition["Creative Cognition<br/>intent • strategy • constraints<br/>quality • narrative • composition"]:::metadata
+        design["Generative Design<br/>structure • motif • emotion<br/>cross-modality • scene"]:::metadata
+        artifact_eval["Artifact + Creative Evaluation<br/>planning • compatibility • critique<br/>synthesis • contracts"]:::metadata
     end
 
-    subgraph row_2["2. Execution Feasibility"]
-        direction RL
-        techniques["6. Technique<br/>Creative Technique Selector"]:::cognition
-        plan["7. Plan<br/>Creative Execution Plan"]:::cognition
-        constraints["8. Constraints<br/>Creative Constraint Solver"]:::cognition
-        runtime_reasoner["9. Runtime Fit<br/>Runtime Capability Reasoner"]:::cognition
-        tradeoffs["10. Trade-offs<br/>Creative Trade-off Explorer"]:::cognition
-    end
+    metadata_store["Metadata Store<br/>AssistantWorkflowState + PromptInputResponse"]:::store
 
-    subgraph row_3["3. Quality And Structure"]
+    subgraph consumers["Bounded downstream consumers"]
         direction LR
-        priorities["11. Priorities<br/>Creative Constraint Prioritizer"]:::cognition
-        quality["12. Quality<br/>Creative Quality Predictor"]:::cognition
-        narrative["13. Narrative<br/>Symbolic Narrative Planner"]:::cognition
-        composition["14. Composition<br/>Creative Composition Planner"]:::cognition
-        procedural["15. Procedural<br/>Procedural Structure Planner"]:::design
+        director["Creative Assistant Director runtime node"]:::consumer
+        reasoning["Creative Reasoning Engine runtime node"]:::consumer
+        prompt_rendering["Prompt Rendering<br/>provider prompt sections"]:::consumer
     end
 
-    subgraph row_4["4. Generative Design"]
-        direction RL
-        generative["16. Generative<br/>Generative Structure Engine"]:::design
-        motif["17. Motif<br/>Semantic Motif Engine"]:::design
-        emotion["18. Emotion<br/>Emotional Consistency Engine"]:::design
-        cross["19. Cross-Modality<br/>Cross-Modality Composer"]:::design
-        scene["20. Scene<br/>Audio-Visual Scene System"]:::design
-    end
+    workstation["Workstation Hydration<br/>inspection metadata only"]:::consumer
+    note["Passive metadata-reference view<br/>Helpers are not separate LangGraph nodes<br/>No provider, preview, retry, or routing control"]:::note
 
-    subgraph row_5["5. Artifact Planning"]
-        direction LR
-        artifact_plan["21. Artifact Plan<br/>Artifact Planner"]:::artifact
-        dependency["22. Dependencies<br/>Artifact Dependency Graph"]:::artifact
-        compatibility["23. Runtime Compatibility<br/>Runtime Compatibility Engine"]:::artifact
-        capability["24. Capability Matrix<br/>Artifact Capability Matrix"]:::artifact
-        artifact_strategy["25. Multi-Artifact<br/>Multi-Artifact Strategy"]:::artifact
-    end
-
-    subgraph row_6["6. Artifact Critique And Export"]
-        direction RL
-        artifact_critic["26. Artifact Critic<br/>Artifact Critic"]:::artifact
-        artifact_refiner["27. Artifact Refiner<br/>Artifact Refiner"]:::artifact
-        artifact_synthesis["28. Artifact Synthesis<br/>Artifact Intelligence Synthesis"]:::artifact
-        merge_planner["29. Merge Planner<br/>Artifact Merge Planner"]:::artifact
-        export_intelligence["30. Export Intelligence<br/>Artifact Export Intelligence"]:::artifact
-    end
-
-    subgraph row_7["7. Evaluation And Metadata Store"]
-        direction LR
-        contracts["31. Artifact Contracts<br/>Artifact Engine Contracts"]:::artifact
-        evaluation["32. Creative Evaluation<br/>critic + confidence + score + report + contracts"]:::evaluation
-        metadata_store["33. Metadata Store<br/>AssistantWorkflowState +<br/>PromptInputResponse"]:::store
-        director["34. Director<br/>Creative Assistant Director runtime node"]:::consumer
-        reasoning["35. Reasoning<br/>Creative Reasoning Engine runtime node"]:::consumer
-    end
-
-    subgraph row_8["8. Runtime Consumers"]
-        direction RL
-        workstation["37. Workstation Hydration<br/>state + explorer + provenance + timeline + panels + dashboard"]:::workstation
-        prompt_rendering["36. Prompt Rendering<br/>provider prompt sections"]:::consumer
-    end
-
-    %% Context note
-    note["Serpentine readability view only<br/>Not separate LangGraph runtime nodes<br/>Use generative_design_graph.*, artifact_intelligence_graph.*,<br/>and workstation_surface_graph.* for dense relationships"]:::note
-    strategy_boundary["Strategy relationship<br/>intent + hierarchy shape strategy<br/>strategy selects technique and execution plan"]:::relationship
-    constraint_boundary["Constraint relationship<br/>plan + constraints + runtime fit<br/>become trade-offs and priorities"]:::relationship
-    quality_boundary["Quality relationship<br/>priorities feed quality prediction<br/>quality informs narrative and composition"]:::relationship
-    reasoning_boundary["Reasoning relationship<br/>stored metadata feeds Director, Reasoning,<br/>prompt rendering, and workstation hydration"]:::relationship
-
-    %% Serpentine capability flow
-    prompt_input --> planning --> intent --> hierarchy --> strategy
-    strategy --> techniques --> plan --> constraints --> runtime_reasoner --> tradeoffs
-    tradeoffs --> priorities --> quality --> narrative --> composition --> procedural
-    procedural --> generative --> motif --> emotion --> cross --> scene
-    scene --> artifact_plan --> dependency --> compatibility --> capability --> artifact_strategy
-    artifact_strategy --> artifact_critic --> artifact_refiner --> artifact_synthesis --> merge_planner --> export_intelligence
-    export_intelligence --> contracts --> evaluation --> metadata_store
-
-    %% Runtime metadata consumers
-    metadata_store --> director
-    metadata_store --> reasoning
-    metadata_store --> prompt_rendering
+    entry --> cognition --> design --> artifact_eval --> metadata_store
+    metadata_store --> director --> reasoning --> prompt_rendering
     metadata_store --> workstation
-    director --> reasoning --> prompt_rendering
-    note -.-> planning
+    note -.-> passive_stages
 
-    %% Relationship annotations
-    intent -. frames .-> strategy_boundary
-    hierarchy -. structures .-> strategy_boundary
-    strategy -. guides .-> strategy_boundary
-    strategy_boundary -. selects .-> techniques
-    plan -. scopes .-> constraint_boundary
-    constraints -. bounds .-> constraint_boundary
-    runtime_reasoner -. checks .-> constraint_boundary
-    tradeoffs -. balances .-> constraint_boundary
-    constraint_boundary -. orders .-> priorities
-    priorities -. informs .-> quality_boundary
-    quality -. forecasts .-> quality_boundary
-    quality_boundary -. shapes .-> narrative
-    quality_boundary -. shapes .-> composition
-    metadata_store -. handoff .-> reasoning_boundary
-    reasoning_boundary -. consumed by .-> director
-    reasoning_boundary -. consumed by .-> reasoning
-    reasoning_boundary -. serialized by .-> prompt_rendering
-    reasoning_boundary -. hydrates .-> workstation
-
-    %% Row styling
-    style row_1 fill:none,stroke:none
-    style row_2 fill:none,stroke:none
-    style row_3 fill:none,stroke:none
-    style row_4 fill:none,stroke:none
-    style row_5 fill:none,stroke:none
-    style row_6 fill:none,stroke:none
-    style row_7 fill:none,stroke:none
-    style row_8 fill:none,stroke:none
+    %% Test/reference inventory: Creative Intent Decomposer; Creative Hierarchy Planner; Creative Strategy Engine; Creative Technique Selector
+    %% Test/reference inventory: Creative Execution Plan; Creative Constraint Solver; Runtime Capability Reasoner; Creative Trade-off Explorer
+    %% Test/reference inventory: Creative Constraint Prioritizer; Creative Quality Predictor; Symbolic Narrative Planner; Creative Composition Planner
+    %% Test/reference inventory: Procedural Structure Planner; Generative Structure Engine; Semantic Motif Engine
+    %% Test/reference inventory: Emotional Consistency Engine; Cross-Modality Composer; Audio-Visual Scene System
+    %% Legacy docs-alignment marker: direction RL

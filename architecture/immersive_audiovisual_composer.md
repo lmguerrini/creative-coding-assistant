@@ -1,9 +1,15 @@
 # Immersive Audiovisual Composer
 
-V8.6 adds a bounded Immersive Audiovisual Composer for Creative Coding
-Assistant. It composes symbolic, geometric, architectural, narrative,
+The V8.6 catalog defines a bounded Immersive Audiovisual Composer. It composes
+symbolic, geometric, architectural, narrative,
 audiovisual, preview, and audience-experience guidance into a deterministic
 composition report.
+
+> **Reference notice:** This is a deterministic report-contract reference, not
+> the browser preview runtime or a product-support matrix. For the actual
+> backend/browser split, see
+> [Artifact and Preview Runtime](artifact_preview_runtime.md) and
+> [End-to-End Product Workflow](end_to_end_product_workflow.md).
 
 The implementation lives in:
 
@@ -34,7 +40,7 @@ The implementation lives in:
   external DCC tools, MCP integrations, V8.7 OS behavior, V8.8 showcase
   systems, HoloMind, or HOLOiVERSE.
 
-## Implemented V8.6 Surfaces
+## Cataloged V8.6 Surfaces
 
 - Scene graph nodes and transitions with symbolic, geometric, architectural,
   narrative, audio, audience, and preview layers.
@@ -55,25 +61,25 @@ The implementation lives in:
 
 ## Preview Audit
 
-| Preview item | V8.6 classification |
+| Preview item | Catalog observation and boundary |
 | --- | --- |
-| Internal Three.js Preview | Partially implemented and reusable as a controlled Three.js-compatible browser foundation |
-| Internal p5.js Preview | Already implemented and reusable |
-| Internal GLSL Preview | Already implemented and reusable |
-| Internal Hydra Preview | Partially implemented and reusable as a bounded supported-chain foundation |
-| Browser Preview Sandbox | Already implemented and reusable |
-| Live Preview Loop | Already implemented and reusable |
-| Preview Runtime Validation | Already implemented and reusable |
-| Preview Error Recovery | Already implemented and reusable |
-| Multi Preview Comparison | Already implemented and reusable |
+| Internal Three.js Preview | A browser adapter exists, and backend inference recognizes Three.js artifacts; actual rendering still depends on client classification and preflight |
+| Internal p5.js Preview | A browser adapter exists, and backend inference recognizes p5.js artifacts; this is not a guarantee that every generated artifact previews successfully |
+| Internal GLSL Preview | A browser adapter exists, and backend inference recognizes GLSL artifacts; validation and status remain client-local |
+| Internal Hydra Preview | A bounded browser adapter exists, but backend canonical inference does not establish Hydra as a generated-artifact product claim |
+| Browser Preview Sandbox | The client sandbox boundary exists; its telemetry does not feed backend critique or review |
+| Live Preview Loop | Client-local updates are not a backend workflow-control loop |
+| Preview Runtime Validation | Preflight and runtime status are client-local checks after response hydration |
+| Preview Error Recovery | The client preserves the answer and artifact with local fallback status; it does not trigger backend recovery |
+| Multi Preview Comparison | A cataloged inspection surface, not a runtime-generation guarantee |
 
-## Deferred Boundaries
+## Excluded Boundaries
 
 - V8.6 does not add frontend preview runtimes because the audited foundations
   already exist.
 - V8.6 does not implement preview repair, artifact execution, automatic
   critique-refinement-preview workflow control, or export rendering.
-- V8.7 HoloGenesis OS, HoloMind, and HOLOiVERSE remain outside this capability.
-- V8.8 demo showcase flows remain outside this capability.
+- HoloGenesis, HoloMind, HOLOiVERSE, and demo-showcase runtime behavior remain
+  outside this capability.
 - Unity, Unreal, Blender, Houdini, TouchDesigner, Ableton, and MCP integrations
   remain out of scope unless reused only as non-executing metadata.

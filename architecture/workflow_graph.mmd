@@ -1,98 +1,83 @@
 flowchart TB
-    classDef boundary fill:#f4f4f5,stroke:#52525b,color:#18181b,stroke-width:1.5px
-    classDef runtime fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:1.5px
-    classDef decision fill:#e0f2fe,stroke:#0369a1,color:#0c4a6e,stroke-width:1.5px
-    classDef store fill:#fefce8,stroke:#a16207,color:#713f12,stroke-width:1.5px
-    classDef external fill:#fff7ed,stroke:#c2410c,color:#7c2d12,stroke-width:1.5px
-    classDef terminal fill:#ede9fe,stroke:#6d28d9,color:#4c1d95,stroke-width:1.5px
-    classDef failed fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:1.5px
+    classDef runtime fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px
+    classDef decision fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px
+    classDef external fill:#FFF7ED,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px
+    classDef terminal fill:#EDE9FE,stroke:#6D28D9,color:#4C1D95,stroke-width:1.5px
+    classDef failure fill:#FEE2E2,stroke:#B91C1C,color:#7F1D1D,stroke-width:1.5px
 
-    user["Creative coder"]:::boundary
-    ui["Next.js Creative Session"]:::boundary
-    api["Exact-path WSGI API<br/>NDJSON stream"]:::boundary
-    requested{"Requested mode<br/>Single / Multi / Auto"}:::decision
-    resolved{"Published resolved route<br/>Single or Multi"}:::decision
-
-    subgraph graph["Compiled LangGraph runtime"]
+    subgraph top_half[" "]
+    direction LR
+    subgraph shared["1 · Shared request stages"]
         direction TB
-        intake["intake"]:::runtime
-        routing["routing"]:::runtime
-        memory["memory"]:::runtime
-        retrieval["retrieval<br/>complete or explicit skip"]:::runtime
-        context_assembly["context_assembly"]:::runtime
-        prompt_input["prompt_input"]:::runtime
-        clarification{"clarification needed?"}:::decision
-        route_branch{"resolved route"}:::decision
-        planning["planning"]:::runtime
-        director["director"]:::runtime
-        reasoning["reasoning"]:::runtime
-        prompt_rendering["prompt_rendering"]:::runtime
-        generation["generation"]:::runtime
-        artifact_extraction["artifact_extraction"]:::runtime
-        preview_preparation["preview_preparation"]:::runtime
-        post_preview{"resolved route"}:::decision
-        artifact_critique["artifact_critique"]:::runtime
-        review["review"]:::runtime
-        review_gate{"pass / retry exhausted<br/>or refine once"}:::decision
-        refinement["refinement"]:::runtime
-        finalization["finalization"]:::runtime
-        failure["failure"]:::failed
-
-        intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input
-        prompt_input --> clarification
-        clarification -->|"yes"| finalization
-        clarification -->|"no"| route_branch
-        route_branch -->|"Single"| prompt_rendering
-        route_branch -->|"Multi"| planning
-        planning --> director --> reasoning --> prompt_rendering
-        prompt_rendering --> generation --> artifact_extraction --> preview_preparation --> post_preview
-        post_preview -->|"Single"| finalization
-        post_preview -->|"Multi"| artifact_critique --> review --> review_gate
-        review_gate -->|"pass or exhausted"| finalization
-        review_gate -->|"refine once"| refinement --> generation
+        subgraph shared_a[" "]
+            direction LR
+            intake["intake"]:::runtime --> routing["routing<br/>publish Multi"]:::runtime --> memory["memory"]:::runtime
+        end
+        subgraph shared_b[" "]
+            direction LR
+            retrieval["retrieval<br/>Researcher"]:::runtime --> context["context_assembly"]:::runtime --> prompt_input["prompt_input"]:::runtime
+        end
+        memory --> retrieval
     end
 
-    final_event["terminal final event"]:::terminal
-    failure_event["terminal failure event"]:::failed
-    chroma["Local Chroma<br/>official docs and memory"]:::store
-    sqlite["Local SQLite<br/>workspace sessions"]:::store
-    embeddings["OpenAI embeddings"]:::external
-    responses["OpenAI Responses<br/>text plus validated image data"]:::external
-    preview["Browser preview<br/>p5.js / Three.js / GLSL / Tone.js"]:::boundary
+    subgraph plan["2 · Plan and generate"]
+        direction TB
+        subgraph plan_a[" "]
+            direction LR
+            clarify{"clarification?"}:::decision -->|"no"| planning["planning<br/>Planner"]:::runtime --> director["director"]:::runtime
+        end
+        subgraph plan_b[" "]
+            direction LR
+            reasoning["reasoning"]:::runtime --> prompt_rendering["prompt_rendering"]:::runtime --> generation["generation<br/>Generator"]:::runtime
+        end
+        director --> reasoning
+        generation -. "only generation-provider call" .-> openai["OpenAI Responses"]:::external
+    end
+    end
 
-    user --> ui --> api --> requested --> intake
-    routing --> resolved
-    resolved -. "controls later branches" .-> route_branch
-    resolved -. "controls later branches" .-> post_preview
-    memory <--> chroma
-    retrieval <--> chroma
-    retrieval -. "query text" .-> embeddings
-    generation -. "provider request" .-> responses
-    finalization --> final_event --> api --> ui
-    failure --> failure_event --> api
-    ui <--> sqlite
-    ui --> preview --> user
+    subgraph bottom_half[" "]
+    direction LR
+    subgraph artifacts["3 · Artifacts and review"]
+        direction TB
+        subgraph artifacts_a[" "]
+            direction LR
+            explain{"Explain route?"}:::decision -->|"no"| artifact_extraction["artifact_extraction"]:::runtime --> preview_preparation["preview_preparation"]:::runtime
+        end
+        subgraph artifacts_b[" "]
+            direction LR
+            artifact_critique["artifact_critique<br/>Critic"]:::runtime --> review["review<br/>Reviewer"]:::runtime --> gate{"review outcome"}:::decision
+        end
+        preview_preparation --> artifact_critique
+    end
 
-    intake -. "pending failure" .-> failure
-    routing -. "pending failure" .-> failure
-    memory -. "pending failure" .-> failure
-    retrieval -. "pending failure" .-> failure
-    context_assembly -. "pending failure" .-> failure
-    prompt_input -. "pending failure" .-> failure
-    planning -. "pending failure" .-> failure
-    director -. "pending failure" .-> failure
-    reasoning -. "pending failure" .-> failure
-    prompt_rendering -. "pending failure" .-> failure
-    generation -. "pending failure" .-> failure
-    artifact_extraction -. "pending failure" .-> failure
-    preview_preparation -. "pending failure" .-> failure
-    artifact_critique -. "pending failure" .-> failure
-    review -. "pending failure" .-> failure
-    refinement -. "pending failure" .-> failure
-    finalization -. "pending failure" .-> failure
+    subgraph completion["4 · Complete, refine, or fail"]
+        direction LR
+        refinement["refinement"]:::runtime --> return_generation(["↺ generation<br/>same node above"]):::decision
+        finalization["finalization"]:::terminal --> event["final event<br/>completed"]:::terminal
+        pending["pending failure<br/>from any node"]:::decision -.-> failure["failure"]:::failure
+        failure --> failed_event["final event<br/>failed"]:::failure
+    end
+    end
 
-    %% Auto currently resolves Multi for ordinary default-map requests because every task mode has official_docs.
-    %% Multi ordering contract: prompt_input --> planning --> director --> reasoning --> prompt_rendering.
+    prompt_input --> clarify
+    clarify -->|"yes"| finalization
+    generation --> explain
+    explain -->|"yes"| finalization
+    gate -->|"pass / stop"| finalization
+    gate -->|"refine; budget remains"| refinement
+
+    style shared_a fill:none,stroke:none
+    style shared_b fill:none,stroke:none
+    style plan_a fill:none,stroke:none
+    style plan_b fill:none,stroke:none
+    style artifacts_a fill:none,stroke:none
+    style artifacts_b fill:none,stroke:none
+    style top_half fill:none,stroke:none
+    style bottom_half fill:none,stroke:none
+
+    %% Executable review logic currently permits up to two refinement attempts.
+    %% Browser runtime telemetry occurs after finalization and is not critique input.
+    %% Executable Multi spine: prompt_input --> planning --> director --> reasoning --> prompt_rendering.
     %% V4.3 hybrid workflow metadata boundary: no runtime escalation.
     %% V4.4 hybrid studio metadata boundary: no Studio runtime.
     %% V4.5 multimodal studio metadata boundary: no rendering execution.

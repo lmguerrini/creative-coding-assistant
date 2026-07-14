@@ -1,9 +1,14 @@
 # Creative Knowledge Distillation
 
-V8.1 adds a bounded creative knowledge distillation surface for Creative Coding
-Assistant. It converts existing repository contracts, approved source registry
+The V8.1 catalog defines a bounded creative knowledge distillation surface. It
+converts existing repository contracts, approved source registry
 entries, capstone retrieval demo scenarios, and read-only local Chroma inventory
 into typed creative knowledge records.
+
+> **Reference notice:** This is a deterministic knowledge-contract reference,
+> not the live retrieval path or a roadmap. For executable architecture, see
+> [System Architecture Overview](system_architecture_overview.md) and
+> [End-to-End Product Workflow](end_to_end_product_workflow.md).
 
 The implementation lives in
 `src/creative_coding_assistant/knowledge/creative_distillation.py`.
@@ -20,7 +25,7 @@ The implementation lives in
   mutate source registries, change retrieval configuration, route providers,
   execute workflows, or implement HoloMind or HOLOiVERSE.
 
-## Implemented V8.1 Surfaces
+## Cataloged V8.1 Surfaces
 
 - Creative technique, workflow, pattern, taxonomy, and best-practice records.
 - KB reality snapshots for registry-vs-indexed coverage.
@@ -30,10 +35,10 @@ The implementation lives in
 - Creative knowledge relationships across shared sources and domains.
 - Demo-domain hardening recommendations for focused sync and evaluation.
 
-## Deferred Boundaries
+## Excluded Boundaries
 
-- PDF and paper distillation remain deferred until a scoped ingestion path is
-  approved.
+- PDF and paper distillation are outside this contract unless a separate scoped
+  ingestion path is approved.
 - Demo KB expansion and domain sync remain recommendations unless a focused
   sync/reindex action is explicitly authorized.
 - Registry entries are not treated as indexed KB evidence.

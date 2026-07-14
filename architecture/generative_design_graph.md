@@ -1,8 +1,16 @@
 # Generative Design Dependency Graph
 
-This document is the developer inspection view for the V3.2 Generative Design
-Core. It focuses on the six V3.2 capabilities and how they extend stored V3.1
-Creative Cognition metadata inside the single `planning` runtime node.
+This document is the developer inspection view for the Generative Design
+metadata catalog historically labeled V3.2. It focuses on six deterministic
+capabilities and how they extend stored Creative Cognition metadata inside the
+single `planning` runtime node.
+
+> **Reference notice:** This is a passive dependency reference, not a runtime
+> route or an agent topology. Start with
+> [System Architecture Overview](system_architecture_overview.md),
+> [End-to-End Product Workflow](end_to_end_product_workflow.md), and
+> [Single and Multi Runtime Routes](workflow_graph.md) for executable behavior.
+> Version labels below identify registry provenance, not a delivery schedule.
 
 It is the dense companion to:
 
@@ -27,111 +35,50 @@ It is the dense companion to:
   nodes with their own retries or failure routing
 - V3.2 remains metadata and design guidance, not code generation execution,
   runtime mutation, provider routing, or preview behavior changes
-- The current structure feeds the V3.3 Artifact Intelligence stack, V3.4
-  Creative Evaluation metadata, and V3.5 workstation inspection surfaces, but
-  it is still a future V4 multi-agent blueprint rather than an implemented
-  multi-agent runtime
-- V3.6 stabilization keeps these V3.2 dependency relationships unchanged
+- The structure feeds Artifact Intelligence, Creative Evaluation metadata, and
+  workstation inspection surfaces without creating another runtime subsystem
+- Older documentation called the dependency seams a “future V4 multi-agent
+  blueprint.” That label is retired; the current Multi path is bounded and
+  sequential, while these helpers remain inside `planning`
+  <!-- Compatibility phrase: future V4 multi-agent blueprint -->
+- Versioned stabilization entries preserve these dependency relationships
 
 ```mermaid
-flowchart LR
+flowchart TB
     classDef upstream fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
-    classDef bundle fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px;
     classDef design fill:#FFF7ED,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px;
     classDef store fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px;
     classDef consumer fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px;
     classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
-    classDef relationship fill:#FEFCE8,stroke:#A16207,color:#713F12,stroke-width:1.5px,stroke-dasharray: 6 4;
 
-    subgraph upstream_core["1. Upstream V3.1 Creative Cognition"]
-        direction TB
-        brief["Brief layer<br/>Creative Intent Decomposer<br/>Creative Hierarchy Planner<br/>Creative Strategy Engine<br/>Creative Technique Selector"]:::upstream
-        execution["Execution layer<br/>Creative Execution Plan<br/>Creative Constraint Solver<br/>Runtime Capability Reasoner<br/>Creative Trade-off Explorer<br/>Creative Constraint Prioritizer<br/>Creative Quality Predictor"]:::bundle
-        story["Structure layer<br/>Symbolic Narrative Planner<br/>Creative Composition Planner"]:::upstream
-    end
+    cognition["Stored Creative Cognition metadata<br/>brief + constraints + story structure"]:::upstream
 
-    subgraph design_core["2. V3.2 Generative Design Core"]
-        direction TB
-        procedural["Procedural Structure Planner"]:::design
-        generative["Generative Structure Engine"]:::design
-        motif["Semantic Motif Engine"]:::design
-        emotion["Emotional Consistency Engine"]:::design
-        cross["Cross-Modality Composer"]:::design
-        scene["Audio-Visual Scene System"]:::design
+    subgraph design_core["Deterministic helpers inside planning"]
+        direction LR
+        structure["Structure<br/>Procedural Structure Planner<br/>Generative Structure Engine"]:::design
+        meaning["Meaning + consistency<br/>Semantic Motif Engine<br/>Emotional Consistency Engine"]:::design
+        composition["Composition<br/>Cross-Modality Composer<br/>Audio-Visual Scene System"]:::design
     end
 
     metadata_store["Metadata Store<br/>AssistantWorkflowState + PromptInputResponse"]:::store
-    director["Creative Assistant Director runtime node"]:::consumer
-    reasoning["Creative Reasoning Engine runtime node"]:::consumer
-    prompt_rendering["Prompt rendering runtime node"]:::consumer
-    workstation["V3.5 Workstation surfaces<br/>timeline + inspector + dashboard"]:::consumer
-    note["Selective graph only<br/>Use the matrix below for exhaustive reads"]:::note
-    structure_boundary["Structure relationship<br/>procedural structure grounds<br/>generative structure"]:::relationship
-    motif_boundary["Motif relationship<br/>story + structure produce<br/>semantic motif guidance"]:::relationship
-    emotion_boundary["Emotional relationship<br/>motif + structure align<br/>emotional consistency"]:::relationship
-    modality_boundary["Cross-modality relationship<br/>emotion + motif coordinate<br/>modality mapping"]:::relationship
-    scene_boundary["Scene relationship<br/>cross-modality resolves<br/>audio-visual scene guidance"]:::relationship
 
-    brief --> procedural
-    execution --> procedural
-    story --> procedural
+    subgraph consumers["Bounded downstream consumers"]
+        direction LR
+        director["Creative Assistant Director runtime node"]:::consumer
+        reasoning["Creative Reasoning Engine runtime node"]:::consumer
+        prompt_rendering["Prompt rendering runtime node"]:::consumer
+    end
 
-    execution --> generative
-    story --> generative
-    procedural --> generative
+    workstation["V3.5 Workstation surfaces<br/>passive inspection metadata"]:::consumer
+    note["Passive dependency reference<br/>These helpers are not LangGraph nodes<br/>Dense reads remain in the matrix"]:::note
 
-    story --> motif
-    procedural --> motif
-    generative --> motif
-
-    execution --> emotion
-    story --> emotion
-    procedural --> emotion
-    generative --> emotion
-    motif --> emotion
-
-    execution --> cross
-    story --> cross
-    procedural --> cross
-    generative --> cross
-    motif --> cross
-    emotion --> cross
-
-    execution --> scene
-    story --> scene
-    procedural --> scene
-    generative --> scene
-    motif --> scene
-    emotion --> scene
-    cross --> scene
-
-    procedural -.-> metadata_store
-    generative -.-> metadata_store
-    motif -.-> metadata_store
-    emotion -.-> metadata_store
-    cross -.-> metadata_store
-    scene -.-> metadata_store
-
+    cognition --> structure --> meaning --> composition --> metadata_store
     metadata_store --> director
     metadata_store --> reasoning
     metadata_store --> prompt_rendering
     metadata_store --> workstation
     director --> reasoning --> prompt_rendering
     note -.-> design_core
-    procedural -. grounds .-> structure_boundary
-    structure_boundary -. feeds .-> generative
-    generative -. shapes .-> motif_boundary
-    story -. supplies narrative .-> motif_boundary
-    motif_boundary -. guides .-> motif
-    motif -. anchors .-> emotion_boundary
-    generative -. structures .-> emotion_boundary
-    emotion_boundary -. aligns .-> emotion
-    emotion -. balances .-> modality_boundary
-    motif -. maps .-> modality_boundary
-    modality_boundary -. composes .-> cross
-    cross -. resolves .-> scene_boundary
-    scene_boundary -. guides .-> scene
-    scene_boundary -. publishes .-> metadata_store
 ```
 
 The raw Mermaid source for this diagram is available in

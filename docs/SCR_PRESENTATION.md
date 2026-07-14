@@ -52,11 +52,12 @@ Use the Inspector and Evaluation surfaces to make the risk concrete.
 - Source registration, indexing, retrieval, and citation are different states.
 - Single and Multi are different execution paths; Multi is sequential
   application logic, not five parallel provider-backed agents.
-- Auto is a selector. Under the current default capability map, ordinary Auto
-  requests resolve to Multi because every task mode includes official-document
-  capability.
+- Auto selects Single only for an Explain or Debug route with no attachments
+  and no resolved domains; every other Auto request resolves Multi.
 - A listed runtime is not automatically a live internal preview. The canonical
   browser-preview contract is p5.js, Three.js, GLSL, and Tone.js.
+- Browser frame status and telemetry are local post-hydration evidence; they do
+  not feed the backend artifact critic or workflow reviewer.
 - An uploaded image matters only if its validated bytes enter the provider
   payload; filename metadata alone would not be multimodal generation.
 
@@ -71,12 +72,19 @@ Run one request and narrate only evidence visible in the product or repository.
 2. The compiled LangGraph emits lifecycle and node events.
 3. Multi retrieves official-source context, prepares typed planning guidance,
    calls the generation provider, extracts an artifact, prepares preview
-   metadata, reviews the result, and allows at most one refinement pass.
+   metadata, reviews the result, and allows up to two refinement passes—at most
+   three generation calls including the initial call.
 4. The response preserves the resolved route, executed nodes, source context,
    artifact, and terminal state for inspection.
 5. A supported domain opens through its browser-focused preview path; other
    domains remain code/export or external-tool handoffs unless separately
    validated.
+
+The public `execution.max_refinement_loops` field still reports `1` while the
+executable reviewer permits two attempts. Treat that as a documented
+contract/runtime drift. Explain is also a deliberate short path: after
+generation it goes directly to finalization without artifact, preview, critique,
+or review nodes.
 
 Then show the evaluation boundary:
 
@@ -96,12 +104,17 @@ it as a whole-product score, project grade, or human artistic judgment. The old
 
 | Statement | Evidence to open | Boundary to say aloud |
 |---|---|---|
-| Single and Multi execute different paths | [Runtime workflow graph](../architecture/workflow_graph.md) and streamed node events | Multi responsibilities are sequential; only generation crosses the model boundary |
+| Single and Multi execute different paths | [Runtime workflow graph](../architecture/workflow_graph.md) and streamed node events | Multi responsibilities are sequential; only generation crosses the text-generation boundary |
 | Image-guided input is genuine | [Architecture Walkthrough](ARCHITECTURE_WALKTHROUGH.md) and multimodal request tests | At most four PNG/JPEG/WebP/GIF files, 1 MiB each; request bytes are not restored with sessions |
 | Retrieval is evaluated | [`canonical_retrieval_report.json`](../demo/evaluation/canonical_retrieval_report.json) | Coverage is not grounded-answer quality |
 | Current-product RAGAS components exist | [Evaluation Metrics Summary](EVALUATION_METRICS_SUMMARY.md) | Seven public RAG cases; five metrics; no whole-product claim |
 | Browser previews are bounded | [Capability Matrix](CAPABILITY_MATRIX.md) | Four canonical live domains; other adapters/handoffs are not the same claim |
 | Privacy is inspectable | [Ethics & Privacy Assessment](ETHICS_PRIVACY_ASSESSMENT.md) | Provider and embedding calls can send user/source text off-device; no production auth claim |
+
+The Dashboard queues and polls only current-product evaluation runs. Dry-runs
+are unscored, canonical publication is a separate explicit CLI action, and the
+four-row historical fixture remains a direct historical-API lane. See the
+[evaluation workflow](../architecture/evaluation_workflow.md).
 
 ## Closing line
 
@@ -122,4 +135,6 @@ it as a whole-product score, project grade, or human artistic judgment. The old
 Continue with the [SMART Presentation](SMART_PRESENTATION.md) for measurable
 scope, the [Ten-Minute Presentation](TEN_MINUTE_PRESENTATION.md) for timing, and
 the [Evaluation Criteria Mapping](EVALUATION_CRITERIA_MAPPING.md) for the
-reviewer evidence path.
+reviewer evidence path. Use the
+[Architecture Diagram Guide](../architecture/README.md) for the complete visual
+suite.

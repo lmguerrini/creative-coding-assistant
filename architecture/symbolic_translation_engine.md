@@ -1,8 +1,13 @@
 # Symbolic Translation Engine
 
-V8.2 adds a bounded Symbolic Translation Engine for Creative Coding Assistant.
-It translates user-visible symbolic, artistic, mythopoetic, geometric, ritual,
+The V8.2 catalog defines a bounded Symbolic Translation Engine. It translates
+user-visible symbolic, artistic, mythopoetic, geometric, ritual,
 aesthetic, and conceptual intent into structured creative coding guidance.
+
+> **Reference notice:** This is a deterministic guidance-contract reference,
+> not a separate runtime subsystem or delivery roadmap. For executable
+> behavior, see [System Architecture Overview](system_architecture_overview.md)
+> and [Single and Multi Runtime Routes](workflow_graph.md).
 
 The implementation lives in
 `src/creative_coding_assistant/knowledge/symbolic_translation.py`.
@@ -22,7 +27,7 @@ The implementation lives in
 - The module does not implement HoloMind, HOLOiVERSE, or V8.3 Sacred Geometry
   Engine.
 
-## Implemented V8.2 Surfaces
+## Cataloged V8.2 Surfaces
 
 - Typed motif, operation, provenance, confidence, roadmap-assessment, and
   report contracts.
@@ -48,14 +53,15 @@ The implementation lives in
 V8.2 composes these systems into an operational translation report instead of
 duplicating their responsibilities.
 
-## Deferred Boundaries
+## Excluded Boundaries
 
 - Comparative tradition interpretation requires HITL and explicit scoped
   sources.
 - Universal symbol dictionaries are intentionally not implemented because they
   would overclaim symbolic authority.
 - Mystical correspondence, hermeneutic reasoning, and initiatory consistency
-  validation remain blocked unless a later scoped decision defines evidence,
+  validation remain excluded unless a separate scoped decision defines evidence,
   wording, review ownership, and safety constraints.
 - Symbol evolution and historical interpretation are not implemented.
-- Frontend surfacing is deferred to a product-scoped UI decision.
+- Frontend surfacing is outside this contract and requires a product-scoped UI
+  decision.

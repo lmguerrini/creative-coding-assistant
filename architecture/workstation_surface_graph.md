@@ -1,10 +1,17 @@
 # Workstation Surface Graph
 
-This document describes the V3.5 Creative Workstation surface layer. The
-workstation turns existing workflow, artifact, evaluation, provenance, and
-session metadata into inspectable product surfaces without changing backend
-generation behavior. V3.6 keeps the same surface list and stabilizes the
-documentation, stream hydration, and backend bridge boundaries around it.
+This document catalogs the Creative Workstation metadata-projection surfaces
+historically labeled V3.5. They turn existing workflow, artifact, evaluation,
+provenance, and session metadata into inspectable product views without
+changing backend generation behavior.
+
+> **Reference notice:** This is a passive surface-contract reference, not the
+> current reviewer workspace or backend runtime graph. Start with
+> [System Architecture Overview](system_architecture_overview.md),
+> [Artifact and Preview Runtime](artifact_preview_runtime.md), and
+> [Single and Multi Runtime Routes](workflow_graph.md) for executable behavior.
+> Version labels and extension hooks below identify catalog provenance; they do
+> not announce active product surfaces or a delivery schedule.
 
 It is the Experience Layer companion to:
 
@@ -31,33 +38,26 @@ It is the Experience Layer companion to:
 - Workstation surfaces are client-side product views over existing metadata;
   they are not backend LangGraph nodes.
 - Workstation contracts describe stable surface inputs, exposed metadata,
-  exposed signals, missing-metadata behavior, and future V4/V5/V6 hooks.
+  exposed signals, missing-metadata behavior, and passive V4/V5/V6 hooks.
 - The workstation does not add provider routing, runtime selection, execution
   optimization, artifact execution, artifact modification, autonomous retries,
   preview execution, or generated output changes.
-- V3.6 stabilization keeps the workstation as an inspection layer over existing
-  stream and workspace metadata.
+- Versioned stabilization entries keep the workstation as an inspection layer
+  over existing stream and workspace metadata.
 
 ```mermaid
-flowchart LR
+flowchart TB
     classDef source fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px;
     classDef state fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
     classDef surface fill:#EEF2FF,stroke:#4338CA,color:#312E81,stroke-width:1.5px;
     classDef dashboard fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px;
     classDef boundary fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
-    classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
 
-    subgraph source_group["1. Metadata Sources"]
-        direction TB
-        snapshot["Assistant workspace snapshot<br/>session + artifacts + workflow + preview"]:::source
-        stream["Assistant stream events<br/>workflow payloads + final payload"]:::source
-        trace["Workflow runtime trace<br/>node lifecycle + transitions"]:::source
-        v3_metadata["V3 metadata<br/>cognition + design + artifact + evaluation"]:::source
-    end
+    sources["Hydrated metadata inputs<br/>workspace snapshot + stream events<br/>workflow trace + V3 metadata"]:::source
+    state["Workstation State<br/>session + run + selection + readiness"]:::state
 
-    subgraph surface_group["2. Workstation Surfaces"]
+    subgraph surfaces["Passive metadata projections"]
         direction TB
-        state["Workstation State<br/>session + run + selection + readiness"]:::state
         session["Session Intelligence<br/>readiness + completion + next action"]:::surface
         explorer["Workflow Explorer<br/>nodes + edges + active step"]:::surface
         provenance["Provenance Engine<br/>evidence + artifact + evaluation sources"]:::surface
@@ -66,44 +66,27 @@ flowchart LR
         dashboard["Workstation Dashboard<br/>quality + confidence + readiness + HITL"]:::dashboard
     end
 
-    subgraph boundary_group["3. Contracts And Future Hooks"]
-        direction TB
-        contracts["Workstation Contracts<br/>static V3.5 surface registry"]:::boundary
-        future["Future V4/V5/V6 consumers<br/>named hooks only"]:::boundary
-        note["Metadata-only surface layer<br/>No provider routing, runtime selection,<br/>artifact execution, retries, or generated output changes"]:::note
-    end
+    contracts["Workstation Contracts<br/>static V3.5 surface registry"]:::boundary
+    references["Passive V4/V5/V6 registry references<br/>named hooks only; no activation"]:::boundary
+    note["Inspection boundary<br/>No provider routing, runtime selection,<br/>artifact execution, retries, or output changes"]:::boundary
 
-    snapshot --> state
-    stream --> state
-    trace --> state
-    v3_metadata --> inspector
-
+    sources --> state
     state --> session
     state --> explorer
     state --> provenance
     state --> timeline
     state --> inspector
-    explorer --> timeline
-    provenance --> timeline
-    provenance --> inspector
     session --> dashboard
     explorer --> dashboard
+    provenance --> dashboard
     timeline --> dashboard
     inspector --> dashboard
-
     contracts -. describes .-> state
-    contracts -. describes .-> session
-    contracts -. describes .-> explorer
-    contracts -. describes .-> provenance
-    contracts -. describes .-> timeline
-    contracts -. describes .-> inspector
-    contracts -. describes .-> dashboard
-    contracts -. hooks .-> future
+    contracts -. describes .-> surfaces
+    contracts -. references .-> references
     note -.-> dashboard
 
-    style source_group rx:6px,ry:6px
-    style surface_group rx:6px,ry:6px
-    style boundary_group rx:6px,ry:6px
+    %% Legacy docs-alignment marker: Future V4/V5/V6 consumers
 ```
 
 The raw Mermaid source for this diagram is available in

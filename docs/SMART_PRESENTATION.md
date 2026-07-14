@@ -8,9 +8,9 @@ ten-minute demonstration and five-minute question period.
 
 | Dimension | Reviewable commitment | Evidence and boundary |
 |---|---|---|
-| **Specific** | Convert a text prompt or validated image reference into an inspectable creative-code response with the requested and resolved workflow, executed-node trace, sources, artifact, and preview metadata. | [Architecture Walkthrough](ARCHITECTURE_WALKTHROUGH.md); image data reaches the generation payload, but queued image bytes are request-scoped rather than restored from saved sessions. |
+| **Specific** | Convert a text prompt or validated image reference into an inspectable creative-code response with the requested and resolved workflow, executed-node trace, sources, artifact, and preview metadata. | [Architecture Walkthrough](ARCHITECTURE_WALKTHROUGH.md); image data reaches the generation payload, but queued image bytes are request-scoped rather than restored from saved sessions. Browser frame telemetry remains local and does not feed backend critique. |
 | **Measurable** | Demonstrate the four canonical live preview domains; publish route/node evidence; report fixed retrieval coverage and five current-product RAGAS component means without collapsing them into a whole-product claim. | [Capability Matrix](CAPABILITY_MATRIX.md), [retrieval report](../demo/evaluation/canonical_retrieval_report.json), and [Evaluation Metrics Summary](EVALUATION_METRICS_SUMMARY.md). |
-| **Achievable** | Use a local Next.js 15 client, exact-path Python WSGI API, compiled LangGraph, local Chroma/SQLite stores, and one implemented OpenAI provider route with no more than one Multi refinement. | [System Overview](SYSTEM_OVERVIEW.md); optional provider/network dependencies are explicit. |
+| **Achievable** | Use a local Next.js 15 client, exact-path Python WSGI API, compiled LangGraph, local Chroma/SQLite stores, and one implemented OpenAI provider route with no more than two Multi refinements. | [System Overview](SYSTEM_OVERVIEW.md); optional provider/network dependencies are explicit, and the published one-refinement field is documented as drift from the executable two-attempt limit. |
 | **Relevant** | Reduce the gap between a creative intention and a reviewable browser-oriented code artifact while teaching rather than hiding technical choices. | It addresses the official Outcome Quality, Learning Application, Ethical Considerations, and Presentation criteria; its primary implementation patterns align with Cases 1, 2, and 5. Case 7 is supporting and incomplete because no controlled parameter-experiment dataset exists. |
 | **Time-bound** | Complete one end-to-end proof in the ten-minute capstone window, using evidence stamped by its own run time rather than implying continuous production monitoring. | The canonical retrieval artifact records `2026-07-13T05:05:33.306298+00:00`; it is a fixed report, not a live dashboard. |
 
@@ -29,7 +29,7 @@ ten-minute demonstration and five-minute question period.
 > labeled historical. The scope is achievable because the
 > implementation is deliberately bounded: a Next.js client, a WSGI API, one
 > compiled LangGraph, local Chroma and SQLite storage, one implemented generation
-> provider, and at most one Multi refinement. It is relevant because creative
+> provider, and at most two Multi refinements. It is relevant because creative
 > coding needs fast iteration without concealing source, runtime, or privacy
 > decisions. It is time-bound by the review itself: one full request and its
 > evidence must be understandable within ten minutes, while every stored metric
@@ -50,11 +50,18 @@ ten-minute demonstration and five-minute question period.
 | Current RAGAS context relevancy | 0.8571428571428571 | Usefulness of selected contexts on the benchmark | Every source is ideal |
 | Current RAGAS context recall | 0.8095238095238094 | Coverage against authored reference answers/context | Recall for unrelated product lanes |
 | Current Retrieval Quality macro | 0.6803191571804 | Equal-weight summary of the five RAGAS means | Accuracy, project grade, or aesthetic judgment |
-| Multi refinement budget | At most 1 | Review cannot loop without bound | That every retry improves artistic quality |
+| Multi refinement budget | At most 2 after the initial generation | Review permits at most three generation calls total | That every retry improves artistic quality |
 
 The primary **68.03%** macro is an arithmetic summary of the five current RAGAS
 means. It is not a whole-product score or capstone grade. The old **61.44%**
 four-metric fixture remains historical and has no context-recall denominator.
+
+Runtime routing is equally narrow: Auto selects Single only for Explain or
+Debug with no attachments and no resolved domains; every other Auto request
+selects Multi. A successful Explain generation goes directly to finalization,
+skipping artifact extraction, preview, critique, and review. The public
+`execution.max_refinement_loops` field remains `1` even though the executable
+review path permits two attempts.
 
 ## Live verification sequence
 
@@ -90,4 +97,6 @@ alone.
 
 Use this frame after the [SCR Presentation](SCR_PRESENTATION.md), then follow
 the [Reviewer Guide](REVIEWER_GUIDE.md), [Ten-Minute Presentation](TEN_MINUTE_PRESENTATION.md),
-and [Five-Minute Q&A](FIVE_MINUTE_QA.md) for the complete review path.
+and [Five-Minute Q&A](FIVE_MINUTE_QA.md) for the complete review path. The
+[Architecture Diagram Guide](../architecture/README.md) connects these claims
+to the system, route, preview, recovery, and evaluation views.

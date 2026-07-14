@@ -1,10 +1,10 @@
-# Runtime Workflow Graph
+# Single and Multi Runtime Routes
 
-This document describes the compiled LangGraph executed by the Python backend.
-It separates real request transitions from the repository's large inventory of
-typed planning, advisory, and audit contracts. Those contracts can enrich state
-or documentation, but their names do not make them runtime agents or graph
-nodes.
+This document is the exact route-level view of the compiled LangGraph executed
+by the Python backend. It separates executable nodes from the repository's
+larger inventory of typed planning, advisory, and audit contracts. A class,
+registry, or role name is not a runtime agent unless the registered graph calls
+it.
 
 The implementation sources are
 [`runtime/graph_builder.py`](../src/creative_coding_assistant/orchestration/runtime/graph_builder.py),
@@ -12,31 +12,196 @@ The implementation sources are
 [`runtime/nodes/transitions.py`](../src/creative_coding_assistant/orchestration/runtime/nodes/transitions.py),
 and the grouped handlers under
 [`runtime/nodes/`](../src/creative_coding_assistant/orchestration/runtime/nodes/).
-The standalone [Mermaid source](workflow_graph.mmd) is the visual source of
-truth for the route branches.
+The standalone [Mermaid source](workflow_graph.mmd) mirrors the Multi overview
+below for slide rendering. Failure behavior is decomposed into
+[Error and Recovery Paths](error_and_recovery_paths.md).
 
-## What actually executes
+## Route summary
 
 Every request enters `intake`, then `routing`, then `memory`. The execution plan
 published by routing controls later branches:
 
-| Resolved route | Retrieval | Prompt preparation | After preview | Refinement budget |
+| Resolved route | Retrieval | Prompt preparation | After preview metadata | Executable refinement budget |
 |---|---|---|---|---:|
 | Single Agent | Handler runs but records a skip | `prompt_input` goes directly to `prompt_rendering` | Goes directly to `finalization` | 0 |
-| Multi Agent | Requests official-source retrieval when configured | Runs `planning`, `director`, and `reasoning` before `prompt_rendering` | Runs `artifact_critique` and `review` | At most 1 |
+| Multi Agent | Requests official-source retrieval when configured | Runs `planning`, `director`, and `reasoning` before `prompt_rendering` | Runs `artifact_critique` and `review` | Up to 2; artifact stop rules can end earlier |
 | Auto | Resolves to Single or Multi, then follows that route | Follows the resolved route | Follows the resolved route | Follows the resolved route |
 
-Auto is a selector, not a third execution graph. Its Single condition requires
-an Explain or Debug task with no official-document capability, no attachment,
-and at most one domain. The default route map currently gives every task mode
-official-document capability, so ordinary Auto requests currently resolve to
-Multi. The client waits for and displays the backend's published resolution.
+Auto is a selector, not a third execution graph. It resolves to Single exactly
+when routing selected Explain or Debug, the request has no attachment, and the
+route decision has no resolved domain. Otherwise it resolves to Multi. The
+client waits for and displays the backend's published resolution.
 
 Multi Agent is a sequential multi-node runtime graph with planner, researcher,
 generator, critic, and reviewer responsibilities. It is not a true multi-agent
 swarm: planning, Director guidance, reasoning, critique, and review are typed
 application logic, while only `generation` invokes the configured generation
-provider. A retry re-enters `generation` after `refinement` and can happen once.
+provider. A refinement appends guidance to the existing rendered prompt and
+re-enters `generation`; it does not rerun retrieval, planning, Director,
+reasoning, or prompt rendering.
+
+The executable review limit is two attempts. The published
+`execution.max_refinement_loops` field still reports one for Multi, and the
+Inspector displays that published value. That field is not consulted by the
+review transition, so this is a current contract drift rather than a runtime
+limit. This documentation task records the mismatch without changing product
+behavior or public APIs.
+
+## Single-Agent workflow
+
+**Purpose.** Show only the resolved Single path.
+
+```mermaid
+flowchart TB
+    classDef runtime fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px
+    classDef skipped fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray:5 3
+    classDef decision fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px
+    classDef external fill:#FFF7ED,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px
+    classDef terminal fill:#EDE9FE,stroke:#6D28D9,color:#4C1D95,stroke-width:1.5px
+    classDef failure fill:#FEE2E2,stroke:#B91C1C,color:#7F1D1D,stroke-width:1.5px
+
+    subgraph shared_single["1 · Shared request stages"]
+        direction LR
+        intake["intake"]:::runtime --> routing["routing<br/>publish Single"]:::runtime
+        routing --> memory["memory"]:::runtime --> retrieval["retrieval<br/>explicit skip"]:::skipped
+        retrieval --> context["context_assembly"]:::runtime --> input["prompt_input"]:::runtime
+    end
+
+    subgraph direct_single["2 · Direct generation"]
+        direction LR
+        clarify{"clarification?"}:::decision -->|"no"| render["prompt_rendering"]:::runtime
+        render --> generation["generation"]:::runtime --> explain{"Explain route?"}:::decision
+        generation -. "provider call" .-> openai["OpenAI Responses"]:::external
+    end
+
+    subgraph finish_single["3 · Artifact path, completion, and failure"]
+        direction LR
+        extract["artifact_extraction"]:::runtime --> preview["preview_preparation"]:::runtime
+        preview --> final["finalization"]:::terminal --> event["final event<br/>completed"]:::terminal
+        pending["pending failure<br/>from any node"]:::decision -.-> failure["failure"]:::failure
+        failure --> failed_event["final event<br/>failed"]:::failure
+    end
+
+    input --> clarify
+    clarify -->|"yes"| final
+    explain -->|"yes"| final
+    explain -->|"no"| extract
+```
+
+**What to notice.** Memory still has a real handler; retrieval is entered and
+recorded as skipped. Single does not execute planning, Director, reasoning,
+artifact critique, review, or refinement. Explain responses skip artifact and
+preview nodes after generation.
+
+**Truth boundary.** Preview preparation creates backend metadata only. Browser
+execution happens after the final event. Any pending node failure branches to
+the shared `failure` node shown in the dedicated error document.
+
+## Multi-Agent workflow overview
+
+**Purpose.** Show the sequential Multi responsibilities and the bounded review
+loop without rendering every failure edge.
+
+```mermaid
+flowchart TB
+    classDef runtime fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px
+    classDef decision fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px
+    classDef external fill:#FFF7ED,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px
+    classDef terminal fill:#EDE9FE,stroke:#6D28D9,color:#4C1D95,stroke-width:1.5px
+    classDef failure fill:#FEE2E2,stroke:#B91C1C,color:#7F1D1D,stroke-width:1.5px
+
+    subgraph top_half[" "]
+    direction LR
+    subgraph shared["1 · Shared request stages"]
+        direction TB
+        subgraph shared_a[" "]
+            direction LR
+            intake["intake"]:::runtime --> routing["routing<br/>publish Multi"]:::runtime --> memory["memory"]:::runtime
+        end
+        subgraph shared_b[" "]
+            direction LR
+            retrieval["retrieval<br/>Researcher"]:::runtime --> context["context_assembly"]:::runtime --> prompt_input["prompt_input"]:::runtime
+        end
+        memory --> retrieval
+    end
+
+    subgraph plan["2 · Plan and generate"]
+        direction TB
+        subgraph plan_a[" "]
+            direction LR
+            clarify{"clarification?"}:::decision -->|"no"| planning["planning<br/>Planner"]:::runtime --> director["director"]:::runtime
+        end
+        subgraph plan_b[" "]
+            direction LR
+            reasoning["reasoning"]:::runtime --> prompt_rendering["prompt_rendering"]:::runtime --> generation["generation<br/>Generator"]:::runtime
+        end
+        director --> reasoning
+        generation -. "only generation-provider call" .-> openai["OpenAI Responses"]:::external
+    end
+    end
+
+    subgraph bottom_half[" "]
+    direction LR
+    subgraph artifacts["3 · Artifacts and review"]
+        direction TB
+        subgraph artifacts_a[" "]
+            direction LR
+            explain{"Explain route?"}:::decision -->|"no"| artifact_extraction["artifact_extraction"]:::runtime --> preview_preparation["preview_preparation"]:::runtime
+        end
+        subgraph artifacts_b[" "]
+            direction LR
+            artifact_critique["artifact_critique<br/>Critic"]:::runtime --> review["review<br/>Reviewer"]:::runtime --> gate{"review outcome"}:::decision
+        end
+        preview_preparation --> artifact_critique
+    end
+
+    subgraph completion["4 · Complete, refine, or fail"]
+        direction LR
+        refinement["refinement"]:::runtime --> return_generation(["↺ generation<br/>same node above"]):::decision
+        finalization["finalization"]:::terminal --> event["final event<br/>completed"]:::terminal
+        pending["pending failure<br/>from any node"]:::decision -.-> failure["failure"]:::failure
+        failure --> failed_event["final event<br/>failed"]:::failure
+    end
+    end
+
+    prompt_input --> clarify
+    clarify -->|"yes"| finalization
+    generation --> explain
+    explain -->|"yes"| finalization
+    gate -->|"pass / stop"| finalization
+    gate -->|"refine; budget remains"| refinement
+
+    style shared_a fill:none,stroke:none
+    style shared_b fill:none,stroke:none
+    style plan_a fill:none,stroke:none
+    style plan_b fill:none,stroke:none
+    style artifacts_a fill:none,stroke:none
+    style artifacts_b fill:none,stroke:none
+    style top_half fill:none,stroke:none
+    style bottom_half fill:none,stroke:none
+
+    %% Executable review logic currently permits up to two refinement attempts.
+    %% Browser runtime telemetry occurs after finalization and is not critique input.
+    %% Executable Multi spine: prompt_input --> planning --> director --> reasoning --> prompt_rendering.
+    %% V4.3 hybrid workflow metadata boundary: no runtime escalation.
+    %% V4.4 hybrid studio metadata boundary: no Studio runtime.
+    %% V4.5 multimodal studio metadata boundary: no rendering execution.
+    %% V4.6 agentic studio hardening metadata boundary: terminal failure audit only.
+    %% V5.2 model routing metadata boundary: no provider/model switching.
+    %% V5.4 production observability metadata boundary: no live telemetry emission.
+    %% V5.5 adaptive execution policy boundary: no provider execution or routing mutation.
+```
+
+**What to notice.** The roles are sequential responsibilities, not parallel LLM
+workers. Retrieval uses the configured query-embedding and local Chroma path;
+only generation calls the text provider. Refinement loops directly back to
+generation. See [Multi-Agent Role Zooms](multi_agent_roles.md) for inputs,
+evidence, outputs, and failure boundaries.
+
+**Truth boundary.** An Explain route still runs Multi planning but goes from
+generation directly to finalization. Backend artifact critique reads prepared
+preview metadata, not live browser telemetry. The diagram omits repeated
+failure arrows; every pending normalized node failure goes to `failure`.
 
 ## Registered node order
 
@@ -70,44 +235,35 @@ Current transition rules:
   goes to `prompt_rendering`, and Multi goes to `planning`.
 - `planning --> director --> reasoning --> prompt_rendering --> generation` is
   the Multi prompt-preparation path.
-- `generation --> artifact_extraction --> preview_preparation` is common to
-  successful generation.
+- An Explain route goes from `generation` to `finalization`. Other successful
+  generation goes to `artifact_extraction --> preview_preparation`.
 - After preview preparation, Single goes to `finalization`; Multi goes to
   `artifact_critique --> review`.
-- Review passes or an exhausted retry budget go to `finalization`. A permitted
-  retry goes to `refinement --> generation`.
+- Review passes go to `finalization`. A permitted retry goes to
+  `refinement --> generation`. The executable default allows two attempts and
+  can stop earlier on artifact pass rules. Exhaustion with a missing required
+  deliverable goes to `failure`; other exhausted quality issues finalize with
+  the review evidence preserved.
 - A pending normalized failure at any conditional boundary goes to `failure`.
   `failure` emits the terminal failure response and ends the graph.
 
 ## Runtime and provider boundaries
 
-```mermaid
-flowchart LR
-    ui["Next.js Creative Session"] --> api["Exact-path WSGI API"]
-    api --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input
-    prompt_input -->|"Single"| prompt_rendering
-    prompt_input -->|"Multi"| planning --> director --> reasoning --> prompt_rendering
-    prompt_input -->|"clarification"| finalization
-    prompt_rendering --> generation --> artifact_extraction --> preview_preparation
-    preview_preparation -->|"Single"| finalization
-    preview_preparation -->|"Multi"| artifact_critique --> review
-    review -->|"pass or retry exhausted"| finalization
-    review -->|"refine once"| refinement --> generation
-    finalization --> terminal["final event"] --> ui
-    failure --> failed["terminal failure event"] --> ui
-    retrieval -. "query embeddings" .-> embeddings["OpenAI embeddings"]
-    retrieval <--> chroma["local Chroma"]
-    generation -. "configured-provider request payload" .-> responses["OpenAI Responses"]
-```
+The WSGI layer validates the request before the graph and streams
+newline-delimited JSON events after it starts. Retrieval can send query text to
+the OpenAI embedding adapter and reads selected official chunks from local
+Chroma. Generation constructs an OpenAI Responses payload from the rendered
+prompt and validated image data; live receipt and image use remain run-specific
+evidence. No other graph node calls the text-generation provider.
 
-The WSGI layer validates the request and streams newline-delimited JSON events. Retrieval
-can send the query to the embeddings provider and reads selected chunks from
-local Chroma. Generation constructs an OpenAI Responses payload from the
-rendered prompt and validated image data; live receipt and image use remain
-run-specific evidence. Extracted code stays in application state, preview
-preparation publishes metadata, and the browser runs only a supported preview
-adapter. SQLite session persistence is outside the graph; request-scoped image
-bytes are deliberately removed from saved sessions.
+Extracted code stays in application state. Preview preparation publishes
+metadata, then the browser applies its own source preflight and controlled
+runtime. SQLite session persistence, post-stream Chroma memory recording,
+live-evaluation JSONL recording, and explicit RAGAS evaluation all sit outside
+the graph. Request-scoped image bytes are deliberately removed from saved
+sessions. See the [System Architecture Overview](system_architecture_overview.md)
+and [Artifact and Preview Runtime](artifact_preview_runtime.md) for those
+boundaries.
 
 ## Runtime Graph Vs Internal Capability Graph
 

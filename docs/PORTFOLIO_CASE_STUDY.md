@@ -38,10 +38,19 @@ or Auto. The current runtime resolves that request into either:
 
 - one `generator` role with no separate retrieval/review route; or
 - `planner`, `researcher`, `generator`, `critic`, and `reviewer` roles with at
-  most one refinement loop.
+  most two refinement attempts, for up to three generation calls including the
+  initial call.
+
+Auto selects Single only for Explain or Debug with no attachments and no
+resolved domains; every other Auto request resolves Multi. Successful Explain
+generation branches directly to finalization without artifact extraction,
+preview preparation, critique, or review. The public
+`execution.max_refinement_loops` field still reports `1`, a documented drift
+from the executable two-attempt limit.
 
 The execution decision is emitted in the stream and rendered in the UI. It is
-not inferred later from a decorative graph.
+not inferred later from a decorative graph. Browser frame telemetry appears
+after response hydration and does not feed the backend critic or reviewer.
 
 ## Data and knowledge
 
@@ -177,6 +186,7 @@ to the user.
 
 ## Evidence map
 
+- [Architecture diagram guide](../architecture/README.md)
 - [Capstone demo and showcase guide](CAPSTONE_DEMO_SHOWCASE.md)
 - [Challenges and lessons](CHALLENGES_AND_LESSONS.md)
 - [Future work](FUTURE_WORK.md)

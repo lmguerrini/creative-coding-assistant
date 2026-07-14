@@ -1,9 +1,16 @@
 # Artifact Intelligence Dependency Graph
 
-This document is the developer inspection view for the V3.3 Artifact
-Intelligence capability. It focuses on the ten artifact-level metadata engines
-implemented inside the single `planning` runtime node after the V3.1 Creative
-Cognition and V3.2 Generative Design metadata are available.
+This document is the developer inspection view for the Artifact Intelligence
+metadata catalog historically labeled V3.3. It focuses on ten deterministic
+artifact-level helpers evaluated inside the single `planning` runtime node
+after Creative Cognition and Generative Design metadata are available.
+
+> **Reference notice:** This is a passive dependency and contract reference,
+> not the generated-artifact lifecycle. Start with
+> [Artifact and Preview Runtime](artifact_preview_runtime.md),
+> [End-to-End Product Workflow](end_to_end_product_workflow.md), and
+> [Single and Multi Runtime Routes](workflow_graph.md) for executable behavior.
+> Version labels below identify registry provenance, not a delivery schedule.
 
 It is the dense companion to:
 
@@ -35,91 +42,58 @@ It is the dense companion to:
 - V3.5 workstation surfaces read artifact metadata, artifact contract
   summaries, provenance sources, readiness signals, and dashboard card inputs
   from already-hydrated workflow and stream metadata.
-- V3.3 remains metadata-only guidance. It does not execute artifacts, modify
+- Artifact Intelligence remains metadata-only guidance. It does not execute artifacts, modify
   artifacts, export artifacts, select runtimes, change provider routing, change
-  previews, trigger retries, or implement future V4/V5/V6 systems.
+  previews, trigger retries, or activate V4/V5/V6 registry families.
 - V4 Agentic Studio, V5 Execution Optimization & Production Intelligence, and
-  V6 HoloGenesis Core OS consumers are future extension points only.
-- V3.6 stabilization keeps these V3.3 dependency and contract boundaries
-  unchanged.
+  V6 HoloGenesis Core OS references are passive catalog links only.
+- Versioned stabilization entries preserve these dependency and contract
+  boundaries.
 
 ```mermaid
-flowchart LR
+flowchart TB
     classDef upstream fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
     classDef artifact fill:#EEF2FF,stroke:#4338CA,color:#312E81,stroke-width:1.5px;
     classDef contract fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px;
     classDef store fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px;
     classDef consumer fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px;
     classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
-    classDef relationship fill:#FEFCE8,stroke:#A16207,color:#713F12,stroke-width:1.5px,stroke-dasharray: 6 4;
 
-    upstream["Upstream stored metadata<br/>V3.1 Creative Cognition<br/>V3.2 Generative Design"]:::upstream
+    upstream["Stored planning metadata<br/>Creative Cognition + Generative Design"]:::upstream
 
-    subgraph artifact_stack["1. V3.3 Artifact Intelligence Pipeline"]
+    subgraph artifact_stack["Deterministic Artifact Intelligence helpers inside planning"]
         direction TB
-        planner["1. Artifact Planner"]:::artifact
-        dependency["2. Artifact Dependency Graph"]:::artifact
-        runtime["3. Runtime Compatibility Engine"]:::artifact
-        capability["4. Artifact Capability Matrix"]:::artifact
-        strategy["5. Multi-Artifact Strategy"]:::artifact
-        critic["6. Artifact Critic"]:::artifact
-        refiner["7. Artifact Refiner"]:::artifact
-        synthesis["8. Artifact Intelligence Synthesis"]:::artifact
-        merge["9. Artifact Merge Planner"]:::artifact
-        export["10. Artifact Export Intelligence"]:::artifact
+        subgraph planning_row[" "]
+            direction LR
+            shape["Artifact shape<br/>Artifact Planner<br/>Artifact Dependency Graph"]:::artifact
+            fit["Compatibility + strategy<br/>Runtime Compatibility Engine<br/>Artifact Capability Matrix<br/>Multi-Artifact Strategy"]:::artifact
+        end
+        subgraph guidance_row[" "]
+            direction LR
+            guidance["Advisory critique metadata<br/>Artifact Critic<br/>Artifact Refiner<br/>Artifact Intelligence Synthesis"]:::artifact
+            handoff["Handoff planning<br/>Artifact Merge Planner<br/>Artifact Export Intelligence"]:::artifact
+        end
     end
 
-    contracts["Artifact Engine Contracts<br/>shared static registry<br/>10 metadata contracts"]:::contract
-    store["Metadata Store<br/>AssistantWorkflowState<br/>PromptInputResponse<br/>workflow serialization"]:::store
-    director["Creative Assistant Director<br/>runtime node"]:::consumer
-    reasoning["Creative Reasoning Engine<br/>runtime node"]:::consumer
-    prompt_rendering["Prompt Rendering<br/>artifact profile sections"]:::consumer
-    stream["Next.js stream hydration<br/>workflow metadata readers"]:::consumer
-    workstation["V3.5 Workstation surfaces<br/>provenance + timeline + inspector + dashboard"]:::consumer
-    note["Metadata-only architecture<br/>No artifact execution, modification, or export<br/>No runtime selection, provider routing,<br/>retries, preview changes, or future systems"]:::note
-    planning_boundary["Planning relationship<br/>artifact plan + dependency graph<br/>define artifact shape and ordering"]:::relationship
-    compatibility_boundary["Compatibility relationship<br/>runtime compatibility + capability matrix<br/>bound multi-artifact strategy"]:::relationship
-    critique_boundary["Critique relationship<br/>strategy, critic, and refiner<br/>set artifact improvement focus"]:::relationship
-    synthesis_boundary["Synthesis relationship<br/>critic + refiner evidence<br/>feeds synthesis and merge planning"]:::relationship
-    export_boundary["Merge/export relationship<br/>synthesis + merge plan<br/>produce export intelligence metadata"]:::relationship
+    contracts["Artifact Engine Contracts<br/>static metadata registry"]:::contract
+    store["Metadata Store<br/>AssistantWorkflowState + PromptInputResponse"]:::store
 
-    upstream --> planner --> dependency --> runtime --> capability --> strategy --> critic --> refiner --> synthesis --> merge --> export
-    contracts -. standardizes .-> planner
-    contracts -. standardizes .-> dependency
-    contracts -. standardizes .-> runtime
-    contracts -. standardizes .-> capability
-    contracts -. standardizes .-> strategy
-    contracts -. standardizes .-> critic
-    contracts -. standardizes .-> refiner
-    contracts -. standardizes .-> synthesis
-    contracts -. standardizes .-> merge
-    contracts -. standardizes .-> export
+    subgraph consumers["Bounded downstream consumers"]
+        direction LR
+        director["Creative Assistant Director<br/>runtime node"]:::consumer
+        reasoning["Creative Reasoning Engine<br/>runtime node"]:::consumer
+        prompt_rendering["Prompt rendering<br/>artifact profile sections"]:::consumer
+    end
 
-    export --> store
+    workstation["Stream hydration → workstation inspection<br/>metadata only"]:::consumer
+    note["Passive planning reference<br/>Not post-generation artifact critique<br/>No export, preview, provider, or retry control"]:::note
+
+    upstream --> shape --> fit --> guidance --> handoff --> store
+    contracts -. standardizes .-> artifact_stack
     contracts --> store
-    store --> director
-    store --> reasoning
-    store --> prompt_rendering
-    store --> stream
-    stream --> workstation
-    director --> reasoning
+    store --> director --> reasoning --> prompt_rendering
+    store --> workstation
     note -.-> artifact_stack
-    planner -. scopes .-> planning_boundary
-    dependency -. orders .-> planning_boundary
-    planning_boundary -. informs .-> runtime
-    runtime -. checks .-> compatibility_boundary
-    capability -. maps .-> compatibility_boundary
-    compatibility_boundary -. bounds .-> strategy
-    strategy -. focuses .-> critique_boundary
-    critic -. evaluates .-> critique_boundary
-    critique_boundary -. guides .-> refiner
-    critic -. evidence .-> synthesis_boundary
-    refiner -. guidance .-> synthesis_boundary
-    synthesis_boundary -. consolidates .-> synthesis
-    synthesis -. informs .-> export_boundary
-    merge -. assembles .-> export_boundary
-    export_boundary -. publishes .-> export
-    export_boundary -. stores .-> store
 ```
 
 The raw Mermaid source for this diagram is available in
@@ -166,7 +140,7 @@ The raw Mermaid source for this diagram is available in
 | `Artifact Intelligence Synthesis` | `request`, `route_decision`, `artifact_plan`, `artifact_dependency_graph`, `runtime_compatibility`, `artifact_capability_matrix`, `multi_artifact_strategy`, `artifact_critic`, `artifact_refiner` | `artifact_intelligence_synthesis` | `Artifact Merge Planner`, `Artifact Export Intelligence`, metadata store |
 | `Artifact Merge Planner` | `request`, `route_decision`, `artifact_plan`, `artifact_dependency_graph`, `runtime_compatibility`, `artifact_capability_matrix`, `multi_artifact_strategy`, `artifact_critic`, `artifact_refiner`, `artifact_intelligence_synthesis` | `artifact_merge_planner` | `Artifact Export Intelligence`, metadata store |
 | `Artifact Export Intelligence` | `request`, `route_decision`, `artifact_plan`, `artifact_dependency_graph`, `runtime_compatibility`, `artifact_capability_matrix`, `multi_artifact_strategy`, `artifact_critic`, `artifact_refiner`, `artifact_intelligence_synthesis`, `artifact_merge_planner` | `artifact_export_intelligence` | metadata store, Director, Reasoning, prompt rendering, workflow serialization, stream hydration, workstation surfaces |
-| `Artifact Engine Contracts` | static contract registry for the ten Artifact Intelligence engines | `artifact_engine_contracts` | metadata store, workflow serialization, stream hydration, workstation surfaces, future V4 Agentic Studio / V5 Execution Optimization & Production Intelligence / V6 HoloGenesis Core OS consumers |
+| `Artifact Engine Contracts` | static contract registry for the ten Artifact Intelligence engines | `artifact_engine_contracts` | metadata store, workflow serialization, stream hydration, workstation surfaces, passive V4 Agentic Studio / V5 Execution Optimization & Production Intelligence / V6 HoloGenesis Core OS references |
 
 ## Downstream Consumption
 

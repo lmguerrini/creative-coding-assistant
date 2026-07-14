@@ -26,22 +26,30 @@ named under the answer.
 > no skips or metric failures. It is current RAG quality evidence, not a project
 > grade or artistic-quality score. The old 61.44 percent number is a historical
 > four-row fixture that was incorrectly shown as primary because of an
-> evaluation-pipeline defect; it now belongs only in History.
+> evaluation-pipeline defect; it now belongs only in History. A Dashboard run
+> does not overwrite the committed canonical evidence; publication is a
+> separate, explicitly gated CLI action.
 
-**Open:** Dashboard → Evaluation → AI Engineering Lab.
+**Open:** Dashboard → Evaluation → AI Engineering Lab and the
+[evaluation workflow](../architecture/evaluation_workflow.md).
 
 ## Priority answer 3 — What is actually Multi-Agent?
 
 > Multi-Agent is a bounded route in the product workflow, not a claim of an
 > autonomous swarm. It resolves to planner, researcher, generator, critic, and
-> reviewer roles, with at most one refinement loop. Single-Agent resolves to a
-> generator and skips the separate planning, retrieval, critique, and review
-> route. Auto chooses one of those paths using the request and route. The stream
-> records requested mode, resolved mode, roles, rationale, and node transitions,
-> and integration tests assert the differences. It does not run external tools
-> or unattended production workflows.
+> reviewer roles, with up to two refinement attempts after the initial
+> generation. Single-Agent resolves to a generator and skips the separate
+> planning, retrieval, critique, and review route. Auto selects Single only for
+> Explain or Debug with no attachments and no resolved domains; every other
+> Auto request resolves Multi. Successful Explain generation goes straight to
+> finalization without artifact extraction, preview, critique, or review. The
+> stream records requested mode, resolved mode, roles, rationale, and node
+> transitions. The published maximum-refinement field still says one, a
+> documented drift from the executable limit of two. It does not run external
+> tools or unattended production workflows.
 
-**Open:** Dashboard → Workflow and
+**Open:** Dashboard → Workflow, the
+[runtime routes](../architecture/workflow_graph.md), and
 `src/creative_coding_assistant/orchestration/runtime/execution.py`.
 
 ## Priority answer 4 — Is the app really multimodal?
@@ -66,10 +74,13 @@ palette study.
 > The exact E2E gate proves rendering, interaction, fullscreen restore,
 > refinement, persistence, and reload. It uses deterministic streams, so it is
 > not model-quality evidence. React components, standalone HTML, remote modules,
-> and external creative tools remain code, export, or handoff paths. The current
-> product is a local workstation, not a public hosted service.
+> and external creative tools remain code, export, or handoff paths. Browser
+> frame telemetry is local post-hydration evidence and does not feed backend
+> critique or review. The current product is a local workstation, not a public
+> hosted service.
 
-**Open:** `clients/nextjs/e2e/demo-showcase-smoke.spec.js`.
+**Open:** `clients/nextjs/e2e/demo-showcase-smoke.spec.js` and the
+[artifact/preview runtime](../architecture/artifact_preview_runtime.md).
 
 ## Alternate questions
 
@@ -163,3 +174,7 @@ palette study.
 
 > The product’s value is not that every output is automatically trustworthy.
 > It is that the evidence needed to judge an output is visible and bounded.
+
+Use the [Architecture Diagram Guide](../architecture/README.md) to move from a
+reviewer question to the corresponding system, route, recovery, preview, or
+evaluation view.

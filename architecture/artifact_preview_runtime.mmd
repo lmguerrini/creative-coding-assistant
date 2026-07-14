@@ -1,0 +1,51 @@
+flowchart TB
+    classDef client fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px
+    classDef runtime fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px
+    classDef decision fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px
+    classDef store fill:#FEF3C7,stroke:#A16207,color:#713F12,stroke-width:1.5px
+    classDef evidence fill:#EDE9FE,stroke:#6D28D9,color:#4C1D95,stroke-width:1.5px
+
+    subgraph server["Backend lane — before final event"]
+        direction LR
+        response["Generated response"]:::runtime
+        explain{"Explain route?"}:::decision
+        extract["Artifact extraction"]:::runtime
+        prepare["Classify runtime +<br/>prepare preview metadata"]:::runtime
+        mode{"Resolved mode?"}:::decision
+        critique["Deterministic artifact<br/>critique + review"]:::runtime
+        final["Finalization + artifact /<br/>preview contracts"]:::runtime
+
+        response --> explain
+        explain -->|"no"| extract -->|"artifact or explicit skip"| prepare --> mode
+        explain -->|"yes"| final
+        mode -->|"Single"| final
+        mode -->|"Multi"| critique --> final
+    end
+
+    subgraph browser["Browser lane — after stream hydration"]
+        direction LR
+        hydrate["Hydrate artifact +<br/>preview state"]:::client
+        preflight{"Renderer + source<br/>contract?"}:::decision
+        preview["Sandboxed iframe →<br/>live preview"]:::client
+        telemetry["Status +<br/>frame telemetry"]:::evidence
+        fallback["Visible source /<br/>fallback"]:::evidence
+        inspect["Reviewer inspection"]:::evidence
+
+        hydrate --> preflight
+        preflight -->|"runnable"| preview --> telemetry --> inspect
+        preflight -->|"unavailable"| fallback --> inspect
+    end
+
+    subgraph outputs["Preserved outputs"]
+        direction LR
+        projections["Runtime · Preview<br/>Dashboard · Inspector"]:::evidence
+        persistence[("Workspace persistence")]:::store
+        export["Copy / download /<br/>handoff export"]:::evidence
+
+        projections ~~~ persistence ~~~ export
+    end
+
+    final -->|"final event"| hydrate
+    inspect --> projections
+    inspect --> persistence
+    inspect --> export

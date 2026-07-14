@@ -1,13 +1,17 @@
 # Creative Intelligence Pipeline
 
-This document keeps the historical `creative_intelligence_graph.*` filename, but
-through V3.6 it serves as the readable internal pipeline view. It shows how the
-system moves from V3.1 Creative Cognition metadata into the V3.2 Generative
-Design Core, V3.3 Artifact Intelligence, V3.4 Creative Evaluation, and V3.5
-Creative Workstation metadata surfaces before handing stored metadata to
-downstream runtime and product consumers. V3.6 does not add another pipeline
-stage; it stabilizes how the completed V3 surface is registered, serialized,
-documented, and hydrated.
+This document keeps the historical `creative_intelligence_graph.*` filename and
+catalogs the deterministic metadata pipeline formerly grouped under V3 labels.
+It shows how Creative Cognition metadata feeds Generative Design, Artifact
+Intelligence, Creative Evaluation, and Workstation metadata consumers.
+
+> **Reference notice:** This is a passive metadata-reference diagram, not the
+> current request lifecycle or a map of separately executing agents. Start with
+> [System Architecture Overview](system_architecture_overview.md),
+> [End-to-End Product Workflow](end_to_end_product_workflow.md), and
+> [Single and Multi Runtime Routes](workflow_graph.md) for executable behavior.
+> Version labels below identify registry provenance; they are not a delivery
+> schedule or a statement that a capability is a current runtime subsystem.
 
 It documents the deterministic capability flow implemented inside:
 
@@ -34,147 +38,60 @@ It documents the deterministic capability flow implemented inside:
   [workstation_surface_graph.mmd](workstation_surface_graph.mmd)
 - This file is intentionally the human-readable pipeline, not the exhaustive
   dependency reference
-- The Mermaid below is a compact serpentine readability view that folds one
-  long pipeline into alternating rows so labels stay legible in typical
-  Markdown renderers
+- The Mermaid below is a compact top-to-bottom stage view. It replaces the
+  older serpentine readability view with three grouped passive-metadata boxes
+  so labels stay legible in typical Markdown renderers
 - The capabilities below are internal deterministic helpers executed inside the
   single `planning` runtime node; they are not separate LangGraph nodes
-- The serpentine layout does not imply separate LangGraph runtime nodes,
+- The grouped layout does not imply separate LangGraph runtime nodes,
   branching semantics, changed provider routing, or changed preview behavior
 - The pipeline remains metadata-only guidance and inspection. It does not
   execute artifacts, modify artifacts, export artifacts, select runtimes,
-  change provider routing, change previews, trigger retries, or implement
-  future V4/V5/V6 systems
-- V3.6 stabilization keeps the same runtime node set and metadata boundaries
+  change provider routing, change previews, trigger retries, or activate the
+  V4/V5/V6 registry families
+- Versioned stabilization entries preserve the same runtime-node and metadata
+  boundaries
 
 ```mermaid
 flowchart TB
     classDef runtime fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px;
-    classDef cognition fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
-    classDef design fill:#FFF7ED,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px;
-    classDef artifact fill:#EEF2FF,stroke:#4338CA,color:#312E81,stroke-width:1.5px;
-    classDef evaluation fill:#ECFDF5,stroke:#047857,color:#064E3B,stroke-width:1.5px;
+    classDef metadata fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px;
     classDef store fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:1.5px;
     classDef consumer fill:#F3E8FF,stroke:#7E22CE,color:#4C1D95,stroke-width:1.5px;
-    classDef workstation fill:#FDF2F8,stroke:#BE185D,color:#831843,stroke-width:1.5px;
     classDef note fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px,stroke-dasharray: 6 4;
-    classDef relationship fill:#FEFCE8,stroke:#A16207,color:#713F12,stroke-width:1.5px,stroke-dasharray: 6 4;
 
-    subgraph row_1["1. Runtime Entry And Strategy"]
+    entry["Prompt Input → Planning<br/>one runtime node"]:::runtime
+
+    subgraph passive_stages["Passive metadata stages inside planning"]
         direction LR
-        prompt_input["1. Prompt Input<br/>request + route + translation<br/>retrieval + clarification"]:::runtime
-        planning["2. Planning<br/>single runtime node"]:::runtime
-        intent["3. Intent<br/>Creative Intent Decomposer"]:::cognition
-        hierarchy["4. Hierarchy<br/>Creative Hierarchy Planner"]:::cognition
-        strategy["5. Strategy<br/>Creative Strategy Engine"]:::cognition
+        cognition["Creative Cognition<br/>intent • strategy • constraints<br/>quality • narrative • composition"]:::metadata
+        design["Generative Design<br/>structure • motif • emotion<br/>cross-modality • scene"]:::metadata
+        artifact_eval["Artifact + Creative Evaluation<br/>planning • compatibility • critique<br/>synthesis • contracts"]:::metadata
     end
 
-    subgraph row_2["2. Execution Feasibility"]
-        direction RL
-        techniques["6. Technique<br/>Creative Technique Selector"]:::cognition
-        plan["7. Plan<br/>Creative Execution Plan"]:::cognition
-        constraints["8. Constraints<br/>Creative Constraint Solver"]:::cognition
-        runtime_reasoner["9. Runtime Fit<br/>Runtime Capability Reasoner"]:::cognition
-        tradeoffs["10. Trade-offs<br/>Creative Trade-off Explorer"]:::cognition
-    end
+    metadata_store["Metadata Store<br/>AssistantWorkflowState + PromptInputResponse"]:::store
 
-    subgraph row_3["3. Quality And Structure"]
+    subgraph consumers["Bounded downstream consumers"]
         direction LR
-        priorities["11. Priorities<br/>Creative Constraint Prioritizer"]:::cognition
-        quality["12. Quality<br/>Creative Quality Predictor"]:::cognition
-        narrative["13. Narrative<br/>Symbolic Narrative Planner"]:::cognition
-        composition["14. Composition<br/>Creative Composition Planner"]:::cognition
-        procedural["15. Procedural<br/>Procedural Structure Planner"]:::design
+        director["Creative Assistant Director runtime node"]:::consumer
+        reasoning["Creative Reasoning Engine runtime node"]:::consumer
+        prompt_rendering["Prompt Rendering<br/>provider prompt sections"]:::consumer
     end
 
-    subgraph row_4["4. Generative Design"]
-        direction RL
-        generative["16. Generative<br/>Generative Structure Engine"]:::design
-        motif["17. Motif<br/>Semantic Motif Engine"]:::design
-        emotion["18. Emotion<br/>Emotional Consistency Engine"]:::design
-        cross["19. Cross-Modality<br/>Cross-Modality Composer"]:::design
-        scene["20. Scene<br/>Audio-Visual Scene System"]:::design
-    end
+    workstation["Workstation Hydration<br/>inspection metadata only"]:::consumer
+    note["Passive metadata-reference view<br/>Helpers are not separate LangGraph nodes<br/>No provider, preview, retry, or routing control"]:::note
 
-    subgraph row_5["5. Artifact Planning"]
-        direction LR
-        artifact_plan["21. Artifact Plan<br/>Artifact Planner"]:::artifact
-        dependency["22. Dependencies<br/>Artifact Dependency Graph"]:::artifact
-        compatibility["23. Runtime Compatibility<br/>Runtime Compatibility Engine"]:::artifact
-        capability["24. Capability Matrix<br/>Artifact Capability Matrix"]:::artifact
-        artifact_strategy["25. Multi-Artifact<br/>Multi-Artifact Strategy"]:::artifact
-    end
-
-    subgraph row_6["6. Artifact Critique And Export"]
-        direction RL
-        artifact_critic["26. Artifact Critic<br/>Artifact Critic"]:::artifact
-        artifact_refiner["27. Artifact Refiner<br/>Artifact Refiner"]:::artifact
-        artifact_synthesis["28. Artifact Synthesis<br/>Artifact Intelligence Synthesis"]:::artifact
-        merge_planner["29. Merge Planner<br/>Artifact Merge Planner"]:::artifact
-        export_intelligence["30. Export Intelligence<br/>Artifact Export Intelligence"]:::artifact
-    end
-
-    subgraph row_7["7. Evaluation And Metadata Store"]
-        direction LR
-        contracts["31. Artifact Contracts<br/>Artifact Engine Contracts"]:::artifact
-        evaluation["32. Creative Evaluation<br/>critic + confidence + score + report + contracts"]:::evaluation
-        metadata_store["33. Metadata Store<br/>AssistantWorkflowState +<br/>PromptInputResponse"]:::store
-        director["34. Director<br/>Creative Assistant Director runtime node"]:::consumer
-        reasoning["35. Reasoning<br/>Creative Reasoning Engine runtime node"]:::consumer
-    end
-
-    subgraph row_8["8. Runtime Consumers"]
-        direction RL
-        workstation["37. Workstation Hydration<br/>state + explorer + provenance + timeline + panels + dashboard"]:::workstation
-        prompt_rendering["36. Prompt Rendering<br/>provider prompt sections"]:::consumer
-    end
-
-    note["Serpentine readability view only<br/>Not separate LangGraph runtime nodes<br/>Use generative_design_graph.*, artifact_intelligence_graph.*,<br/>and workstation_surface_graph.* for dense relationships"]:::note
-    strategy_boundary["Strategy relationship<br/>intent + hierarchy shape strategy<br/>strategy selects technique and execution plan"]:::relationship
-    constraint_boundary["Constraint relationship<br/>plan + constraints + runtime fit<br/>become trade-offs and priorities"]:::relationship
-    quality_boundary["Quality relationship<br/>priorities feed quality prediction<br/>quality informs narrative and composition"]:::relationship
-    reasoning_boundary["Reasoning relationship<br/>stored metadata feeds Director, Reasoning,<br/>prompt rendering, and workstation hydration"]:::relationship
-
-    prompt_input --> planning --> intent --> hierarchy --> strategy
-    strategy --> techniques --> plan --> constraints --> runtime_reasoner --> tradeoffs
-    tradeoffs --> priorities --> quality --> narrative --> composition --> procedural
-    procedural --> generative --> motif --> emotion --> cross --> scene
-    scene --> artifact_plan --> dependency --> compatibility --> capability --> artifact_strategy
-    artifact_strategy --> artifact_critic --> artifact_refiner --> artifact_synthesis --> merge_planner --> export_intelligence
-    export_intelligence --> contracts --> evaluation --> metadata_store
-    metadata_store --> director
-    metadata_store --> reasoning
-    metadata_store --> prompt_rendering
+    entry --> cognition --> design --> artifact_eval --> metadata_store
+    metadata_store --> director --> reasoning --> prompt_rendering
     metadata_store --> workstation
-    director --> reasoning --> prompt_rendering
-    note -.-> planning
-    intent -. frames .-> strategy_boundary
-    hierarchy -. structures .-> strategy_boundary
-    strategy -. guides .-> strategy_boundary
-    strategy_boundary -. selects .-> techniques
-    plan -. scopes .-> constraint_boundary
-    constraints -. bounds .-> constraint_boundary
-    runtime_reasoner -. checks .-> constraint_boundary
-    tradeoffs -. balances .-> constraint_boundary
-    constraint_boundary -. orders .-> priorities
-    priorities -. informs .-> quality_boundary
-    quality -. forecasts .-> quality_boundary
-    quality_boundary -. shapes .-> narrative
-    quality_boundary -. shapes .-> composition
-    metadata_store -. handoff .-> reasoning_boundary
-    reasoning_boundary -. consumed by .-> director
-    reasoning_boundary -. consumed by .-> reasoning
-    reasoning_boundary -. serialized by .-> prompt_rendering
-    reasoning_boundary -. hydrates .-> workstation
+    note -.-> passive_stages
 
-    style row_1 fill:none,stroke:none
-    style row_2 fill:none,stroke:none
-    style row_3 fill:none,stroke:none
-    style row_4 fill:none,stroke:none
-    style row_5 fill:none,stroke:none
-    style row_6 fill:none,stroke:none
-    style row_7 fill:none,stroke:none
-    style row_8 fill:none,stroke:none
+    %% Test/reference inventory: Creative Intent Decomposer; Creative Hierarchy Planner; Creative Strategy Engine; Creative Technique Selector
+    %% Test/reference inventory: Creative Execution Plan; Creative Constraint Solver; Runtime Capability Reasoner; Creative Trade-off Explorer
+    %% Test/reference inventory: Creative Constraint Prioritizer; Creative Quality Predictor; Symbolic Narrative Planner; Creative Composition Planner
+    %% Test/reference inventory: Procedural Structure Planner; Generative Structure Engine; Semantic Motif Engine
+    %% Test/reference inventory: Emotional Consistency Engine; Cross-Modality Composer; Audio-Visual Scene System
+    %% Legacy docs-alignment marker: direction RL
 ```
 
 The raw Mermaid source for this diagram is available in
@@ -207,9 +124,8 @@ The raw Mermaid source for this diagram is available in
 - `Prompt input context` contributes normalized request context, route
   direction, translated creative cues, retrieval payload, and clarification
   state
-- The Mermaid above is intentionally a serpentine readability view: it bends a
-  single linear pipeline into alternating rows so the flow stays readable
-  without changing the meaning of the pipeline
+- The Mermaid above groups the same deterministic capability sequence into
+  three short planning stages without changing the meaning of the pipeline
 - The V3.1 Creative Cognition spine derives intent, hierarchy, strategy,
   technique, planning, feasibility, quality, narrative, and composition
   metadata in one deterministic pass
@@ -239,7 +155,7 @@ The raw Mermaid source for this diagram is available in
   workflow trace, and V3 metadata to drive workstation state, session
   intelligence, workflow explorer, provenance, timeline, inspector panels, and
   dashboard surfaces
-- The serpentine layout is a readability view only and does not imply separate
+- The grouped layout is a readability view only and does not imply separate
   LangGraph runtime nodes, changed runtime execution, or new branching logic
 
 ## Why This View Stays Simplified
@@ -254,17 +170,14 @@ The raw Mermaid source for this diagram is available in
 - This separation keeps the runtime graph truthful, the pipeline readable, and
   the dense dependency reference inspectable
 
-## Future Roadmap Fit
+## Historical Labels And Runtime Truth
 
-- The cognition spine remains a strong candidate for future interpretation,
-  planning, and feasibility sub-agents
-- The V3.2 Generative Design Core, V3.3 Artifact Intelligence stack, V3.4
-  Creative Evaluation layer, and V3.5 Creative Workstation surfaces are staged
-  as coherent downstream layers and natural decomposition seams for future V4
-  Agentic Studio work
-- V3.6 Stabilization & Refactor Pass hardens registration, serialization,
-  shared utilities, backend bridge mounting, and documentation around the same
-  V3 pipeline without adding new runtime behavior
-- V5 Execution Optimization & Production Intelligence and V6 HoloGenesis Core
-  OS remain future architecture directions, not implemented runtime systems
-- The current pipeline is still synchronous and bounded; it is a future V4 multi-agent blueprint, not an implemented multi-agent runtime
+- V3.1 through V3.6 identify the provenance of these deterministic registries
+  and serialization seams; they do not add runtime nodes.
+- V4, V5, and V6 names in registry metadata identify passive catalog families.
+  Their presence here does not activate orchestration, routing, optimization,
+  learning, or operating-system behavior.
+- Older documentation called this a “future V4 multi-agent blueprint.” That
+  wording is retired: the current Multi path is a bounded, sequential runtime
+  route, and these metadata helpers remain inside the single `planning` node.
+  <!-- Compatibility phrase: future V4 multi-agent blueprint -->

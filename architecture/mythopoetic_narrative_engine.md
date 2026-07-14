@@ -1,9 +1,14 @@
 # Mythopoetic Narrative Engine
 
-V8.5 adds a bounded Mythopoetic Narrative Engine for Creative Coding
-Assistant. It translates mythopoetic, archetypal, symbolic, ritual, emotional,
+The V8.5 catalog defines a bounded Mythopoetic Narrative Engine. It translates
+mythopoetic, archetypal, symbolic, ritual, emotional,
 and experiential intent into deterministic narrative guidance for creative
 coding, installation concepts, demo storytelling, and project framing.
+
+> **Reference notice:** This is a deterministic guidance-contract reference,
+> not a separate runtime agent or a delivery roadmap. For executable behavior,
+> see [System Architecture Overview](system_architecture_overview.md) and
+> [Single and Multi Runtime Routes](workflow_graph.md).
 
 The implementation lives in:
 
@@ -37,7 +42,7 @@ The implementation lives in:
 - Religious, esoteric, psychological, therapeutic, and ritual-efficacy language
   remains creative/user framing only, not authority or outcome claims.
 
-## Implemented V8.5 Surfaces
+## Cataloged V8.5 Surfaces
 
 - Narrative symbol graph nodes and edges.
 - Initiatory, heroic, descent/return, death/rebirth, emergence, ritual
@@ -79,10 +84,10 @@ The implementation lives in:
 | Creative Brief Generator | Implemented as creative brief output |
 | Concept Development | Implemented as concept explanation output |
 | Presentation Narrative | Implemented as presentation narrative output |
-| Demo Story Builder | Implemented without starting V8.8 showcase systems |
+| Demo Story Builder | Implemented as report metadata without activating showcase systems |
 | Audience Communication | Implemented as audience-facing wording guidance |
 
-## Deferred Boundaries
+## Excluded Boundaries
 
 - Mystical and esoteric authority are not implemented. V8.5 only supports
   bounded creative journey grammar.

@@ -48,11 +48,11 @@ capability to Implemented.
 |---|---|---|---|
 | Single Agent | **Implemented** | Publishes `generator`; skips researcher/retrieval, planning, Director, reasoning, critique, review, and refinement | One direct generation pass when provider input is available |
 | Multi Agent | **Bounded** | Publishes planner, researcher, generator, critic, reviewer; executes extra planning/retrieval/review nodes | Sequential responsibilities, not parallel independent LLM workers |
-| Auto workflow | **Implemented** | UI waits for `resolved_mode` from the route payload and projects the selected graph | The current default route map gives every task `official_docs`, so normal Auto requests resolve Multi; the selector can resolve Single only for a narrower injected/future route decision |
+| Auto workflow | **Implemented** | UI waits for `resolved_mode` from the route payload and projects the selected graph | Selects Single only for Explain/Debug with no attachments and no resolved domains; every other Auto request resolves Multi |
 | Bounded research | **Implemented** | Multi route embeds the query and searches official-doc Chroma, with explicit empty/error behavior | Single route skips retrieval; researcher is not a web-browsing agent |
 | Creative planning, Director, and reasoning | **Implemented** | Typed deterministic planning events and final payloads | Not separate provider calls and not exposed chain-of-thought |
-| Artifact critic and workflow reviewer | **Implemented** | Deterministic critique/review events gate the Multi route | Rules-based application review, not an independent human or evaluator model |
-| Refinement loop | **Bounded** | Review may return to generation once; pass history and transition evidence are emitted | Maximum one retry; no open-ended autonomous loop |
+| Artifact critic and workflow reviewer | **Implemented** | Deterministic critique/review events gate Multi artifact routes using backend-prepared metadata | Rules-based application review; browser frame telemetry arrives later and is not an input |
+| Refinement loop | **Bounded** | Review may return to generation for up to two refinement attempts; pass history and transition evidence are emitted | At most three generation calls including the initial call; the published `max_refinement_loops=1` remains contract/runtime drift |
 | Parallel agents, debate, voting, or dynamic allocation | **Not supported** | Repository metadata registries describe contracts and simulations only | No active parallel scheduler or provider-backed agent swarm is in the runtime graph |
 | Human approval gate inside the request graph | **Not supported** | Clarification can stop before generation; UI can ask for ordinary operator actions | No generalized approval engine controls provider or workflow execution |
 
@@ -65,13 +65,13 @@ capability to Implemented.
 | Official-doc retrieval | — | ✓ when configured | Follows resolved route |
 | Typed creative planning | — | ✓ | Follows resolved route |
 | OpenAI generation | ✓ when configured | ✓ when configured | Follows resolved route |
-| Artifact extraction + preview preparation | ✓ | ✓ | Follows resolved route |
-| Deterministic critique + review | — | ✓ | Follows resolved route |
-| One refinement pass | — | At most one | Follows resolved route |
+| Artifact extraction + preview preparation | ✓ except Explain | ✓ except Explain | Follows resolved route; successful Explain goes directly to finalization |
+| Deterministic critique + review | — | ✓ except Explain | Follows resolved route |
+| Refinement attempts | — | At most two | Only when review requests refinement; up to three generation calls total |
 | Finalization / terminal failure | ✓ | ✓ | Follows resolved route |
 
-See the [runtime workflow graph](../architecture/workflow_graph.md) for exact
-branches.
+See the [Architecture Diagram Guide](../architecture/README.md) and
+[runtime workflow graph](../architecture/workflow_graph.md) for exact branches.
 
 ## Knowledge and retrieval
 
@@ -156,9 +156,9 @@ The canonical per-domain delivery decision is
 
 ## Known gaps worth discussing
 
-1. Auto's selector is dynamic, but the current default capability map makes its
-   ordinary result Multi Agent. A future router should expose a genuinely
-   reachable, tested Single condition without weakening needed retrieval.
+1. Auto's tested Single condition is deliberately narrow: Explain or Debug,
+   with no attachments and no resolved domains. Every other Auto request
+   resolves Multi; broader route diversity remains future work.
 2. Context precision (`0.5196`) and answer relevancy (`0.5663`) are the weakest
    means in the retained current-product run. They remain visible rather than
    being hidden behind the 68.03% macro. The historical 61.44% fixture remains
@@ -172,4 +172,5 @@ The canonical per-domain delivery decision is
    protected persistence, backup, and operational testing before public use.
 
 For how these claims map to the official rubric, continue with the
-[Evaluation Criteria Mapping](EVALUATION_CRITERIA_MAPPING.md).
+[Evaluation Criteria Mapping](EVALUATION_CRITERIA_MAPPING.md) or start from the
+[Architecture Diagram Guide](../architecture/README.md).

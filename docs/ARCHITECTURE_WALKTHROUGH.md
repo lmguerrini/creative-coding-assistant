@@ -4,6 +4,9 @@ This walkthrough follows one submitted request through the current product. It
 distinguishes executable runtime behavior from typed planning metadata, browser
 presentation, and separate offline evaluation evidence.
 
+For the reviewer-first diagram path, start with the
+[Architecture Diagram Guide](../architecture/README.md).
+
 ## 1. The browser creates a bounded request
 
 The Next.js workstation collects:
@@ -91,18 +94,19 @@ zero refinement loops.
 ### Explicit Multi Agent
 
 The plan publishes `planner`, `researcher`, `generator`, `critic`, and
-`reviewer`, requires bounded retrieval, and allows at most one refinement loop.
-Those are application responsibilities, not five independent provider clients.
+`reviewer`, requires bounded retrieval, and currently publishes
+`execution.max_refinement_loops=1`. The executable review path is separately
+bounded at two refinement attempts, so one Multi request can make the initial
+generation call plus up to two refinement calls. This published-field/runtime
+drift is documented rather than hidden. Those roles are application
+responsibilities, not five independent provider clients.
 
 ### Auto
 
-The resolver contains a narrow Single condition: Explain or Debug, no
-`official_docs` capability, no attachment, and at most one domain. The current
-default route map includes `official_docs` for every task mode, so ordinary
-requests using the default router currently resolve Auto to Multi Agent. The UI
-still waits for and displays the published resolution; it does not hard-code
-that outcome, so a future or injected route decision without that capability
-can truthfully resolve to Single.
+The resolver contains one narrow Single condition: the resolved route is
+Explain or Debug, the request has no attachments, and routing resolved no
+creative domains. Every other Auto request resolves to Multi Agent. The UI
+waits for and displays that published resolution rather than inferring it.
 
 Source: [routing](../src/creative_coding_assistant/orchestration/runtime/routing.py)
 and [execution-plan resolver](../src/creative_coding_assistant/orchestration/runtime/execution.py).
@@ -206,6 +210,9 @@ cost-reference metadata can be published without exposing credentials.
 
 An OpenAI error becomes a typed provider error and terminal workflow failure.
 There is no silent local answer substituted for a failed live provider call.
+After successful generation, the Explain route branches directly to
+`finalization`; it does not enter artifact extraction, preview preparation,
+critique, review, or refinement.
 
 Source: [generation contracts](../src/creative_coding_assistant/llm/generation.py),
 [OpenAI adapter](../src/creative_coding_assistant/llm/openai_adapter.py), and
@@ -233,11 +240,15 @@ contract even though source-analysis adapters exist. External tools remain
 handoffs. A prepared preview manifest, a renderer match, and visible successful
 execution are not interchangeable evidence.
 
+Frame status and runtime telemetry are produced in the browser after final
+response hydration. They remain local UI evidence and do not feed the backend
+artifact critic or workflow reviewer.
+
 Source: [artifact nodes](../src/creative_coding_assistant/orchestration/runtime/nodes/artifacts.py),
 [domain contracts](../src/creative_coding_assistant/domains/experience.py), and
 [browser renderer routing](../clients/nextjs/src/lib/preview-renderers.ts).
 
-## 10. Multi Agent can critique and retry once
+## 10. Multi Agent can critique and retry twice
 
 After preview preparation:
 
@@ -249,8 +260,12 @@ The reviewer checks required deliverables and bounded quality findings. A pass
 branches to finalization. A refinement request appends explicit guidance to the
 rendered prompt, increments the refinement count, and returns to `generation`.
 The loop then repeats generation, extraction, preview preparation, critique,
-and review once. If the required deliverable is still absent, the workflow
-publishes a terminal failure instead of looping indefinitely.
+and review for up to two refinement attempts. That permits at most three
+generation calls in one Multi request: the initial call plus two refinements.
+If the required deliverable is still absent, the workflow publishes a terminal
+failure instead of looping indefinitely. The public
+`execution.max_refinement_loops` field still reports `1`; it is a known
+contract/runtime drift, not the executable limit.
 
 Source: [artifact critique](../src/creative_coding_assistant/orchestration/runtime/nodes/artifacts.py),
 [review](../src/creative_coding_assistant/orchestration/runtime/nodes/review.py),
@@ -295,18 +310,25 @@ not the same as LangGraph memory.
 
 ## 13. Evaluation is outside the request graph
 
-The Dashboard evaluation endpoint accepts the committed current-product public
-benchmark and reviewed synthetic/redacted public datasets. Dry-run is the
-default. A live RAGAS run requires both explicit `allowProviderCalls` and
-provider credentials, writes private diagnostics locally, and publishes only
-the sanitized evidence contract.
+The Dashboard always targets the committed current-product public benchmark.
+`POST /api/evaluation/run` queues a bounded in-memory run and
+`GET /api/evaluation/run?runId=...` polls it. Dry-run is the default and is
+prepared but unscored: it calls no retriever, generator, or evaluator. An
+authorized live run requires explicit `allowProviderCalls` and credentials,
+executes the seven-case current AssistantService path, and returns a sanitized
+projection that omits questions, references, answers, and context excerpts.
 
 The canonical retrieval report is another separate path: it runs seven fixed
 queries through the local retriever, records ranked non-text lineage and
 fingerprints, and does not generate answers or compute RAGAS. The current
-seven-case RAGAS evidence generates and evaluates answers; the 35-case catalog
-is contract coverage, while Full records three additional local snapshot lanes.
-Keep those lanes separate when presenting results.
+seven-case RAGAS evidence generates and evaluates answers. `Full` means those
+seven RAGAS cases plus three local snapshot lanes, not 35 executions or one
+global score. Publishing the committed canonical evidence is a separate,
+explicit CLI action with provenance and schema gates; Dashboard runs do not
+overwrite it. The historical four-row fixture is reachable only through the
+direct historical API and does not run the current stack. Private diagnostics
+are written only by the explicit CLI path under ignored `data/eval/`. Keep
+those lanes separate when presenting results.
 
 ## Runtime truth table
 
@@ -314,13 +336,16 @@ Keep those lanes separate when presenting results.
 |---|---|
 | Does Single Agent retrieve official docs? | No; the researcher/retrieval node is explicitly skipped |
 | Does Multi Agent make five parallel LLM calls? | No; it exposes five sequential responsibilities around one generation adapter |
-| Can Multi Agent call generation twice? | Yes, only when deterministic review requests its one allowed refinement |
-| Does Auto currently choose Single for normal default-router requests? | No; all current task modes publish `official_docs`, so the narrow Single condition is not met |
+| How many times can Multi Agent call generation? | Up to three: one initial call plus at most two review-requested refinements; the published maximum still reports one |
+| When does Auto choose Single? | Only for an Explain or Debug route with no attachments and no resolved domains; every other Auto request resolves Multi |
+| Does Explain enter the artifact and review path? | No; successful Explain generation branches directly to finalization |
 | Does the Python backend run the creative preview? | No; it prepares contracts and the Next.js browser runs accepted source |
+| Does browser runtime telemetry affect backend critique? | No; that telemetry is local post-hydration UI evidence |
 | Is workflow self-evaluation the same as RAGAS? | No |
 | Does “registered source” mean “used in this answer”? | No |
 | Are images persisted as session attachments? | No; they are request-scoped, though an explicit pre-submit export needs separate review |
 
-Continue with the [System Overview](SYSTEM_OVERVIEW.md),
-[Capability Matrix](CAPABILITY_MATRIX.md), and
-[standalone runtime graph](../architecture/workflow_graph.md).
+Continue with the [Architecture Diagram Guide](../architecture/README.md),
+[System Overview](SYSTEM_OVERVIEW.md), [Capability Matrix](CAPABILITY_MATRIX.md),
+[standalone runtime graph](../architecture/workflow_graph.md), and
+[evaluation workflow](../architecture/evaluation_workflow.md).

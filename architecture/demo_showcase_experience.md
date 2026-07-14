@@ -5,8 +5,12 @@
 > [System Overview](../docs/SYSTEM_OVERVIEW.md) and
 > [Capstone Demo and Showcase Guide](../docs/CAPSTONE_DEMO_SHOWCASE.md).
 
-V8.8 adds a capstone-facing demo and showcase preparation layer over existing
-Creative Coding Assistant surfaces.
+For the executable request lifecycle, see
+[System Architecture Overview](system_architecture_overview.md) and
+[End-to-End Product Workflow](end_to_end_product_workflow.md).
+
+The V8.8 record describes a capstone-facing demo and showcase preparation layer
+over the surfaces that existed when it was written.
 
 ## Scope
 

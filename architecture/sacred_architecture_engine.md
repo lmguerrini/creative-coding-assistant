@@ -1,9 +1,14 @@
 # Sacred Architecture and Reverse Engineering Engine
 
-V8.4 adds a bounded Sacred Architecture and Reverse Engineering Engine for
-Creative Coding Assistant. It translates architectural, spatial, proportional,
+The V8.4 catalog defines a bounded Sacred Architecture and Reverse Engineering
+Engine. It translates architectural, spatial, proportional,
 geometric, symbolic, and installation-oriented intent into deterministic creative
 coding and spatial-composition guidance.
+
+> **Reference notice:** This is a deterministic guidance-contract reference,
+> not an image-analysis runtime or delivery roadmap. For executable behavior,
+> see [System Architecture Overview](system_architecture_overview.md) and
+> [Single and Multi Runtime Routes](workflow_graph.md).
 
 The implementation lives in:
 
@@ -29,7 +34,7 @@ The implementation lives in:
   workflow control, V8.5 narrative behavior, V8.6 immersive composer behavior,
   HoloMind, or HOLOiVERSE.
 
-## Implemented V8.4 Surfaces
+## Cataloged V8.4 Surfaces
 
 - Sacred architecture pattern taxonomy for harmonic proportion plans, axis and
   threshold procession, radial center/periphery plans, courtyards, modular grids,
@@ -55,13 +60,14 @@ The implementation lives in:
 V8.4 composes these systems into architecture-specific generation contracts
 instead of duplicating their responsibilities.
 
-## Deferred Boundaries
+## Excluded Boundaries
 
 - Image-based architecture reconstruction is not implemented because the product
   does not have a safe architecture reconstruction path.
 - LIDAR, photogrammetry, CAD/BIM, and external DCC integrations are not
   implemented.
-- Interactive architecture preview is deferred to a later product or V8.6-scoped
-  preview decision.
+- Interactive architecture preview is outside this contract; use the actual
+  browser preview boundary documented in
+  [Artifact and Preview Runtime](artifact_preview_runtime.md).
 - Ritual language is treated as spatial procession and threshold pacing only;
-  V8.5 narrative generation is not started.
+  narrative generation is outside this contract.

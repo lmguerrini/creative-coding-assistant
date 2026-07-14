@@ -10,57 +10,124 @@ tracing adapters.
 
 ## System context
 
+### Purpose
+
+This is the primary reviewer-facing map of the current V9 product. It shows the
+browser workspace, Python boundary, compiled request workflow, local stores,
+provider calls, preview runtime, evaluation path, and evidence surfaces without
+expanding every internal node.
+
 ```mermaid
 flowchart TB
-    reviewer["Creative coder / reviewer"]
+    classDef client fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px
+    classDef runtime fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px
+    classDef store fill:#FEF3C7,stroke:#A16207,color:#713F12,stroke-width:1.5px
+    classDef external fill:#FFF7ED,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px
+    classDef evidence fill:#EDE9FE,stroke:#6D28D9,color:#4C1D95,stroke-width:1.5px
 
-    subgraph browser["Browser process"]
-        next["Next.js workstation"]
-        dashboard["Dashboard + Inspector"]
-        renderer["Controlled preview runtimes"]
-        local_fallback["Browser storage fallback"]
-        next --> dashboard
-        next --> renderer
-        next --> local_fallback
+    user["Creative coder / reviewer"]:::client
+
+    subgraph request["Next.js workspace — request"]
+        direction LR
+        composer["Creative Session<br/>prompt · mode · attachments"]:::client
     end
 
-    subgraph backend["Python process"]
-        wsgi["Exact-path WSGI dispatcher"]
-        service["AssistantService"]
-        langgraph["Compiled LangGraph"]
-        kb_api["KB and evaluation actions"]
-        session_api["Workspace session service"]
-        wsgi --> service --> langgraph
-        wsgi --> kb_api
-        wsgi --> session_api
+    subgraph backend["Python API and orchestration"]
+        direction TB
+        api["Exact-path WSGI API"]:::runtime
+        workflow["Compiled LangGraph"]:::runtime
+        artifact["Artifact + preview contracts"]:::runtime
+        services["Session + KB APIs"]:::runtime
+        evaluation["Evaluation + RAGAS pipeline"]:::runtime
+
+        api --> workflow --> artifact
+        api --> services
+        api --> evaluation
     end
 
-    subgraph local["Local durable state"]
-        chroma["Chroma\nofficial docs + memory"]
-        sqlite["SQLite\nworkspace sessions"]
-        files["JSONL / JSON / artifact files"]
+    subgraph result["Next.js workspace — finalized result"]
+        direction LR
+        hydrate["Hydrated answer + artifacts"]:::client
+        preview["Controlled preview"]:::client
+        surfaces["Dashboard + Inspector"]:::evidence
+
+        hydrate --> preview --> surfaces
+        hydrate --> surfaces
     end
 
-    subgraph external["Explicit external boundaries"]
-        openai_gen["OpenAI Responses"]
-        openai_embed["OpenAI embeddings"]
-        official["Approved official source URLs"]
-        evaluator["RAGAS evaluator provider"]
-        traces["Optional LangSmith"]
+    subgraph state["Local state — separate persistence boundaries"]
+        direction LR
+        official_chroma[("Chroma<br/>official docs")]:::store
+        memory_chroma[("Chroma<br/>memory collections")]:::store
+        sqlite[("SQLite<br/>workspace sessions")]:::store
+        browser_cache[("localStorage<br/>workspace fallback")]:::store
+        artifact_files[("Files<br/>artifacts")]:::store
+        eval_files[("JSON / JSONL<br/>eval evidence")]:::store
+
+        official_chroma ~~~ memory_chroma ~~~ sqlite ~~~ browser_cache ~~~ artifact_files ~~~ eval_files
     end
 
-    reviewer --> next
-    next -->|"HTTP: NDJSON + JSON"| wsgi
-    langgraph --> chroma
-    session_api --> sqlite
-    service --> files
-    langgraph --> openai_gen
-    langgraph --> openai_embed
-    kb_api --> official
-    kb_api --> openai_embed
-    kb_api --> evaluator
-    langgraph -. "safe trace metadata when enabled" .-> traces
+    subgraph providers["Explicit external boundaries"]
+        direction LR
+        openai["OpenAI<br/>Responses + embeddings"]:::external
+        official["Approved official URLs"]:::external
+        langsmith["LangSmith<br/>optional trace metadata"]:::external
+
+        openai ~~~ official ~~~ langsmith
+    end
+
+    user --> composer
+    composer -->|"JSON request"| api
+    api -->|"NDJSON event stream"| hydrate
+
+    workflow -. "retrieval" .-> official_chroma
+    workflow -. "memory" .-> memory_chroma
+    services -.-> official_chroma
+    services -.-> sqlite
+    hydrate -. "session JSON API" .-> api
+    hydrate -.-> browser_cache
+    hydrate -. "browser export" .-> artifact_files
+    evaluation -.-> eval_files
+
+    workflow --> openai
+    services --> openai
+    services --> official
+    evaluation --> openai
+    workflow -. "when enabled" .-> langsmith
+
+    eval_files ~~~ openai
 ```
+
+### What the reviewer should notice
+
+- The browser uses the local HTTP API; it never calls a model or embedding
+  provider directly.
+- The request graph, KB/evaluation actions, browser preview, and workspace
+  persistence are related product paths with different owners.
+- Dashboard and Inspector project published run, preview, persistence, and
+  evaluation evidence; they are not additional workflow agents.
+
+Blue nodes are browser surfaces, green nodes are backend runtime boundaries,
+yellow cylinders are local stores, orange nodes are external systems, and
+purple nodes are evidence projections. Solid arrows show calls or data flow;
+the dashed LangSmith edge is optional.
+
+### Truth boundary
+
+The backend prepares artifact and preview contracts, but executable preview
+source runs later inside the controlled browser surface. Browser runtime
+telemetry is post-final, remains local to the workspace, and does not feed
+backend critique or review. Evaluation uses a separate API pipeline and is not
+a hidden LangGraph node. OpenAI is the only configured generation-provider
+route, and generation is the only graph stage that invokes its text API.
+
+### Deeper documentation
+
+- [Architecture Diagram Guide](../architecture/README.md)
+- [End-to-End Product Workflow](../architecture/end_to_end_product_workflow.md)
+- [Exact Runtime Routes](../architecture/workflow_graph.md)
+- [Artifact and Preview Runtime](../architecture/artifact_preview_runtime.md)
+- [Evaluation / RAGAS Workflow](../architecture/evaluation_workflow.md)
 
 ## Component responsibilities
 
@@ -69,7 +136,7 @@ flowchart TB
 | Next.js workstation | Composer, Dashboard, Inspector, sessions UI, artifact source, exports, preview controls, fullscreen, Demo Mode | Model credentials, retrieval ranking, workflow decisions |
 | WSGI API | HTTP validation, CORS, contract versions, fixed dispatch, NDJSON serialization | A generic web framework router or arbitrary plugin endpoints |
 | `AssistantService` | Dependency composition, stream lifecycle, provider adapter, eval and memory recording boundaries | Browser rendering |
-| LangGraph | Node state, conditional transitions, one bounded refinement loop, terminal failure normalization | Parallel agent workers or dynamic tool installation |
+| LangGraph | Node state, conditional transitions, up to two executable refinement attempts, terminal failure normalization | Parallel agent workers or dynamic tool installation; the published execution-plan maximum still says one |
 | Chroma | Official-document vectors and separate memory collections | Workspace layout/session snapshot storage |
 | SQLite session store | Workstation snapshots and session lifecycle | Model memory retrieval or official-source embeddings |
 | OpenAI adapters | Generation and embeddings behind provider-neutral contracts | Automatic provider switching; OpenAI is the only implemented provider factory route |
@@ -114,7 +181,7 @@ The dispatcher matches exact paths:
 | `/api/assistant/stream` | `POST`, `OPTIONS` | Validate one assistant request and return newline-delimited stream events |
 | `/api/workspace/session` | `GET`, `POST`, `PUT`, `DELETE`, `OPTIONS` | List, restore, create/update, and delete local workspace sessions |
 | `/api/domain-experience` | `GET`, `OPTIONS` | Public-safe domain delivery contracts and read-only KB inventory |
-| `/api/evaluation/run` | `POST`, `OPTIONS` | Run selected current-product RAG cases or prepare/authorize an approved-dataset evaluation |
+| `/api/evaluation/run` | `GET`, `POST`, `OPTIONS` | Queue selected current-product RAG cases, prepare/authorize an approved-dataset evaluation, or poll a queued run by ID |
 | `/api/knowledge-base` | `GET`, `POST`, `OPTIONS` | Inventory, check, validate, update, or rebuild selected official sources |
 | `/api/health` | `GET`, `OPTIONS` | General service and configuration status |
 | `/api/health/live` | `GET`, `OPTIONS` | Process liveness |
@@ -128,36 +195,35 @@ decoded file signature.
 
 ## Assistant runtime
 
-The graph has a shared front half and two real execution routes:
+The graph has a shared front half and two real execution routes. Every request
+passes intake, routing, memory, retrieval, context assembly, and prompt input;
+Single records retrieval as an explicit skip, while Multi consumes its
+retrieval result before deterministic planning, Director, and reasoning stages.
+Both routes render the prompt and reach the configured text provider only at
+generation.
 
-```mermaid
-flowchart LR
-    common["intake → routing → memory"] --> route{"resolved route"}
-    route -->|"Single"| single["skip retrieval → context → prompt → generation"]
-    route -->|"Multi"| multi["retrieval → context → planning → Director → reasoning → generation"]
-    single --> artifacts["extract → preview metadata"]
-    multi --> artifacts
-    artifacts -->|"Single"| final["finalize"]
-    artifacts -->|"Multi"| review["critique → review"]
-    review -->|"pass"| final
-    review -->|"one bounded retry"| refine["refine → generate again"] --> artifacts
-```
-
-`Auto` can resolve to Single only for a lightweight Explain or Debug request
-with no official-document capability, no attachment, and at most one domain.
-The current default route map assigns the official-document capability to every
-task mode, so ordinary Auto requests currently resolve to Multi. The route
-selection is published in the stream payload so the UI does not guess it.
+Auto selects Single exactly when the resolved task route is Explain or Debug,
+the request has no attachment, and routing resolved no domains. Every other
+Auto request selects Multi. The resolved selection is published in the stream
+payload so the UI does not guess it.
 
 Multi Agent is sequential. Its published responsibilities are planner,
-researcher, generator, critic, and reviewer, but only the generation stage
-crosses the model-provider boundary. Planning, Director, reasoning, artifact
-critique, review, and final self-evaluation are typed application logic. A
-review can request no more than one additional generation pass.
+researcher, generator, critic, and reviewer, but planning, Director, reasoning,
+artifact critique, review, and final self-evaluation are typed deterministic
+application logic. For non-Explain output, Single finalizes after artifact and
+preview-metadata preparation; Multi adds critique and review. An Explain route
+goes from generation directly to finalization, bypassing artifact extraction,
+preview preparation, critique, and review.
 
-See the [Architecture Walkthrough](ARCHITECTURE_WALKTHROUGH.md) and
-[runtime workflow graph](../architecture/workflow_graph.md) for exact
-transitions and skip conditions.
+The executable review logic permits up to two refinement attempts, for at most
+three generation passes including the initial pass, and may stop earlier. The
+published `execution.max_refinement_loops` field still reports one; this is a
+known contract drift, not a one-retry runtime limit.
+
+Use the [End-to-End Product Workflow](../architecture/end_to_end_product_workflow.md)
+for the reviewer-scale path, the [Architecture Walkthrough](ARCHITECTURE_WALKTHROUGH.md)
+for the narrative, and the [exact runtime routes](../architecture/workflow_graph.md)
+for transitions and skip conditions.
 
 ## Retrieval and knowledge
 

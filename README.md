@@ -101,21 +101,84 @@ assistant path or turn a prepared artifact into a new provider result.
 ## Architecture
 
 ```mermaid
-flowchart LR
-    user["Reviewer or creative coder"] --> ui["Next.js 15 workstation"]
-    ui -->|"NDJSON + JSON over HTTP"| api["Local WSGI API"]
-    api --> graph["Compiled LangGraph workflow"]
-    graph --> memory["Local Chroma memory"]
-    graph --> retrieval["Official-source retrieval"]
-    retrieval --> embeddings["OpenAI embeddings"]
-    retrieval --> kb["Chroma official-doc index"]
-    graph --> generation["OpenAI Responses generation"]
-    graph --> artifacts["Artifact, critique, and final event contracts"]
-    artifacts --> ui
-    ui --> preview["Controlled browser preview"]
-    ui --> sessions["Workspace session API"]
-    sessions --> sqlite["Local SQLite"]
-    graph -. "optional trace metadata" .-> langsmith["LangSmith"]
+flowchart TB
+    classDef client fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px
+    classDef runtime fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px
+    classDef store fill:#FEF3C7,stroke:#A16207,color:#713F12,stroke-width:1.5px
+    classDef external fill:#FFF7ED,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px
+    classDef evidence fill:#EDE9FE,stroke:#6D28D9,color:#4C1D95,stroke-width:1.5px
+
+    user["Creative coder / reviewer"]:::client
+
+    subgraph request["Next.js workspace — request"]
+        direction LR
+        composer["Creative Session<br/>prompt · mode · attachments"]:::client
+    end
+
+    subgraph backend["Python API and orchestration"]
+        direction TB
+        api["Exact-path WSGI API"]:::runtime
+        workflow["Compiled LangGraph"]:::runtime
+        artifact["Artifact + preview contracts"]:::runtime
+        services["Session + KB APIs"]:::runtime
+        evaluation["Evaluation + RAGAS pipeline"]:::runtime
+
+        api --> workflow --> artifact
+        api --> services
+        api --> evaluation
+    end
+
+    subgraph result["Next.js workspace — finalized result"]
+        direction LR
+        hydrate["Hydrated answer + artifacts"]:::client
+        preview["Controlled preview"]:::client
+        surfaces["Dashboard + Inspector"]:::evidence
+
+        hydrate --> preview --> surfaces
+        hydrate --> surfaces
+    end
+
+    subgraph state["Local state — separate persistence boundaries"]
+        direction LR
+        official_chroma[("Chroma<br/>official docs")]:::store
+        memory_chroma[("Chroma<br/>memory collections")]:::store
+        sqlite[("SQLite<br/>workspace sessions")]:::store
+        browser_cache[("localStorage<br/>workspace fallback")]:::store
+        artifact_files[("Files<br/>artifacts")]:::store
+        eval_files[("JSON / JSONL<br/>eval evidence")]:::store
+
+        official_chroma ~~~ memory_chroma ~~~ sqlite ~~~ browser_cache ~~~ artifact_files ~~~ eval_files
+    end
+
+    subgraph providers["Explicit external boundaries"]
+        direction LR
+        openai["OpenAI<br/>Responses + embeddings"]:::external
+        official["Approved official URLs"]:::external
+        langsmith["LangSmith<br/>optional trace metadata"]:::external
+
+        openai ~~~ official ~~~ langsmith
+    end
+
+    user --> composer
+    composer -->|"JSON request"| api
+    api -->|"NDJSON event stream"| hydrate
+
+    workflow -. "retrieval" .-> official_chroma
+    workflow -. "memory" .-> memory_chroma
+    services -.-> official_chroma
+    services -.-> sqlite
+    hydrate -. "session JSON API" .-> api
+    hydrate -.-> browser_cache
+    hydrate -. "browser export" .-> artifact_files
+    evaluation -.-> eval_files
+
+    workflow --> openai
+    services --> openai
+    services --> official
+    evaluation --> openai
+    workflow -. "when enabled" .-> langsmith
+
+    eval_files ~~~ openai
 ```
 
 The browser never calls the model directly. The Python backend validates the
@@ -136,27 +199,114 @@ registry order, not a claim that every node executes on every route:
 | Choice | Actual route | Retrieval | Planning and review | Provider calls |
 |---|---|---:|---|---|
 | **Single Agent** | Direct generator path | Skipped | Skips planning, Director, reasoning, critique, review, and refinement | One generation pass when configured |
-| **Multi Agent** | Sequential planner → researcher → generator → critic → reviewer responsibilities | Requested, with recoverable empty context on failure | Typed planning plus deterministic critique/review; at most one bounded refinement loop | One generation pass, plus one more only if refinement is requested |
+| **Multi Agent** | Sequential planner → researcher → generator → critic → reviewer responsibilities | Requested, with recoverable empty context on failure | Typed planning plus deterministic critique/review; up to two executable refinement attempts | One initial generation pass, plus up to two more when refinement is requested |
 | **Auto** | Resolves to one of the two routes after routing | Follows the resolved route | Follows the resolved route | Follows the resolved route |
 
-Auto's Single branch requires a lightweight Explain or Debug request with no
-official-document capability, no image attachment, and at most one domain.
-The current default route map grants the official-document capability to every
-task mode, so ordinary Auto requests currently resolve to Multi Agent. The UI
-publishes the resolved route instead of guessing it. Auto is therefore a
-selector, not a third hidden graph.
+Auto selects Single exactly when the resolved route is Explain or Debug, the
+request has no attachment, and routing resolved no domains. Every other Auto
+request selects Multi. The UI publishes that resolved route instead of
+guessing it, so Auto is a selector rather than a third hidden graph.
 
 The role labels do not mean five parallel LLM workers. Planning, creative
 direction, reasoning, artifact critique, and review are typed deterministic
 application stages around the generation adapter. OpenAI is the only configured
-generation provider in this repository.
+generation provider in this repository, and generation is the only graph stage
+that invokes its text API. The executable review loop currently allows two
+refinement attempts, while the published `execution.max_refinement_loops` field
+still reports one; that known contract drift is documented rather than hidden.
+
+### End-to-end product workflow
+
+This second overview shows where route-specific work joins the shared request
+path and where browser-only preview behavior begins.
+
+```mermaid
+flowchart TB
+    classDef client fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px
+    classDef runtime fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px
+    classDef decision fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px
+    classDef external fill:#FFF7ED,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px
+    classDef evidence fill:#EDE9FE,stroke:#6D28D9,color:#4C1D95,stroke-width:1.5px
+    classDef failure fill:#FEE2E2,stroke:#B91C1C,color:#7F1D1D,stroke-width:1.5px
+
+    subgraph request_row["1 · Request and shared stages"]
+        direction LR
+        request["User request"]:::client --> validation["HTTP validation<br/>+ safety"]:::runtime
+        validation --> intake["intake"]:::runtime --> routing["routing<br/>publish mode"]:::runtime
+        routing --> memory["memory"]:::runtime --> retrieval["retrieval"]:::runtime
+    end
+
+    subgraph route_row["2 · Context and route branch"]
+        direction LR
+        context["context_assembly"]:::runtime --> prompt_input["prompt_input"]:::runtime
+        prompt_input --> clarify{"clarification?"}:::decision -->|"no"| mode{"Resolved mode"}:::decision
+    end
+
+    subgraph generation_row["3 · Plan and generation"]
+        direction LR
+        planning["planning"]:::runtime --> director["director"]:::runtime --> reasoning["reasoning"]:::runtime
+        reasoning --> render["prompt_rendering"]:::runtime --> generate["generation"]:::runtime
+        generate -. "provider call" .-> openai["OpenAI Responses"]:::external
+    end
+
+    subgraph artifact_row["4 · Artifact path"]
+        direction LR
+        explain{"Explain route?"}:::decision -->|"no"| artifact_extraction["artifact_extraction"]:::runtime
+        artifact_extraction --> preview_preparation["preview_preparation"]:::runtime --> post{"Resolved mode"}:::decision
+    end
+
+    subgraph review_row["5 · Review, refine, or finish"]
+        direction LR
+        artifact_critique["artifact_critique"]:::runtime --> review["review"]:::runtime --> gate{"Review outcome"}:::decision
+        gate -->|"refine"| refinement["refinement"]:::runtime
+        finalization["finalization"]:::runtime
+        failure["failure<br/>shared terminal path"]:::failure
+    end
+
+    subgraph client_row["6 · Final publication and product evidence"]
+        direction LR
+        stream["NDJSON final event"]:::runtime --> hydrate["Hydrate workspace"]:::client
+        hydrate --> preview["Browser preflight<br/>+ preview"]:::client --> evidence["Dashboard<br/>+ Inspector"]:::evidence
+        memory_record["Conversation memory<br/>success + conversation ID"]:::evidence
+        eval_record["Local eval JSONL<br/>if recorder enabled"]:::evidence
+        workspace["SQLite session<br/>+ localStorage fallback"]:::evidence
+    end
+
+    retrieval --> context
+    clarify -->|"yes"| finalization
+    mode -->|"Single"| render
+    mode -->|"Multi"| planning
+    generate --> explain
+    explain -->|"yes"| finalization
+    post -->|"Single"| finalization
+    post -->|"Multi"| artifact_critique
+    gate -->|"pass / stop"| finalization
+    refinement --> generate
+    finalization --> stream
+    failure --> stream
+    finalization -. "after stream" .-> memory_record
+    stream --> eval_record
+    hydrate --> workspace
+    hydrate --> evidence
+
+    %% Auto publishes Single or Multi and then follows that route; it is not a third graph.
+    %% Executable review logic currently permits up to two refinement attempts.
+    %% Browser runtime telemetry is post-final evidence and does not feed this backend review loop.
+```
+
+Explain bypasses artifact extraction, preview preparation, critique, and
+review. Browser preview preflight and runtime telemetry happen only after the
+final event has hydrated the workspace; that local telemetry does not feed the
+backend critique or review loop.
 
 For the complete source-aligned view, use:
 
+- [Architecture Diagram Guide](architecture/README.md)
 - [System Overview](docs/SYSTEM_OVERVIEW.md)
 - [Architecture Walkthrough](docs/ARCHITECTURE_WALKTHROUGH.md)
 - [Runtime workflow graph](architecture/workflow_graph.md)
-- [Standalone Mermaid source](architecture/workflow_graph.mmd)
+- [Artifact and Preview Runtime](architecture/artifact_preview_runtime.md)
+- [Evaluation / RAGAS Workflow](architecture/evaluation_workflow.md)
 
 ## Capability Scope, evidence, and limitations
 
@@ -166,8 +316,8 @@ For the complete source-aligned view, use:
 | Image-bearing request construction | Validated image bytes become `input_image` beside user text in the configured-provider payload | Request-scoped; current evidence does not prove live provider receipt, use, or image influence, and attachments are not restored with a session |
 | Official-source RAG | Explicit source registry, sync pipeline, embeddings, Chroma search, ranked lineage | Retrieval runs only on the Multi Agent route; an indexed or registered source is not automatically a cited source |
 | Workflow automation | Compiled LangGraph with Single, Multi, and Auto route evidence | Sequential and bounded; no hidden parallel agent swarm or arbitrary tool execution |
-| Creative artifacts | Source extraction, preview preparation, critique, one refinement loop, export | A generated artifact is not a successful preview until its runtime surface validates it |
-| Live browser preview | Validated contracts for p5.js, Three.js, GLSL, and Tone.js | React Three Fiber and Hydra remain code/export; external creative tools are handoffs |
+| Creative artifacts | Source extraction, preview preparation, critique, up to two executable refinement attempts, export | The published execution-plan maximum still says one; a generated artifact is not a successful preview until its runtime surface validates it |
+| Live browser preview | Validated contracts for p5.js, Three.js, GLSL, and Tone.js | Runtime telemetry is local and post-final; it does not feed backend review. React Three Fiber and Hydra remain code/export; external creative tools are handoffs |
 | Sessions and memory | SQLite workspace snapshots plus local Chroma conversation/project memory | Local single-user posture; memory embeddings send successful prompt/answer text to OpenAI when configured |
 | Evaluation | Dashboard current-product runner, seven-case public RAG benchmark, five reference-aware RAGAS metrics, history, and machine-readable evidence | The 35-case catalog is contract coverage; Full executes seven RAG cases and records three local snapshot lanes rather than generating 35 answers |
 | Observability | Published workflow events, provider usage metadata, optional LangSmith adapter | LangSmith is off unless explicitly configured; telemetry is not model reasoning |
@@ -363,6 +513,7 @@ npm run test:e2e:smoke --prefix clients/nextjs
 
 | Document | Reviewer use |
 |---|---|
+| [Architecture Diagram Guide](architecture/README.md) | Reviewer path through the system, workflow, role, recovery, preview, and evaluation diagrams |
 | [System Overview](docs/SYSTEM_OVERVIEW.md) | Components, data stores, APIs, and external boundaries |
 | [Architecture Walkthrough](docs/ARCHITECTURE_WALKTHROUGH.md) | One request from browser input to final event |
 | [Capability Matrix](docs/CAPABILITY_MATRIX.md) | Implemented, bounded, optional, and unsupported claims |

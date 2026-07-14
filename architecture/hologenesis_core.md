@@ -1,9 +1,14 @@
 # HoloGenesis Creative Operating System
 
-V8.7 adds a bounded HoloGenesis Creative Operating System for Creative Coding
-Assistant. It unifies V8.1 through V8.6 into deterministic report and planning
-behavior for curatorial reasoning, creative synthesis, recommendations,
-readiness scoring, and project bundle outlines.
+The V8.7 catalog defines a bounded HoloGenesis report and planning layer. It
+combines V8.1 through V8.6 metadata into deterministic reports for curatorial
+reasoning, creative synthesis, recommendations, readiness scoring, and project
+bundle outlines.
+
+> **Reference notice:** “Operating System” is a catalog label, not an active OS,
+> autonomous agent layer, or current product surface. For executable behavior,
+> see [System Architecture Overview](system_architecture_overview.md) and
+> [Single and Multi Runtime Routes](workflow_graph.md).
 
 The implementation lives in:
 
@@ -35,7 +40,7 @@ The implementation lives in:
   external DCC tools, MCP tools, HoloMind, HOLOiVERSE, or V8.8 demo showcase
   behavior.
 
-## Implemented V8.7 Surfaces
+## Cataloged V8.7 Surfaces
 
 - Unified Symbolic, Sacred Knowledge, Geometry, Narrative, and Installation
   graph projections.
@@ -67,11 +72,11 @@ These audit entries may recommend manual downstream handoff notes, but they do
 not execute editors, create files, call APIs, invoke tools, or claim live
 integration.
 
-## Deferred Boundaries
+## Excluded Boundaries
 
-- HoloMind is represented only as explicit future-hook posture.
+- HoloMind is represented only as a passive hook field.
 - HOLOiVERSE is not implemented.
-- V8.8 demo showcase is not started.
+- Demo-showcase runtime behavior is not part of this contract.
 - Live external DCC execution and MCP creative tool execution are not
   implemented.
 - Museum readiness, international exhibition readiness, and installation
