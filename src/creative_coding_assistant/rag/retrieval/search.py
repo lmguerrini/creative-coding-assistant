@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 from collections.abc import Sequence
 from typing import Any
 
@@ -79,19 +78,15 @@ class KnowledgeBaseRetriever:
             )
 
         # A single nearest-neighbour query can fill the candidate pool with one
-        # strong domain before another requested domain is considered. Query each
-        # requested domain with the same embedding, then merge by distance. The
-        # total candidate budget stays approximately equal to the single-query
-        # budget while every explicitly requested domain gets a fair opportunity.
-        per_domain_limit = max(
-            1,
-            math.ceil(candidate_limit / len(requested_domains)),
-        )
+        # strong domain before another requested domain is considered. Give each
+        # explicitly requested domain the full bounded candidate headroom before
+        # local filtering. Dividing that headroom caused domains with several
+        # heading/index chunks to lose every substantive candidate before the
+        # diversity selector ran.
+        per_domain_limit = candidate_limit
         matches: list[QueryMatchRecord] = []
         for domain in requested_domains:
-            domain_filters = request.filters.model_copy(
-                update={"domain": domain, "domains": (domain,)}
-            )
+            domain_filters = request.filters.model_copy(update={"domain": domain, "domains": (domain,)})
             matches.extend(
                 self._repository.query(
                     embedding=query_embedding,
@@ -124,9 +119,7 @@ class KnowledgeBaseRetriever:
             registry_title=str(metadata["registry_title"]),
             document_title=str(metadata["document_title"]),
             source_url=str(metadata["source_url"]),
-            resolved_url=str(metadata.get("resolved_url"))
-            if metadata.get("resolved_url") is not None
-            else None,
+            resolved_url=str(metadata.get("resolved_url")) if metadata.get("resolved_url") is not None else None,
             chunk_index=int(metadata["chunk_index"]),
             text=match.document or "",
             char_count=int(metadata["char_count"]),

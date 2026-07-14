@@ -74,7 +74,7 @@ flowchart TB
 | SQLite session store | Workstation snapshots and session lifecycle | Model memory retrieval or official-source embeddings |
 | OpenAI adapters | Generation and embeddings behind provider-neutral contracts | Automatic provider switching; OpenAI is the only implemented provider factory route |
 | Preview runtime | Executes source that passes the current browser contract | General HTML, React Three Fiber, remote modules, or external DCC execution |
-| Evaluation action | Dry-run or explicitly authorized RAGAS over approved committed datasets | Scoring raw private local sessions by default |
+| Evaluation action | Current-product public benchmark or explicitly authorized RAGAS over another reviewed committed dataset | Scoring raw private local sessions by default; treating the 35-contract catalog as 35 executions |
 
 The canonical source locations are the
 [Next.js page](../clients/nextjs/src/app/page.tsx),
@@ -114,7 +114,7 @@ The dispatcher matches exact paths:
 | `/api/assistant/stream` | `POST`, `OPTIONS` | Validate one assistant request and return newline-delimited stream events |
 | `/api/workspace/session` | `GET`, `POST`, `PUT`, `DELETE`, `OPTIONS` | List, restore, create/update, and delete local workspace sessions |
 | `/api/domain-experience` | `GET`, `OPTIONS` | Public-safe domain delivery contracts and read-only KB inventory |
-| `/api/evaluation/run` | `POST`, `OPTIONS` | Dry-run or explicitly authorize approved-dataset RAGAS evaluation |
+| `/api/evaluation/run` | `POST`, `OPTIONS` | Run selected current-product RAG cases or prepare/authorize an approved-dataset evaluation |
 | `/api/knowledge-base` | `GET`, `POST`, `OPTIONS` | Inventory, check, validate, update, or rebuild selected official sources |
 | `/api/health` | `GET`, `OPTIONS` | General service and configuration status |
 | `/api/health/live` | `GET`, `OPTIONS` | Process liveness |
@@ -223,7 +223,7 @@ session attachments.
 | Query retrieval | OpenAI embeddings | User query text | Happens only when Multi retrieval is selected and configured |
 | Conversation recording | OpenAI embeddings | Successful user query and assistant answer | Configured memory recorder; failure does not fail the response |
 | KB sync/update | Official URL, then OpenAI embeddings | Approved page fetch; normalized chunk text for embeddings | Explicit CLI or confirmed Dashboard action |
-| RAGAS evaluation | OpenAI evaluator/embeddings | Selected committed sanitized or redacted fixture | Dry-run by default; live action requires provider-call opt-in |
+| RAGAS evaluation | OpenAI evaluator/embeddings | Selected committed current-product public benchmark or reviewed sanitized/redacted fixture | Dry-run by default; live action requires provider-call opt-in |
 | LangSmith | Configured LangSmith endpoint | Run metadata such as mode, IDs, lengths, counts, route lineage | Disabled unless tracing and key are configured |
 
 ## Deployment and security posture

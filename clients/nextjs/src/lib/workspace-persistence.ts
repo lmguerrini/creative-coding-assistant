@@ -1591,7 +1591,7 @@ function normalizeEvaluationBenchmark(
 ): NonNullable<EvaluationHistoryRecord["benchmark"]> | null {
   if (
     !isRecord(value) ||
-    value.schemaVersion !== 2 ||
+    (value.schemaVersion !== 2 && value.schemaVersion !== 3) ||
     typeof value.id !== "string" ||
     typeof value.datasetVersion !== "string" ||
     typeof value.datasetFingerprint !== "string" ||

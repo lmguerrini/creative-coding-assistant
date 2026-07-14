@@ -123,6 +123,39 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
             (CreativeCodingDomain.P5_JS,),
         )
 
+    def test_build_retrieval_request_preserves_explicit_bridge_domain_scope(
+        self,
+    ) -> None:
+        selected_domains = (
+            CreativeCodingDomain.TONE_JS,
+            CreativeCodingDomain.P5_JS,
+            CreativeCodingDomain.THREE_JS,
+        )
+        assistant_request = AssistantRequest(
+            query=(
+                "Explain how Tone.js coordinates timing across the browser "
+                "visual runtime."
+            ),
+            domains=selected_domains,
+            mode=AssistantMode.EXPLAIN,
+        )
+        route_decision = RouteDecision(
+            route=RouteName.EXPLAIN,
+            mode=AssistantMode.EXPLAIN,
+            domains=selected_domains,
+            capabilities=(RouteCapability.OFFICIAL_DOCS,),
+        )
+
+        retrieval_request = build_retrieval_context_request(
+            assistant_request,
+            route_decision,
+        )
+
+        self.assertIsNotNone(retrieval_request)
+        assert retrieval_request is not None
+        self.assertIsNone(retrieval_request.filters.domain)
+        self.assertEqual(retrieval_request.filters.domains, selected_domains)
+
     def test_build_retrieval_request_detects_explicit_three_js_domain(self) -> None:
         assistant_request = AssistantRequest(
             query="Create a rotating cube in three.js.",

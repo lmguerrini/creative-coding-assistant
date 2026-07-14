@@ -1,0 +1,228 @@
+{
+  "benchmarkMode": "current_product",
+  "benchmarkVersion": "current-product-retrieval.v1",
+  "caseResults": [
+    {
+      "caseId": "runtime_selection_hydra_vs_p5",
+      "domains": [
+        "hydra",
+        "p5_js"
+      ],
+      "generationFingerprint": "sha256:6a2852fbda9fad257c69fcfdde2b7e29b4a1f5e670dae9537bd5155e4328cd79",
+      "metricErrors": {},
+      "metrics": {
+        "answer_relevancy": 0.5488672956784464,
+        "context_precision": 0.9999999999,
+        "context_recall": 1.0,
+        "context_relevancy": 1.0,
+        "faithfulness": 0.5
+      },
+      "promptFingerprint": "sha256:9dd25757a2a673bc1885c4eebf0049044cab5ce83b8449893cdb3d7c12a38d59",
+      "sourceIds": [
+        "hydra_docs",
+        "p5_tutorials",
+        "p5_reference"
+      ]
+    },
+    {
+      "caseId": "audio_reactive_browser_mapping",
+      "domains": [
+        "web_audio_api",
+        "tone_js",
+        "p5_sound"
+      ],
+      "generationFingerprint": "sha256:4fe95d46a0cd515ee23320616ee086705ad961c0dddcfdae8ae6b0e95b6c6985",
+      "metricErrors": {},
+      "metrics": {
+        "answer_relevancy": 0.3947372774252666,
+        "context_precision": 0.9166666666361111,
+        "context_recall": 0.6666666666666666,
+        "context_relevancy": 1.0,
+        "faithfulness": 1.0
+      },
+      "promptFingerprint": "sha256:0db94474b6632fba30e79e45f856fdf6c3398db0bd4cb7bef95c4225982a47a7",
+      "sourceIds": [
+        "web_audio_visualization_guide",
+        "tone_js_analysis_reference",
+        "p5_sound_analysis_reference",
+        "web_audio_analyser_node",
+        "web_audio_mdn_api"
+      ]
+    },
+    {
+      "caseId": "shader_post_fx_pipeline",
+      "domains": [
+        "three_js",
+        "glsl"
+      ],
+      "generationFingerprint": "sha256:353d8d62bfc814772b577d79376381ca9dd26e351857fb2bef36ffd9b8b216b4",
+      "metricErrors": {},
+      "metrics": {
+        "answer_relevancy": 0.7074419406934186,
+        "context_precision": 0.0,
+        "context_recall": 0.6666666666666666,
+        "context_relevancy": 1.0,
+        "faithfulness": 0.18181818181818182
+      },
+      "promptFingerprint": "sha256:54028c00b196858fe1b77fd4b8689667f4a9fd1386c5aaf79f8721c0d1bbdb3f",
+      "sourceIds": [
+        "three_manual_effects",
+        "glsl_mdn_webgl_examples",
+        "glsl_language_spec_460",
+        "glsl_es_language_spec_320"
+      ]
+    },
+    {
+      "caseId": "audiovisual_composition_browser_set",
+      "domains": [
+        "tone_js",
+        "three_js",
+        "p5_js"
+      ],
+      "generationFingerprint": "sha256:35c12227e8438facdcd8ccce516e336cbbc0ec8b1bc5776e4783d9d8d381788a",
+      "metricErrors": {},
+      "metrics": {
+        "answer_relevancy": 0.7410449668480018,
+        "context_precision": 0.0,
+        "context_recall": 0.6666666666666666,
+        "context_relevancy": 0.5,
+        "faithfulness": 1.0
+      },
+      "promptFingerprint": "sha256:1679e56474208eff828ec23dd2eb71a6f05da1f9e0fa9e4648f02d6e2679c4db",
+      "sourceIds": [
+        "tone_js_analysis_reference",
+        "three_manual",
+        "p5_tutorials",
+        "three_manual_effects",
+        "p5_reference"
+      ]
+    },
+    {
+      "caseId": "creative_debugging_silent_audio",
+      "domains": [
+        "web_audio_api",
+        "p5_sound",
+        "p5_js"
+      ],
+      "generationFingerprint": "sha256:cc76a98a4d59029d107dbdbf0e22dff7699e7b8ecdf56262848d900f16600f51",
+      "metricErrors": {},
+      "metrics": {
+        "answer_relevancy": 0.45293718699249313,
+        "context_precision": 0.9166666666361111,
+        "context_recall": 0.6666666666666666,
+        "context_relevancy": 1.0,
+        "faithfulness": 0.6111111111111112
+      },
+      "promptFingerprint": "sha256:c8e7bb4348f7eec7592d1ee22c57f92fd2a9aca35617d18ede115d2df401ce60",
+      "sourceIds": [
+        "web_audio_analyser_node",
+        "p5_sound_analysis_reference",
+        "p5_tutorials",
+        "web_audio_visualization_guide",
+        "web_audio_mdn_api"
+      ]
+    },
+    {
+      "caseId": "creative_debugging_three_effects",
+      "domains": [
+        "three_js"
+      ],
+      "generationFingerprint": "sha256:adaff08235a5f4a609360788370abdacad5210777d18c8ab931767000f718e83",
+      "metricErrors": {},
+      "metrics": {
+        "answer_relevancy": 0.6644185976759032,
+        "context_precision": 0.8041666666465626,
+        "context_recall": 1.0,
+        "context_relevancy": 1.0,
+        "faithfulness": 1.0
+      },
+      "promptFingerprint": "sha256:7b17b9c070d842560f0a9243f74cd48d328c19df9344febf522070611265b537",
+      "sourceIds": [
+        "three_manual_effects",
+        "three_manual"
+      ]
+    },
+    {
+      "caseId": "symbol_to_art_operational_translation",
+      "domains": [
+        "p5_js",
+        "three_js",
+        "glsl",
+        "tone_js"
+      ],
+      "generationFingerprint": "sha256:f2efc8439064d7a549f8a0adfa215983f9e3c8d37c989e2b07629bdf0a12e937",
+      "metricErrors": {},
+      "metrics": {
+        "answer_relevancy": 0.45462727658572927,
+        "context_precision": 0.0,
+        "context_recall": 1.0,
+        "context_relevancy": 0.5,
+        "faithfulness": 0.25
+      },
+      "promptFingerprint": "sha256:1665e1ee56ecf2d0e462da04f7f2ea12fc62f74b72127bbdaeb088ba38cec1ac",
+      "sourceIds": [
+        "p5_tutorials",
+        "three_manual",
+        "glsl_mdn_webgl_examples",
+        "tone_js_analysis_reference",
+        "three_manual_effects"
+      ]
+    }
+  ],
+  "datasetFingerprint": "sha256:b5fbc0e7cc9a523658eee8b0fc5cd7c417aa10540f8919e10bc2c4e10a40705f",
+  "datasetId": "capstone_kb_expansion_retrieval_demo_pack",
+  "datasetVersion": "current-product-retrieval.v1",
+  "detail": "Current assistant retrieval, rendered prompts, generated answers, and reference-aware RAGAS metrics were evaluated on public official contexts.",
+  "durationMs": 257447,
+  "eligibleSamples": 7,
+  "embeddingModel": "text-embedding-3-small",
+  "evaluatedAt": "2026-07-14T01:27:10.513524+00:00",
+  "evaluator": "RAGAS OpenAI evaluator (gpt-4o-mini)",
+  "evaluatorModel": "gpt-4o-mini",
+  "generationFingerprint": "sha256:29fc1613a262a5f75153be0217143560382b1315ab2ec17f8bcdba83fdadb7dd",
+  "generationModel": "gpt-5-mini-2025-08-07",
+  "kbFingerprint": "sha256:d242821e5bab82e575043b1ca94b1047aae1158e02f3948447d07230fc2402fc",
+  "metricContract": "ragas-current-product-reference.v2",
+  "metricFailures": 0,
+  "metricScores": {
+    "answer_relevancy": 0.5662963631284655,
+    "context_precision": 0.5196428571169692,
+    "context_recall": 0.8095238095238094,
+    "context_relevancy": 0.8571428571428571,
+    "faithfulness": 0.648989898989899
+  },
+  "metrics": [
+    "context_precision",
+    "faithfulness",
+    "answer_relevancy",
+    "context_relevancy",
+    "context_recall"
+  ],
+  "model": "gpt-5-mini-2025-08-07",
+  "outputFingerprint": "sha256:fa628b85277f35b013006fc29b909b5609121b5f0af2b48ba4432b96fc57656f",
+  "privacyClass": "public_official_contexts_with_authored_references",
+  "promptFingerprint": "sha256:ea399f48ac049d895ad407f9c193710d6f4cde59a9d1d926aae23db36c100854",
+  "provider": "openai",
+  "ragasVersion": "0.4.3",
+  "resultRows": 7,
+  "retrievalFingerprint": "sha256:d382e7961c0fb89f27c223d41347f4ccf59d420b585b957a086d43142858126f",
+  "retrievalScore": 0.6803191571804,
+  "runId": "v9-current-product-final-retained",
+  "schemaVersion": "current-product-ragas-evidence.v1",
+  "scope": "rag",
+  "scoreOrigin": "current_product",
+  "selectedCaseIds": [
+    "runtime_selection_hydra_vs_p5",
+    "audio_reactive_browser_mapping",
+    "shader_post_fx_pipeline",
+    "audiovisual_composition_browser_set",
+    "creative_debugging_silent_audio",
+    "creative_debugging_three_effects",
+    "symbol_to_art_operational_translation"
+  ],
+  "selectionFingerprint": "sha256:46eb18720645a4b876dd6190007803d4d37aeba07252750bec9fd9a55637357e",
+  "skippedSamples": 0,
+  "status": "completed",
+  "timestamp": "2026-07-14T01:27:10.513524+00:00",
+  "totalSamples": 7
+}

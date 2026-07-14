@@ -131,12 +131,15 @@ artifacts.
 
 - Report 18/19 requested-domain coverage and 16/23 source-anchor overlap only
   as the dated current retrieval report.
-- Report 61.44% only as the equal-weight macro across four measured dimensions
-  on four sanitized approved-fixture rows.
-- Do not compare those values as before/after scores; they use different data
-  and measure different stages.
-- Context Recall is missing, and current-product external evaluation is
-  unavailable under the present privacy boundary.
+- Report 68.03% only as the equal-weight macro across five RAGAS dimensions on
+  seven current-product public RAG cases, with the dataset and pipeline
+  fingerprints attached.
+- Report 61.44% only as the obsolete historical four-row fixture macro; its
+  Context Recall remains missing.
+- Do not compare retrieval-only coverage ratios with RAGAS as before/after
+  scores; they measure different stages.
+- Treat the 35-case catalog as contract coverage. Full executes seven RAG cases
+  and records three local snapshot lanes, not 35 generations.
 
 ### Multimodal input
 

@@ -5,19 +5,20 @@ below should be read as a current capability or committed delivery date.
 
 ## Priority 0 — close reviewer-facing evidence gaps
 
-### Current-product RAG evaluation
+### Broaden current-product RAG evaluation
 
-**Goal.** Produce one privacy-approved, versioned evaluation in which the query,
-retrieved context, generated answer, and independently justified reference
-answer all come from the same current product run.
+**Goal.** Expand the retained seven-case public benchmark without changing its
+frozen version after observing outputs, and improve the weak context-precision
+and answer-relevancy dimensions through general product changes.
 
-**Acceptance evidence.** At least 20 public-safe cases across the canonical
-technical domains; Context Precision, Faithfulness, Answer Relevancy, Context
-Relevancy, and Context Recall; per-case results; zero private session text;
-model and embedding configuration; dataset and code fingerprints.
+**Acceptance evidence.** At least 20 public-safe cases across canonical
+technical domains in a new version; Context Precision, Faithfulness, Answer
+Relevancy, Context Relevancy, and Context Recall; repeated evaluator passes or
+uncertainty bounds; per-case results; zero private session text; model,
+embedding, and complete pipeline fingerprints.
 
-**Why first.** The current 61.44% RAGAS result is a four-row approved fixture
-and is explicitly non-comparable to the improved local retrieval report.
+**Why first.** The current 68.03% result is defensible current-product evidence,
+but seven cases are not broad coverage and Context Precision remains 51.96%.
 
 ### Controlled image-influence study
 
@@ -118,10 +119,12 @@ current local workstation should not be described as a public service.
 3. Add accessibility and performance baselines before public deployment.
 4. Expand integrations only with the same observable runtime and privacy
    boundaries used by the current browser-native paths.
+
 ## Suggested SMART checkpoint
 
-Within one focused iteration, create a 20-case public-safe current-product RAG
-dataset, execute all five justified metrics, publish per-case machine-readable
-results, and update the Evaluation Lab without changing the existing retrieval
-benchmark. Completion requires zero private text, reproducible fingerprints,
-and explicit non-comparability to older fixtures.
+Within one focused iteration, create a new 20-case public-safe benchmark version
+that extends the retained seven-case current-product contract, execute all five
+justified metrics, publish per-case machine-readable results, and update the
+Evaluation Lab without rewriting the frozen seven-case baseline or the existing
+retrieval benchmark. Completion requires zero private text, reproducible
+fingerprints, and explicit non-comparability to older fixtures.

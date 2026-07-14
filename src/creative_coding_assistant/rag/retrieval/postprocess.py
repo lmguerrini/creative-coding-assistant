@@ -15,10 +15,7 @@ from creative_coding_assistant.rag.retrieval.models import KnowledgeBaseSearchRe
 
 _GENERIC_EXAMPLE_PHRASES: tuple[str, ...] = (
     "select an example from the sidebar",
-    (
-        "skip to main content menu reference tutorials examples contribute "
-        "community about start coding donate"
-    ),
+    ("skip to main content menu reference tutorials examples contribute community about start coding donate"),
     "three.js examples three.js examples",
 )
 _GENERIC_DOC_INDEX_PHRASES: tuple[str, ...] = (
@@ -35,6 +32,12 @@ _GENERIC_MANUAL_PHRASES: tuple[str, ...] = (
     "en fr ru",
     "中文",
     "日本語",
+)
+_NON_ACTIONABLE_DOC_GAP_PHRASES: tuple[str, ...] = (
+    "all the details of how to write",
+    "too much for these articles",
+    "unfortunately undocumented",
+    "read through the examples or the code",
 )
 _INDEX_ONLY_SOURCE_IDS = frozenset(
     {
@@ -65,17 +68,11 @@ def select_retrieval_results(
         query=query,
         requested_domains=requested_domains,
     )
-    source_filtered = tuple(
-        result
-        for result in domain_candidates
-        if result.source_id not in _INDEX_ONLY_SOURCE_IDS
-    )
+    source_filtered = tuple(result for result in domain_candidates if result.source_id not in _INDEX_ONLY_SOURCE_IDS)
     # Judge broad manual pages by their chunks. The Three.js manual contains two
     # landing shells followed by substantive guidance, so excluding its entire
     # source would discard useful evidence.
-    filtered = tuple(
-        result for result in source_filtered if not _is_low_value_chunk(result)
-    )
+    filtered = tuple(result for result in source_filtered if not _is_low_value_chunk(result))
     deduplicated = _deduplicate_results(filtered)
     return _select_domain_diverse_results(
         deduplicated,
@@ -108,6 +105,9 @@ def _is_low_value_chunk(result: KnowledgeBaseSearchResult) -> bool:
     ):
         return True
 
+    if sum(phrase in normalized_text for phrase in _NON_ACTIONABLE_DOC_GAP_PHRASES) >= 2:
+        return True
+
     return False
 
 
@@ -124,9 +124,7 @@ def _is_heading_only_chunk(
         _normalize_text(result.registry_title),
     }
     return any(
-        normalized_text == title or title.startswith(f"{normalized_text} ")
-        for title in normalized_titles
-        if title
+        normalized_text == title or title.startswith(f"{normalized_text} ") for title in normalized_titles if title
     )
 
 
@@ -143,9 +141,7 @@ def _deduplicate_results(
     for result in results:
         preview = _normalized_preview(result.text)
         seen_previews = previews.get(result.source_id, [])
-        if any(
-            _is_near_duplicate(preview, seen_preview) for seen_preview in seen_previews
-        ):
+        if any(_is_near_duplicate(preview, seen_preview) for seen_preview in seen_previews):
             continue
 
         kept.append(result)
@@ -168,24 +164,18 @@ def _apply_domain_intent_filter(
 
     explicit_domains = detect_explicit_query_domains(query)
     if len(explicit_domains) > 1:
-        narrowed = tuple(
-            result for result in results if result.domain in explicit_domains
-        )
+        narrowed = tuple(result for result in results if result.domain in explicit_domains)
         return narrowed or tuple(results)
 
     intent = detect_domain_intent(query)
     if intent is None:
         return tuple(results)
 
-    primary_results = tuple(
-        result for result in results if result.domain == intent.primary_domain
-    )
+    primary_results = tuple(result for result in results if result.domain == intent.primary_domain)
     if primary_results:
         return primary_results
 
-    narrowed = tuple(
-        result for result in results if result.domain in intent.allowed_domains
-    )
+    narrowed = tuple(result for result in results if result.domain in intent.allowed_domains)
     return narrowed or tuple(results)
 
 

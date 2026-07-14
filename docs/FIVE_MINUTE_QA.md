@@ -17,16 +17,16 @@ named under the answer.
 
 **Open:** `demo/evaluation/canonical_retrieval_report.json`.
 
-## Priority answer 2 — Is 61.44% a good score?
+## Priority answer 2 — What does the 68.03% score mean?
 
-> I do not treat 61.44 percent as a global product score. It is the equal-weight
-> macro across four RAGAS dimensions on four sanitized approved-fixture rows.
-> Context Precision is nearly 100 percent, but Faithfulness is 29.58 percent and
-> Answer Relevancy is 47.43 percent, so the fixture exposes real weaknesses.
-> Context Recall is missing because there are no independent reference answers.
-> It is historical and not comparable to the current retrieval report. The
-> correct conclusion is that the evaluation path works and the answer fixture
-> needs improvement—not that the product is 61.44 percent “good.”
+> It is the equal-weight macro across five RAGAS dimensions on seven frozen
+> current-product public RAG cases: Context Precision 51.96 percent,
+> Faithfulness 64.90 percent, Answer Relevancy 56.63 percent, Context Relevancy
+> 85.71 percent, and Context Recall 80.95 percent. All seven cases completed with
+> no skips or metric failures. It is current RAG quality evidence, not a project
+> grade or artistic-quality score. The old 61.44 percent number is a historical
+> four-row fixture that was incorrectly shown as primary because of an
+> evaluation-pipeline defect; it now belongs only in History.
 
 **Open:** Dashboard → Evaluation → AI Engineering Lab.
 
@@ -98,17 +98,18 @@ palette study.
 > request-scoped image can leave only when that provider path is explicitly
 > used. Real credentials, workspace sessions, local databases, raw evaluation
 > rows, and image bytes are not committed. Public evaluator fixtures are
-> synthetic or redacted. In the current environment, local retrieved excerpts
-> are not sent to an external RAGAS evaluator, which is why current-product
-> end-to-end scoring is unavailable.
+> synthetic, redacted, or part of the reviewed committed public current-product
+> benchmark. Raw local sessions and arbitrary local Chroma excerpts are not sent
+> to an external evaluator. The canonical seven-case score uses only the
+> reviewed public evidence contract.
 
-### Why is Context Recall missing?
+### Why is Context Recall present now?
 
-> Context Recall asks whether retrieval found the information needed for a
-> justified reference answer. The approved fixture does not contain independent
-> reference answers, so computing recall would manufacture a denominator. The
-> next evaluation dataset must add those references before the metric can be
-> reported.
+> Context Recall requires independently authored reference answers and context.
+> The historical four-row fixture lacked those references, so recall was
+> correctly missing there. The seven-case current-product benchmark includes the
+> reference contract, so Context Recall is now reported at 80.95 percent without
+> inventing a denominator.
 
 ### Does the test count prove the product is finished?
 
@@ -138,8 +139,9 @@ palette study.
 
 ### What would you build next?
 
-> First, a 20-case public-safe current-product RAG dataset with independent
-> reference answers and all justified RAGAS dimensions. Second, a controlled
+> First, expand the seven-case public-safe current-product RAG benchmark while
+> preserving its frozen version and independent references, and improve the
+> weak context-precision and answer-relevancy dimensions. Second, a controlled
 > image-influence comparison. Third, accessibility and presentation-machine
 > validation. Then I would split the largest UI, stream, style, and metadata
 > modules before adding more runtimes.
@@ -152,7 +154,8 @@ palette study.
   release documents during Q&A.
 - If evidence is unavailable, say so directly and name the validation needed.
 - Do not describe deterministic fixtures as provider generations.
-- Do not call 61.44% a product score.
+- Call 68.03% a seven-case current-product RAG macro, not a project grade.
+- Keep 61.44% labeled as an obsolete historical four-row fixture macro.
 - Do not claim image influence, independent acceptance, public deployment, or
   external creative-tool execution.
 

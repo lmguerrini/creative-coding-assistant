@@ -99,15 +99,15 @@ Evaluation is split so unlike evidence is not collapsed into one score.
 | Lane | Current evidence | What it does not prove |
 |---|---|---|
 | Retrieval | 7/7 queries; 18/19 domain coverage; 16/23 source anchors | Generated-answer correctness |
-| RAGAS fixture | Four sanitized rows; 61.44% equal-weight macro across four measured dimensions | Current-product or private-session quality |
+| Current-product RAGAS | Seven public RAG cases; 68.03% equal-weight macro across five measured dimensions | Whole-product, private-session, or artistic quality |
+| Historical RAGAS fixture | Four sanitized rows; 61.44% four-metric macro | Current-product quality or Context Recall |
 | Browser/runtime | Four canonical fixtures, a direct Three.js r176 smoke, and full Playwright coverage | Configured-provider generation or aesthetic consensus |
 | Engineering | 2,688 backend tests plus 423 subtests; 77 client files / 553 tests; typecheck, Ruff, build | Independent acceptance or public production readiness |
 
-The approved-fixture RAGAS components are Context Precision 100.00%,
-Faithfulness 29.58%, Answer Relevancy 47.43%, and Context Relevancy 68.75%.
-Context Recall is missing because the fixture has no independently justified
-reference answers. The weak metrics remain visible instead of being averaged
-into an optimistic product claim.
+The current-product RAGAS components are Context Precision 51.96%, Faithfulness
+64.90%, Answer Relevancy 56.63%, Context Relevancy 85.71%, and Context Recall
+80.95%. The weak metrics remain visible instead of being hidden behind an
+optimistic product claim.
 
 ## Multimodal boundary
 
@@ -167,7 +167,8 @@ The repository demonstrates a working, interactive, browser-focused AI
 prototype with unusually explicit evidence boundaries. It does not demonstrate
 public deployment, arbitrary code execution, external creative-tool control,
 independent user acceptance, a configured-provider multimodal outcome, or a
-current-product end-to-end RAGAS run.
+statistically broad or private-session RAG quality beyond the retained
+seven-case current-product benchmark.
 
 The strongest portfolio lesson is that AI product quality is not one score.
 It is the agreement between the user’s request, the chosen route, the supplied

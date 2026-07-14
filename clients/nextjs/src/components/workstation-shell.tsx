@@ -249,7 +249,13 @@ import {
 import {
   buildEvaluationBenchmarkRun,
   buildGoldenEvaluationDataset,
+  CURRENT_PRODUCT_RETRIEVAL_CASE_IDS,
+  currentProductRetrievalScoreFromEvidence,
   emptyRagasEvidence,
+  normalizeEvaluationBenchmarkMode,
+  type EvaluationCategory,
+  type EvaluationExecutionProgress,
+  type EvaluationProgressCallback,
   type EvaluationRunRequest,
   type RagasExecutionEvidence
 } from "@/lib/evaluation-benchmark";
@@ -390,6 +396,10 @@ const artifactFeedbackDurationMs = 1400;
 const evaluationRunEndpoint =
   process.env.NEXT_PUBLIC_EVALUATION_RUN_URL ??
   "http://localhost:8000/api/evaluation/run";
+const evaluationPollIntervalMs = 400;
+const evaluationReconnectBaseDelayMs = 800;
+const evaluationReconnectMaxDelayMs = 10_000;
+const evaluationMaxConsecutiveRefreshFailures = 3;
 const defaultWorkspacePersistenceClient = createWorkspacePersistenceClient();
 const userModeInspectorTabs = new Set<ProductIntelligenceCategory>([
   "Preview",
@@ -628,6 +638,7 @@ export function WorkstationShell({
   const approvalCardRef = useRef<HTMLElement | null>(null);
   const approvalFocusOriginRef = useRef<HTMLElement | null>(null);
   const isShellMountedRef = useRef(true);
+  const evaluationAbortControllerRef = useRef<AbortController | null>(null);
   const hasLoadedPersistenceRef = useRef(false);
   const lastPersistedFingerprintRef = useRef<string | null>(null);
   const skipNextPersistenceSaveRef = useRef(false);
@@ -664,6 +675,8 @@ export function WorkstationShell({
 
     return () => {
       isShellMountedRef.current = false;
+      evaluationAbortControllerRef.current?.abort();
+      evaluationAbortControllerRef.current = null;
       clearFeedbackTimers();
       clearDragState();
     };
@@ -3488,51 +3501,283 @@ export function WorkstationShell({
     });
   }
 
-  async function handleRunEvaluation(request: EvaluationRunRequest) {
-    const selectedHasRag = request.scope === "full" || request.scope === "rag" || (
-      request.scope === "cases" && buildGoldenEvaluationDataset().cases.some(
-        (item) => request.caseIds.includes(item.id) && item.categories.includes("rag")
-      )
-    );
+  async function handleRunEvaluation(
+    request: EvaluationRunRequest,
+    onProgress: EvaluationProgressCallback
+  ) {
+    const evaluationController = new AbortController();
+    evaluationAbortControllerRef.current?.abort();
+    evaluationAbortControllerRef.current = evaluationController;
+    const latestVisibleProgress: { current: EvaluationExecutionProgress | null } = {
+      current: null
+    };
+    const releaseEvaluationController = () => {
+      if (evaluationAbortControllerRef.current === evaluationController) {
+        evaluationAbortControllerRef.current = null;
+      }
+    };
+    const publishProgress = (progress: EvaluationExecutionProgress) => {
+      if (!evaluationController.signal.aborted && isShellMountedRef.current) {
+        latestVisibleProgress.current = normalizeVisibleEvaluationProgress(progress, request.scope);
+        onProgress(latestVisibleProgress.current);
+      }
+    };
     let payload: Record<string, unknown> = {};
     let ragas = emptyRagasEvidence();
+    const dataset = buildGoldenEvaluationDataset();
+    const canonicalRetrievalCaseIds = new Set<string>(CURRENT_PRODUCT_RETRIEVAL_CASE_IDS);
+    const remoteCaseIds = request.scope === "cases"
+      ? [...new Set(request.caseIds.flatMap((caseId) => {
+          const canonicalCaseId = caseId.startsWith("retrieval/")
+            ? caseId.slice("retrieval/".length)
+            : caseId;
+          return canonicalRetrievalCaseIds.has(canonicalCaseId)
+            ? [canonicalCaseId]
+            : [];
+        }))]
+      : [];
+    const selectedHasRag = request.scope === "full" || request.scope === "rag" || remoteCaseIds.length > 0;
+    const providerCallsUsed = selectedHasRag && request.allowProviderCalls;
+    const executionRequest: EvaluationRunRequest = {
+      ...request,
+      allowProviderCalls: providerCallsUsed
+    };
+    const selectedContracts = request.scope === "cases"
+      ? request.caseIds.length
+      : request.scope === "full"
+        ? CURRENT_PRODUCT_RETRIEVAL_CASE_IDS.length
+        : request.scope === "rag"
+          ? CURRENT_PRODUCT_RETRIEVAL_CASE_IDS.length
+          : dataset.cases.filter((item) => item.categories.includes(request.scope as EvaluationCategory)).length;
+    let terminalStatus = "failed";
+    let localOnly = false;
 
-    if (selectedHasRag) {
-      try {
-        const response = await fetch(evaluationRunEndpoint, {
-          body: JSON.stringify({
-            allowProviderCalls: request.allowProviderCalls,
-            approvedDataset: request.approvedRagasDataset,
-            dryRun: !request.allowProviderCalls
-          }),
-          headers: { "Content-Type": "application/json" },
-          method: "POST"
+    publishProgress({
+      runId: null,
+      status: "preflight",
+      phase: "preflight",
+      lane: request.scope === "full" ? "Full evaluation" : request.scope.replace(/_/g, " "),
+      currentCaseId: null,
+      currentCaseLabel: selectedHasRag ? "Preparing current-product benchmark" : "Preparing local workspace-lane snapshot",
+      completedCases: 0,
+      totalCases: selectedContracts,
+      remainingCases: selectedContracts,
+      percent: 0,
+      executionState: providerCallsUsed ? "provider_authorized" : selectedHasRag ? "local_preflight" : "local_workspace",
+      detail: providerCallsUsed
+        ? "The selected current-product contract is being submitted for retrieval, generation, and evaluation."
+        : selectedHasRag
+          ? "The canonical retrieval selection is limited to local preflight and cannot publish a new Retrieval Quality score."
+          : "No canonical retrieval cases are selected; only current local workspace-lane evidence will be inspected."
+    });
+
+    try {
+      if (!selectedHasRag) {
+        localOnly = true;
+        terminalStatus = "completed";
+        const evaluatedAt = new Date().toISOString();
+        const runId = `evaluation-local-${Date.now()}`;
+        payload = { runId, status: terminalStatus };
+        ragas = localWorkspaceLaneEvidence(runId, evaluatedAt);
+      } else {
+      const response = await fetch(evaluationRunEndpoint, {
+        body: JSON.stringify({
+          benchmarkMode: "current_product",
+          scope: request.scope,
+          caseIds: request.scope === "cases" ? remoteCaseIds : [],
+          allowProviderCalls: providerCallsUsed,
+          approvedDataset: request.approvedRagasDataset,
+          dryRun: !providerCallsUsed
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+        signal: evaluationController.signal
+      });
+      const responsePayload: unknown = await response.json();
+      payload = isUnknownRecord(responsePayload) ? responsePayload : {};
+      if (!response.ok) {
+        terminalStatus = payload.error === "blocked_by_execution_environment" ? "blocked" : "failed";
+        publishProgress({
+          runId: typeof payload.runId === "string" ? payload.runId : null,
+          status: terminalStatus,
+          phase: "terminal",
+          lane: request.scope === "full" ? "Full evaluation" : request.scope.replace(/_/g, " "),
+          currentCaseId: null,
+          currentCaseLabel: "Evaluation stopped",
+          completedCases: 0,
+          totalCases: selectedContracts,
+          remainingCases: selectedContracts,
+          percent: null,
+          executionState: request.allowProviderCalls ? "provider_blocked" : "local_blocked",
+          detail: typeof payload.message === "string" ? payload.message : "The evaluation service rejected the run."
         });
-        const responsePayload: unknown = await response.json();
-        payload = isUnknownRecord(responsePayload) ? responsePayload : {};
-        if (!response.ok) {
-          ragas = payload.error === "blocked_by_execution_environment"
-            ? blockedRagasEvidence(request, payload)
-            : failedRagasEvidence(request, payload);
-        } else {
-          ragas = parseRagasExecutionEvidence(payload, request);
+      } else {
+        let snapshot = parseEvaluationApiSnapshot(payload, {
+          request: executionRequest,
+          selectedContracts
+        });
+        publishProgress(snapshot.progress);
+        let consecutiveRefreshFailures = 0;
+        let nextPollDelayMs = 0;
+
+        while (!isTerminalEvaluationStatus(snapshot.status)) {
+          if (!snapshot.runId) {
+            throw new Error("Evaluation service did not publish a run identifier.");
+          }
+          if (nextPollDelayMs > 0) {
+            await waitForEvaluationPoll(nextPollDelayMs, evaluationController.signal);
+          }
+          if (evaluationController.signal.aborted || !isShellMountedRef.current) {
+            releaseEvaluationController();
+            return;
+          }
+          try {
+            const pollResponse = await fetchEvaluationPoll(
+              snapshot.runId,
+              evaluationController.signal
+            );
+            if (pollResponse.status === 404 || pollResponse.status === 410) {
+              throw new EvaluationPollingTerminalError(
+                `Evaluation run ${snapshot.runId} is no longer available (HTTP ${pollResponse.status}).`
+              );
+            }
+            if (!pollResponse.ok) {
+              throw new Error(
+                `Evaluation status endpoint returned HTTP ${pollResponse.status}.`
+              );
+            }
+            const pollPayload: unknown = await pollResponse.json();
+            if (!isUnknownRecord(pollPayload)) {
+              throw new Error("Evaluation status endpoint returned an invalid snapshot.");
+            }
+            payload = { ...payload, ...pollPayload };
+            snapshot = parseEvaluationApiSnapshot(pollPayload, {
+              request: executionRequest,
+              runId: snapshot.runId,
+              selectedContracts
+            });
+            consecutiveRefreshFailures = 0;
+            nextPollDelayMs = evaluationPollIntervalMs;
+            publishProgress(snapshot.progress);
+          } catch (error) {
+            if (evaluationController.signal.aborted || !isShellMountedRef.current) {
+              releaseEvaluationController();
+              return;
+            }
+            if (error instanceof EvaluationPollingTerminalError) {
+              throw error;
+            }
+            consecutiveRefreshFailures += 1;
+            if (consecutiveRefreshFailures >= evaluationMaxConsecutiveRefreshFailures) {
+              throw new EvaluationPollingTerminalError(
+                `Evaluation status remained unavailable after ${evaluationMaxConsecutiveRefreshFailures} consecutive refresh attempts.`
+              );
+            }
+            nextPollDelayMs = evaluationReconnectDelayMs(consecutiveRefreshFailures);
+            publishProgress({
+              ...snapshot.progress,
+              status: "running",
+              phase: "reconnecting",
+              currentCaseLabel: "Reconnecting to the evaluation service",
+              executionState: "reconnecting",
+              detail: `The status refresh was interrupted. Retrying automatically ${formatEvaluationReconnectDelay(nextPollDelayMs)}; the server run remains active.`
+            });
+          }
         }
-      } catch {
-        ragas = blockedRagasEvidence(request, {
-          message: "BLOCKED_BY_EXECUTION_ENVIRONMENT: the local evaluation service is unavailable."
-        });
+
+        terminalStatus = normalizeEvaluationStatus(snapshot.status);
+        payload = {
+          ...(snapshot.result ?? {}),
+          runId: snapshot.runId,
+          status: terminalStatus,
+          progress: snapshot.progress
+        };
       }
+
+      if (terminalStatus === "completed") {
+        ragas = selectedHasRag
+          ? parseRagasExecutionEvidence(payload, executionRequest, terminalStatus)
+          : unscoredCurrentProductEvidence(payload, executionRequest, terminalStatus);
+      } else if (terminalStatus === "prepared") {
+        ragas = selectedHasRag
+          ? parseRagasExecutionEvidence(payload, executionRequest, terminalStatus)
+          : unscoredCurrentProductEvidence(payload, executionRequest, terminalStatus);
+      } else if (terminalStatus === "blocked") {
+        ragas = blockedRagasEvidence(executionRequest, payload);
+      } else {
+        ragas = failedRagasEvidence(executionRequest, payload);
+      }
+      }
+    } catch (error) {
+      if (evaluationController.signal.aborted || !isShellMountedRef.current) {
+        releaseEvaluationController();
+        return;
+      }
+      const pollingFailure = error instanceof EvaluationPollingTerminalError;
+      terminalStatus = pollingFailure ? "failed" : "blocked";
+      const message = error instanceof Error ? error.message : "the local evaluation service is unavailable";
+      payload = {
+        ...payload,
+        message: pollingFailure
+          ? `${message} Use Run Evaluation to retry.`
+          : `BLOCKED_BY_EXECUTION_ENVIRONMENT: ${message}`,
+        status: terminalStatus
+      };
+      ragas = pollingFailure
+        ? failedRagasEvidence(executionRequest, payload)
+        : blockedRagasEvidence(executionRequest, payload);
+      publishProgress({
+        runId: typeof payload.runId === "string" ? payload.runId : null,
+        status: terminalStatus,
+        phase: "terminal",
+        lane: latestVisibleProgress.current?.lane ?? (request.scope === "full" ? "Full evaluation" : request.scope.replace(/_/g, " ")),
+        currentCaseId: latestVisibleProgress.current?.currentCaseId ?? null,
+        currentCaseLabel: "Evaluation stopped",
+        completedCases: latestVisibleProgress.current?.completedCases ?? 0,
+        totalCases: latestVisibleProgress.current?.totalCases ?? selectedContracts,
+        remainingCases: latestVisibleProgress.current?.remainingCases ?? selectedContracts,
+        percent: latestVisibleProgress.current?.percent ?? null,
+        executionState: pollingFailure
+          ? "polling_failed"
+          : providerCallsUsed ? "provider_blocked" : "local_blocked",
+        detail: String(payload.message)
+      });
+    }
+
+    if (evaluationController.signal.aborted || !isShellMountedRef.current) {
+      releaseEvaluationController();
+      return;
     }
 
     const previousRun = [...workspacePreferences.evaluationHistory]
       .reverse()
-      .find((entry) => entry.benchmark)?.benchmark ?? null;
+      .find((entry) =>
+        entry.benchmark?.scoreOrigin === "current_product" &&
+        entry.benchmark.ragas.state === "completed"
+      )?.benchmark ?? null;
     const benchmark = buildEvaluationBenchmarkRun({
       model: productIntelligence,
       previousRun,
       ragas,
-      request
+      request: executionRequest
     });
+    if (localOnly) {
+      const completedCases = benchmark.executedCases;
+      publishProgress({
+        runId: benchmark.runId,
+        status: "completed",
+        phase: "local_snapshot_completed",
+        lane: request.scope === "cases" ? "Selected local-only cases" : request.scope.replace(/_/g, " "),
+        currentCaseId: null,
+        currentCaseLabel: "Local workspace-lane snapshot complete",
+        completedCases,
+        totalCases: selectedContracts,
+        remainingCases: Math.max(0, selectedContracts - completedCases),
+        percent: 100,
+        executionState: "local_workspace",
+        detail: `${completedCases}/${selectedContracts} selected contracts had current observable local evidence. No retrieval, generation, or evaluator provider calls were made; no Retrieval Quality score was published.`
+      });
+    }
     const evaluationRecord: EvaluationHistoryRecord = {
       id: benchmark.id,
       runId: typeof payload.runId === "string" ? payload.runId : benchmark.id,
@@ -3543,13 +3788,14 @@ export function WorkstationShell({
       evaluatedAt: benchmark.completedAt,
       resultRows: ragas.resultRows,
       metricFailures: ragas.metricFailures,
-      dryRun: !request.allowProviderCalls,
-      providerCallsAllowed: request.allowProviderCalls,
+      dryRun: !providerCallsUsed,
+      providerCallsAllowed: providerCallsUsed,
       benchmark
     };
-    updateWorkspacePreferences({
-      evaluationHistory: [...workspacePreferences.evaluationHistory, evaluationRecord].slice(-24)
-    });
+    setWorkspacePreferences((current) => normalizeWorkspacePreferences({
+      ...current,
+      evaluationHistory: [...current.evaluationHistory, evaluationRecord].slice(-24)
+    }));
     appendLocalRuntimeEvent({
       event_type: "eval_update",
       sequence: localRuntimeSequenceRef.current++,
@@ -3568,6 +3814,7 @@ export function WorkstationShell({
           : ragas.state === "failed" ? "MISSING_EVIDENCE" : "completed"
       }
     });
+    releaseEvaluationController();
   }
 
   function handleArtifactSelect(artifact: ArtifactSummary) {
@@ -7172,47 +7419,351 @@ function readPayloadText(
   return typeof value === "string" ? value : undefined;
 }
 
-function parseRagasExecutionEvidence(
+type EvaluationApiSnapshot = {
+  runId: string | null;
+  status: string;
+  progress: EvaluationExecutionProgress;
+  result: Record<string, unknown> | null;
+};
+
+class EvaluationPollingTerminalError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "EvaluationPollingTerminalError";
+  }
+}
+
+function parseEvaluationApiSnapshot(
   record: Record<string, unknown>,
-  request: EvaluationRunRequest
-): RagasExecutionEvidence {
-  const metricScores = numberRecord(record.metricScores);
-  const caseRows = Array.isArray(record.caseResults)
-    ? record.caseResults.flatMap((value) => {
-        if (!isUnknownRecord(value) || typeof value.sampleId !== "string") return [];
-        return [{
-          sampleId: value.sampleId,
-          metrics: nullableNumberRecord(value.metrics),
-          metricErrors: stringRecord(value.metricErrors),
-          sourceIds: stringArray(value.sourceIds),
-          domains: stringArray(value.domains)
-        }];
-      })
-    : [];
+  fallback: {
+    request: EvaluationRunRequest;
+    runId?: string | null;
+    selectedContracts: number;
+  }
+): EvaluationApiSnapshot {
+  const nestedResult = isUnknownRecord(record.result) ? record.result : null;
+  const progressRecord = isUnknownRecord(record.progress) ? record.progress : {};
+  const runId = typeof record.runId === "string"
+    ? record.runId
+    : typeof nestedResult?.runId === "string"
+      ? nestedResult.runId
+      : fallback.runId ?? null;
+  const status = normalizeEvaluationStatus(
+    typeof record.status === "string"
+      ? record.status
+      : typeof nestedResult?.status === "string"
+        ? nestedResult.status
+        : "running"
+  );
+  const result = nestedResult ?? (isTerminalEvaluationStatus(status) ? record : null);
+  const totalCases = finiteNumber(progressRecord.totalCases) ?? fallback.selectedContracts;
+  const completedCases = Math.min(
+    totalCases,
+    Math.max(0, finiteNumber(progressRecord.completedCases) ?? 0)
+  );
+  const reportedRemaining = finiteNumber(progressRecord.remainingCases);
+  const percent = finiteNumber(progressRecord.percent);
+  const defaultLane = fallback.request.scope === "full"
+    ? "Full evaluation"
+    : fallback.request.scope.replace(/_/g, " ");
+
   return {
-    state: record.dryRun === true ? "prepared" : "completed",
+    runId,
+    status,
+    result,
+    progress: {
+      runId,
+      status,
+      phase: typeof progressRecord.phase === "string"
+        ? progressRecord.phase
+        : isTerminalEvaluationStatus(status) ? "terminal" : "running",
+      lane: typeof progressRecord.lane === "string" && progressRecord.lane.trim()
+        ? progressRecord.lane
+        : defaultLane,
+      currentCaseId: typeof progressRecord.currentCaseId === "string"
+        ? progressRecord.currentCaseId
+        : null,
+      currentCaseLabel: typeof progressRecord.currentCaseLabel === "string" && progressRecord.currentCaseLabel.trim()
+        ? progressRecord.currentCaseLabel
+        : isTerminalEvaluationStatus(status) ? "Evaluation complete" : "Waiting for the next case",
+      completedCases,
+      totalCases,
+      remainingCases: Math.max(0, reportedRemaining ?? totalCases - completedCases),
+      percent: percent == null ? null : Math.min(100, Math.max(0, percent)),
+      executionState: typeof progressRecord.executionState === "string"
+        ? progressRecord.executionState
+        : fallback.request.allowProviderCalls ? "provider_authorized" : "local_preflight",
+      detail: typeof progressRecord.detail === "string" && progressRecord.detail.trim()
+        ? progressRecord.detail
+        : isTerminalEvaluationStatus(status)
+          ? `Evaluation ended with status ${status}.`
+          : "Evaluation progress is being refreshed automatically."
+    }
+  };
+}
+
+function normalizeEvaluationStatus(value: string) {
+  const normalized = value.trim().toLowerCase().replace(/[\s-]+/g, "_");
+  if (["evaluation_completed", "complete", "completed", "succeeded", "success"].includes(normalized)) return "completed";
+  if (["evaluation_prepared", "prepared", "dry_run_complete"].includes(normalized)) return "prepared";
+  if (["blocked", "blocked_by_execution_environment"].includes(normalized)) return "blocked";
+  if (["failed", "failure", "error", "evaluation_failed", "cancelled", "canceled"].includes(normalized)) return "failed";
+  if (["queued", "pending", "preflight"].includes(normalized)) return normalized;
+  return "running";
+}
+
+function isTerminalEvaluationStatus(value: string) {
+  return ["completed", "prepared", "blocked", "failed"].includes(
+    normalizeEvaluationStatus(value)
+  );
+}
+
+function evaluationStatusUrl(runId: string) {
+  const separator = evaluationRunEndpoint.includes("?") ? "&" : "?";
+  return `${evaluationRunEndpoint}${separator}runId=${encodeURIComponent(runId)}`;
+}
+
+function waitForEvaluationPoll(delayMs: number, signal: AbortSignal) {
+  return new Promise<void>((resolve) => {
+    if (signal.aborted) {
+      resolve();
+      return;
+    }
+    const finish = () => {
+      window.clearTimeout(timeoutId);
+      signal.removeEventListener("abort", finish);
+      resolve();
+    };
+    const timeoutId = window.setTimeout(finish, delayMs);
+    signal.addEventListener("abort", finish, { once: true });
+  });
+}
+
+async function fetchEvaluationPoll(runId: string, signal: AbortSignal) {
+  return fetch(evaluationStatusUrl(runId), {
+    cache: "no-store",
+    headers: { Accept: "application/json" },
+    method: "GET",
+    signal
+  });
+}
+
+function evaluationReconnectDelayMs(consecutiveFailures: number) {
+  const exponent = Math.min(Math.max(0, consecutiveFailures - 1), 8);
+  return Math.min(
+    evaluationReconnectMaxDelayMs,
+    evaluationReconnectBaseDelayMs * 2 ** exponent
+  );
+}
+
+function formatEvaluationReconnectDelay(delayMs: number) {
+  return delayMs < 1_000
+    ? "in under a second"
+    : `in ${Math.ceil(delayMs / 1_000)} seconds`;
+}
+
+function normalizeVisibleEvaluationProgress(
+  progress: EvaluationExecutionProgress,
+  scope: EvaluationRunRequest["scope"]
+): EvaluationExecutionProgress {
+  if (scope !== "full") {
+    return progress;
+  }
+  const totalCases = CURRENT_PRODUCT_RETRIEVAL_CASE_IDS.length;
+  const completedCases = Math.min(totalCases, Math.max(0, progress.completedCases));
+  const percent = progress.percent == null
+    ? null
+    : Math.min(100, Math.max(0, progress.percent));
+  return {
+    ...progress,
+    lane: "Full evaluation",
+    completedCases,
+    totalCases,
+    remainingCases: Math.max(0, totalCases - completedCases),
+    percent,
+    detail: `${progress.detail} Full evaluation covers seven canonical RAG cases plus current local workspace snapshots. Numeric case progress tracks only the seven canonical RAG cases; local snapshots are not counted as generated or evaluated contracts.`
+  };
+}
+
+function finiteNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+export function parseRagasExecutionEvidence(
+  record: Record<string, unknown>,
+  _request: EvaluationRunRequest,
+  terminalStatus = "completed"
+): RagasExecutionEvidence {
+  const canonicalCurrentProductPayload =
+    record.benchmarkMode === "current_product" && record.scoreOrigin === "current_product";
+  const metricScores = canonicalCurrentProductPayload
+    ? strictNumberRecord(record.metricScores)
+    : numberRecord(record.metricScores);
+  const rawCaseResults = Array.isArray(record.caseResults) ? record.caseResults : [];
+  const parsedCaseRows = rawCaseResults.flatMap((value) => {
+        if (!isUnknownRecord(value)) return [];
+        const sampleId = typeof value.sampleId === "string"
+          ? value.sampleId
+          : typeof value.caseId === "string" ? value.caseId : null;
+        if (!sampleId) return [];
+        const retrievedContexts = Array.isArray(value.retrievedContexts)
+          ? value.retrievedContexts.filter(isUnknownRecord)
+          : [];
+        const metricErrors = canonicalCurrentProductPayload
+          ? strictMetricErrorRecord(value.metricErrors)
+          : stringRecord(value.metricErrors);
+        const directSourceIds = canonicalCurrentProductPayload
+          ? strictStringArray(value.sourceIds)
+          : stringArray(value.sourceIds);
+        const directDomains = canonicalCurrentProductPayload
+          ? strictStringArray(value.domains)
+          : stringArray(value.domains);
+        return [{
+          sampleId,
+          metrics: canonicalCurrentProductPayload
+            ? strictNullableNumberRecord(value.metrics)
+            : nullableNumberRecord(value.metrics),
+          metricErrors,
+          sourceIds: canonicalCurrentProductPayload
+            ? directSourceIds
+            : directSourceIds.length
+              ? directSourceIds
+              : retrievedContexts.flatMap((context) => {
+                  const sourceId = typeof context.sourceId === "string"
+                    ? context.sourceId
+                    : typeof context.source_id === "string" ? context.source_id : null;
+                  return sourceId ? [sourceId] : [];
+                }),
+          domains: canonicalCurrentProductPayload
+            ? directDomains
+            : directDomains.length
+              ? directDomains
+              : stringArray(value.expectedDomains),
+          promptFingerprint: typeof value.promptFingerprint === "string" ? value.promptFingerprint : null,
+          generationFingerprint: typeof value.generationFingerprint === "string" ? value.generationFingerprint : null
+        }];
+      });
+  const caseRows = canonicalCurrentProductPayload && (
+    !Array.isArray(record.caseResults) || parsedCaseRows.length !== rawCaseResults.length
+  ) ? [] : parsedCaseRows;
+  const state = terminalStatus === "prepared"
+    ? "prepared"
+    : terminalStatus === "blocked"
+      ? "blocked"
+      : terminalStatus === "failed" ? "failed" : "completed";
+  const benchmarkMode = normalizeEvaluationBenchmarkMode(record.benchmarkMode);
+  const historicalFixtureMetricIds = ["context_precision", "faithfulness", "answer_relevancy", "context_relevancy"];
+  const historicalMetricSetComplete = historicalFixtureMetricIds.every((metricId) => metricScores[metricId] != null);
+  const declaredScoreOrigin = record.scoreOrigin === "current_product"
+    ? "current_product"
+    : record.scoreOrigin === "historical_fixture" ? "historical_fixture" : "unscored";
+  const provider = typeof record.provider === "string" ? record.provider : null;
+  const model = typeof record.model === "string" ? record.model : null;
+  const evaluatedAt = typeof record.evaluatedAt === "string" ? record.evaluatedAt : null;
+  const evidence: RagasExecutionEvidence = {
+    schemaVersion: typeof record.schemaVersion === "string" ? record.schemaVersion : null,
+    scope: typeof record.scope === "string" ? record.scope : null,
+    state,
     runId: typeof record.runId === "string" ? record.runId : null,
-    evaluatedAt: typeof record.evaluatedAt === "string" ? record.evaluatedAt : null,
-    datasetId: typeof record.datasetId === "string" ? record.datasetId : request.approvedRagasDataset,
-    datasetVersion: typeof record.datasetVersion === "string" ? record.datasetVersion : "ragas-approved.v1",
-    privacyClass: typeof record.privacyClass === "string" ? record.privacyClass : "public_safe",
-    metrics: Array.isArray(record.metrics)
-      ? record.metrics.filter((value): value is string => typeof value === "string")
-      : ["context_precision", "faithfulness", "answer_relevancy", "context_relevancy"],
+    evaluatedAt,
+    datasetId: typeof record.datasetId === "string" ? record.datasetId : "current_product",
+    datasetVersion: typeof record.datasetVersion === "string"
+      ? record.datasetVersion
+      : canonicalCurrentProductPayload
+        ? ""
+        : typeof record.benchmarkVersion === "string" ? record.benchmarkVersion : "current-product.v1",
+    privacyClass: typeof record.privacyClass === "string" ? record.privacyClass : "current_product_local",
+    metrics: canonicalCurrentProductPayload
+      ? strictStringArray(record.metrics)
+      : Array.isArray(record.metrics)
+        ? record.metrics.filter((value): value is string => typeof value === "string")
+        : Object.keys(metricScores),
     metricScores,
+    retrievalScore: typeof record.retrievalScore === "number" ? record.retrievalScore : null,
     resultRows: numberValue(record.resultRows),
     totalSamples: numberValue(record.totalSamples),
     eligibleSamples: numberValue(record.eligibleSamples),
     skippedSamples: numberValue(record.skippedSamples),
     metricFailures: numberValue(record.metricFailures),
-    provider: typeof record.provider === "string" ? record.provider : null,
-    model: typeof record.model === "string" ? record.model : null,
+    provider,
+    model,
     embeddingModel: typeof record.embeddingModel === "string" ? record.embeddingModel : null,
     ragasVersion: typeof record.ragasVersion === "string" ? record.ragasVersion : null,
     metricContract: typeof record.metricContract === "string" ? record.metricContract : null,
     durationMs: typeof record.durationMs === "number" ? record.durationMs : null,
-    detail: typeof record.detail === "string" ? record.detail : "Approved RAGAS evidence recorded.",
-    caseRows
+    detail: typeof record.detail === "string"
+      ? record.detail
+      : canonicalCurrentProductPayload ? "" : "Current-product evaluation evidence recorded.",
+    caseRows,
+    benchmarkMode,
+    scoreOrigin: declaredScoreOrigin,
+    benchmarkVersion: typeof record.benchmarkVersion === "string" ? record.benchmarkVersion : null,
+    selectedCaseIds: canonicalCurrentProductPayload
+      ? strictStringArray(record.selectedCaseIds)
+      : stringArray(record.selectedCaseIds),
+    datasetFingerprint: typeof record.datasetFingerprint === "string" ? record.datasetFingerprint : null,
+    retrievalFingerprint: typeof record.retrievalFingerprint === "string" ? record.retrievalFingerprint : null,
+    promptFingerprint: typeof record.promptFingerprint === "string" ? record.promptFingerprint : null,
+    generationFingerprint: typeof record.generationFingerprint === "string" ? record.generationFingerprint : null,
+    outputFingerprint: typeof record.outputFingerprint === "string" ? record.outputFingerprint : null,
+    selectionFingerprint: typeof record.selectionFingerprint === "string" ? record.selectionFingerprint : null,
+    kbFingerprint: typeof record.kbFingerprint === "string" ? record.kbFingerprint : null,
+    generationModel: typeof record.generationModel === "string"
+      ? record.generationModel
+      : canonicalCurrentProductPayload ? null : model,
+    evaluator: typeof record.evaluator === "string"
+      ? record.evaluator
+      : canonicalCurrentProductPayload
+        ? null
+        : [provider, model].filter(Boolean).join(" / ") || null,
+    evaluatorModel: typeof record.evaluatorModel === "string" ? record.evaluatorModel : null,
+    timestamp: typeof record.timestamp === "string"
+      ? record.timestamp
+      : canonicalCurrentProductPayload ? null : evaluatedAt
+  };
+  if (
+    declaredScoreOrigin === "current_product" &&
+    currentProductRetrievalScoreFromEvidence(evidence) == null
+  ) {
+    return { ...evidence, scoreOrigin: "unscored" };
+  }
+  if (
+    declaredScoreOrigin === "historical_fixture" &&
+    !(benchmarkMode === "historical_fixture" && historicalMetricSetComplete)
+  ) {
+    return { ...evidence, scoreOrigin: "unscored" };
+  }
+  return evidence;
+}
+
+function unscoredCurrentProductEvidence(
+  record: Record<string, unknown>,
+  request: EvaluationRunRequest,
+  terminalStatus: string
+) {
+  return {
+    ...parseRagasExecutionEvidence(record, request, terminalStatus),
+    scoreOrigin: "unscored" as const
+  };
+}
+
+function localWorkspaceLaneEvidence(
+  runId: string,
+  evaluatedAt: string
+): RagasExecutionEvidence {
+  return {
+    ...emptyRagasEvidence(),
+    state: "completed",
+    runId,
+    evaluatedAt,
+    datasetId: "not_selected",
+    datasetVersion: "local-workspace-snapshot.v1",
+    privacyClass: "local_workspace_only",
+    metrics: [],
+    detail: "Selected local-only workspace lanes were inspected from current evidence. No retrieval, generation, or evaluator provider calls were made, and no Retrieval Quality score was published.",
+    benchmarkMode: "not_selected",
+    scoreOrigin: "unscored",
+    timestamp: evaluatedAt
   };
 }
 
@@ -7221,10 +7772,9 @@ function blockedRagasEvidence(
   record: Record<string, unknown>
 ): RagasExecutionEvidence {
   return {
-    ...emptyRagasEvidence(),
+    ...parseRagasExecutionEvidence(record, request, "blocked"),
     state: "blocked",
-    datasetId: request.approvedRagasDataset,
-    privacyClass: "public_safe",
+    scoreOrigin: "unscored",
     detail: typeof record.message === "string"
       ? record.message
       : "BLOCKED_BY_EXECUTION_ENVIRONMENT: provider evaluation was unavailable."
@@ -7236,10 +7786,9 @@ function failedRagasEvidence(
   record: Record<string, unknown>
 ): RagasExecutionEvidence {
   return {
-    ...emptyRagasEvidence(),
+    ...parseRagasExecutionEvidence(record, request, "failed"),
     state: "failed",
-    datasetId: request.approvedRagasDataset,
-    privacyClass: "public_safe",
+    scoreOrigin: "unscored",
     detail: typeof record.message === "string"
       ? record.message
       : "MISSING_EVIDENCE: the evaluator returned no defensible result."
@@ -7259,9 +7808,25 @@ function numberRecord(value: unknown) {
   return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, number] => typeof entry[1] === "number"));
 }
 
+function strictNumberRecord(value: unknown) {
+  if (!isUnknownRecord(value)) return {};
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => [
+    key,
+    typeof item === "number" ? item : Number.NaN
+  ]));
+}
+
 function nullableNumberRecord(value: unknown) {
   if (!isUnknownRecord(value)) return {};
   return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, number | null] => entry[1] === null || typeof entry[1] === "number"));
+}
+
+function strictNullableNumberRecord(value: unknown) {
+  if (!isUnknownRecord(value)) return {};
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => [
+    key,
+    item === null || typeof item === "number" ? item : null
+  ]));
 }
 
 function stringRecord(value: unknown) {
@@ -7269,9 +7834,25 @@ function stringRecord(value: unknown) {
   return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string"));
 }
 
+function strictMetricErrorRecord(value: unknown) {
+  if (!isUnknownRecord(value)) {
+    return { __invalid_metric_errors__: "metricErrors must be an object" };
+  }
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => [
+    key,
+    typeof item === "string" ? item : "metricErrors contained a non-string value"
+  ]));
+}
+
 function stringArray(value: unknown) {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
+function strictStringArray(value: unknown) {
+  return Array.isArray(value) && value.every((item): item is string => typeof item === "string")
+    ? value
     : [];
 }
 

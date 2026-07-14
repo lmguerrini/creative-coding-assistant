@@ -11,6 +11,12 @@ Engineering Review. It is a local release-candidate assessment, not a public
 deployment approval, merge, push, tag, release freeze, showcase upload, or
 human acceptance decision.
 
+> Historical checkpoint: the subsequent V9 Evaluation capability replaced this
+> checkpoint's fixture-primary 61.44% Evaluation posture with a seven-case
+> current-product RAGAS result of 68.03%. See
+> [Evaluation Metrics Summary](EVALUATION_METRICS_SUMMARY.md). The dated findings
+> below are preserved as the state reviewed on 2026-07-13.
+
 ## Decision
 
 **Local engineering release candidate: ready for the independent-review and
@@ -104,9 +110,10 @@ this review is `eb525ed5`. No V9 release tag exists.
 - Kept the 61.44% Retrieval Quality value scoped to the committed, transcribed,
   approved public-safe RAGAS fixture. It is not a current-product score, an
   overall score, or a tracked raw evaluation run.
-- Kept Context Recall as `MISSING_EVIDENCE`, current-product provider RAGAS as
-  `BLOCKED_BY_EXECUTION_ENVIRONMENT`, and the fixture/current retrieval delta
-  as `NOT_COMPARABLE`.
+- At this checkpoint, kept Context Recall as `MISSING_EVIDENCE`, current-product
+  provider RAGAS as `BLOCKED_BY_EXECUTION_ENVIRONMENT`, and the fixture/current
+  retrieval delta as `NOT_COMPARABLE`. The historical note above records the
+  subsequently completed Evaluation run.
 - Kept multimodal payload construction separate from provider receipt, use, or
   influence. Deterministic browser fixtures remain labeled as fixtures.
 - Added a configurable public evaluation-run URL instead of implying a fixed
@@ -239,8 +246,9 @@ require human approval.
 
 ## Residual Risks and Deferred Gates
 
-- No current-product provider RAGAS rerun exists. The approved fixture remains
-  the latest scored baseline and is not comparable to current local retrieval.
+- At this historical checkpoint, no current-product provider RAGAS rerun
+  existed. The completed 2026-07-14 run supersedes this residual item; the
+  current evidence authority is `EVALUATION_METRICS_SUMMARY.md`.
 - No live configured-provider result proves that an attached image was
   received, used, or influenced output; only the request/persistence contract
   is proven.

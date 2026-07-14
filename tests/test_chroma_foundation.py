@@ -134,6 +134,17 @@ class ChromaFoundationTests(unittest.TestCase):
             self.assertEqual(stored.metadata["collection"], "project_memory")
             self.assertEqual(stored.metadata["memory_kind"], "style")
 
+    def test_local_chroma_client_disables_external_product_telemetry(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            client = create_chroma_client(path=Path(temp_dir) / "chroma")
+            settings = client.get_settings()
+
+        self.assertFalse(settings.anonymized_telemetry)
+        self.assertIn(
+            "NoopChromaTelemetryClient",
+            settings.chroma_product_telemetry_impl,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

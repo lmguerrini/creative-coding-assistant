@@ -170,10 +170,12 @@ run from visual quality or from an older session.
 - [ ] Evaluation shows four separate lanes.
 - [ ] Retrieval evidence reads 7/7 queries, 18/19 domains, and 16/23 source
       anchors for the dated report.
-- [ ] RAGAS reads 61.44% only as a four-row approved-fixture macro.
-- [ ] Faithfulness 29.58%, Answer Relevancy 47.43%, and missing Context Recall
-      remain visible.
-- [ ] No current-product RAGAS score is implied.
+- [ ] Current Retrieval Quality reads 68.03% for 7/7 current-product RAG cases.
+- [ ] Context Precision 51.96%, Faithfulness 64.90%, Answer Relevancy 56.63%,
+      Context Relevancy 85.71%, and Context Recall 80.95% remain visible.
+- [ ] The 61.44% four-row fixture is labeled historical, never current.
+- [ ] The 35-case catalog is labeled contract coverage; Full shows seven RAG
+      executions plus three local snapshot lanes.
 - [ ] Typography and Workspace settings use the shared preference state.
 - [ ] Theme switching works for the intended presentation theme.
 

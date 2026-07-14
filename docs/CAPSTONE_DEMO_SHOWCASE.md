@@ -152,21 +152,22 @@ selection only.
 
 ## Evaluation evidence
 
-The approved RAGAS fixture is intentionally shown as a separate historical
-lane:
+The current-product public RAGAS lane is the primary Retrieval Quality:
 
-| Dimension | Four-row approved fixture |
+| Dimension | Seven-case current-product run |
 |---|---:|
-| Context Precision | 100.00% |
-| Faithfulness | 29.58% |
-| Answer Relevancy | 47.43% |
-| Context Relevancy | 68.75% |
-| Equal-weight macro | 61.44% |
-| Context Recall | Missing |
+| Context Precision | 51.96% |
+| Faithfulness | 64.90% |
+| Answer Relevancy | 56.63% |
+| Context Relevancy | 85.71% |
+| Context Recall | 80.95% |
+| Equal-weight macro | **68.03%** |
 
-This fixture uses synthetic public-safe content. It is not a current-product
-score and is not comparable to the local retrieval report. Current-product
-external RAGAS execution is unavailable under the present privacy boundary.
+All 7 cases were eligible and scored, with zero skips and zero metric failures.
+The historical four-row fixture and its 61.44% four-metric macro remain
+visible in History, but they no longer represent current product quality. The
+current macro is also separate from the local retrieval-only coverage report
+and from Creative, Workflow, and Reliability snapshots.
 
 ## Dated engineering validation
 

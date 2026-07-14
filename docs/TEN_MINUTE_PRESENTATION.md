@@ -113,18 +113,17 @@ and reload. Briefly name the other three showcase runtimes.
 
 **Spoken script:**
 
-> Evaluation stays in separate lanes: current retrieval, approved-fixture
-> RAGAS, creative review, and workflow reliability. The product contains a
-> transcribed summary of an approved four-row synthetic public fixture. Context
-> Precision is 100 percent, Faithfulness 29.58 percent, Answer Relevancy 47.43
-> percent, and Context Relevancy 68.75 percent. Their display macro is 61.44
-> percent. Context Recall is missing because the fixture has no independently
-> justified reference answers. The raw scored result and run manifest are not
-> claimed as committed artifacts.
+> Evaluation stays in separate lanes: current retrieval/RAGAS, creative review,
+> workflow, and reliability. The current seven-case public RAG run completed
+> every eligible case with no skips or metric failures. Context Precision is
+> 51.96 percent, Faithfulness 64.90 percent, Answer Relevancy 56.63 percent,
+> Context Relevancy 85.71 percent, and Context Recall 80.95 percent. Their
+> equal-weight Retrieval Quality macro is 68.03 percent.
 >
-> This fixture is not comparable to the current retrieval report. A current
-> product external rerun is blocked because local retrieved excerpts are not
-> approved to cross that evaluator boundary.
+> The former 61.44 percent four-row fixture is retained in History. It was
+> obsolete as a primary score because it did not execute the current retrieval,
+> prompt, generation, and benchmark paths. The current score is still not a
+> project grade or human artistic-quality judgment.
 >
 > Reference images are also bounded. The backend tests prove that accepted
 > pixels are included in the configured-provider request payload, then removed
@@ -155,10 +154,11 @@ and reload. Briefly name the other three showcase runtimes.
 
 **Spoken script:**
 
-> The next evidence priorities are a public-safe current-product RAG dataset
-> with reference answers, a controlled image-influence study, a parameter
-> experiment dataset for the incomplete tuning case, accessibility validation,
-> and independent human acceptance before release.
+> The next evidence priorities are a new, broader version of the retained
+> seven-case public current-product benchmark, improvement of its weaker
+> context-precision and answer-relevancy metrics, a controlled image-influence
+> study, a parameter experiment dataset for the incomplete tuning case,
+> accessibility validation, and independent human acceptance before release.
 >
 > The project’s main learning is simple: an AI coding product is trustworthy
 > only when the request, route, data, artifact, runtime, score, and limitation

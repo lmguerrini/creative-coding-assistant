@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, JsonValue, field_validator
 
 DEFAULT_LOCAL_USER_ID = "local-user"
 DEFAULT_LOCAL_SESSION_ID = "local-nextjs-session"
@@ -223,6 +223,11 @@ class WorkspaceEvaluationHistoryEntry(BaseModel):
     dry_run: bool | None = Field(default=None, alias="dryRun")
     provider_calls_allowed: bool | None = Field(
         default=None, alias="providerCallsAllowed"
+    )
+    benchmark: dict[str, JsonValue] | None = Field(
+        default=None,
+        alias="benchmark",
+        max_length=64,
     )
 
 

@@ -155,6 +155,7 @@ from creative_coding_assistant.orchestration.symbolic_narrative import (
 )
 from creative_coding_assistant.rag.retrieval.domain_intent import (
     detect_explicit_query_domains,
+    resolve_effective_query_domains,
 )
 from creative_coding_assistant.rag.sources import OfficialSourceType
 
@@ -533,12 +534,13 @@ def _build_user_input(
 ) -> PromptUserInput:
     ui_selected_domains = assistant_request.domains
     detected_domains = detect_explicit_query_domains(assistant_request.query)
-    effective_domains = (
-        detected_domains
-        if detected_domains
-        else route_decision.domains
-        if route_decision is not None and route_decision.domains
-        else ui_selected_domains
+    effective_domains = resolve_effective_query_domains(
+        query=assistant_request.query,
+        selected_domains=(
+            route_decision.domains
+            if route_decision is not None and route_decision.domains
+            else ui_selected_domains
+        ),
     )
     return PromptUserInput(
         query=assistant_request.query,

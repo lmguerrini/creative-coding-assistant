@@ -129,11 +129,13 @@ The canonical per-domain delivery decision is
 
 | Capability | Status | Observable evidence | Boundary |
 |---|---|---|---|
-| Dashboard RAGAS action | **Optional** | Dry-run is default; live run accepts only committed sanitized/redacted datasets and requires explicit provider-call authorization | Provider cost; no raw local dataset selection through the public request contract |
+| Dashboard current-product RAGAS action | **Optional** | Run Evaluation executes selected canonical public RAG cases, publishes progress, and refreshes comparable evidence; provider calls require explicit authorization | Provider cost; no raw local dataset selection through the public request contract |
+| Current-product RAGAS evidence | **Implemented** | 7/7 eligible/scored cases, 0 skips/failures, five component means, 68.03% macro, benchmark/run/model/fingerprint provenance committed | Seven-case RAG evidence, not a project grade, artistic-quality score, or broad statistical sample |
 | Approved synthetic RAGAS evidence | **Implemented** | 4/4 rows, 0 skips, 0 metric failures; four component means committed | Fixture evidence, not current-product score or project grade |
 | Redacted latest-live fixture | **Implemented** | Latest-live structure with public-safe replacement text and committed results | Evidence fixture; p5.js-only redacted subset, not raw-session scoring |
-| Context recall | **Not supported** | UI/docs publish missing evidence | The approved fixtures have no independently justified reference answers |
-| Current-product external RAGAS | **Not supported** | Explicit blocked state under the current privacy decision | Local retrieved excerpts are not approved for that evaluator run |
+| Context recall | **Implemented for the current benchmark** | Seven public cases include independently authored reference answers/context; current mean is 80.95% | Historical four-row fixture still has no defensible recall denominator |
+| Evaluation contract catalog | **Implemented** | 35 stable deduplicated product-authored prompt contracts and deterministic fingerprint | Contract coverage only; Full does not generate or evaluator-score all 35 prompts |
+| Full evaluation scope | **Implemented** | Seven canonical RAG cases plus current Creative, Workflow, and Reliability workspace snapshots | Snapshot lanes are not additional generated/RAGAS-scored cases and never enter Retrieval Quality |
 | Workflow observability | **Implemented** | Node start/complete/skip, transition, retry, provider, error, and final events | Published events are system telemetry, not private model reasoning |
 | Token usage | **Bounded** | Provider-returned usage is published when present | Missing provider metadata remains missing |
 | Cost estimate | **Bounded** | Static reference pricing exists for recognized model prefixes | Not live billing, not guaranteed current pricing, and not a budget enforcer |
@@ -157,9 +159,10 @@ The canonical per-domain delivery decision is
 1. Auto's selector is dynamic, but the current default capability map makes its
    ordinary result Multi Agent. A future router should expose a genuinely
    reachable, tested Single condition without weakening needed retrieval.
-2. Faithfulness (`0.2958`) and answer relevancy (`0.4743`) are the weakest means
-   in the approved synthetic RAGAS run. They remain visible rather than being
-   hidden behind the 61.44% display macro.
+2. Context precision (`0.5196`) and answer relevancy (`0.5663`) are the weakest
+   means in the retained current-product run. They remain visible rather than
+   being hidden behind the 68.03% macro. The historical 61.44% fixture remains
+   comparison evidence only.
 3. Canonical retrieval covers 18/19 requested domains and 16/23 source anchors;
    the remaining gaps and filtered false positives are documented.
 4. Canonical live preview is intentionally limited to four runtime contracts.

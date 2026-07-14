@@ -9,6 +9,13 @@ from dataclasses import dataclass
 from creative_coding_assistant.contracts import CreativeCodingDomain
 
 _WHITESPACE_PATTERN = re.compile(r"\s+")
+_DOMAIN_BRIDGE_ACTION_PATTERN = re.compile(
+    r"\b(?:across|between|bridge|combine|coordinate|connect|integrate|"
+    r"synchroni[sz]e)\b"
+)
+_DOMAIN_BRIDGE_COUNTERPART_PATTERN = re.compile(
+    r"\b(?:browser|canvas|graphics|runtime|scene|shader|sketch|system|visual)\w*\b"
+)
 _THREE_JS_PATTERNS: tuple[tuple[re.Pattern[str], int], ...] = (
     (re.compile(r"\bthree(?:\.js|js|\s+js)\b"), 3),
 )
@@ -431,17 +438,32 @@ def resolve_effective_query_domains(
     query: str,
     selected_domains: Sequence[CreativeCodingDomain],
 ) -> tuple[CreativeCodingDomain, ...]:
-    """Prefer explicit query domains and otherwise preserve selected domains."""
+    """Resolve explicit domains without erasing an intentional bridge scope."""
 
     explicit_domains = detect_explicit_query_domains(query)
-    if explicit_domains:
-        return explicit_domains
-
     normalized: list[CreativeCodingDomain] = []
     for domain in selected_domains:
         if domain not in normalized:
             normalized.append(domain)
-    return tuple(normalized)
+    selected = tuple(normalized)
+    if not explicit_domains:
+        return selected
+
+    normalized_query = _normalize_query(query)
+    explicit_domain = explicit_domains[0] if len(explicit_domains) == 1 else None
+    bridge_scope = (
+        explicit_domain is not None
+        and len(selected) > 1
+        and explicit_domain in selected
+        and _DOMAIN_BRIDGE_ACTION_PATTERN.search(normalized_query) is not None
+        and _DOMAIN_BRIDGE_COUNTERPART_PATTERN.search(normalized_query) is not None
+    )
+    if bridge_scope:
+        return (
+            explicit_domain,
+            *(domain for domain in selected if domain != explicit_domain),
+        )
+    return explicit_domains
 
 
 def _normalize_query(value: str) -> str:

@@ -17,6 +17,7 @@ from creative_coding_assistant.orchestration.domain_generation import (
 )
 from creative_coding_assistant.rag.retrieval.domain_intent import (
     detect_explicit_query_domains,
+    resolve_effective_query_domains,
 )
 
 
@@ -174,7 +175,10 @@ def route_request(request: AssistantRequest) -> RouteDecision:
     route_name, capabilities = MODE_ROUTE_MAP[request.mode]
     explicit_domains = detect_explicit_query_domains(request.query)
     if explicit_domains:
-        domains = explicit_domains
+        domains = resolve_effective_query_domains(
+            query=request.query,
+            selected_domains=request.domains,
+        )
     elif route_name in (RouteName.GENERATE, RouteName.PREVIEW):
         domains = resolve_generation_domains(
             query=request.query,

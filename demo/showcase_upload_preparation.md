@@ -78,10 +78,11 @@ coverage and 16/23 substantive expected-source-anchor overlap.
 
 ### Evaluation
 
-The four-row sanitized RAGAS fixture reports a 61.44% macro across four measured
-dimensions and remains explicitly non-comparable to current retrieval. Current
-browser evidence covers four deterministic showcase fixtures; it is not
-configured-provider generation evidence.
+The canonical seven-case current-product RAGAS run reports a 68.03% macro
+across five measured dimensions, with no skips or metric failures. The old
+61.44% four-row fixture remains historical. Current browser evidence covers
+four deterministic showcase fixtures; it is not configured-provider generation
+evidence or part of Retrieval Quality.
 
 ### Challenge
 
@@ -92,9 +93,10 @@ passed 28/28 in the dated local run.
 
 ### Next
 
-Create a public-safe current-product RAG evaluation with reference answers,
-run a controlled image-influence study, complete accessibility and
-presentation-machine validation, and split the largest modules.
+Broaden the public-safe current-product RAG benchmark, improve context precision
+and answer relevancy without changing its frozen contract, run a controlled
+image-influence study, complete accessibility and presentation-machine
+validation, and split the largest modules.
 
 ## Media checklist
 
@@ -140,8 +142,10 @@ presentation-machine validation, and split the largest modules.
 - [ ] The four canonical names and runtime versions are exact.
 - [ ] Browser fixtures are not described as fresh model outputs.
 - [ ] 18/19 and 16/23 are labeled retrieval coverage, not answer accuracy.
-- [ ] 61.44% is labeled a four-row approved-fixture macro, not a product score.
-- [ ] Context Recall is labeled missing.
+- [ ] 68.03% is labeled a seven-case current-product RAG macro, not a project score.
+- [ ] 61.44% is labeled an obsolete historical four-row fixture macro.
+- [ ] Context Recall reads 80.95% for the current benchmark and remains missing
+      only for the historical fixture.
 - [ ] Image transport is distinguished from unverified image influence.
 - [ ] Automated validation is distinguished from presentation-machine and
       independent acceptance.

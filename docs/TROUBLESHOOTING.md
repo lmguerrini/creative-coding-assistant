@@ -193,18 +193,19 @@ LANGSMITH_TRACING=false .venv/bin/python scripts/eval_live_sessions.py \
 
 Real scoring requires `--allow-provider-calls`, credentials, network access,
 and an approved external-transfer decision. It can incur cost. Do not point it
-at raw `data/eval/live_sessions.jsonl` or current local Chroma excerpts. The
-current-product rerun is intentionally blocked by that privacy/execution
-boundary; the committed 61.44% approved-fixture macro is not proof that the
-blocked run completed.
+at raw `data/eval/live_sessions.jsonl` or arbitrary local Chroma excerpts. The
+canonical public current-product benchmark has completed separately and is
+published at 68.03%; the committed 61.44% approved-fixture macro is historical,
+not evidence for a raw local-session run.
 
 The explicit tracing override is important: `--dry-run` blocks RAGAS provider
 scoring, but an independently enabled telemetry integration is a separate
 external boundary.
 
 A `null` metric with `metric_errors` is a metric failure, not zero. Context
-recall is missing for the approved fixture because it lacks independently
-justified reference answers. See
+recall is missing for the historical fixture because it lacks independently
+justified reference answers; it is present for the canonical seven-case
+benchmark. See
 [EVALUATION_METRICS_SUMMARY.md](EVALUATION_METRICS_SUMMARY.md).
 
 ## Playwright cannot launch Chromium

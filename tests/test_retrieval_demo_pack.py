@@ -3,10 +3,12 @@ import unittest
 from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.eval import (
     CCA_OPERATIONAL_KB_SCOPE,
+    CURRENT_PRODUCT_RETRIEVAL_BENCHMARK_VERSION,
     FUTURE_HOLOMIND_BOUNDARY,
     build_capstone_retrieval_demo_pack,
     build_capstone_retrieval_demo_requests,
     capstone_retrieval_demo_source_ids,
+    fingerprint_capstone_retrieval_demo_pack,
 )
 
 
@@ -26,6 +28,9 @@ class RetrievalDemoPackTests(unittest.TestCase):
             with self.subTest(demo_id=scenario.demo_id):
                 self.assertGreater(len(scenario.domains), 0)
                 self.assertGreater(len(scenario.expected_source_ids), 0)
+                self.assertGreater(len(scenario.reference_context), 0)
+                self.assertGreater(len(scenario.reference_source_ids), 0)
+                self.assertTrue(set(scenario.reference_source_ids).issubset(scenario.expected_source_ids))
                 for source_id in scenario.expected_source_ids:
                     self.assertIn(source_id, capstone_retrieval_demo_source_ids())
 
@@ -46,6 +51,20 @@ class RetrievalDemoPackTests(unittest.TestCase):
                 "three_manual",
                 "p5_sound_reference",
             ),
+        )
+
+    def test_reference_pack_has_stable_pre_output_fingerprint(self) -> None:
+        first = fingerprint_capstone_retrieval_demo_pack()
+        second = fingerprint_capstone_retrieval_demo_pack()
+
+        self.assertEqual(
+            CURRENT_PRODUCT_RETRIEVAL_BENCHMARK_VERSION,
+            "current-product-retrieval.v1",
+        )
+        self.assertEqual(first, second)
+        self.assertEqual(
+            first,
+            "sha256:b5fbc0e7cc9a523658eee8b0fc5cd7c417aa10540f8919e10bc2c4e10a40705f",
         )
 
     def test_demo_requests_preserve_query_and_domain_filters(self) -> None:

@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from creative_coding_assistant.contracts import CreativeCodingDomain
 from creative_coding_assistant.preview import PreviewTarget
 from creative_coding_assistant.rag.retrieval.domain_intent import (
-    detect_explicit_query_domains,
+    resolve_effective_query_domains,
 )
 
 
@@ -158,13 +158,12 @@ def resolve_generation_domains(
 ) -> tuple[CreativeCodingDomain, ...]:
     """Resolve effective generation domains without one hardcoded fallback."""
 
-    explicit_domains = detect_explicit_query_domains(query)
-    if explicit_domains:
-        return explicit_domains
-
-    normalized_selected = _dedupe_domains(selected_domains)
-    if normalized_selected:
-        return normalized_selected
+    effective_domains = resolve_effective_query_domains(
+        query=query,
+        selected_domains=selected_domains,
+    )
+    if effective_domains:
+        return effective_domains
 
     return infer_likely_generation_domains(query)
 

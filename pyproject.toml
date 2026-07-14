@@ -20,6 +20,9 @@ dependencies = [
   "streamlit>=1.44",
 ]
 
+[project.scripts]
+cca-current-product-eval = "creative_coding_assistant.eval.current_product_cli:main"
+
 [project.optional-dependencies]
 dev = [
   "pip-audit>=2.7",
@@ -31,7 +34,6 @@ server = [
   "gunicorn>=22,<24",
 ]
 evaluation = [
-  "langchain-openai>=1.2,<2",
   "ragas>=0.4.3,<0.5",
 ]
 

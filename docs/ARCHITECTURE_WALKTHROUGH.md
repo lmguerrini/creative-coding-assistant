@@ -295,15 +295,18 @@ not the same as LangGraph memory.
 
 ## 13. Evaluation is outside the request graph
 
-The Dashboard evaluation endpoint accepts only two approved committed dataset
-classes: synthetic public or redacted public. Dry-run is the default. A live
-RAGAS run requires both explicit `allowProviderCalls` and provider credentials,
-and writes results to the configured local evaluation path.
+The Dashboard evaluation endpoint accepts the committed current-product public
+benchmark and reviewed synthetic/redacted public datasets. Dry-run is the
+default. A live RAGAS run requires both explicit `allowProviderCalls` and
+provider credentials, writes private diagnostics locally, and publishes only
+the sanitized evidence contract.
 
 The canonical retrieval report is another separate path: it runs seven fixed
 queries through the local retriever, records ranked non-text lineage and
-fingerprints, and does not generate answers or compute RAGAS. Keep the two lanes
-separate when presenting results.
+fingerprints, and does not generate answers or compute RAGAS. The current
+seven-case RAGAS evidence generates and evaluates answers; the 35-case catalog
+is contract coverage, while Full records three additional local snapshot lanes.
+Keep those lanes separate when presenting results.
 
 ## Runtime truth table
 

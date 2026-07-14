@@ -13,6 +13,9 @@ from creative_coding_assistant.orchestration.artifacts import (
 from creative_coding_assistant.orchestration.creative_translation import (
     derive_creative_translation,
 )
+from creative_coding_assistant.orchestration.domain_generation import (
+    resolve_generation_domains,
+)
 from creative_coding_assistant.orchestration.prompt_inputs import (
     StructuredPromptInputBuilder,
     build_prompt_input_request,
@@ -25,6 +28,23 @@ from creative_coding_assistant.orchestration.routing import route_request
 
 
 class DomainGenerationTests(unittest.TestCase):
+    def test_generation_domain_resolution_preserves_explicit_bridge_scope(self) -> None:
+        selected_domains = (
+            CreativeCodingDomain.TONE_JS,
+            CreativeCodingDomain.P5_JS,
+            CreativeCodingDomain.THREE_JS,
+        )
+
+        resolved_domains = resolve_generation_domains(
+            query=(
+                "Explain how Tone.js coordinates timing across the browser "
+                "visual runtime."
+            ),
+            selected_domains=selected_domains,
+        )
+
+        self.assertEqual(resolved_domains, selected_domains)
+
     def test_route_infers_previewable_domain_from_visual_3d_prompt(self) -> None:
         decision = route_request(
             AssistantRequest(

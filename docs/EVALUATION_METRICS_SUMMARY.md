@@ -1,9 +1,9 @@
 # Evaluation Metrics Summary
 
 This document is the concise reviewer interpretation of Creative Coding
-Assistant (CCA) evaluation evidence as of 2026-07-13. It keeps provider-scored
-fixture metrics, current local retrieval engineering, automated product checks,
-and missing human evidence in separate lanes.
+Assistant (CCA) evaluation evidence as of 2026-07-14. It keeps current-product
+RAGAS, historical fixtures, local retrieval engineering, automated product
+checks, and missing human evidence in separate lanes.
 
 ## Evidence status vocabulary
 
@@ -20,44 +20,85 @@ and missing human evidence in separate lanes.
 
 | Lane | Dataset or scope | Metric/evidence | Result | Status and interpretation |
 |---|---|---|---|---|
-| Provider-scored RAGAS | Product transcription of a result over a four-row committed synthetic/public input fixture | Context precision | `0.999999999925` | **Approved fixture**; four eligible rows, no skips or metric failures; raw result JSONL and run manifest are not tracked |
-| Provider-scored RAGAS | Same fixture | Faithfulness | `0.29583333333333334` | **Approved fixture**; weak score is retained, not edited away |
-| Provider-scored RAGAS | Same fixture | Answer relevancy | `0.4742546883775048` | **Approved fixture** |
-| Provider-scored RAGAS | Same fixture | Context relevancy | `0.6875` | **Approved fixture** |
-| Provider-scored RAGAS | Same fixture | Equal-weight macro across the four measured means | `0.6143970054089596` (61.44%) | **Approved fixture**; not a project grade or current-product quality score |
-| Provider-scored RAGAS | Same fixture | Context recall | no result | **Missing evidence**; no independently justified reference answers, so recall is not assigned zero or included in the macro |
+| Current-product RAGAS | Seven frozen public RAG cases, run `v9-current-product-final-retained` | Context precision | `0.5196428571169692` (51.96428571169692%) | **Current**; reference-aware, seven eligible/scored cases |
+| Current-product RAGAS | Same run | Faithfulness | `0.648989898989899` (64.8989898989899%) | **Current** |
+| Current-product RAGAS | Same run | Answer relevancy | `0.5662963631284655` (56.62963631284655%) | **Current** |
+| Current-product RAGAS | Same run | Context relevancy | `0.8571428571428571` (85.71428571428571%) | **Current** |
+| Current-product RAGAS | Same run | Context recall | `0.8095238095238094` (80.95238095238094%) | **Current**; independently authored reference answers/contexts supply the denominator |
+| Current-product RAGAS | Same run | Equal-weight macro across the five measured means | `0.6803191571804` (**68.03191571804%**) | **Current Retrieval Quality**; not a project grade or artistic-quality score |
+| Historical provider-scored RAGAS | Four-row committed synthetic/public fixture | Four-metric equal-weight macro | `0.6143970054089596` (61.44%) | **Historical approved fixture**; obsolete as the primary score and has no context-recall result |
 | Current local retrieval | Fixed seven-query retrieval pack, top 5, 1,445-chunk indexed snapshot | Substantive expected-source overlap | 16/23 (69.57%), from 9/23 (39.13%) | **Current** local coverage indicator; not RAGAS or answer quality |
 | Current local retrieval | Same report | Requested-domain coverage | 18/19 (94.74%), from 7/19 (36.84%) | **Current**; Shadertoy remains unindexed after HTTP 403 |
 | Current local retrieval | Same report | Queries returning requested result count | 7/7 returned five results | **Current** availability evidence, not relevance by itself |
-| Current-product RAGAS | Exact current generation plus local Chroma excerpts | End-to-end provider-assisted metrics | no result | **Blocked by execution environment**; local excerpts are not approved to cross the provider boundary |
-| RAG golden contracts | Eight RAG-scoped contracts in the golden dataset | Exact end-to-end RAGAS coverage | 0/8 captured in an approved exact-query fixture | **Missing evidence**, not eight failures |
+| Evaluation contract catalog | 35 deduplicated product-authored prompt contracts | Contract coverage | 35 stable catalog entries | **Current contract inventory**; not 35 generated/evaluator-scored cases |
+| Full evaluation | Seven canonical RAG cases plus current Creative, Workflow, and Reliability snapshots | Executed/scored RAG cases | 7/7, 0 skipped, 0 metric failures | Snapshot lanes remain local and separate; they are not additional RAGAS cases |
 | Human evaluation | Current creative and reviewer experience | Aesthetic quality, usefulness, clarity, accessibility judgment | no completed study | **Missing evidence / human review required** |
 
-## Interpreting the 61.44% result
+## Interpreting the current 68.03% result
 
-The committed product transcription describes an approved-fixture run recorded
-on 2026-07-13 with RAGAS 0.4.3, evaluator model `gpt-4o-mini`, and embedding
-model `text-embedding-3-small`. It reports all four eligible synthetic/public
-rows, zero skips, and zero metric failures. It is the latest defensible RAGAS
-summary, but it is historical/fixture-scoped relative to current-product
-behavior; the raw scored JSONL and run manifest are not tracked artifacts.
+The canonical public evidence was recorded on 2026-07-14 with RAGAS 0.4.3,
+evaluator model `gpt-4o-mini`, generation model
+`gpt-5-mini-2025-08-07`, and embedding model `text-embedding-3-small`. It
+reports all seven eligible current-product RAG cases, zero skips, and zero
+metric failures. The score contract is:
 
-The dashboard macro is:
+```text
+(context precision + faithfulness + answer relevancy
+ + context relevancy + context recall) / 5
+= 0.6803191571804
+```
+
+The dataset fingerprint is
+`sha256:b5fbc0e7cc9a523658eee8b0fc5cd7c417aa10540f8919e10bc2c4e10a40705f`.
+The evidence JSON also records the benchmark version, run ID, evaluator and
+embedding models, timestamp, and retrieval/prompt/generation/KB/selection/output
+fingerprints.
+
+It must not be described as “68.03% accurate,” a project grade, universal
+assistant quality, or human artistic judgment. It is the equal-weight macro of
+five RAGAS dimensions on this frozen seven-case current-product benchmark.
+
+## Why 61.44% is historical
+
+The earlier dashboard macro was:
 
 ```text
 (context precision + faithfulness + answer relevancy + context relevancy) / 4
 = 0.6143970054089596
 ```
 
-It is a summary of four metric means on one approved fixture. It must not be
-described as “61.44% accurate,” a capstone grade, current live-session quality,
-golden-case coverage, or a measured improvement over the local retrieval
-report. The fixed fixture contains answer claims not fully supported by every
-retrieved excerpt, which is why its low faithfulness remains useful evidence.
+That result used four synthetic/public rows and had no independently justified
+context-recall denominator. It remains legitimate historical fixture evidence,
+but it was disconnected from current retrieval, prompt, generation, and
+benchmark state. Presenting it as primary Retrieval Quality was classified
+`EVALUATION_PIPELINE_DEFECT`, not a product-quality or benchmark failure.
 
-Context recall is unavailable because the rows do not contain independently
-justified reference answers. Omitting it is the honest contract; inserting zero
-would falsely turn missing evidence into measured failure.
+## Engineering iteration ledger
+
+| Stage | Score | Decision and evidence |
+|---|---:|---|
+| Corrected baseline | 65.79% | Repaired the evaluator integration before comparing product work |
+| Iteration 1 | 65.46% | Kept truthful retrieval and concise grounding; did not claim improvement |
+| Iteration 2 | 67.54% | Retained bridge-aware domain routing and corpus-quality exclusions |
+| Iteration 3 | 62.24% | Rejected because answer relevancy and context recall regressed |
+| Final rollback confirmation | **68.03%** | Removed the ranking experiment and confirmed the retained fixes on all 7 cases |
+
+Retained product/evaluator fixes include full bounded candidate headroom per
+requested domain, bridge-aware routing across retrieval and prompt surfaces,
+exclusion of the verified index-only Tone.js source, filtering of a
+non-actionable Three.js documentation gap, concise grounded-answer guidance,
+and the RAGAS collections-v2 reference-aware evaluator path.
+
+Iteration 3's hybrid BM25 reranker, retrieval-term/CamelCase normalization,
+numeric source-novelty bonus, and experimental three-source cap were reverted.
+The shader case improved, but the pack-level regression showed that the change
+did not generalize. The final path returns to semantic-distance selection with
+the retained bounded diversity behavior.
+
+The 85% target was not reached. The weakest retained means are context precision
+(51.96%), answer relevancy (56.63%), and faithfulness (64.90%). The benchmark is
+only seven cases; evaluator judgments can vary; Shadertoy remains unavailable
+after an HTTP 403; and no automated score establishes aesthetic quality.
 
 ## Interpreting the current retrieval gain
 

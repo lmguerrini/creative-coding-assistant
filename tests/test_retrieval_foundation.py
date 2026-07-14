@@ -48,9 +48,7 @@ class RetrievalFoundationTests(unittest.TestCase):
                 embedder=_FakeQueryEmbedder({"camera guidance": [1.0, 0.0, 0.0]}),
             )
 
-            response = retriever.search(
-                KnowledgeBaseRetrievalRequest(query="camera guidance", limit=2)
-            )
+            response = retriever.search(KnowledgeBaseRetrievalRequest(query="camera guidance", limit=2))
 
             self.assertEqual(len(response.results), 2)
             self.assertEqual(response.results[0].source_id, "three_camera_guide")
@@ -76,9 +74,7 @@ class RetrievalFoundationTests(unittest.TestCase):
             response = retriever.search(
                 KnowledgeBaseRetrievalRequest(
                     query="creative code",
-                    filters=KnowledgeBaseRetrievalFilter(
-                        domain=CreativeCodingDomain.P5_JS
-                    ),
+                    filters=KnowledgeBaseRetrievalFilter(domain=CreativeCodingDomain.P5_JS),
                 )
             )
 
@@ -175,9 +171,7 @@ class RetrievalFoundationTests(unittest.TestCase):
             )
             retriever = KnowledgeBaseRetriever(
                 client=client,
-                embedder=_FakeQueryEmbedder(
-                    {"Compare p5.js and Hydra animation": [1.0, 0.0, 0.0]}
-                ),
+                embedder=_FakeQueryEmbedder({"Compare p5.js and Hydra animation": [1.0, 0.0, 0.0]}),
             )
 
             response = retriever.search(
@@ -197,6 +191,43 @@ class RetrievalFoundationTests(unittest.TestCase):
                 {result.domain for result in response.results},
                 {CreativeCodingDomain.P5_JS, CreativeCodingDomain.HYDRA},
             )
+
+    def test_multi_domain_queries_keep_full_bounded_filtering_headroom(self) -> None:
+        class _RecordingRepository:
+            def __init__(self) -> None:
+                self.calls: list[dict[str, object]] = []
+
+            def query(self, **kwargs):
+                self.calls.append(kwargs)
+                return ()
+
+        retriever = object.__new__(KnowledgeBaseRetriever)
+        repository = _RecordingRepository()
+        retriever._repository = repository
+        request = KnowledgeBaseRetrievalRequest(
+            query="Coordinate p5.js, Tone.js, Three.js, and GLSL.",
+            limit=5,
+            filters=KnowledgeBaseRetrievalFilter(
+                domains=(
+                    CreativeCodingDomain.P5_JS,
+                    CreativeCodingDomain.TONE_JS,
+                    CreativeCodingDomain.THREE_JS,
+                    CreativeCodingDomain.GLSL,
+                )
+            ),
+        )
+
+        results = retriever._query_candidates(
+            request=request,
+            query_embedding=[1.0, 0.0, 0.0],
+        )
+
+        self.assertEqual(results, ())
+        self.assertEqual(len(repository.calls), 4)
+        self.assertEqual(
+            [call["limit"] for call in repository.calls],
+            [20, 20, 20, 20],
+        )
 
     def test_multi_domain_selection_keeps_the_best_relevant_result_per_domain(
         self,
@@ -342,9 +373,7 @@ class RetrievalFoundationTests(unittest.TestCase):
             response = retriever.search(
                 KnowledgeBaseRetrievalRequest(
                     query="shader docs",
-                    filters=KnowledgeBaseRetrievalFilter(
-                        source_id="glsl_language_spec_460"
-                    ),
+                    filters=KnowledgeBaseRetrievalFilter(source_id="glsl_language_spec_460"),
                 )
             )
 
@@ -387,9 +416,7 @@ class RetrievalFoundationTests(unittest.TestCase):
 
     def test_detects_plain_hydra_in_a_creative_runtime_comparison(self) -> None:
         self.assertEqual(
-            detect_explicit_query_domains(
-                "Should I use Hydra or p5.js first for layered oscillator visuals?"
-            ),
+            detect_explicit_query_domains("Should I use Hydra or p5.js first for layered oscillator visuals?"),
             (CreativeCodingDomain.P5_JS, CreativeCodingDomain.HYDRA),
         )
         self.assertEqual(
@@ -613,9 +640,7 @@ class RetrievalFoundationTests(unittest.TestCase):
                 embedder=_FakeQueryEmbedder({"camera guidance": [1.0, 0.0, 0.0]}),
             )
 
-            response = retriever.search(
-                KnowledgeBaseRetrievalRequest(query="camera guidance", limit=1)
-            )
+            response = retriever.search(KnowledgeBaseRetrievalRequest(query="camera guidance", limit=1))
 
             self.assertEqual(len(response.results), 1)
             self.assertEqual(response.results[0].source_id, "three_camera_guide")
@@ -642,10 +667,7 @@ class RetrievalFoundationTests(unittest.TestCase):
                 source_type=OfficialSourceType.EXAMPLES,
                 registry_title="three.js examples",
                 document_title="three.js examples three.js examples",
-                text=(
-                    "three.js examples three.js examples "
-                    "Select an example from the sidebar"
-                ),
+                text=("three.js examples three.js examples Select an example from the sidebar"),
                 score=0.9,
                 distance=0.1,
             ),
@@ -655,8 +677,7 @@ class RetrievalFoundationTests(unittest.TestCase):
                 registry_title="BoxGeometry - three.js docs",
                 document_title="BoxGeometry",
                 text=(
-                    "BoxGeometry is a geometry class for a rectangular cuboid "
-                    "with width, height, and depth parameters."
+                    "BoxGeometry is a geometry class for a rectangular cuboid with width, height, and depth parameters."
                 ),
                 score=0.8,
                 distance=0.2,
@@ -686,10 +707,7 @@ class RetrievalFoundationTests(unittest.TestCase):
                 source_type=OfficialSourceType.EXAMPLES,
                 registry_title="three.js examples",
                 document_title="three.js examples three.js examples",
-                text=(
-                    "three.js examples three.js examples "
-                    "Select an example from the sidebar"
-                ),
+                text=("three.js examples three.js examples Select an example from the sidebar"),
                 score=0.9,
                 distance=0.1,
             ),
@@ -756,10 +774,7 @@ class RetrievalFoundationTests(unittest.TestCase):
             source_type=OfficialSourceType.API_REFERENCE,
             registry_title="p5.sound Reference",
             document_title="p5.sound Reference userStartAudio getAudioContext",
-            text=(
-                "userStartAudio starts browser audio processing from a user "
-                "interaction such as mousePressed()."
-            ),
+            text=("userStartAudio starts browser audio processing from a user interaction such as mousePressed()."),
             score=0.91,
             distance=0.09,
             domain=CreativeCodingDomain.P5_SOUND,
@@ -801,8 +816,7 @@ class RetrievalFoundationTests(unittest.TestCase):
                 registry_title="BoxGeometry - three.js docs",
                 document_title="BoxGeometry",
                 text=(
-                    "BoxGeometry is a geometry class for a rectangular cuboid "
-                    "with width, height, and depth parameters."
+                    "BoxGeometry is a geometry class for a rectangular cuboid with width, height, and depth parameters."
                 ),
                 score=0.93,
                 distance=0.07,
@@ -857,7 +871,7 @@ class RetrievalFoundationTests(unittest.TestCase):
 
         self.assertEqual(filtered, ())
 
-    def test_source_filter_removes_tone_index_but_keeps_explanatory_reference(
+    def test_source_filter_excludes_unverified_tone_docs_corpus_but_keeps_analysis_reference(
         self,
     ) -> None:
         results = (
@@ -875,14 +889,24 @@ class RetrievalFoundationTests(unittest.TestCase):
                 domain=CreativeCodingDomain.TONE_JS,
             ),
             _result(
+                source_id="tone_js_docs",
+                source_type=OfficialSourceType.API_REFERENCE,
+                registry_title="Tone.js",
+                document_title="Loop and Player",
+                text=(
+                    "Tone.Loop invokes a callback at a scheduled interval and "
+                    "Tone.Player loads and plays an audio buffer."
+                ),
+                score=0.93,
+                distance=0.07,
+                domain=CreativeCodingDomain.TONE_JS,
+            ),
+            _result(
                 source_id="tone_js_analysis_reference",
                 source_type=OfficialSourceType.API_REFERENCE,
                 registry_title="Tone.js Analysis and Playback Reference",
                 document_title="Tone.js Analysis and Playback Reference",
-                text=(
-                    "Tone.Analyser exposes waveform or FFT values while Transport "
-                    "coordinates scheduled playback."
-                ),
+                text=("Tone.Analyser exposes waveform or FFT values while Transport coordinates scheduled playback."),
                 score=0.91,
                 distance=0.09,
                 domain=CreativeCodingDomain.TONE_JS,
@@ -898,6 +922,45 @@ class RetrievalFoundationTests(unittest.TestCase):
         self.assertEqual(
             [result.source_id for result in filtered],
             ["tone_js_analysis_reference"],
+        )
+
+    def test_chunk_filter_removes_a_non_actionable_documentation_gap(self) -> None:
+        results = (
+            _result(
+                source_id="three_manual_effects",
+                source_type=OfficialSourceType.GUIDE,
+                registry_title="three.js Effects Manual",
+                document_title="Post processing conclusion",
+                text=(
+                    "All the details of how to write shaders are too much for these articles. "
+                    "The effects are unfortunately undocumented, so read through the examples or the code."
+                ),
+                score=0.98,
+                distance=0.02,
+                domain=CreativeCodingDomain.THREE_JS,
+            ),
+            _result(
+                source_id="three_manual_effects",
+                source_type=OfficialSourceType.GUIDE,
+                registry_title="three.js Effects Manual",
+                document_title="EffectComposer",
+                text="EffectComposer applies RenderPass and BloomPass stages in order.",
+                score=0.88,
+                distance=0.12,
+                domain=CreativeCodingDomain.THREE_JS,
+            ).model_copy(update={"record_id": "three-effects:actionable"}),
+        )
+
+        filtered = select_retrieval_results(
+            results,
+            limit=2,
+            query="How should I build a glow post-processing pipeline?",
+            requested_domains=(CreativeCodingDomain.THREE_JS,),
+        )
+
+        self.assertEqual(
+            [(result.source_id, result.record_id) for result in filtered],
+            [("three_manual_effects", "three-effects:actionable")],
         )
 
     def test_chunk_filter_preserves_an_explicitly_requested_domain_result(
@@ -1298,8 +1361,7 @@ class RetrievalFoundationTests(unittest.TestCase):
                 registry_title="Hooks - React Three Fiber",
                 document_title="Hooks - React Three Fiber",
                 text=(
-                    "Callbacks will be executed in order of ascending priority "
-                    "values, lowest first and highest last."
+                    "Callbacks will be executed in order of ascending priority values, lowest first and highest last."
                 ),
                 score=0.85,
                 distance=0.15,
@@ -1385,9 +1447,7 @@ class RetrievalFoundationTests(unittest.TestCase):
                 embedder=_FakeQueryEmbedder({"rotating cube": [1.0, 0.0, 0.0]}),
             )
 
-            response = retriever.search(
-                KnowledgeBaseRetrievalRequest(query="rotating cube", limit=2)
-            )
+            response = retriever.search(KnowledgeBaseRetrievalRequest(query="rotating cube", limit=2))
 
             self.assertEqual(len(response.results), 1)
             self.assertEqual(response.results[0].source_id, "three_box_geometry")
@@ -1441,22 +1501,13 @@ function draw() {
             response = retriever.search(
                 KnowledgeBaseRetrievalRequest(
                     query="Create a simple p5.js sketch with a moving circle",
-                    filters=KnowledgeBaseRetrievalFilter(
-                        domain=CreativeCodingDomain.P5_JS
-                    ),
+                    filters=KnowledgeBaseRetrievalFilter(domain=CreativeCodingDomain.P5_JS),
                 )
             )
 
             self.assertGreaterEqual(len(response.results), 1)
-            self.assertTrue(
-                any("circle(" in result.text.lower() for result in response.results)
-            )
-            self.assertTrue(
-                all(
-                    "skip to main content" not in result.text.lower()
-                    for result in response.results
-                )
-            )
+            self.assertTrue(any("circle(" in result.text.lower() for result in response.results))
+            self.assertTrue(all("skip to main content" not in result.text.lower() for result in response.results))
 
     def test_glsl_retrieval_returns_shader_like_chunks_after_ingestion_cleanup(
         self,
@@ -1490,32 +1541,19 @@ void main() {
             indexer.upsert_chunks(chunks, [[0.0, 0.0, 1.0]] * len(chunks))
             retriever = KnowledgeBaseRetriever(
                 client=client,
-                embedder=_FakeQueryEmbedder(
-                    {"Write a basic GLSL fragment shader": [0.0, 0.0, 1.0]}
-                ),
+                embedder=_FakeQueryEmbedder({"Write a basic GLSL fragment shader": [0.0, 0.0, 1.0]}),
             )
 
             response = retriever.search(
                 KnowledgeBaseRetrievalRequest(
                     query="Write a basic GLSL fragment shader",
-                    filters=KnowledgeBaseRetrievalFilter(
-                        domain=CreativeCodingDomain.GLSL
-                    ),
+                    filters=KnowledgeBaseRetrievalFilter(domain=CreativeCodingDomain.GLSL),
                 )
             )
 
             self.assertGreaterEqual(len(response.results), 1)
-            self.assertTrue(
-                any(
-                    "gl_fragcolor" in result.text.lower() for result in response.results
-                )
-            )
-            self.assertTrue(
-                all(
-                    "retrieved from" not in result.text.lower()
-                    for result in response.results
-                )
-            )
+            self.assertTrue(any("gl_fragcolor" in result.text.lower() for result in response.results))
+            self.assertTrue(all("retrieved from" not in result.text.lower() for result in response.results))
 
 
 def _seed_kb_records(client) -> None:
@@ -1545,9 +1583,7 @@ def _seed_kb_records(client) -> None:
             source_type=OfficialSourceType.SPECIFICATION,
             publisher="Khronos Group",
             registry_title="GLSL 4.60 Specification",
-            source_url=(
-                "https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.html"
-            ),
+            source_url=("https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.html"),
             text="Uniform variables provide external values to shader programs.",
         ),
     )
@@ -1593,9 +1629,7 @@ def _seed_low_value_kb_records(client) -> None:
             registry_title="three.js examples",
             document_title="three.js examples three.js examples",
             source_url="https://threejs.org/examples/",
-            text=(
-                "three.js examples three.js examples Select an example from the sidebar"
-            ),
+            text=("three.js examples three.js examples Select an example from the sidebar"),
         ),
         _chunk(
             source_id="three_docs",
@@ -1605,10 +1639,7 @@ def _seed_low_value_kb_records(client) -> None:
             registry_title="three.js docs",
             document_title="three.js docs",
             source_url="https://threejs.org/docs/",
-            text=(
-                "three.js docs docs manual AnimationAction BufferGeometry "
-                "Object3D UniformsGroup"
-            ),
+            text=("three.js docs docs manual AnimationAction BufferGeometry Object3D UniformsGroup"),
         ),
         _chunk(
             source_id="three_box_geometry",
@@ -1618,10 +1649,7 @@ def _seed_low_value_kb_records(client) -> None:
             registry_title="BoxGeometry - three.js docs",
             document_title="BoxGeometry",
             source_url=("https://threejs.org/docs/#api/en/geometries/BoxGeometry"),
-            text=(
-                "BoxGeometry is a geometry class for a rectangular cuboid with "
-                "width, height, and depth parameters."
-            ),
+            text=("BoxGeometry is a geometry class for a rectangular cuboid with width, height, and depth parameters."),
         ),
     )
     embeddings = (

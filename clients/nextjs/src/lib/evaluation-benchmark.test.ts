@@ -3,16 +3,89 @@ import type { ProductIntelligenceModel } from "./product-intelligence";
 import {
   buildEvaluationBenchmarkRun,
   buildGoldenEvaluationDataset,
+  CURRENT_PRODUCT_RETRIEVAL_CASE_IDS,
+  CURRENT_PRODUCT_RETRIEVAL_DATASET_FINGERPRINT,
+  CURRENT_PRODUCT_RETRIEVAL_GOLDEN_CASE_IDS,
   createEvaluationCandidate,
+  currentProductRetrievalScoreFromEvidence,
   emptyRagasEvidence,
+  matchesCurrentProductEvidenceIdentity,
+  normalizeEvaluationBenchmarkMode,
   selectEvaluationCases,
-  type EvaluationCaseResult
+  type EvaluationCaseResult,
+  type RagasExecutionEvidence
 } from "./evaluation-benchmark";
 
 const emptyModel = {
   artifactRegistry: [],
   details: null
 } as unknown as ProductIntelligenceModel;
+
+const backendMetricOrder = [
+  "context_precision",
+  "faithfulness",
+  "answer_relevancy",
+  "context_relevancy",
+  "context_recall"
+];
+const hash = (character: string) => `sha256:${character.repeat(64)}`;
+
+function canonicalCurrentProductEvidence(
+  overrides: Partial<RagasExecutionEvidence> = {}
+): RagasExecutionEvidence {
+  const metricScores = Object.fromEntries(backendMetricOrder.map((metricId) => [metricId, .8]));
+  return {
+    ...emptyRagasEvidence(),
+    schemaVersion: "current-product-ragas-evidence.v1",
+    scope: "rag",
+    state: "completed",
+    runId: "canonical-current-product-run",
+    evaluatedAt: "2026-07-14T09:00:00.000Z",
+    datasetId: "capstone_kb_expansion_retrieval_demo_pack",
+    datasetVersion: "current-product-retrieval.v1",
+    privacyClass: "public_official_contexts_with_authored_references",
+    metrics: backendMetricOrder,
+    metricScores,
+    retrievalScore: .8,
+    resultRows: 7,
+    totalSamples: 7,
+    eligibleSamples: 7,
+    skippedSamples: 0,
+    metricFailures: 0,
+    provider: "OpenAI",
+    model: "gpt-5-mini",
+    embeddingModel: "text-embedding-3-small",
+    ragasVersion: "0.4.3",
+    metricContract: "ragas-current-product-reference.v2",
+    durationMs: 1_200,
+    detail: "Canonical current-product evaluation completed.",
+    caseRows: CURRENT_PRODUCT_RETRIEVAL_CASE_IDS.map((sampleId, index) => ({
+      sampleId,
+      metrics: { ...metricScores },
+      metricErrors: {},
+      sourceIds: [`official-source-${index}`],
+      domains: [`domain-${index}`],
+      promptFingerprint: hash(String((index + 1) % 10)),
+      generationFingerprint: hash(String((index + 2) % 10))
+    })),
+    benchmarkMode: "current_product",
+    scoreOrigin: "current_product",
+    benchmarkVersion: "current-product-retrieval.v1",
+    selectedCaseIds: [...CURRENT_PRODUCT_RETRIEVAL_CASE_IDS],
+    datasetFingerprint: CURRENT_PRODUCT_RETRIEVAL_DATASET_FINGERPRINT,
+    retrievalFingerprint: hash("a"),
+    promptFingerprint: hash("b"),
+    generationFingerprint: hash("c"),
+    outputFingerprint: hash("d"),
+    selectionFingerprint: hash("e"),
+    kbFingerprint: hash("f"),
+    generationModel: "gpt-5-mini",
+    evaluator: "OpenAI RAGAS",
+    evaluatorModel: "gpt-5-mini",
+    timestamp: "2026-07-14T09:00:00.000Z",
+    ...overrides
+  };
+}
 
 describe("canonical evaluation benchmark", () => {
   it("deduplicates the product-authored sources into 35 stable cases", () => {
@@ -38,7 +111,121 @@ describe("canonical evaluation benchmark", () => {
     expect(creativeCases.every((item) => item.categories.includes("creative_artifact"))).toBe(true);
   });
 
-  it("withholds an aggregate and preserves unavailable evidence as blocked or missing", () => {
+  it("exports exactly the seven canonical current-product retrieval case IDs", () => {
+    const dataset = buildGoldenEvaluationDataset();
+    const ragCases = selectEvaluationCases(dataset, { scope: "rag", caseIds: [] });
+
+    expect(CURRENT_PRODUCT_RETRIEVAL_CASE_IDS).toHaveLength(7);
+    expect(CURRENT_PRODUCT_RETRIEVAL_GOLDEN_CASE_IDS).toEqual(
+      CURRENT_PRODUCT_RETRIEVAL_CASE_IDS.map((caseId) => `retrieval/${caseId}`)
+    );
+    expect(ragCases.map((item) => item.id)).toEqual(CURRENT_PRODUCT_RETRIEVAL_GOLDEN_CASE_IDS);
+    expect(CURRENT_PRODUCT_RETRIEVAL_CASE_IDS).not.toContain("demo/retrieval-grounded-design-brief");
+    expect(new Set(CURRENT_PRODUCT_RETRIEVAL_CASE_IDS).size).toBe(7);
+  });
+
+  it("accepts the exact backend five-metric contract without depending on list order", () => {
+    const evidence = canonicalCurrentProductEvidence();
+
+    expect(currentProductRetrievalScoreFromEvidence(evidence)).toBe(.8);
+    expect(currentProductRetrievalScoreFromEvidence({
+      ...evidence,
+      metrics: [...backendMetricOrder].reverse()
+    })).toBe(.8);
+    expect(currentProductRetrievalScoreFromEvidence({
+      ...evidence,
+      metrics: [...backendMetricOrder.slice(0, 4), backendMetricOrder[0]]
+    })).toBeNull();
+  });
+
+  it("recognizes only explicit current-product and historical fixture modes", () => {
+    expect(normalizeEvaluationBenchmarkMode("current_product")).toBe("current_product");
+    expect(normalizeEvaluationBenchmarkMode("historical_fixture")).toBe("historical_fixture");
+    expect(normalizeEvaluationBenchmarkMode("approved_fixture")).toBe("not_selected");
+    expect(normalizeEvaluationBenchmarkMode("future_mode")).toBe("not_selected");
+    expect(normalizeEvaluationBenchmarkMode(undefined)).toBe("not_selected");
+  });
+
+  it.each([
+    ["schema", { schemaVersion: "current-product-ragas-evidence.v2" }],
+    ["diagnostic case scope", { scope: "cases" }],
+    ["privacy class", { privacyClass: "public_official_evidence" }],
+    ["immutable dataset digest", { datasetFingerprint: hash("9") }],
+    ["run identifier", { runId: "" }],
+    ["evaluated timestamp", { evaluatedAt: "not-a-timestamp" }],
+    ["publication timestamp", { timestamp: null }]
+  ])("rejects current-product evidence with invalid %s metadata", (_label, overrides) => {
+    expect(currentProductRetrievalScoreFromEvidence(
+      canonicalCurrentProductEvidence(overrides)
+    )).toBeNull();
+  });
+
+  it("rejects non-finite, out-of-range, or aggregate-inconsistent scores", () => {
+    const evidence = canonicalCurrentProductEvidence();
+
+    expect(currentProductRetrievalScoreFromEvidence({
+      ...evidence,
+      metricScores: { ...evidence.metricScores, faithfulness: Number.NaN }
+    })).toBeNull();
+    expect(currentProductRetrievalScoreFromEvidence({
+      ...evidence,
+      caseRows: evidence.caseRows.map((row, index) => index === 0
+        ? { ...row, metrics: { ...row.metrics, context_recall: 1.01 } }
+        : row)
+    })).toBeNull();
+    expect(currentProductRetrievalScoreFromEvidence({
+      ...evidence,
+      retrievalScore: .81
+    })).toBeNull();
+  });
+
+  it("uses retrieval and KB identity only to decide whether current-product trends compare", () => {
+    const anchor = canonicalCurrentProductEvidence();
+    const newer = canonicalCurrentProductEvidence({
+      runId: "newer-current-product-run",
+      evaluatedAt: "2026-07-14T10:00:00.000Z",
+      timestamp: "2026-07-14T10:00:00.000Z"
+    });
+
+    expect(matchesCurrentProductEvidenceIdentity(newer, anchor)).toBe(true);
+    expect(matchesCurrentProductEvidenceIdentity({
+      ...newer,
+      retrievalFingerprint: hash("1")
+    }, anchor)).toBe(false);
+    expect(matchesCurrentProductEvidenceIdentity({
+      ...newer,
+      kbFingerprint: hash("2")
+    }, anchor)).toBe(false);
+
+    const request = {
+      scope: "rag" as const,
+      caseIds: [],
+      allowProviderCalls: true,
+      approvedRagasDataset: "sanitized_public" as const
+    };
+    const anchorRun = buildEvaluationBenchmarkRun({
+      model: emptyModel,
+      now: new Date("2026-07-14T09:00:00.000Z"),
+      ragas: anchor,
+      request
+    });
+    const changedPipelineRun = buildEvaluationBenchmarkRun({
+      model: emptyModel,
+      now: new Date("2026-07-14T10:00:00.000Z"),
+      previousRun: anchorRun,
+      ragas: {
+        ...newer,
+        retrievalFingerprint: hash("1"),
+        kbFingerprint: hash("2")
+      },
+      request
+    });
+
+    expect(changedPipelineRun.categoryResults[0]?.previousScore).toBeNull();
+    expect(changedPipelineRun.categoryResults[0]?.delta).toBeNull();
+  });
+
+  it("keeps Full execution to seven RAG cases plus three explicit workspace snapshot lanes", () => {
     const run = buildEvaluationBenchmarkRun({
       model: emptyModel,
       now: new Date("2026-07-13T12:00:00Z"),
@@ -58,10 +245,76 @@ describe("canonical evaluation benchmark", () => {
       "product_reliability"
     ]);
     expect(run.measuredScore).toBeNull();
-    expect(run.counts.blocked + run.counts.missing + run.counts.notRun).toBeGreaterThan(0);
+    expect(run.selectedCaseIds).toEqual(CURRENT_PRODUCT_RETRIEVAL_GOLDEN_CASE_IDS);
+    expect(run.selectedCases).toBe(7);
+    expect(run.executedCases).toBe(0);
+    expect(run.caseCoverage).toBe(0);
+    expect(run.caseResults.map((item) => item.caseId)).toEqual([
+      "ragas/not_selected",
+      "system/current-workspace-creative",
+      "system/current-workspace-workflow",
+      "system/current-workspace-reliability"
+    ]);
+    expect(run.caseResults).toHaveLength(4);
+    expect(run.caseResults.every((item) => item.status !== "not_run")).toBe(true);
+    expect(run.counts.notRun).toBe(0);
+    expect(run.counts.blocked + run.counts.missing).toBeGreaterThan(0);
     expect(run.caseResults.flatMap((item) => item.metrics).every((metric) =>
       metric.status !== "blocked" && metric.status !== "missing_evidence" || metric.score === null
     )).toBe(true);
+  });
+
+  it("reports a prepared current-product preflight as missing evidence rather than blocked", () => {
+    const run = buildEvaluationBenchmarkRun({
+      model: emptyModel,
+      now: new Date("2026-07-14T08:00:00.000Z"),
+      ragas: {
+        ...emptyRagasEvidence(),
+        state: "prepared",
+        datasetId: "capstone_kb_expansion_retrieval_demo_pack",
+        totalSamples: 7,
+        skippedSamples: 7,
+        detail: "Dry-run evidence only."
+      },
+      request: {
+        scope: "rag",
+        caseIds: [],
+        allowProviderCalls: false,
+        approvedRagasDataset: "sanitized_public"
+      }
+    });
+
+    expect(run.caseResults).toHaveLength(1);
+    expect(run.caseResults[0]?.status).toBe("missing_evidence");
+    expect(run.caseResults[0]?.metrics.every((metric) => metric.status === "missing_evidence")).toBe(true);
+    expect(run.counts.blocked).toBe(0);
+    expect(run.counts.missing).toBe(1);
+    expect(run.environmentStatus).toBe("partially_available");
+  });
+
+  it("records a completed Full run as seven executed RAG cases without catalog placeholders", () => {
+    const evidence = canonicalCurrentProductEvidence({ scope: "full" });
+    const run = buildEvaluationBenchmarkRun({
+      model: emptyModel,
+      now: new Date("2026-07-14T09:00:00.000Z"),
+      ragas: evidence,
+      request: {
+        scope: "full",
+        caseIds: [],
+        allowProviderCalls: true,
+        approvedRagasDataset: "sanitized_public"
+      }
+    });
+
+    expect(run.selectedCases).toBe(7);
+    expect(run.executedCases).toBe(7);
+    expect(run.caseCoverage).toBe(1);
+    expect(run.ragas.caseRows).toHaveLength(7);
+    expect(run.caseResults).toHaveLength(4);
+    expect(run.caseResults.every((item) => item.status !== "not_run")).toBe(true);
+    expect(run.caseResults.some((item) => item.caseId.startsWith("demo/"))).toBe(false);
+    expect(run.caseResults.some((item) => item.caseId.startsWith("prompt/"))).toBe(false);
+    expect(run.counts.notRun).toBe(0);
   });
 
   it("creates a separate candidate without mutating the canonical prompt", () => {

@@ -116,6 +116,44 @@ class SessionEvalFoundationTests(unittest.TestCase):
         self.assertEqual(sample.retrieved_contexts, ())
         self.assertEqual(sample.route.route, RouteName.GENERATE)
 
+    def test_privacy_safe_context_summary_falls_back_to_typed_retrieval_event(
+        self,
+    ) -> None:
+        request = AssistantRequest(
+            query="Explain how fog works in Three.js.",
+            domains=(CreativeCodingDomain.THREE_JS, CreativeCodingDomain.GLSL),
+            mode=AssistantMode.EXPLAIN,
+        )
+        events = list(_trace_events(answer="Fog softens distant objects."))
+        events.insert(
+            -1,
+            StreamEvent(
+                event_type=StreamEventType.CONTEXT,
+                sequence=3,
+                payload={
+                    "code": "context_assembled",
+                    "message": "Combined context prepared.",
+                    "context": {
+                        "route": "explain",
+                        "summary": {"retrieval_chunk_count": 1},
+                        "guardrails": {"retrieved_content": "not_emitted"},
+                    },
+                },
+            ),
+        )
+
+        sample = build_live_session_sample(
+            request=request,
+            events=tuple(events),
+            started_at=datetime(2026, 7, 14, 1, 0, tzinfo=UTC),
+            completed_at=datetime(2026, 7, 14, 1, 0, 1, tzinfo=UTC),
+            sample_id="privacy-safe-summary",
+        )
+
+        assert sample is not None
+        self.assertEqual(len(sample.retrieved_contexts), 1)
+        self.assertEqual(sample.retrieved_contexts[0].source_id, "three_docs")
+
     def test_build_live_session_sample_prefers_assembled_context_over_raw_retrieval(
         self,
     ) -> None:
@@ -426,9 +464,7 @@ def _trace_events_with_assembled_context(*, answer: str) -> tuple[StreamEvent, .
                             "source_url": "https://threejs.org/docs/",
                             "resolved_url": "https://threejs.org/docs/",
                             "chunk_index": 0,
-                            "excerpt": (
-                                "Object3D and BufferGeometry index page content."
-                            ),
+                            "excerpt": ("Object3D and BufferGeometry index page content."),
                             "score": 0.97,
                         },
                     ],
@@ -470,19 +506,10 @@ def _trace_events_with_assembled_context(*, answer: str) -> tuple[StreamEvent, .
                                     "publisher": "three.js",
                                     "registry_title": "BoxGeometry - three.js docs",
                                     "document_title": "BoxGeometry",
-                                    "source_url": (
-                                        "https://threejs.org/docs/#api/en/geometries/"
-                                        "BoxGeometry"
-                                    ),
-                                    "resolved_url": (
-                                        "https://threejs.org/docs/#api/en/geometries/"
-                                        "BoxGeometry"
-                                    ),
+                                    "source_url": ("https://threejs.org/docs/#api/en/geometries/BoxGeometry"),
+                                    "resolved_url": ("https://threejs.org/docs/#api/en/geometries/BoxGeometry"),
                                     "chunk_index": 0,
-                                    "excerpt": (
-                                        "BoxGeometry is a geometry class for a "
-                                        "rectangular cuboid."
-                                    ),
+                                    "excerpt": ("BoxGeometry is a geometry class for a rectangular cuboid."),
                                     "score": 0.74,
                                 },
                                 {
@@ -490,21 +517,13 @@ def _trace_events_with_assembled_context(*, answer: str) -> tuple[StreamEvent, .
                                     "domain": "react_three_fiber",
                                     "source_type": "guide",
                                     "publisher": "pmndrs",
-                                    "registry_title": (
-                                        "Introduction - React Three Fiber"
-                                    ),
-                                    "document_title": (
-                                        "Introduction - React Three Fiber"
-                                    ),
-                                    "source_url": (
-                                        "https://r3f.docs.pmnd.rs/getting-started/"
-                                        "introduction"
-                                    ),
+                                    "registry_title": ("Introduction - React Three Fiber"),
+                                    "document_title": ("Introduction - React Three Fiber"),
+                                    "source_url": ("https://r3f.docs.pmnd.rs/getting-started/introduction"),
                                     "resolved_url": None,
                                     "chunk_index": 3,
                                     "excerpt": (
-                                        "function Box(props) { useFrame(() => "
-                                        "meshRef.current.rotation.x += 0.01) }"
+                                        "function Box(props) { useFrame(() => meshRef.current.rotation.x += 0.01) }"
                                     ),
                                     "score": 0.72,
                                 },
@@ -540,19 +559,10 @@ def _trace_events_with_assembled_context(*, answer: str) -> tuple[StreamEvent, .
                                 "publisher": "three.js",
                                 "registry_title": "BoxGeometry - three.js docs",
                                 "document_title": "BoxGeometry",
-                                "source_url": (
-                                    "https://threejs.org/docs/#api/en/geometries/"
-                                    "BoxGeometry"
-                                ),
-                                "resolved_url": (
-                                    "https://threejs.org/docs/#api/en/geometries/"
-                                    "BoxGeometry"
-                                ),
+                                "source_url": ("https://threejs.org/docs/#api/en/geometries/BoxGeometry"),
+                                "resolved_url": ("https://threejs.org/docs/#api/en/geometries/BoxGeometry"),
                                 "chunk_index": 0,
-                                "excerpt": (
-                                    "BoxGeometry is a geometry class for a rectangular "
-                                    "cuboid."
-                                ),
+                                "excerpt": ("BoxGeometry is a geometry class for a rectangular cuboid."),
                                 "score": 0.74,
                             },
                             {
@@ -562,15 +572,11 @@ def _trace_events_with_assembled_context(*, answer: str) -> tuple[StreamEvent, .
                                 "publisher": "pmndrs",
                                 "registry_title": ("Introduction - React Three Fiber"),
                                 "document_title": ("Introduction - React Three Fiber"),
-                                "source_url": (
-                                    "https://r3f.docs.pmnd.rs/getting-started/"
-                                    "introduction"
-                                ),
+                                "source_url": ("https://r3f.docs.pmnd.rs/getting-started/introduction"),
                                 "resolved_url": None,
                                 "chunk_index": 3,
                                 "excerpt": (
-                                    "function Box(props) { useFrame(() => "
-                                    "meshRef.current.rotation.x += 0.01) }"
+                                    "function Box(props) { useFrame(() => meshRef.current.rotation.x += 0.01) }"
                                 ),
                                 "score": 0.72,
                             },

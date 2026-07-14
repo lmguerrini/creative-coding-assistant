@@ -38,9 +38,10 @@ report settled at 16/23 source anchors and 18/19 requested domains.
 **Lesson.** A lower honest metric can be a better result. Evaluation should
 reward useful context, not labels that happen to match an expected list.
 
-**Remaining gap.** One requested domain is still absent from the local index,
-and a current-product generated-answer evaluation cannot be performed in the
-present privacy-constrained environment.
+**Remaining gap.** One requested domain is still absent from the local index.
+The seven-case current-product generated-answer evaluation is complete, but
+broader or private-session evaluation remains outside the approved data
+boundary until a separate reviewed benchmark is available.
 
 ## 3. Evaluation datasets are not interchangeable
 
@@ -48,20 +49,20 @@ present privacy-constrained environment.
 rows, browser fixtures, and current product behavior answer different
 questions. Combining them into a single “AI score” would be misleading.
 
-**Response.** The Evaluation Lab separates Retrieval, AI/RAGAS, Creative, and
-Workflow/Reliability evidence. The approved-fixture 61.44% macro score is
-labeled historical and non-comparable to current local retrieval.
+**Response.** The Evaluation Lab separates Retrieval/RAGAS, Creative, Workflow,
+and Reliability evidence. The current seven-case five-metric macro is 68.03%;
+the approved-fixture 61.44% macro is labeled historical.
 
-**Evidence.** All four sanitized rows completed with zero metric failures, but
-Faithfulness was only 29.58% and Answer Relevancy 47.43%; Context Recall is
-missing.
+**Evidence.** All seven current-product RAG cases completed with zero skips or
+metric failures. Context Precision is 51.96%, Faithfulness 64.90%, Answer
+Relevancy 56.63%, Context Relevancy 85.71%, and Context Recall 80.95%.
 
 **Lesson.** “Missing” and “not comparable” are valid engineering outcomes.
 They are more useful than a confident number with the wrong denominator.
 
-**Remaining gap.** A privacy-approved, current-product evaluation needs fresh
-public-safe questions, reference answers, retrieved contexts, and generated
-answers captured under one versioned protocol.
+**Remaining gap.** Broader public-safe coverage, repeated evaluator runs, and
+stronger context ordering are needed before generalizing beyond the seven-case
+versioned protocol.
 
 ## 4. A preview must report what happened, not what was intended
 

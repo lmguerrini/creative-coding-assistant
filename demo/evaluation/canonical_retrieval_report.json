@@ -5,7 +5,8 @@
     {
       "caseId": "runtime_selection_hydra_vs_p5",
       "coveredExpectedSourceIds": [
-        "hydra_docs"
+        "hydra_docs",
+        "p5_reference"
       ],
       "coveredRequestedDomains": [
         "hydra",
@@ -21,9 +22,9 @@
         "p5_reference"
       ],
       "expectedSourceOverlap": {
-        "covered": 1,
+        "covered": 2,
         "expected": 2,
-        "ratio": 0.5
+        "ratio": 1
       },
       "requestedDomains": [
         "hydra",
@@ -54,12 +55,23 @@
           "sourceId": "p5_tutorials"
         },
         {
+          "charCount": 1029,
+          "chunkIndex": 7,
+          "distance": 1.248642,
+          "documentTitle": "p5.js Core Sketch Reference setup draw createCanvas background circle ellipse fill frameCount mouseX mouseY random userStartAudio",
+          "domain": "p5_js",
+          "rank": 3,
+          "recordId": "kb_official_docs:official_doc_chunk:v1:f7c95eef0f2e91a3288b18ce",
+          "score": 0.444713,
+          "sourceId": "p5_reference"
+        },
+        {
           "charCount": 1187,
           "chunkIndex": 1,
           "distance": 1.12243,
           "documentTitle": "hydra video synth: documentation portal | hydra video synth",
           "domain": "hydra",
-          "rank": 3,
+          "rank": 4,
           "recordId": "kb_official_docs:official_doc_chunk:v1:8c18aae148869880042f9828",
           "score": 0.471158,
           "sourceId": "hydra_docs"
@@ -70,20 +82,9 @@
           "distance": 1.135757,
           "documentTitle": "p5.js Motion Tutorials Get Started Variables and Change Conditionals and Interactivity",
           "domain": "p5_js",
-          "rank": 4,
+          "rank": 5,
           "recordId": "kb_official_docs:official_doc_chunk:v1:8b8a79f464c135848b10931a",
           "score": 0.468218,
-          "sourceId": "p5_tutorials"
-        },
-        {
-          "charCount": 966,
-          "chunkIndex": 21,
-          "distance": 1.149235,
-          "documentTitle": "p5.js Motion Tutorials Get Started Variables and Change Conditionals and Interactivity",
-          "domain": "p5_js",
-          "rank": 5,
-          "recordId": "kb_official_docs:official_doc_chunk:v1:6b59df40c3d595005046c788",
-          "score": 0.465282,
           "sourceId": "p5_tutorials"
         }
       ],
@@ -93,7 +94,8 @@
       ],
       "returnedSourceIds": [
         "hydra_docs",
-        "p5_tutorials"
+        "p5_tutorials",
+        "p5_reference"
       ],
       "title": "Runtime selection for fast live visuals"
     },
@@ -136,56 +138,56 @@
         {
           "charCount": 1080,
           "chunkIndex": 1,
-          "distance": 0.856052,
+          "distance": 0.855884,
           "documentTitle": "Web Audio Visualization and Best Practices",
           "domain": "web_audio_api",
           "rank": 1,
           "recordId": "kb_official_docs:official_doc_chunk:v1:a808ef7ca4a4109112395737",
-          "score": 0.538778,
+          "score": 0.538827,
           "sourceId": "web_audio_visualization_guide"
         },
         {
           "charCount": 1141,
           "chunkIndex": 1,
-          "distance": 1.079311,
+          "distance": 1.079305,
           "documentTitle": "Tone.js Analysis and Playback Reference",
           "domain": "tone_js",
           "rank": 2,
           "recordId": "kb_official_docs:official_doc_chunk:v1:18309211ef40f21ca777660e",
-          "score": 0.480929,
+          "score": 0.48093,
           "sourceId": "tone_js_analysis_reference"
         },
         {
           "charCount": 875,
           "chunkIndex": 1,
-          "distance": 1.194012,
+          "distance": 1.193847,
           "documentTitle": "p5.sound Analysis Reference p5.Amplitude p5.FFT",
           "domain": "p5_sound",
           "rank": 3,
           "recordId": "kb_official_docs:official_doc_chunk:v1:060602c0fdf84f6bb8328d4c",
-          "score": 0.455786,
+          "score": 0.45582,
           "sourceId": "p5_sound_analysis_reference"
         },
         {
           "charCount": 1200,
           "chunkIndex": 3,
-          "distance": 0.944266,
+          "distance": 0.944155,
           "documentTitle": "AnalyserNode - Web APIs | MDN",
           "domain": "web_audio_api",
           "rank": 4,
           "recordId": "kb_official_docs:official_doc_chunk:v1:5f283f24c2721853341531d6",
-          "score": 0.514333,
+          "score": 0.514362,
           "sourceId": "web_audio_analyser_node"
         },
         {
           "charCount": 875,
           "chunkIndex": 5,
-          "distance": 0.978758,
+          "distance": 0.978648,
           "documentTitle": "Web Audio API - Web APIs | MDN",
           "domain": "web_audio_api",
           "rank": 5,
           "recordId": "kb_official_docs:official_doc_chunk:v1:e50c77df4bebe57292a15bb0",
-          "score": 0.505367,
+          "score": 0.505396,
           "sourceId": "web_audio_mdn_api"
         }
       ],
@@ -236,59 +238,59 @@
       "resultCount": 5,
       "results": [
         {
-          "charCount": 708,
-          "chunkIndex": 9,
-          "distance": 0.923494,
+          "charCount": 1022,
+          "chunkIndex": 8,
+          "distance": 0.926285,
           "documentTitle": "three.js Effects and Render Pipeline Manual",
           "domain": "three_js",
           "rank": 1,
-          "recordId": "kb_official_docs:official_doc_chunk:v1:0bfa93447616f0ddb72aa4eb",
-          "score": 0.519887,
+          "recordId": "kb_official_docs:official_doc_chunk:v1:a00423384027039bdeb22e85",
+          "score": 0.519134,
           "sourceId": "three_manual_effects"
         },
         {
           "charCount": 1065,
           "chunkIndex": 3,
-          "distance": 1.023067,
+          "distance": 1.02339,
           "documentTitle": "MDN WebGL GLSL Examples",
           "domain": "glsl",
           "rank": 2,
           "recordId": "kb_official_docs:official_doc_chunk:v1:ed8e4a769112e179f578aea1",
-          "score": 0.494299,
+          "score": 0.49422,
           "sourceId": "glsl_mdn_webgl_examples"
         },
         {
           "charCount": 589,
           "chunkIndex": 178,
-          "distance": 1.290324,
+          "distance": 1.290433,
           "documentTitle": "The OpenGL® Shading Language, Version 4.60.8",
           "domain": "glsl",
           "rank": 3,
           "recordId": "kb_official_docs:official_doc_chunk:v1:1ee8b08dca914b54bf5547fc",
-          "score": 0.436619,
+          "score": 0.436599,
           "sourceId": "glsl_language_spec_460"
         },
         {
-          "charCount": 1022,
-          "chunkIndex": 8,
-          "distance": 0.926264,
-          "documentTitle": "three.js Effects and Render Pipeline Manual",
-          "domain": "three_js",
+          "charCount": 1195,
+          "chunkIndex": 145,
+          "distance": 1.324254,
+          "documentTitle": "The OpenGL ES® Shading Language, Version 3.20.8",
+          "domain": "glsl",
           "rank": 4,
-          "recordId": "kb_official_docs:official_doc_chunk:v1:a00423384027039bdeb22e85",
-          "score": 0.51914,
-          "sourceId": "three_manual_effects"
+          "recordId": "kb_official_docs:official_doc_chunk:v1:91e134da3211fbe91be555c0",
+          "score": 0.430246,
+          "sourceId": "glsl_es_language_spec_320"
         },
         {
-          "charCount": 1124,
-          "chunkIndex": 1,
-          "distance": 1.14471,
-          "documentTitle": "MDN WebGL GLSL Examples",
-          "domain": "glsl",
+          "charCount": 964,
+          "chunkIndex": 6,
+          "distance": 0.931147,
+          "documentTitle": "three.js Effects and Render Pipeline Manual",
+          "domain": "three_js",
           "rank": 5,
-          "recordId": "kb_official_docs:official_doc_chunk:v1:191bf6dc6d07d558415254f8",
-          "score": 0.466263,
-          "sourceId": "glsl_mdn_webgl_examples"
+          "recordId": "kb_official_docs:official_doc_chunk:v1:025d1828bb93e94e859949b5",
+          "score": 0.517827,
+          "sourceId": "three_manual_effects"
         }
       ],
       "returnedDomains": [
@@ -298,7 +300,8 @@
       "returnedSourceIds": [
         "three_manual_effects",
         "glsl_mdn_webgl_examples",
-        "glsl_language_spec_460"
+        "glsl_language_spec_460",
+        "glsl_es_language_spec_320"
       ],
       "title": "Shader and post-processing pipeline choices"
     },
@@ -306,6 +309,7 @@
       "caseId": "audiovisual_composition_browser_set",
       "coveredExpectedSourceIds": [
         "tone_js_analysis_reference",
+        "p5_reference",
         "three_manual"
       ],
       "coveredRequestedDomains": [
@@ -325,9 +329,9 @@
         "three_manual"
       ],
       "expectedSourceOverlap": {
-        "covered": 2,
+        "covered": 3,
         "expected": 4,
-        "ratio": 0.5
+        "ratio": 0.75
       },
       "requestedDomains": [
         "tone_js",
@@ -381,15 +385,15 @@
           "sourceId": "three_manual_effects"
         },
         {
-          "charCount": 1179,
-          "chunkIndex": 25,
-          "distance": 0.987581,
-          "documentTitle": "Tone.js Analysis and Playback Reference",
-          "domain": "tone_js",
+          "charCount": 1142,
+          "chunkIndex": 1,
+          "distance": 1.310376,
+          "documentTitle": "p5.js Core Sketch Reference setup draw createCanvas background circle ellipse fill frameCount mouseX mouseY random userStartAudio",
+          "domain": "p5_js",
           "rank": 5,
-          "recordId": "kb_official_docs:official_doc_chunk:v1:fa70137da366456ff9144f87",
-          "score": 0.503124,
-          "sourceId": "tone_js_analysis_reference"
+          "recordId": "kb_official_docs:official_doc_chunk:v1:9c27aec125fa03ba4242f76f",
+          "score": 0.43283,
+          "sourceId": "p5_reference"
         }
       ],
       "returnedDomains": [
@@ -401,7 +405,8 @@
         "tone_js_analysis_reference",
         "three_manual",
         "p5_tutorials",
-        "three_manual_effects"
+        "three_manual_effects",
+        "p5_reference"
       ],
       "title": "Audiovisual composition timing"
     },
@@ -409,8 +414,7 @@
       "caseId": "creative_debugging_silent_audio",
       "coveredExpectedSourceIds": [
         "web_audio_visualization_guide",
-        "web_audio_analyser_node",
-        "p5_sound_reference"
+        "web_audio_analyser_node"
       ],
       "coveredRequestedDomains": [
         "web_audio_api",
@@ -429,9 +433,9 @@
         "p5_sound_reference"
       ],
       "expectedSourceOverlap": {
-        "covered": 3,
+        "covered": 2,
         "expected": 4,
-        "ratio": 0.75
+        "ratio": 0.5
       },
       "requestedDomains": [
         "web_audio_api",
@@ -485,15 +489,15 @@
           "sourceId": "web_audio_visualization_guide"
         },
         {
-          "charCount": 1194,
-          "chunkIndex": 0,
-          "distance": 1.180499,
-          "documentTitle": "p5.sound Reference",
-          "domain": "p5_sound",
+          "charCount": 1197,
+          "chunkIndex": 18,
+          "distance": 1.060556,
+          "documentTitle": "Web Audio API - Web APIs | MDN",
+          "domain": "web_audio_api",
           "rank": 5,
-          "recordId": "kb_official_docs:official_doc_chunk:v1:7ffed80b53d8209ed9c833cb",
-          "score": 0.458611,
-          "sourceId": "p5_sound_reference"
+          "recordId": "kb_official_docs:official_doc_chunk:v1:a98740cdd4c4f990073b6840",
+          "score": 0.485306,
+          "sourceId": "web_audio_mdn_api"
         }
       ],
       "returnedDomains": [
@@ -506,7 +510,7 @@
         "p5_sound_analysis_reference",
         "p5_tutorials",
         "web_audio_visualization_guide",
-        "p5_sound_reference"
+        "web_audio_mdn_api"
       ],
       "title": "Creative debugging for silent browser audio"
     },
@@ -607,7 +611,8 @@
       "caseId": "symbol_to_art_operational_translation",
       "coveredExpectedSourceIds": [
         "glsl_mdn_webgl_examples",
-        "tone_js_analysis_reference"
+        "tone_js_analysis_reference",
+        "three_manual_effects"
       ],
       "coveredRequestedDomains": [
         "p5_js",
@@ -627,9 +632,9 @@
         "three_manual_effects"
       ],
       "expectedSourceOverlap": {
-        "covered": 2,
+        "covered": 3,
         "expected": 4,
-        "ratio": 0.5
+        "ratio": 0.75
       },
       "requestedDomains": [
         "p5_js",
@@ -642,57 +647,57 @@
         {
           "charCount": 787,
           "chunkIndex": 45,
-          "distance": 1.03817,
+          "distance": 1.038212,
           "documentTitle": "p5.js Motion Tutorials Get Started Variables and Change Conditionals and Interactivity",
           "domain": "p5_js",
           "rank": 1,
           "recordId": "kb_official_docs:official_doc_chunk:v1:5e7260c0c7acac24d45d169b",
-          "score": 0.490636,
+          "score": 0.490626,
           "sourceId": "p5_tutorials"
         },
         {
           "charCount": 1184,
           "chunkIndex": 46,
-          "distance": 1.053502,
+          "distance": 1.053476,
           "documentTitle": "three.js Manual",
           "domain": "three_js",
           "rank": 2,
           "recordId": "kb_official_docs:official_doc_chunk:v1:4fcd50115ed60ad4d87f3564",
-          "score": 0.486973,
+          "score": 0.486979,
           "sourceId": "three_manual"
         },
         {
           "charCount": 1124,
           "chunkIndex": 1,
-          "distance": 1.213782,
+          "distance": 1.213849,
           "documentTitle": "MDN WebGL GLSL Examples",
           "domain": "glsl",
           "rank": 3,
           "recordId": "kb_official_docs:official_doc_chunk:v1:191bf6dc6d07d558415254f8",
-          "score": 0.451716,
+          "score": 0.451702,
           "sourceId": "glsl_mdn_webgl_examples"
         },
         {
           "charCount": 993,
           "chunkIndex": 32,
-          "distance": 1.381507,
+          "distance": 1.38147,
           "documentTitle": "Tone.js Analysis and Playback Reference",
           "domain": "tone_js",
           "rank": 4,
           "recordId": "kb_official_docs:official_doc_chunk:v1:9f07587b1d9c025ff5396d7b",
-          "score": 0.419902,
+          "score": 0.419909,
           "sourceId": "tone_js_analysis_reference"
         },
         {
-          "charCount": 966,
-          "chunkIndex": 21,
-          "distance": 1.095103,
-          "documentTitle": "p5.js Motion Tutorials Get Started Variables and Change Conditionals and Interactivity",
-          "domain": "p5_js",
+          "charCount": 1138,
+          "chunkIndex": 15,
+          "distance": 1.17273,
+          "documentTitle": "three.js Effects and Render Pipeline Manual",
+          "domain": "three_js",
           "rank": 5,
-          "recordId": "kb_official_docs:official_doc_chunk:v1:6b59df40c3d595005046c788",
-          "score": 0.477304,
-          "sourceId": "p5_tutorials"
+          "recordId": "kb_official_docs:official_doc_chunk:v1:4fbf0ffdac4228beaa55d0be",
+          "score": 0.46025,
+          "sourceId": "three_manual_effects"
         }
       ],
       "returnedDomains": [
@@ -705,13 +710,14 @@
         "p5_tutorials",
         "three_manual",
         "glsl_mdn_webgl_examples",
-        "tone_js_analysis_reference"
+        "tone_js_analysis_reference",
+        "three_manual_effects"
       ],
       "title": "Operational symbol-to-art translation"
     }
   ],
   "embeddingModel": "text-embedding-3-small",
-  "evaluatedAt": "2026-07-13T05:05:33.306298+00:00",
+  "evaluatedAt": "2026-07-14T01:38:44.273377+00:00",
   "interpretation": "Expected source IDs are coverage anchors, not a requirement that every listed source appear in the top-k results.",
   "kbSnapshot": {
     "collection": "kb_official_docs",
@@ -720,13 +726,13 @@
   },
   "retrievalLimit": 5,
   "schemaVersion": "canonical-retrieval-report.v1",
-  "selectionFingerprint": "sha256:74acf5d62f669eff64fd5fe4fe176bff04da4fcbdc7a7588e18b85a8a418d1c7",
+  "selectionFingerprint": "sha256:b6d888d8505578a06bcce63e9d901be991546cf8ef5af63fd2f1fdae9fb65893",
   "summary": {
     "casesWithResults": 7,
     "expectedSourceOverlap": {
-      "covered": 16,
+      "covered": 18,
       "expected": 23,
-      "ratio": 0.695652
+      "ratio": 0.782609
     },
     "requestedDomainCoverage": {
       "covered": 18,

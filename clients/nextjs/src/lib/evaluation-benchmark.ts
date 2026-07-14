@@ -9,8 +9,8 @@ import {
 import type { ProductIntelligenceModel } from "./product-intelligence";
 
 export const GOLDEN_EVALUATION_DATASET_VERSION = "golden_eval.v1";
-export const EVALUATION_SCHEMA_VERSION = 2 as const;
-export const EVALUATION_TARGET_THRESHOLD = 0.8;
+export const EVALUATION_SCHEMA_VERSION = 3 as const;
+export const EVALUATION_TARGET_THRESHOLD = 0.85;
 
 export type EvaluationCategory =
   | "rag"
@@ -146,9 +146,38 @@ export type RagasCaseEvidence = {
   metricErrors: Record<string, string>;
   sourceIds: string[];
   domains: string[];
+  promptFingerprint: string | null;
+  generationFingerprint: string | null;
+};
+
+export type EvaluationScoreOrigin =
+  | "current_product"
+  | "historical_fixture"
+  | "unscored";
+
+export type EvaluationBenchmarkMode =
+  | "current_product"
+  | "historical_fixture"
+  | "not_selected";
+
+export type EvaluationExecutionProgress = {
+  runId: string | null;
+  status: string;
+  phase: string;
+  lane: string;
+  currentCaseId: string | null;
+  currentCaseLabel: string;
+  completedCases: number;
+  totalCases: number;
+  remainingCases: number;
+  percent: number | null;
+  executionState: string;
+  detail: string;
 };
 
 export type RagasExecutionEvidence = {
+  schemaVersion: string | null;
+  scope: string | null;
   state: "not_requested" | "prepared" | "completed" | "blocked" | "failed";
   runId: string | null;
   evaluatedAt: string | null;
@@ -157,6 +186,7 @@ export type RagasExecutionEvidence = {
   privacyClass: string;
   metrics: string[];
   metricScores: Record<string, number>;
+  retrievalScore: number | null;
   resultRows: number;
   totalSamples: number;
   eligibleSamples: number;
@@ -170,6 +200,21 @@ export type RagasExecutionEvidence = {
   durationMs: number | null;
   detail: string;
   caseRows: RagasCaseEvidence[];
+  benchmarkMode: EvaluationBenchmarkMode;
+  scoreOrigin: EvaluationScoreOrigin;
+  benchmarkVersion: string | null;
+  selectedCaseIds: string[];
+  datasetFingerprint: string | null;
+  retrievalFingerprint: string | null;
+  promptFingerprint: string | null;
+  generationFingerprint: string | null;
+  outputFingerprint: string | null;
+  selectionFingerprint: string | null;
+  kbFingerprint: string | null;
+  generationModel: string | null;
+  evaluator: string | null;
+  evaluatorModel: string | null;
+  timestamp: string | null;
 };
 
 export type EvaluationBenchmarkRun = {
@@ -209,6 +254,21 @@ export type EvaluationBenchmarkRun = {
   estimatedCost: number | null;
   currency: string;
   ragas: RagasExecutionEvidence;
+  scoreOrigin: EvaluationScoreOrigin;
+  benchmarkVersion: string;
+  retrievalFingerprint: string | null;
+  promptFingerprint: string;
+  generationFingerprint: string | null;
+  outputFingerprint: string | null;
+  selectionFingerprint: string | null;
+  kbFingerprint: string | null;
+  generationModel: string | null;
+  evaluator: string | null;
+  evaluatorModel: string | null;
+  embeddingModel: string | null;
+  retrievalScore: number | null;
+  timestamp: string;
+  runId: string;
 };
 
 export type EvaluationRunRequest = {
@@ -217,6 +277,10 @@ export type EvaluationRunRequest = {
   allowProviderCalls: boolean;
   approvedRagasDataset: "sanitized_public" | "redacted_public";
 };
+
+export type EvaluationProgressCallback = (
+  progress: EvaluationExecutionProgress
+) => void;
 
 export type EvaluationCandidate = {
   id: string;
@@ -271,9 +335,22 @@ const ragasMetrics = [
   "context_precision",
   "faithfulness",
   "answer_relevancy",
-  "context_recall",
-  "context_relevancy"
+  "context_relevancy",
+  "context_recall"
 ] as const;
+
+export const CURRENT_PRODUCT_RETRIEVAL_DATASET_FINGERPRINT =
+  "sha256:b5fbc0e7cc9a523658eee8b0fc5cd7c417aa10540f8919e10bc2c4e10a40705f";
+
+export const CURRENT_PRODUCT_RETRIEVAL_CASE_IDS = Object.freeze([
+  "runtime_selection_hydra_vs_p5",
+  "audio_reactive_browser_mapping",
+  "shader_post_fx_pipeline",
+  "audiovisual_composition_browser_set",
+  "creative_debugging_silent_audio",
+  "creative_debugging_three_effects",
+  "symbol_to_art_operational_translation"
+] as const);
 
 const retrievalCaseSeeds: CaseSeed[] = [
   retrievalCase(
@@ -326,6 +403,10 @@ const retrievalCaseSeeds: CaseSeed[] = [
     ["p5_reference", "glsl_mdn_webgl_examples", "tone_js_analysis_reference", "three_manual_effects"]
   )
 ];
+
+export const CURRENT_PRODUCT_RETRIEVAL_GOLDEN_CASE_IDS: readonly string[] = Object.freeze(
+  retrievalCaseSeeds.map((item) => item.id)
+);
 
 export const evaluationMetricCatalog = {
   rag: [...ragasMetrics],
@@ -399,21 +480,30 @@ export function buildEvaluationBenchmarkRun({
 }): EvaluationBenchmarkRun {
   const startedAt = now.toISOString();
   const dataset = buildGoldenEvaluationDataset();
-  const selectedCases = selectEvaluationCases(dataset, request);
+  const selectedCases = selectEvaluationExecutionCases(dataset, request);
   const currentPrompt = latestUserPrompt(model);
   const currentCase = selectedCases.find(
     (item) => normalizePrompt(item.prompt) === normalizePrompt(currentPrompt)
   ) ?? null;
-  const caseResults = selectedCases.map((item) =>
-    item.id === currentCase?.id
-      ? evaluateCurrentCase(item, model)
-      : notRunCase(item)
-  );
+  const caseResults = request.scope === "full"
+    ? [
+        ragasEvidenceCase(ragas),
+        currentWorkspaceCreativeEvidence(model),
+        currentWorkspaceWorkflowEvidence(model),
+        reliabilityEvidenceCase(model)
+      ]
+    : request.scope === "rag"
+      ? [ragasEvidenceCase(ragas)]
+      : selectedCases.map((item) =>
+          item.id === currentCase?.id
+            ? evaluateCurrentCase(item, model)
+            : notRunCase(item)
+        );
 
-  if (scopeIncludes(request.scope, "rag")) {
+  if (request.scope !== "full" && request.scope !== "rag" && scopeIncludes(request.scope, "rag")) {
     caseResults.push(ragasEvidenceCase(ragas));
   }
-  if (scopeIncludes(request.scope, "product_reliability")) {
+  if (request.scope !== "full" && scopeIncludes(request.scope, "product_reliability")) {
     caseResults.push(reliabilityEvidenceCase(model));
   }
 
@@ -426,7 +516,9 @@ export function buildEvaluationBenchmarkRun({
   const selectedGoldenResults = caseResults.filter((item) =>
     selectedCases.some((selected) => selected.id === item.caseId)
   );
-  const executedCases = selectedGoldenResults.filter((item) => item.status !== "not_run").length;
+  const executedCases = request.scope === "full" || request.scope === "rag"
+    ? Math.min(selectedCases.length, Math.max(0, ragas.resultRows))
+    : selectedGoldenResults.filter((item) => item.status !== "not_run").length;
   const caseCoverage = selectedCases.length ? executedCases / selectedCases.length : 0;
   const allMetrics = caseResults.flatMap((item) => item.metrics);
   const applicableMetrics = allMetrics.length;
@@ -439,6 +531,7 @@ export function buildEvaluationBenchmarkRun({
   const measuredScore = null;
   const recommendations = uniqueRecommendations(caseResults);
   const completedAt = new Date(now.getTime() + 1).toISOString();
+  const benchmarkId = `evaluation-${now.getTime()}`;
   const providerTelemetry = model.details?.providerTelemetry;
   const creativeCost = model.details?.telemetryDashboard.creativeCost.current;
   const missingMetricIds = unique(
@@ -449,9 +542,9 @@ export function buildEvaluationBenchmarkRun({
 
   return {
     schemaVersion: EVALUATION_SCHEMA_VERSION,
-    id: `evaluation-${now.getTime()}`,
+    id: benchmarkId,
     datasetVersion: dataset.version,
-    datasetFingerprint: dataset.fingerprint,
+    datasetFingerprint: ragas.datasetFingerprint ?? dataset.fingerprint,
     promptVersion: dataset.promptVersion,
     scope: request.scope,
     selectedCaseIds: selectedCases.map((item) => item.id),
@@ -481,7 +574,22 @@ export function buildEvaluationBenchmarkRun({
     totalTokens: providerTelemetry?.tokenUsage.totalTokens ?? null,
     estimatedCost: creativeCost?.cost ?? null,
     currency: creativeCost?.currency ?? "USD",
-    ragas
+    ragas,
+    scoreOrigin: ragas.scoreOrigin,
+    benchmarkVersion: ragas.benchmarkVersion ?? dataset.version,
+    retrievalFingerprint: ragas.retrievalFingerprint,
+    promptFingerprint: ragas.promptFingerprint ?? dataset.promptVersion,
+    generationFingerprint: ragas.generationFingerprint,
+    outputFingerprint: ragas.outputFingerprint,
+    selectionFingerprint: ragas.selectionFingerprint,
+    kbFingerprint: ragas.kbFingerprint,
+    generationModel: ragas.generationModel ?? providerTelemetry?.provider.model ?? null,
+    evaluator: ragas.evaluator ?? ragas.provider,
+    evaluatorModel: ragas.evaluatorModel,
+    embeddingModel: ragas.embeddingModel,
+    retrievalScore: ragas.retrievalScore,
+    timestamp: ragas.timestamp ?? ragas.evaluatedAt ?? completedAt,
+    runId: ragas.runId ?? benchmarkId
   };
 }
 
@@ -494,8 +602,23 @@ export function selectEvaluationCases(
     return dataset.cases.filter((item) => selected.has(item.id));
   }
   if (request.scope === "full") return dataset.cases;
+  if (request.scope === "rag") {
+    const canonical = new Set(CURRENT_PRODUCT_RETRIEVAL_GOLDEN_CASE_IDS);
+    return dataset.cases.filter((item) => canonical.has(item.id));
+  }
   const category = request.scope as EvaluationCategory;
   return dataset.cases.filter((item) => item.categories.includes(category));
+}
+
+function selectEvaluationExecutionCases(
+  dataset: GoldenEvaluationDataset,
+  request: Pick<EvaluationRunRequest, "scope" | "caseIds">
+) {
+  if (request.scope !== "full") {
+    return selectEvaluationCases(dataset, request);
+  }
+  const canonical = new Set(CURRENT_PRODUCT_RETRIEVAL_GOLDEN_CASE_IDS);
+  return dataset.cases.filter((item) => canonical.has(item.id));
 }
 
 export function createEvaluationCandidate({
@@ -522,6 +645,8 @@ export function createEvaluationCandidate({
 
 export function emptyRagasEvidence(): RagasExecutionEvidence {
   return {
+    schemaVersion: null,
+    scope: null,
     state: "not_requested",
     runId: null,
     evaluatedAt: null,
@@ -535,6 +660,7 @@ export function emptyRagasEvidence(): RagasExecutionEvidence {
       "context_relevancy"
     ],
     metricScores: {},
+    retrievalScore: null,
     resultRows: 0,
     totalSamples: 0,
     eligibleSamples: 0,
@@ -547,8 +673,181 @@ export function emptyRagasEvidence(): RagasExecutionEvidence {
     metricContract: null,
     durationMs: null,
     detail: "RAGAS was not requested for this evaluation scope.",
-    caseRows: []
+    caseRows: [],
+    benchmarkMode: "not_selected",
+    scoreOrigin: "unscored",
+    benchmarkVersion: null,
+    selectedCaseIds: [],
+    datasetFingerprint: null,
+    retrievalFingerprint: null,
+    promptFingerprint: null,
+    generationFingerprint: null,
+    outputFingerprint: null,
+    selectionFingerprint: null,
+    kbFingerprint: null,
+    generationModel: null,
+    evaluator: null,
+    evaluatorModel: null,
+    timestamp: null
   };
+}
+
+export function currentProductRetrievalScoreFromEvidence(
+  evidence: RagasExecutionEvidence
+): number | null {
+  const exactMetrics = [...ragasMetrics];
+  const aggregateMetricIds = Object.keys(evidence.metricScores).sort();
+  const expectedMetricIds = [...exactMetrics].sort();
+  const exactCaseIds = [...CURRENT_PRODUCT_RETRIEVAL_CASE_IDS];
+  const topFingerprints = [
+    evidence.datasetFingerprint,
+    evidence.retrievalFingerprint,
+    evidence.promptFingerprint,
+    evidence.generationFingerprint,
+    evidence.outputFingerprint,
+    evidence.selectionFingerprint,
+    evidence.kbFingerprint
+  ];
+  const identityFields = [
+    evidence.provider,
+    evidence.model,
+    evidence.generationModel,
+    evidence.evaluator,
+    evidence.evaluatorModel,
+    evidence.embeddingModel,
+    evidence.ragasVersion
+  ];
+
+  if (
+    evidence.schemaVersion !== "current-product-ragas-evidence.v1" ||
+    (evidence.scope !== "full" && evidence.scope !== "rag") ||
+    evidence.state !== "completed" ||
+    evidence.benchmarkMode !== "current_product" ||
+    evidence.scoreOrigin !== "current_product" ||
+    evidence.benchmarkVersion !== "current-product-retrieval.v1" ||
+    evidence.datasetId !== "capstone_kb_expansion_retrieval_demo_pack" ||
+    evidence.datasetVersion !== "current-product-retrieval.v1" ||
+    evidence.datasetFingerprint !== CURRENT_PRODUCT_RETRIEVAL_DATASET_FINGERPRINT ||
+    evidence.privacyClass !== "public_official_contexts_with_authored_references" ||
+    evidence.metricContract !== "ragas-current-product-reference.v2" ||
+    evidence.resultRows !== 7 ||
+    evidence.totalSamples !== 7 ||
+    evidence.eligibleSamples !== 7 ||
+    evidence.skippedSamples !== 0 ||
+    evidence.metricFailures !== 0 ||
+    !sameStringSet(evidence.metrics, exactMetrics) ||
+    !sameStringSequence(evidence.selectedCaseIds, exactCaseIds) ||
+    !sameStringSequence(aggregateMetricIds, expectedMetricIds) ||
+    !topFingerprints.every(isSha256Fingerprint) ||
+    !identityFields.every(isNonEmptyString) ||
+    !isNonEmptyString(evidence.runId) ||
+    !isDateTimeString(evidence.evaluatedAt) ||
+    !isDateTimeString(evidence.timestamp) ||
+    !Number.isInteger(evidence.durationMs) ||
+    (evidence.durationMs as number) < 0 ||
+    !isNonEmptyString(evidence.detail) ||
+    !isUnitScore(evidence.retrievalScore) ||
+    evidence.caseRows.length !== exactCaseIds.length ||
+    !sameStringSequence(evidence.caseRows.map((row) => row.sampleId), exactCaseIds)
+  ) {
+    return null;
+  }
+
+  const aggregates = exactMetrics.map((metricId) => evidence.metricScores[metricId]);
+  if (!aggregates.every(isUnitScore)) return null;
+
+  for (const row of evidence.caseRows) {
+    if (
+      !sameStringSequence(Object.keys(row.metrics).sort(), expectedMetricIds) ||
+      !exactMetrics.every((metricId) => isUnitScore(row.metrics[metricId])) ||
+      Object.keys(row.metricErrors).length > 0 ||
+      !isNonEmptyUniqueStringList(row.sourceIds) ||
+      !isNonEmptyUniqueStringList(row.domains) ||
+      !isSha256Fingerprint(row.promptFingerprint) ||
+      !isSha256Fingerprint(row.generationFingerprint)
+    ) {
+      return null;
+    }
+  }
+
+  for (const metricId of exactMetrics) {
+    const caseMean = average(evidence.caseRows.map((row) => row.metrics[metricId] as number));
+    if (!scoresMatch(caseMean, evidence.metricScores[metricId])) return null;
+  }
+
+  const aggregateMean = average(aggregates as number[]);
+  return scoresMatch(aggregateMean, evidence.retrievalScore)
+    ? evidence.retrievalScore
+    : null;
+}
+
+export function normalizeEvaluationBenchmarkMode(value: unknown): EvaluationBenchmarkMode {
+  if (value === "current_product" || value === "historical_fixture") return value;
+  return "not_selected";
+}
+
+export function matchesCurrentProductEvidenceIdentity(
+  candidate: RagasExecutionEvidence,
+  anchor: RagasExecutionEvidence
+) {
+  return currentProductRetrievalScoreFromEvidence(candidate) != null &&
+    currentProductRetrievalScoreFromEvidence(anchor) != null &&
+    candidate.schemaVersion === anchor.schemaVersion &&
+    candidate.benchmarkVersion === anchor.benchmarkVersion &&
+    candidate.datasetId === anchor.datasetId &&
+    candidate.datasetVersion === anchor.datasetVersion &&
+    candidate.datasetFingerprint === anchor.datasetFingerprint &&
+    candidate.retrievalFingerprint === anchor.retrievalFingerprint &&
+    candidate.promptFingerprint === anchor.promptFingerprint &&
+    candidate.generationFingerprint === anchor.generationFingerprint &&
+    candidate.selectionFingerprint === anchor.selectionFingerprint &&
+    candidate.kbFingerprint === anchor.kbFingerprint &&
+    candidate.provider === anchor.provider &&
+    candidate.model === anchor.model &&
+    candidate.generationModel === anchor.generationModel &&
+    candidate.evaluator === anchor.evaluator &&
+    candidate.evaluatorModel === anchor.evaluatorModel &&
+    candidate.embeddingModel === anchor.embeddingModel &&
+    candidate.ragasVersion === anchor.ragasVersion &&
+    candidate.metricContract === anchor.metricContract &&
+    sameStringSet(candidate.metrics, anchor.metrics) &&
+    sameStringSequence(candidate.selectedCaseIds, anchor.selectedCaseIds);
+}
+
+function isUnitScore(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 1;
+}
+
+function isSha256Fingerprint(value: unknown): value is string {
+  return typeof value === "string" && /^sha256:[0-9a-f]{64}$/.test(value);
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function isDateTimeString(value: unknown): value is string {
+  return isNonEmptyString(value) && Number.isFinite(new Date(value).getTime());
+}
+
+function isNonEmptyUniqueStringList(values: readonly string[]) {
+  return values.length > 0 &&
+    values.every(isNonEmptyString) &&
+    new Set(values).size === values.length;
+}
+
+function sameStringSet(left: readonly string[], right: readonly string[]) {
+  return left.length === right.length &&
+    new Set(left).size === left.length &&
+    left.every((value) => right.includes(value));
+}
+
+function sameStringSequence(left: readonly string[], right: readonly string[]) {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
+function scoresMatch(left: number, right: number | null | undefined) {
+  return isUnitScore(right) && Math.abs(left - right) <= 1e-9;
 }
 
 export function formatEvaluationCategory(category: EvaluationCategory) {
@@ -820,6 +1119,96 @@ function workflowMetricResults(
   ];
 }
 
+function currentWorkspaceCreativeEvidence(
+  model: ProductIntelligenceModel
+): EvaluationCaseResult {
+  const artifact = model.artifactRegistry[0] ?? null;
+  const item: GoldenEvaluationCase = {
+    id: "system/current-workspace-creative",
+    title: "Current workspace creative artifact evidence",
+    prompt: latestUserPrompt(model),
+    promptVersion: "current_workspace_snapshot",
+    origins: ["current_workspace_snapshot"],
+    sourceAliases: [],
+    categories: ["creative_artifact"],
+    domain: artifact?.domain ?? "Current workspace",
+    expectedWorkflowSelection: "auto",
+    expectedResolvedMode: "any_published",
+    retrievalExpectation: "optional",
+    expectedArtifactType: "code",
+    expectedArtifactName: null,
+    expectedArtifact: "Current workspace artifact snapshot; not an additional benchmark generation",
+    previewContract: "Inspect current Preview evidence only; this action does not launch a new render.",
+    previewExpected: true,
+    validationCriteria: [
+      "Use only evidence already published by the current workspace.",
+      "Do not claim that a frozen catalog prompt was generated by this evaluation action."
+    ],
+    applicableMetricIds: [...creativeMetrics]
+  };
+  const metrics = creativeMetricResults(item, model, artifact).map((metric) =>
+    metric.id === "prompt_adherence" &&
+    normalizeScore(artifact?.critique?.promptAlignment.score) == null
+      ? missingMetric(
+          "prompt_adherence",
+          "Prompt adherence",
+          "creative_artifact",
+          "Full evaluation snapshots the current artifact without generating a catalog prompt; artifact presence is not treated as prompt-adherence proof."
+        )
+      : metric
+  );
+  return buildCaseResult(item, metrics);
+}
+
+function currentWorkspaceWorkflowEvidence(
+  model: ProductIntelligenceModel
+): EvaluationCaseResult {
+  const execution = model.details?.workflowExecution;
+  const item: GoldenEvaluationCase = {
+    id: "system/current-workspace-workflow",
+    title: "Current workspace workflow evidence",
+    prompt: latestUserPrompt(model),
+    promptVersion: "current_workspace_snapshot",
+    origins: ["current_workspace_snapshot"],
+    sourceAliases: [],
+    categories: ["workflow"],
+    domain: "Current workflow",
+    expectedWorkflowSelection: execution?.requestedMode ?? "auto",
+    expectedResolvedMode: execution?.resolvedMode ?? "any_published",
+    retrievalExpectation: "optional",
+    expectedArtifactType: "recovery",
+    expectedArtifactName: null,
+    expectedArtifact: "Current published route, node, retry, latency, and recovery evidence",
+    previewContract: "Current workflow telemetry only",
+    previewExpected: false,
+    validationCriteria: [
+      "Use only current workspace workflow telemetry.",
+      "Do not claim that additional catalog workflows ran."
+    ],
+    applicableMetricIds: [...workflowMetrics]
+  };
+  const metrics = workflowMetricResults(item, model).map((metric) =>
+    metric.id === "route_correctness"
+      ? productMetric({
+          id: "route_correctness",
+          label: "Route correctness",
+          category: "workflow",
+          score: null,
+          status: "missing_evidence",
+          measuredValue: execution?.state === "available"
+            ? `${execution.requestedMode} → ${execution.resolvedMode ?? "unresolved"}`
+            : "Not published",
+          confidence: execution?.state === "available" ? "medium" : "none",
+          evidenceClass: "stream_observation",
+          detail: execution?.state === "available"
+            ? "The current route is recorded, but Full evaluation did not execute another catalog workflow prompt; route correctness is not inferred from the route itself."
+            : "No requested/resolved route evidence was published for the current workspace snapshot."
+        })
+      : metric
+  );
+  return buildCaseResult(item, metrics);
+}
+
 function reliabilityEvidenceCase(model: ProductIntelligenceModel): EvaluationCaseResult {
   const workstation = model.details?.workstationDashboard;
   const runtime = model.details?.runtimeConsole;
@@ -876,8 +1265,8 @@ function reliabilityEvidenceCase(model: ProductIntelligenceModel): EvaluationCas
 
 function ragasEvidenceCase(ragas: RagasExecutionEvidence): EvaluationCaseResult {
   const metrics: EvaluationMetricResult[] = ragasMetrics.map((metricId) => {
-    if (metricId === "context_recall") {
-      return missingMetric(metricId, "Context Recall", "rag", "Not implemented: approved datasets have no justified reference answers.", "ragas");
+    if (metricId === "context_recall" && ragas.scoreOrigin === "historical_fixture" && ragas.metricScores[metricId] == null) {
+      return missingMetric(metricId, "Context Recall", "rag", "The historical approved fixture has no justified reference answers; this limitation does not substitute for current-product evidence.", "ragas");
     }
     const score = ragas.metricScores[metricId];
     if (score != null) {
@@ -887,19 +1276,28 @@ function ragasEvidenceCase(ragas: RagasExecutionEvidence): EvaluationCaseResult 
         category: "rag",
         kind: "ragas",
         score,
-        detail: `Real RAGAS score across ${ragas.resultRows} approved retrieval row${ragas.resultRows === 1 ? "" : "s"}.`,
+        detail: `RAGAS score across ${ragas.resultRows} ${ragas.scoreOrigin === "historical_fixture" ? "historical fixture" : "current-product"} retrieval case${ragas.resultRows === 1 ? "" : "s"}.`,
         evidenceClass: "ragas_provider",
         confidence: ragas.resultRows > 1 ? "high" : "medium",
         measuredValue: `${Math.round(score * 100)}%`
       });
     }
-    if (ragas.state === "blocked" || ragas.state === "prepared" || ragas.state === "not_requested") {
+    if (ragas.state === "blocked") {
       return blockedMetric(
         metricId,
         formatEvaluationMetric(metricId),
         "rag",
+        ragas.detail,
+        "ragas"
+      );
+    }
+    if (ragas.state === "prepared" || ragas.state === "not_requested") {
+      return missingMetric(
+        metricId,
+        formatEvaluationMetric(metricId),
+        "rag",
         ragas.state === "prepared"
-          ? "Dataset eligibility was prepared locally; evaluator providers were not called."
+          ? "Current-product benchmark eligibility was prepared; no completed score is claimed."
           : ragas.detail,
         "ragas"
       );
@@ -909,7 +1307,9 @@ function ragasEvidenceCase(ragas: RagasExecutionEvidence): EvaluationCaseResult 
   return buildCaseResult(
     {
       id: `ragas/${ragas.datasetId}`,
-      title: "Approved RAGAS retrieval dataset",
+      title: ragas.scoreOrigin === "historical_fixture"
+        ? "Historical approved-fixture RAGAS dataset"
+        : "Current-product RAGAS benchmark",
       prompt: "",
       promptVersion: ragas.datasetVersion,
       origins: [ragas.privacyClass],
@@ -1178,20 +1578,32 @@ function comparableRuns(
   dataset: GoldenEvaluationDataset,
   ragas: RagasExecutionEvidence
 ) {
-  const selected = selectEvaluationCases(dataset, request).map((item) => item.id);
+  const selected = selectEvaluationExecutionCases(dataset, request).map((item) => item.id);
+  const currentProductComparable =
+    previous.ragas.benchmarkMode === "current_product" &&
+    ragas.benchmarkMode === "current_product";
   const ragasComparable = !scopeIncludes(request.scope, "rag") || (
-    previous.ragas.datasetId === ragas.datasetId &&
-    previous.ragas.datasetVersion === ragas.datasetVersion &&
-    previous.ragas.privacyClass === ragas.privacyClass &&
-    [...previous.ragas.metrics].sort().join("|") === [...ragas.metrics].sort().join("|") &&
-    previous.ragas.model === ragas.model &&
-    previous.ragas.provider === ragas.provider &&
-    previous.ragas.embeddingModel === ragas.embeddingModel &&
-    previous.ragas.ragasVersion === ragas.ragasVersion &&
-    previous.ragas.metricContract === ragas.metricContract
+    currentProductComparable
+      ? matchesCurrentProductEvidenceIdentity(previous.ragas, ragas) &&
+        previous.ragas.privacyClass === ragas.privacyClass
+      : previous.ragas.scoreOrigin === ragas.scoreOrigin &&
+        previous.ragas.benchmarkMode === ragas.benchmarkMode &&
+        previous.ragas.benchmarkVersion === ragas.benchmarkVersion &&
+        previous.ragas.datasetFingerprint === ragas.datasetFingerprint &&
+        previous.ragas.generationModel === ragas.generationModel &&
+        previous.ragas.evaluator === ragas.evaluator &&
+        previous.ragas.datasetId === ragas.datasetId &&
+        previous.ragas.datasetVersion === ragas.datasetVersion &&
+        previous.ragas.privacyClass === ragas.privacyClass &&
+        [...previous.ragas.metrics].sort().join("|") === [...ragas.metrics].sort().join("|") &&
+        previous.ragas.model === ragas.model &&
+        previous.ragas.provider === ragas.provider &&
+        previous.ragas.embeddingModel === ragas.embeddingModel &&
+        previous.ragas.ragasVersion === ragas.ragasVersion &&
+        previous.ragas.metricContract === ragas.metricContract
   );
   return ragasComparable &&
-    previous.datasetFingerprint === dataset.fingerprint &&
+    previous.datasetFingerprint === (ragas.datasetFingerprint ?? dataset.fingerprint) &&
     previous.scope === request.scope &&
     previous.selectedCaseIds.join("|") === selected.join("|");
 }

@@ -103,18 +103,10 @@ def build_live_session_sample(
     resolved_route = LiveSessionRouteMetadata(
         route=(route_decision.route if route_decision is not None else None),
         mode=(route_decision.mode if route_decision is not None else request.mode),
-        domain=(
-            route_decision.domain if route_decision is not None else request.domain
-        ),
-        domains=(
-            route_decision.domains if route_decision is not None else request.domains
-        ),
-        domain_selection=(
-            route_decision.domain_selection if route_decision is not None else None
-        ),
-        capabilities=(
-            route_decision.capabilities if route_decision is not None else ()
-        ),
+        domain=(route_decision.domain if route_decision is not None else request.domain),
+        domains=(route_decision.domains if route_decision is not None else request.domains),
+        domain_selection=(route_decision.domain_selection if route_decision is not None else None),
+        capabilities=(route_decision.capabilities if route_decision is not None else ()),
     )
     return LiveSessionEvalSample(
         sample_id=sample_id or uuid4().hex,
@@ -143,10 +135,7 @@ def _extract_recorded_retrieved_contexts(
     if retrieval_context is None:
         return ()
 
-    return tuple(
-        LiveSessionRetrievedContext.from_chunk(chunk)
-        for chunk in retrieval_context.chunks
-    )
+    return tuple(LiveSessionRetrievedContext.from_chunk(chunk) for chunk in retrieval_context.chunks)
 
 
 def _extract_route_decision(
@@ -239,17 +228,17 @@ def _extract_assembled_retrieved_contexts(
 
     raw_context = context_event.payload.get("context")
     if not isinstance(raw_context, dict):
-        return ()
+        return None
 
     raw_retrieval_context = raw_context.get("retrieval_context")
     if not isinstance(raw_retrieval_context, dict):
-        return ()
+        # Current context events intentionally expose only a privacy-safe count
+        # summary. Fall back to the earlier typed retrieval event, which still
+        # belongs to the trusted local recorder boundary.
+        return None
 
     retrieval_context = RetrievalContextResponse.model_validate(raw_retrieval_context)
-    return tuple(
-        LiveSessionRetrievedContext.from_chunk(chunk)
-        for chunk in retrieval_context.chunks
-    )
+    return tuple(LiveSessionRetrievedContext.from_chunk(chunk) for chunk in retrieval_context.chunks)
 
 
 def _last_event(

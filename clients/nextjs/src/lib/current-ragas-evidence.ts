@@ -1,26 +1,27 @@
-import type { RagasExecutionEvidence } from "./evaluation-benchmark";
+import canonicalRetrievalReport from "../../../../demo/evaluation/canonical_retrieval_report.json";
+import currentProductRagasEvidence from "../../../../demo/evaluation/current_product_ragas_evidence.json";
+import type {
+  RagasCaseEvidence,
+  RagasExecutionEvidence
+} from "./evaluation-benchmark";
 
 export const CURRENT_APPROVED_RAGAS_EVALUATED_AT = "2026-07-13T03:00:18.124301Z";
 
 export const CURRENT_CANONICAL_RETRIEVAL_REPORT = {
-  evaluatedAt: "2026-07-13T05:05:33.306298+00:00",
+  evaluatedAt: canonicalRetrievalReport.evaluatedAt,
   verificationState: "verified_current_worktree",
   reportArtifact: "demo/evaluation/canonical_retrieval_report.json",
-  selectionFingerprint: "sha256:74acf5d62f669eff64fd5fe4fe176bff04da4fcbdc7a7588e18b85a8a418d1c7",
-  kbSnapshot: {
-    recordCount: 1445,
-    metadataFingerprint: "sha256:b64323bf14246d63a2294794d5948da6abe130d8dd4a0c7ad5a4b3ac3bca11ae"
-  },
-  benchmarkId: "capstone_kb_expansion_retrieval_demo_pack",
-  retrievalPackCases: 7,
-  casesWithResults: 7,
+  selectionFingerprint: canonicalRetrievalReport.selectionFingerprint,
+  kbSnapshot: canonicalRetrievalReport.kbSnapshot,
+  benchmarkId: canonicalRetrievalReport.benchmarkId,
+  retrievalPackCases: canonicalRetrievalReport.benchmarkCaseCount,
+  casesWithResults: canonicalRetrievalReport.summary.casesWithResults,
   ragScopedGoldenContracts: 8,
-  expectedSourceOverlap: { covered: 16, expected: 23, ratio: 16 / 23 },
-  requestedDomainCoverage: { covered: 18, expected: 19, ratio: 18 / 19 },
-  embeddingModel: "text-embedding-3-small",
-  retrievalLimit: 5,
-  interpretation:
-    "Expected source IDs are coverage anchors, not a requirement that every listed source appear in the top-k results.",
+  expectedSourceOverlap: canonicalRetrievalReport.summary.expectedSourceOverlap,
+  requestedDomainCoverage: canonicalRetrievalReport.summary.requestedDomainCoverage,
+  embeddingModel: canonicalRetrievalReport.embeddingModel,
+  retrievalLimit: canonicalRetrievalReport.retrievalLimit,
+  interpretation: canonicalRetrievalReport.interpretation,
   qualityInterpretation:
     "Heading-only chunks and verified index-only sources are excluded; bounded candidate headroom then recovered substantive Three.js manual evidence without source pinning."
 } as const;
@@ -85,6 +86,8 @@ export const CANONICAL_RETRIEVAL_EVOLUTION = [
 ] as const;
 
 export const CURRENT_APPROVED_RAGAS_EVIDENCE: RagasExecutionEvidence = {
+  schemaVersion: "historical-ragas-evidence.v1",
+  scope: "historical_fixture",
   state: "completed",
   runId: "a85a9f445df7481eb2d327ccc0b6f055",
   evaluatedAt: CURRENT_APPROVED_RAGAS_EVALUATED_AT,
@@ -103,6 +106,7 @@ export const CURRENT_APPROVED_RAGAS_EVIDENCE: RagasExecutionEvidence = {
     answer_relevancy: 0.4742546883775048,
     context_relevancy: 0.6875
   },
+  retrievalScore: 0.6143970054089595,
   resultRows: 4,
   totalSamples: 4,
   eligibleSamples: 4,
@@ -116,6 +120,21 @@ export const CURRENT_APPROVED_RAGAS_EVIDENCE: RagasExecutionEvidence = {
   durationMs: 46_880,
   detail:
     "Committed transcribed summary of the approved provider-scored fixture. It is separate from canonical golden-case execution coverage.",
+  benchmarkMode: "historical_fixture",
+  scoreOrigin: "historical_fixture",
+  benchmarkVersion: "sanitized-ragas.v1",
+  selectedCaseIds: [],
+  datasetFingerprint: null,
+  retrievalFingerprint: null,
+  promptFingerprint: null,
+  generationFingerprint: null,
+  outputFingerprint: null,
+  selectionFingerprint: null,
+  kbFingerprint: null,
+  generationModel: null,
+  evaluator: "OpenAI evaluator / gpt-4o-mini",
+  evaluatorModel: "gpt-4o-mini",
+  timestamp: CURRENT_APPROVED_RAGAS_EVALUATED_AT,
   caseRows: [
     {
       sampleId: "sanitized_ragas_p5_setup_draw",
@@ -127,7 +146,9 @@ export const CURRENT_APPROVED_RAGAS_EVIDENCE: RagasExecutionEvidence = {
       },
       metricErrors: {},
       sourceIds: ["p5_reference_setup_draw", "cca_geometry_boundary"],
-      domains: ["p5_js"]
+      domains: ["p5_js"],
+      promptFingerprint: null,
+      generationFingerprint: null
     },
     {
       sampleId: "sanitized_ragas_three_audio_postfx",
@@ -139,7 +160,9 @@ export const CURRENT_APPROVED_RAGAS_EVIDENCE: RagasExecutionEvidence = {
       },
       metricErrors: {},
       sourceIds: ["three_manual_post_processing", "three_manual_fundamentals", "mdn_web_audio_analyser"],
-      domains: ["three_js", "web_audio_api"]
+      domains: ["three_js", "web_audio_api"],
+      promptFingerprint: null,
+      generationFingerprint: null
     },
     {
       sampleId: "sanitized_ragas_glsl_kaleidoscope",
@@ -151,7 +174,9 @@ export const CURRENT_APPROVED_RAGAS_EVIDENCE: RagasExecutionEvidence = {
       },
       metricErrors: {},
       sourceIds: ["opengl_glsl_fragment_shader", "shadertoy_uniforms_guide", "three_shader_material_reference"],
-      domains: ["glsl", "shadertoy", "three_js"]
+      domains: ["glsl", "shadertoy", "three_js"],
+      promptFingerprint: null,
+      generationFingerprint: null
     },
     {
       sampleId: "sanitized_ragas_hydra_boundary",
@@ -163,7 +188,40 @@ export const CURRENT_APPROVED_RAGAS_EVIDENCE: RagasExecutionEvidence = {
       },
       metricErrors: {},
       sourceIds: ["cca_demo_pack_boundaries", "cca_capstone_evidence_hydra_boundary"],
-      domains: ["hydra"]
+      domains: ["hydra"],
+      promptFingerprint: null,
+      generationFingerprint: null
     }
   ]
+};
+
+type CanonicalCurrentProductCase = Omit<RagasCaseEvidence, "sampleId"> & {
+  caseId: string;
+};
+
+type CanonicalCurrentProductEvidence = Omit<
+  RagasExecutionEvidence,
+  "state" | "caseRows"
+> & {
+  status: RagasExecutionEvidence["state"];
+  caseResults: CanonicalCurrentProductCase[];
+};
+
+// The committed canonical JSON is the sole static source of current-product
+// evidence. The Evaluation workspace treats it like a persisted run, then lets
+// any newer successful persisted run win by timestamp. Historical fixture
+// evidence remains separate above.
+const {
+  status: currentProductStatus,
+  caseResults: currentProductCaseResults,
+  ...currentProductEvidence
+} = currentProductRagasEvidence as CanonicalCurrentProductEvidence;
+
+export const CURRENT_PRODUCT_RAGAS_EVIDENCE: RagasExecutionEvidence = {
+  ...currentProductEvidence,
+  state: currentProductStatus,
+  caseRows: currentProductCaseResults.map(({ caseId, ...row }) => ({
+    ...row,
+    sampleId: caseId
+  }))
 };

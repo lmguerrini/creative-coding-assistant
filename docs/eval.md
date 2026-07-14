@@ -161,10 +161,10 @@ fingerprint binds the fixed benchmark, model, top-k, summary, and ranked result
 lineage. Re-running against a changed index therefore produces visibly different
 evidence rather than silently replacing history.
 
-Do not run current local knowledge-base excerpts through an external generation
-or evaluator provider. Current-product end-to-end RAGAS remains
-`BLOCKED_BY_EXECUTION_ENVIRONMENT` until a reviewed committed sanitized/redacted
-dataset represents that path. The latest defensible provider score remains the
-committed transcribed product summary of the approved-fixture result; the raw
-scored JSONL and run manifest are not tracked artifacts. `MISSING_EVIDENCE` and
-blocked dimensions are never converted to zero.
+Do not run arbitrary current local knowledge-base excerpts through an external
+generation or evaluator provider. The reviewed committed seven-case public
+benchmark now represents the current-product path and publishes a 68.03%
+five-metric macro with complete provenance. Raw scored diagnostics and local
+session rows remain private. The historical four-row fixture remains available
+at 61.44%, and `MISSING_EVIDENCE` or blocked dimensions are never converted to
+zero.

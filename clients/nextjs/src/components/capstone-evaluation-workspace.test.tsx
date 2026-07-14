@@ -1,187 +1,427 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { buildEvaluationBenchmarkRun, emptyRagasEvidence } from "@/lib/evaluation-benchmark";
+import {
+  buildEvaluationBenchmarkRun,
+  CURRENT_PRODUCT_RETRIEVAL_CASE_IDS,
+  CURRENT_PRODUCT_RETRIEVAL_DATASET_FINGERPRINT,
+  emptyRagasEvidence,
+  type EvaluationBenchmarkRun,
+  type EvaluationExecutionProgress,
+  type RagasExecutionEvidence
+} from "@/lib/evaluation-benchmark";
 import type { EvaluationHistoryRecord } from "@/lib/product-controls";
 import type { ProductIntelligenceModel } from "@/lib/product-intelligence";
 import { CapstoneEvaluationWorkspace } from "./capstone-evaluation-workspace";
 
 const model = { artifactRegistry: [], details: null } as unknown as ProductIntelligenceModel;
 
-function retrievalHistory(): EvaluationHistoryRecord[] {
-  const benchmark = buildEvaluationBenchmarkRun({
-    model,
-    now: new Date("2026-07-13T12:00:00.000Z"),
-    ragas: {
-      ...emptyRagasEvidence(),
-      state: "completed",
-      datasetId: "sanitized_public",
-      privacyClass: "committed_sanitized_public",
-      metrics: ["faithfulness", "answer_relevancy", "context_precision", "context_relevancy"],
-      metricScores: { faithfulness: .9, answer_relevancy: .8, context_precision: .7, context_relevancy: .8 },
-      resultRows: 4,
-      totalSamples: 4,
-      eligibleSamples: 4,
-      provider: "OpenAI",
-      detail: "Real RAGAS evaluation completed on the approved fixture."
-    },
-    request: { scope: "rag", caseIds: [], allowProviderCalls: true, approvedRagasDataset: "sanitized_public" }
-  });
-  return [{
-    benchmark,
-    datasetId: "sanitized_public",
-    detail: "Completed",
-    dryRun: false,
-    evaluatedAt: benchmark.completedAt,
-    id: "history-1",
+const fiveMetricScores = {
+  context_precision: .9,
+  faithfulness: .9,
+  answer_relevancy: .9,
+  context_relevancy: .9,
+  context_recall: .9
+};
+const backendMetricOrder = [
+  "context_precision",
+  "faithfulness",
+  "answer_relevancy",
+  "context_relevancy",
+  "context_recall"
+];
+const hash = (character: string) => `sha256:${character.repeat(64)}`;
+
+function currentProductEvidence({
+  metricScores = fiveMetricScores,
+  runId = "current-product-run-1",
+  sampleCount = 7,
+  state = "completed",
+  timestamp = "2026-07-13T12:00:00.000Z"
+}: {
+  metricScores?: Record<string, number>;
+  runId?: string;
+  sampleCount?: number;
+  state?: RagasExecutionEvidence["state"];
+  timestamp?: string;
+} = {}): RagasExecutionEvidence {
+  const selectedCaseIds = CURRENT_PRODUCT_RETRIEVAL_CASE_IDS.slice(0, sampleCount);
+  const retrievalScore = Object.values(metricScores).reduce((sum, score) => sum + score, 0) /
+    Object.values(metricScores).length;
+  return {
+    ...emptyRagasEvidence(),
+    schemaVersion: "current-product-ragas-evidence.v1",
+    scope: "rag",
+    state,
+    runId,
+    evaluatedAt: timestamp,
+    datasetId: "capstone_kb_expansion_retrieval_demo_pack",
+    datasetVersion: "current-product-retrieval.v1",
+    privacyClass: "public_official_contexts_with_authored_references",
+    metrics: backendMetricOrder,
+    metricScores,
+    retrievalScore,
+    resultRows: state === "completed" ? sampleCount : 0,
+    totalSamples: sampleCount,
+    eligibleSamples: sampleCount,
+    skippedSamples: 0,
     metricFailures: 0,
-    metrics: ["faithfulness", "answer_relevancy", "context_precision", "context_relevancy"],
+    provider: "OpenAI",
+    model: "gpt-5-mini",
+    embeddingModel: "text-embedding-3-small",
+    ragasVersion: "0.3.9",
+    metricContract: "ragas-current-product-reference.v2",
+    durationMs: 1_200,
+    detail: state === "completed"
+      ? "Current-product evaluation completed."
+      : "Current-product evaluation stopped before scores were published.",
+    caseRows: state === "completed" ? selectedCaseIds.map((sampleId, index) => ({
+      sampleId,
+      metrics: { ...metricScores },
+      metricErrors: {},
+      sourceIds: [`official-source-${index}`],
+      domains: [`domain-${index}`],
+      promptFingerprint: hash(String((index + 1) % 10)),
+      generationFingerprint: hash(String((index + 2) % 10))
+    })) : [],
+    benchmarkMode: "current_product",
+    scoreOrigin: "current_product",
+    benchmarkVersion: "current-product-retrieval.v1",
+    selectedCaseIds: [...selectedCaseIds],
+    datasetFingerprint: CURRENT_PRODUCT_RETRIEVAL_DATASET_FINGERPRINT,
+    retrievalFingerprint: hash("a"),
+    promptFingerprint: hash("b"),
+    generationFingerprint: hash("c"),
+    outputFingerprint: hash("d"),
+    selectionFingerprint: hash("e"),
+    kbFingerprint: hash("f"),
+    generationModel: "gpt-5-mini",
+    evaluator: "OpenAI / gpt-5-mini",
+    evaluatorModel: "gpt-5-mini",
+    timestamp
+  };
+}
+
+function benchmarkRun(
+  evidence: RagasExecutionEvidence,
+  previousRun: EvaluationBenchmarkRun | null = null
+): EvaluationBenchmarkRun {
+  return buildEvaluationBenchmarkRun({
+    model,
+    now: new Date(evidence.timestamp ?? evidence.evaluatedAt ?? "2026-07-13T12:00:00.000Z"),
+    previousRun,
+    ragas: evidence,
+    request: {
+      scope: "rag",
+      caseIds: [],
+      allowProviderCalls: true,
+      approvedRagasDataset: "sanitized_public"
+    }
+  });
+}
+
+function historyRecord(run: EvaluationBenchmarkRun): EvaluationHistoryRecord {
+  return {
+    benchmark: run,
+    datasetId: run.ragas.datasetId,
+    detail: run.ragas.detail,
+    dryRun: false,
+    evaluatedAt: run.timestamp,
+    id: `history-${run.runId}`,
+    metricFailures: run.ragas.metricFailures,
+    metrics: run.ragas.metrics,
     providerCallsAllowed: true,
-    resultRows: 4,
-    runId: benchmark.id,
-    status: "completed"
-  }];
+    resultRows: run.ragas.resultRows,
+    runId: run.runId,
+    status: run.ragas.state
+  };
 }
 
 describe("Capstone Evaluation workspace", () => {
-  it("presents four separate systems and a provider-safe local preflight", async () => {
-    const onRun = vi.fn().mockResolvedValue(undefined);
-    render(<CapstoneEvaluationWorkspace history={[]} model={model} onRun={onRun} running={false} />);
+  it("keeps the primary score current-product-only and the historical 61.44% fixture inside History", () => {
+    render(<CapstoneEvaluationWorkspace currentProductEvidence={null} history={[]} model={model} onRun={vi.fn()} running={false} />);
 
     expect(screen.getByText("AI Engineering Lab")).toBeVisible();
     expect(screen.getByRole("heading", { name: "Measure retrieval. Diagnose weaknesses. Improve the real system." })).toBeVisible();
     expect(screen.getByText(/unique cases/)).toHaveTextContent("35 unique cases");
-    expect(screen.getAllByText("RAG / Retrieval").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Creative Artifacts").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Agents & Workflow").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Product Reliability").length).toBeGreaterThan(0);
-    expect(screen.queryByText(/overall quality score/i)).not.toBeInTheDocument();
-    expect(screen.queryByText("Overall product quality")).not.toBeInTheDocument();
-    const boundaries = screen.getByLabelText("Evaluation score boundaries");
-    expect(boundaries).toHaveTextContent("Six independent signals. No global score.");
-    for (const label of ["Retrieval Quality", "Creative Quality", "Workflow Quality", "Product Reliability", "Benchmark Coverage", "Evidence Coverage"]) {
-      expect(within(boundaries).getByText(label)).toBeVisible();
-    }
-    const categoryCards = screen.getByRole("region", { name: "Evaluation categories" });
-    expect(within(categoryCards).getAllByText("Not measured")).toHaveLength(4);
-    expect(within(categoryCards).queryByText(/target 80%/i)).not.toBeInTheDocument();
-    expect(within(categoryCards).queryByLabelText(/measured score/i)).not.toBeInTheDocument();
-    expect(boundaries).toHaveTextContent(/coverage is not quality/i);
-    expect(screen.getByText("Approved-fixture Overall Retrieval Score")).toBeVisible();
-    for (const label of ["Faithfulness", "Answer Relevancy", "Context Precision", "Context Recall", "Context Relevancy"]) {
-      expect(screen.getAllByText(label).length).toBeGreaterThan(0);
-    }
-    expect(screen.getByText(/not an overall product or project score/i)).toBeVisible();
-    expect(screen.getByText(/committed transcribed baseline summary/i)).toBeVisible();
-    const baselineOverall = screen.getByText("Approved-fixture Overall Retrieval Score").closest("article");
-    expect(within(baselineOverall as HTMLElement).getByText("61.44%")).toBeVisible();
-    expect(screen.getByText("Benchmark coverage").closest("article")).toHaveTextContent("7/7 retrieval queries7/7 canonical retrieval-pack queries");
-    expect(screen.getByText("Evidence coverage").closest("article")).toHaveTextContent("80%4/5 requested RAG metric dimensions measured");
-    const evolution = screen.getByLabelText("Retrieval engineering evolution");
-    expect(evolution).toHaveTextContent("Current verified");
-    expect(evolution).toHaveTextContent("9/23");
-    expect(evolution).toHaveTextContent("17/23");
-    expect(evolution).toHaveTextContent("19/23");
-    expect(evolution).toHaveTextContent("15/23");
-    expect(evolution).toHaveTextContent("16/23");
-    expect(evolution).toHaveTextContent("7/19");
-    expect(evolution).toHaveTextContent("18/19");
-    expect(evolution).toHaveTextContent("BLOCKED_BY_EXECUTION_ENVIRONMENT");
-    expect(evolution).toHaveTextContent("canonical_retrieval_report.json");
-    expect(evolution).toHaveTextContent("1,445 chunks");
-    expect(evolution).toHaveTextContent("b64323bf1424");
-    expect(evolution).toHaveTextContent("74acf5d62f66");
-    expect(evolution).toHaveTextContent(/not answer quality, evidence completeness, or an overall product score/i);
-    fireEvent.click(screen.getByText("Evidence lineage and evaluation execution timeline"));
-    expect(screen.getByText("Evidence lineage")).toBeVisible();
-    expect(screen.getByLabelText("Retrieval evaluation execution timeline")).toHaveTextContent("MISSING_EVIDENCE");
-    expect(screen.getByLabelText("Retrieval evaluation execution timeline")).toHaveTextContent("19/23 RAW ANCHORS → 15/23 SUBSTANTIVE → 16/23 FINAL");
-    const scoreContract = screen.getByText("Retrieval score contract").closest("details");
-    expect(scoreContract).not.toBeNull();
-    fireEvent.click(screen.getByText("Retrieval score contract"));
-    expect(within(scoreContract as HTMLElement).getByLabelText("Included retrieval metrics")).toHaveTextContent("Equal weight inside Retrieval Quality only");
-    expect(within(scoreContract as HTMLElement).getByText("MISSING_EVIDENCE")).toBeVisible();
-    expect(within(scoreContract as HTMLElement).getByText("BLOCKED_BY_EXECUTION_ENVIRONMENT")).toBeVisible();
-    expect(within(scoreContract as HTMLElement).getAllByText("NOT_COMPARABLE")).toHaveLength(2);
-    expect(within(scoreContract as HTMLElement).getByText("SUBJECTIVE")).toBeVisible();
-    expect(scoreContract).toHaveTextContent(/global score is not calculated/i);
-    const diagnostics = screen.getByLabelText("Metric engineering diagnostics");
-    for (const metricName of ["Faithfulness", "Answer Relevancy", "Context Relevancy"]) {
-      const weakMetric = within(diagnostics).getByText(metricName).closest("details");
-      expect(weakMetric).not.toBeNull();
-      for (const field of ["Current approved score", "Target", "Root cause", "Product improvement", "Comparable benchmark delta", "Remaining limitation", "Recommended next engineering step"]) {
-        expect(within(weakMetric as HTMLElement).getByText(field)).toBeInTheDocument();
-      }
-      expect(weakMetric).toHaveTextContent("At least 80%");
-      expect(weakMetric).toHaveTextContent("NOT_COMPARABLE");
-    }
-    const recallDiagnostic = within(diagnostics).getByText("Context Recall").closest("details");
-    expect(recallDiagnostic).toHaveTextContent("MISSING_EVIDENCE");
-    expect(recallDiagnostic).toHaveTextContent("Recommended next engineering step");
-
-    fireEvent.click(screen.getByRole("button", { name: "Run Evaluation" }));
-    expect(screen.getByLabelText("Evaluation preflight")).toHaveTextContent(/no provider call/i);
-    await waitFor(() => expect(onRun).toHaveBeenCalledWith({
-      scope: "full",
-      caseIds: [],
-      allowProviderCalls: false,
-      approvedRagasDataset: "sanitized_public"
-    }));
-    expect(screen.getByLabelText("Live evaluation progress")).toHaveTextContent(
-      "Current workspace snapshot"
+    expect(screen.getAllByRole("button", { name: "Run Evaluation" })).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: /Run \d+ cases/ })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Evaluation benchmark summary")).toHaveTextContent(
+      "Frozen contract coverage only; Full does not generate all 35 prompts."
     );
-    const authorization = screen.getByRole("checkbox", { name: /explicitly authorize evaluator provider calls/i });
-    expect(authorization).not.toBeChecked();
-    expect(screen.getByLabelText("Approved RAGAS dataset")).toBeDisabled();
 
-    onRun.mockClear();
-    fireEvent.click(screen.getByRole("button", { name: "Run 35 cases" }));
-    await waitFor(() => expect(onRun).toHaveBeenCalledWith({
-      scope: "full",
-      caseIds: [],
-      allowProviderCalls: false,
-      approvedRagasDataset: "sanitized_public"
-    }));
-    const progress = screen.getByLabelText("Live evaluation progress");
-    expect(progress).toHaveTextContent("Estimated progress: indeterminate");
-    expect(progress).toHaveTextContent("golden_eval.v1 · 35 contracts enumerated");
-    expect(progress).toHaveTextContent("Current workspace snapshot");
-    expect(progress).toHaveTextContent("0 confirmed / 1 unresolved snapshot");
-    expect(within(progress).getByRole("progressbar")).not.toHaveAttribute("aria-valuenow");
+    const retrieval = screen.getByLabelText("RAGAS retrieval evaluation");
+    const overall = within(retrieval).getByText("Current-product Overall Retrieval Score").closest("article");
+    expect(overall).not.toBeNull();
+    expect(within(overall as HTMLElement).getByText("—")).toBeVisible();
+    expect(retrieval).toHaveTextContent("No partial metric set is promoted to the primary score");
+    expect(screen.getByLabelText("Evaluation benchmark summary")).toHaveTextContent("target 85% · stretch 90%");
+    expect(screen.queryByText("Approved-fixture Overall Retrieval Score")).not.toBeInTheDocument();
+
+    const historySummary = screen.getByText("Comparable stored runs", { selector: "summary" });
+    const historyDisclosure = historySummary.closest("details");
+    expect(historyDisclosure).not.toBeNull();
+    expect(within(historyDisclosure as HTMLElement).getByText("61.44%")).not.toBeVisible();
+    fireEvent.click(historySummary);
+    expect(within(historyDisclosure as HTMLElement).getByText("61.44%")).toBeVisible();
+    expect(historyDisclosure).toHaveTextContent("Historical approved fixture · not current product");
+    expect(historyDisclosure).toHaveTextContent("four-metric limitation");
   });
 
-  it("requires explicit authorization before sending an approved provider request", async () => {
-    const onRun = vi.fn(() => new Promise<void>(() => undefined));
-    render(<CapstoneEvaluationWorkspace history={[]} model={model} onRun={onRun} running={false} />);
+  it("uses the single above-fold action and renders backend progress verbatim", async () => {
+    const reportedProgress: EvaluationExecutionProgress = {
+      runId: "evaluation-run-async-1",
+      status: "running",
+      phase: "ragas_scoring",
+      lane: "RAG / Retrieval",
+      currentCaseId: "runtime_selection_hydra_vs_p5",
+      currentCaseLabel: "Runtime selection for fast live visuals",
+      completedCases: 3,
+      totalCases: 7,
+      remainingCases: 4,
+      percent: 43,
+      executionState: "local_preflight",
+      detail: "Scoring current retrieved contexts against the reference answer."
+    };
+    const onRun = vi.fn(async (_request, onProgress) => {
+      onProgress(reportedProgress);
+    });
+    render(<CapstoneEvaluationWorkspace currentProductEvidence={null} history={[]} model={model} onRun={onRun} running={false} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Run Evaluation" }));
+
+    await waitFor(() => expect(onRun).toHaveBeenCalledWith({
+      scope: "full",
+      caseIds: [],
+      allowProviderCalls: false,
+      approvedRagasDataset: "sanitized_public"
+    }, expect.any(Function)));
+    const progress = screen.getByLabelText("Live evaluation progress");
+    expect(progress).toHaveTextContent("43% complete");
+    expect(progress).toHaveTextContent("golden_eval.v1 · evaluation-run-async-1");
+    expect(progress).toHaveTextContent("RAG / Retrieval");
+    expect(progress).toHaveTextContent("Runtime selection for fast live visuals · runtime_selection_hydra_vs_p5");
+    expect(progress).toHaveTextContent("3 completed / 4 remaining of 7");
+    expect(progress).toHaveTextContent("ragas scoring · running");
+    expect(progress).toHaveTextContent("local preflight");
+    expect(within(progress).getByRole("progressbar")).toHaveAttribute("aria-valuenow", "43");
+  });
+
+  it("configures provider consent without adding a second submit action", async () => {
+    const onRun = vi.fn().mockResolvedValue(undefined);
+    render(<CapstoneEvaluationWorkspace currentProductEvidence={null} history={[]} model={model} onRun={onRun} running={false} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Configure run" }));
-    fireEvent.click(screen.getByRole("checkbox", { name: /explicitly authorize evaluator provider calls/i }));
-    fireEvent.change(screen.getByLabelText("Approved RAGAS dataset"), { target: { value: "redacted_public" } });
-    fireEvent.click(screen.getByRole("button", { name: "Run 35 cases" }));
+    const authorization = screen.getByRole("checkbox", { name: /current-product public benchmark/i });
+    expect(authorization).not.toBeChecked();
+    expect(screen.queryByLabelText("Current-product benchmark evidence policy")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Evaluation preflight")).toHaveTextContent("Local preflight / workspace snapshot");
+    expect(screen.getByLabelText("Evaluation preflight")).toHaveTextContent("Zero retrieval, generation, or evaluator provider calls; no new Retrieval Quality score");
+    expect(screen.getByLabelText("Evaluation preflight")).toHaveTextContent("7 canonical RAG cases + workspace snapshots");
+    expect(screen.getByLabelText("Evaluation preflight")).toHaveTextContent("local creative, workflow, and reliability evidence is snapshotted separately");
+
+    fireEvent.click(authorization);
+    expect(screen.getAllByRole("button", { name: "Run Evaluation" })).toHaveLength(1);
+    expect(screen.getByLabelText("Evaluation preflight")).toHaveTextContent("Public official KB excerpts only; explicitly authorized");
+    fireEvent.click(screen.getByRole("button", { name: "Run Evaluation" }));
 
     await waitFor(() => expect(onRun).toHaveBeenCalledWith(expect.objectContaining({
       allowProviderCalls: true,
-      approvedRagasDataset: "redacted_public"
-    })));
-    expect(screen.getByLabelText("Live evaluation progress")).toHaveTextContent("Authorized provider batch in progress");
-    expect(screen.getByLabelText("Live evaluation progress")).toHaveTextContent("0 confirmed / 4 unresolved fixture rows");
+      approvedRagasDataset: "sanitized_public"
+    }), expect.any(Function)));
   });
 
-  it("makes the approved-fixture RAGAS macro prominent without treating missing evidence as zero", () => {
-    render(<CapstoneEvaluationWorkspace history={retrievalHistory()} model={model} onRun={vi.fn()} running={false} />);
+  it("withholds a five-metric run whose current-product provenance is incomplete", () => {
+    const evidence = currentProductEvidence({ runId: "missing-provenance-run" });
+    const run = benchmarkRun({ ...evidence, generationFingerprint: null });
+
+    render(
+      <CapstoneEvaluationWorkspace
+        currentProductEvidence={null}
+        history={[historyRecord(run)]}
+        model={model}
+        onRun={vi.fn()}
+        running={false}
+      />
+    );
 
     const retrieval = screen.getByLabelText("RAGAS retrieval evaluation");
-    const overall = within(retrieval).getByText("Approved-fixture Overall Retrieval Score").closest("article");
-    expect(overall).not.toBeNull();
-    expect(within(overall as HTMLElement).getByText("80.00%")).toBeVisible();
-    expect(within(retrieval).getByText("4 evaluated rows from 4/4 eligible fixture samples", { exact: false })).toBeVisible();
+    const overall = within(retrieval).getByText("Current-product Overall Retrieval Score").closest("article");
+    expect(within(overall as HTMLElement).getByText("—")).toBeVisible();
+    expect(screen.queryByLabelText("Current Retrieval Quality provenance")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText("Comparable stored runs", { selector: "summary" }));
+    expect(screen.getByLabelText("Evaluation history and trends")).toHaveTextContent("missing-provenance-run");
+  });
 
-    const metricGrid = within(retrieval).getByLabelText("RAGAS metric scores");
-    const recall = within(metricGrid).getByText("Context Recall").closest("article");
-    const relevancy = within(metricGrid).getByText("Context Relevancy").closest("article");
-    expect(within(recall as HTMLElement).getByText("MISSING EVIDENCE")).toBeVisible();
-    expect(within(relevancy as HTMLElement).getByText("80.00%")).toBeVisible();
-    const reliability = within(retrieval).getByText("Product Reliability").closest("article");
-    expect(reliability).not.toBeNull();
-    expect(reliability).toHaveTextContent("Not measured");
+  it("keeps a fully scored diagnostic subset in History instead of promoting it", () => {
+    const subset = benchmarkRun(currentProductEvidence({
+      runId: "diagnostic-subset-run",
+      sampleCount: 2
+    }));
+
+    render(
+      <CapstoneEvaluationWorkspace
+        currentProductEvidence={null}
+        history={[historyRecord(subset)]}
+        model={model}
+        onRun={vi.fn()}
+        running={false}
+      />
+    );
+
+    const retrieval = screen.getByLabelText("RAGAS retrieval evaluation");
+    const overall = within(retrieval).getByText("Current-product Overall Retrieval Score").closest("article");
+    expect(within(overall as HTMLElement).getByText("—")).toBeVisible();
+    expect(screen.queryByLabelText("Current Retrieval Quality provenance")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText("Comparable stored runs", { selector: "summary" }));
+    const history = screen.getByLabelText("Evaluation history and trends");
+    expect(history).toHaveTextContent("diagnostic-subset-run");
+    expect(history).toHaveTextContent("PRIOR CURRENT-PRODUCT RUN");
+  });
+
+  it("promotes only a complete five-metric current-product run, shows provenance, and clears stale history selection", async () => {
+    const anchor = currentProductEvidence({
+      runId: "committed-current-product-anchor",
+      timestamp: "2026-07-13T11:30:00.000Z"
+    });
+    const partial = benchmarkRun(currentProductEvidence({
+      metricScores: {
+        faithfulness: .99,
+        answer_relevancy: .99,
+        context_precision: .99,
+        context_relevancy: .99
+      },
+      runId: "partial-run",
+      timestamp: "2026-07-13T11:00:00.000Z"
+    }));
+    const completed = benchmarkRun(currentProductEvidence(), partial);
+    const blocked = benchmarkRun(currentProductEvidence({
+      runId: "blocked-run",
+      state: "blocked",
+      timestamp: "2026-07-13T13:00:00.000Z"
+    }), completed);
+
+    const { rerender } = render(
+      <CapstoneEvaluationWorkspace
+        currentProductEvidence={anchor}
+        history={[historyRecord(partial), historyRecord(completed), historyRecord(blocked)]}
+        model={model}
+        onRun={vi.fn()}
+        running={false}
+      />
+    );
+
+    const retrieval = screen.getByLabelText("RAGAS retrieval evaluation");
+    const overall = within(retrieval).getByText("Current-product Overall Retrieval Score").closest("article");
+    expect(within(overall as HTMLElement).getByText("90.00%")).toBeVisible();
+    expect(retrieval).toHaveTextContent("5/5 justified RAGAS dimensions measured");
+
+    const provenance = screen.getByLabelText("Current Retrieval Quality provenance");
+    expect(provenance).toHaveTextContent("current product");
+    expect(provenance).toHaveTextContent("current-product-retrieval.v1");
+    expect(provenance).toHaveTextContent("b5fbc0e7cc9a");
+    expect(provenance).toHaveTextContent("aaaaaaaaaaaa");
+    expect(provenance).toHaveTextContent("bbbbbbbbbbbb");
+    expect(provenance).toHaveTextContent("cccccccccccc");
+    expect(provenance).toHaveTextContent("gpt-5-mini");
+    expect(provenance).toHaveTextContent("OpenAI / gpt-5-mini");
+    expect(provenance).toHaveTextContent("text-embedding-3-small");
+    expect(provenance).toHaveTextContent("current-product-run-1");
+
+    fireEvent.click(screen.getByText("Comparable stored runs", { selector: "summary" }));
+    expect(screen.getByLabelText("Evaluation history and trends")).toHaveTextContent("blocked-run");
+    expect(screen.getByLabelText("Evaluation history and trends")).toHaveTextContent("current-product-run-1");
+    expect(screen.getByLabelText("Evaluation history and trends")).toHaveTextContent("partial-run");
+
+    fireEvent.click(screen.getByRole("button", { name: /partial-run/ }));
+    expect(screen.getByText("Historical run selected")).toBeVisible();
+    const failed = benchmarkRun(currentProductEvidence({
+      runId: "new-failed-current-run",
+      state: "failed",
+      timestamp: "2026-07-13T14:00:00.000Z"
+    }), completed);
+    rerender(
+      <CapstoneEvaluationWorkspace
+        currentProductEvidence={anchor}
+        history={[historyRecord(partial), historyRecord(completed), historyRecord(blocked), historyRecord(failed)]}
+        model={model}
+        onRun={vi.fn()}
+        running={false}
+      />
+    );
+    await waitFor(() => expect(screen.queryByText("Historical run selected")).not.toBeInTheDocument());
+  });
+
+  it("promotes the newest fully validated run when retrieval and KB fingerprints legitimately change", () => {
+    const anchor = currentProductEvidence({
+      runId: "committed-anchor",
+      timestamp: "2026-07-13T10:00:00.000Z"
+    });
+    const newerScores = Object.fromEntries(backendMetricOrder.map((metricId) => [metricId, .95]));
+    const staleRetrieval = benchmarkRun({
+      ...currentProductEvidence({
+        metricScores: newerScores,
+        runId: "stale-retrieval-run",
+        timestamp: "2026-07-13T11:00:00.000Z"
+      }),
+      retrievalFingerprint: hash("1")
+    });
+    const staleKb = benchmarkRun({
+      ...currentProductEvidence({
+        metricScores: newerScores,
+        runId: "stale-kb-run",
+        timestamp: "2026-07-13T12:00:00.000Z"
+      }),
+      retrievalFingerprint: hash("2"),
+      kbFingerprint: hash("2")
+    });
+
+    render(
+      <CapstoneEvaluationWorkspace
+        currentProductEvidence={anchor}
+        history={[historyRecord(staleRetrieval), historyRecord(staleKb)]}
+        model={model}
+        onRun={vi.fn()}
+        running={false}
+      />
+    );
+
+    const retrieval = screen.getByLabelText("RAGAS retrieval evaluation");
+    const overall = within(retrieval).getByText("Current-product Overall Retrieval Score").closest("article");
+    expect(within(overall as HTMLElement).getByText("95.00%")).toBeVisible();
+    expect(within(overall as HTMLElement).queryByText("90.00%")).not.toBeInTheDocument();
+    const provenance = screen.getByLabelText("Current Retrieval Quality provenance");
+    expect(provenance).toHaveTextContent("stale-kb-run");
+    expect(provenance).toHaveTextContent("222222222222");
+
+    fireEvent.click(screen.getByText("Comparable stored runs", { selector: "summary" }));
+    const history = screen.getByLabelText("Evaluation history and trends");
+    expect(history).toHaveTextContent("stale-retrieval-run");
+    expect(history).toHaveTextContent("stale-kb-run");
+    expect(history).toHaveTextContent("PRIOR CURRENT-PRODUCT RUN");
+    expect(history).toHaveTextContent("CURRENT PRODUCT");
+  });
+
+  it("promotes a fully validated persisted run without a static evidence anchor", () => {
+    const persisted = benchmarkRun(currentProductEvidence({
+      runId: "persisted-without-anchor",
+      timestamp: "2026-07-13T15:00:00.000Z"
+    }));
+
+    render(
+      <CapstoneEvaluationWorkspace
+        currentProductEvidence={null}
+        history={[historyRecord(persisted)]}
+        model={model}
+        onRun={vi.fn()}
+        running={false}
+      />
+    );
+
+    const retrieval = screen.getByLabelText("RAGAS retrieval evaluation");
+    const overall = within(retrieval).getByText("Current-product Overall Retrieval Score").closest("article");
+    expect(within(overall as HTMLElement).getByText("90.00%")).toBeVisible();
+    expect(screen.getByLabelText("Current Retrieval Quality provenance")).toHaveTextContent(
+      "persisted-without-anchor"
+    );
   });
 });

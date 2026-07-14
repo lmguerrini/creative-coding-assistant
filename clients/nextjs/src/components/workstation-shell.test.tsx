@@ -8,7 +8,10 @@ import {
 } from "@testing-library/react";
 import { StrictMode, type ComponentProps } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { WorkstationShell } from "./workstation-shell";
+import {
+  parseRagasExecutionEvidence,
+  WorkstationShell
+} from "./workstation-shell";
 import {
   getInitialWorkspaceSnapshot,
   getLocalWorkspaceSnapshot,
@@ -27,6 +30,11 @@ import {
   type WorkspacePersistenceSaveResult
 } from "@/lib/workspace-persistence";
 import { createWorkstationError } from "@/lib/workstation-errors";
+import {
+  CURRENT_PRODUCT_RETRIEVAL_CASE_IDS,
+  CURRENT_PRODUCT_RETRIEVAL_DATASET_FINGERPRINT,
+  currentProductRetrievalScoreFromEvidence
+} from "@/lib/evaluation-benchmark";
 
 const originalClipboard = navigator.clipboard;
 const originalCancelAnimationFrame = window.cancelAnimationFrame;
@@ -36,6 +44,77 @@ const originalRevokeObjectURL = URL.revokeObjectURL;
 const validPngBytes = new Uint8Array([
   0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
 ]);
+const evaluationHash = (character: string) => `sha256:${character.repeat(64)}`;
+const canonicalEvaluationMetricScores = {
+  context_precision: .88,
+  faithfulness: .88,
+  answer_relevancy: .88,
+  context_relevancy: .88,
+  context_recall: .88
+};
+
+function canonicalEvaluationCaseResults() {
+  return CURRENT_PRODUCT_RETRIEVAL_CASE_IDS.map((caseId, index) => ({
+    caseId,
+    sourceIds: [`official-source-${index}`],
+    domains: [`domain-${index}`],
+    metrics: { ...canonicalEvaluationMetricScores },
+    metricErrors: {},
+    promptFingerprint: evaluationHash(String((index + 1) % 10)),
+    generationFingerprint: evaluationHash(String((index + 2) % 10))
+  }));
+}
+
+function canonicalEvaluationResult(overrides: Record<string, unknown> = {}) {
+  return {
+    schemaVersion: "current-product-ragas-evidence.v1",
+    benchmarkMode: "current_product",
+    scoreOrigin: "current_product",
+    scope: "full",
+    runId: "canonical-evaluation-result",
+    status: "completed",
+    benchmarkVersion: "current-product-retrieval.v1",
+    datasetId: "capstone_kb_expansion_retrieval_demo_pack",
+    datasetVersion: "current-product-retrieval.v1",
+    selectedCaseIds: [...CURRENT_PRODUCT_RETRIEVAL_CASE_IDS],
+    datasetFingerprint: CURRENT_PRODUCT_RETRIEVAL_DATASET_FINGERPRINT,
+    retrievalFingerprint: evaluationHash("a"),
+    promptFingerprint: evaluationHash("b"),
+    generationFingerprint: evaluationHash("c"),
+    outputFingerprint: evaluationHash("d"),
+    selectionFingerprint: evaluationHash("e"),
+    kbFingerprint: evaluationHash("f"),
+    evaluatedAt: "2026-07-14T08:00:00.000Z",
+    timestamp: "2026-07-14T08:00:00.000Z",
+    metrics: [
+      "context_precision",
+      "faithfulness",
+      "answer_relevancy",
+      "context_relevancy",
+      "context_recall"
+    ],
+    metricScores: { ...canonicalEvaluationMetricScores },
+    retrievalScore: .88,
+    resultRows: 7,
+    totalSamples: 7,
+    eligibleSamples: 7,
+    skippedSamples: 0,
+    metricFailures: 0,
+    provider: "OpenAI",
+    model: "gpt-5-mini",
+    generationModel: "gpt-5-mini",
+    evaluator: "OpenAI / gpt-5-mini",
+    evaluatorModel: "gpt-5-mini",
+    embeddingModel: "text-embedding-3-small",
+    ragasVersion: "0.3.9",
+    metricContract: "ragas-current-product-reference.v2",
+    durationMs: 1_200,
+    detail: "Current-product evaluation completed.",
+    privacyClass: "public_official_contexts_with_authored_references",
+    caseResults: canonicalEvaluationCaseResults(),
+    ...overrides
+  };
+}
 
 const testCreativePlan = {
   outputModality: "visual" as const,
@@ -1044,6 +1123,20 @@ function openDashboardKnowledgeBase() {
   fireEvent.click(within(navigation).getByRole("button", { name: "Knowledge Base" }));
 }
 
+function openDashboardEvaluation() {
+  const dashboard = screen.queryByRole("region", { name: "Advanced Dashboard" });
+  if (!dashboard) {
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open Product Intelligence Dashboard" })
+    );
+  }
+
+  const navigation = screen.getByRole("navigation", {
+    name: "Dashboard categories"
+  });
+  fireEvent.click(within(navigation).getByRole("button", { name: "Evaluation" }));
+}
+
 describe("WorkstationShell", () => {
   afterEach(() => {
     vi.useRealTimers();
@@ -1117,6 +1210,581 @@ describe("WorkstationShell", () => {
       .toHaveTextContent("Telemetry");
     expect(screen.getByRole("navigation", { name: "Dashboard categories" }))
       .toHaveTextContent("Evaluation");
+  });
+
+  it("parses the backend canonical metric order as promotable current-product evidence", () => {
+    const evidence = parseRagasExecutionEvidence(
+      canonicalEvaluationResult(),
+      {
+        scope: "full",
+        caseIds: [],
+        allowProviderCalls: true,
+        approvedRagasDataset: "sanitized_public"
+      }
+    );
+
+    expect(evidence.scoreOrigin).toBe("current_product");
+    expect(evidence.metrics).toEqual([
+      "context_precision",
+      "faithfulness",
+      "answer_relevancy",
+      "context_relevancy",
+      "context_recall"
+    ]);
+    expect(currentProductRetrievalScoreFromEvidence(evidence)).toBe(.88);
+  });
+
+  it.each([
+    ["schema", { schemaVersion: "current-product-ragas-evidence.v2" }],
+    ["scope", { scope: "cases" }],
+    ["privacy", { privacyClass: "public_official_evidence" }],
+    ["dataset version", { datasetVersion: undefined }],
+    ["generation model", { generationModel: undefined }],
+    ["evaluator", { evaluator: undefined }],
+    ["timestamp", { timestamp: undefined }],
+    ["selected case IDs", {
+      selectedCaseIds: [...CURRENT_PRODUCT_RETRIEVAL_CASE_IDS, 42]
+    }],
+    ["per-case metric errors", {
+      caseResults: canonicalEvaluationCaseResults().map((row, index) => index === 0
+        ? { ...row, metricErrors: undefined }
+        : row)
+    }]
+  ])("downgrades canonical-looking evidence with an invalid %s contract", (_label, overrides) => {
+    const evidence = parseRagasExecutionEvidence(
+      canonicalEvaluationResult(overrides),
+      {
+        scope: "full",
+        caseIds: [],
+        allowProviderCalls: true,
+        approvedRagasDataset: "sanitized_public"
+      }
+    );
+
+    expect(evidence.scoreOrigin).toBe("unscored");
+    expect(currentProductRetrievalScoreFromEvidence(evidence)).toBeNull();
+  });
+
+  it("keeps explicit historical fixtures History-only and rejects unknown benchmark modes", () => {
+    const request = {
+      scope: "full" as const,
+      caseIds: [],
+      allowProviderCalls: true,
+      approvedRagasDataset: "sanitized_public" as const
+    };
+    const historical = parseRagasExecutionEvidence(canonicalEvaluationResult({
+      benchmarkMode: "historical_fixture",
+      scoreOrigin: "historical_fixture",
+      metrics: ["context_precision", "faithfulness", "answer_relevancy", "context_relevancy"],
+      metricScores: {
+        context_precision: .8,
+        faithfulness: .8,
+        answer_relevancy: .8,
+        context_relevancy: .8
+      }
+    }), request);
+    const unknown = parseRagasExecutionEvidence(canonicalEvaluationResult({
+      benchmarkMode: "future_benchmark_mode"
+    }), request);
+
+    expect(historical.benchmarkMode).toBe("historical_fixture");
+    expect(historical.scoreOrigin).toBe("historical_fixture");
+    expect(currentProductRetrievalScoreFromEvidence(historical)).toBeNull();
+    expect(unknown.benchmarkMode).toBe("not_selected");
+    expect(unknown.scoreOrigin).toBe("unscored");
+    expect(currentProductRetrievalScoreFromEvidence(unknown)).toBeNull();
+  });
+
+  it("submits and records a canonical current-product evaluation while the repository anchor is absent", async () => {
+    const runId = "async-current-product-1";
+    let getCount = 0;
+    const evaluationFetch = vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
+      const url = String(input);
+      if (init?.method === "POST" && url.includes("/api/evaluation/run")) {
+        return Promise.resolve(new Response(JSON.stringify({
+          runId,
+          status: "queued",
+          progress: {
+            phase: "queued",
+            lane: "RAG / Retrieval",
+            currentCaseId: null,
+            currentCaseLabel: "Queued current-product benchmark",
+            completedCases: 0,
+            totalCases: 7,
+            remainingCases: 7,
+            percent: 0,
+            executionState: "provider_authorized",
+            detail: "The run is queued."
+          }
+        }), { status: 202 }));
+      }
+      if (init?.method === "GET" && url.includes(`/api/evaluation/run?runId=${runId}`)) {
+        getCount += 1;
+        if (getCount === 1) {
+          return Promise.resolve(new Response(JSON.stringify({
+            runId,
+            status: "running",
+            progress: {
+              phase: "ragas_scoring",
+              lane: "RAG / Retrieval",
+              currentCaseId: "runtime_selection_hydra_vs_p5",
+              currentCaseLabel: "Runtime selection for fast live visuals",
+              completedCases: 1,
+              totalCases: 7,
+              remainingCases: 6,
+              percent: 14,
+              executionState: "provider_authorized",
+              detail: "Scoring current retrieved contexts."
+            }
+          })));
+        }
+        return Promise.resolve(new Response(JSON.stringify({
+          runId,
+          status: "completed",
+          progress: {
+            phase: "evaluation",
+            lane: "RAG / Retrieval",
+            currentCaseId: null,
+            currentCaseLabel: "Evaluation complete",
+            completedCases: 7,
+            totalCases: 7,
+            remainingCases: 0,
+            percent: 85,
+            executionState: "provider_completed",
+            detail: "Current-product evidence published."
+          },
+          result: canonicalEvaluationResult({ runId })
+        })));
+      }
+      return Promise.resolve(new Response("unavailable", { status: 503 }));
+    });
+
+    renderShell(getInitialWorkspaceSnapshot());
+    openDashboardEvaluation();
+    fireEvent.click(screen.getByRole("button", { name: "Configure run" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /current-product public benchmark/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Run Evaluation" }));
+
+    await waitFor(() => expect(getCount).toBe(2), { timeout: 3_000 });
+    const postCall = evaluationFetch.mock.calls.find(([, init]) => init?.method === "POST");
+    expect(postCall).toBeDefined();
+    expect(JSON.parse(String(postCall?.[1]?.body))).toEqual({
+      benchmarkMode: "current_product",
+      scope: "full",
+      caseIds: [],
+      allowProviderCalls: true,
+      approvedDataset: "sanitized_public",
+      dryRun: false
+    });
+    expect(evaluationFetch).toHaveBeenCalledWith(
+      expect.stringContaining(`/api/evaluation/run?runId=${runId}`),
+      expect.objectContaining({ cache: "no-store", method: "GET" })
+    );
+    await waitFor(() => {
+      expect(screen.getByLabelText("Evaluation benchmark summary")).toHaveTextContent("88.00%");
+      const progress = screen.getByLabelText("Live evaluation progress");
+      expect(progress).toHaveTextContent("85% complete");
+      expect(progress).toHaveTextContent("Full evaluation");
+      expect(progress).toHaveTextContent("7 completed / 0 remaining of 7");
+      expect(progress).toHaveTextContent("evaluation · completed");
+      expect(progress).toHaveTextContent("seven canonical RAG cases plus current local workspace snapshots");
+      expect(progress).not.toHaveTextContent("35");
+    });
+    expect(screen.getByLabelText("Current Retrieval Quality provenance")).toHaveTextContent(runId);
+    const results = screen.getByLabelText("Evaluation results");
+    expect(results.querySelectorAll(".evaluationCaseTable > details")).toHaveLength(4);
+    expect(results).toHaveTextContent("Current-product RAGAS benchmark");
+    expect(results).toHaveTextContent("Current workspace creative artifact evidence");
+    expect(results).toHaveTextContent("Current workspace workflow evidence");
+    expect(results).toHaveTextContent("Current workspace reliability evidence");
+    expect(results).not.toHaveTextContent("NOT RUN");
+    fireEvent.click(screen.getByText("Comparable stored runs", { selector: "summary" }));
+    const history = screen.getByLabelText("Evaluation history and trends");
+    expect(history).toHaveTextContent(runId);
+    expect(history).toHaveTextContent("CURRENT PRODUCT");
+  });
+
+  it("keeps polling after a transient refresh failure and reconnects to the terminal snapshot", async () => {
+    const runId = "async-reconnect-current-product-1";
+    let getCount = 0;
+    vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
+      const url = String(input);
+      if (init?.method === "POST" && url.includes("/api/evaluation/run")) {
+        return Promise.resolve(new Response(JSON.stringify({
+          runId,
+          status: "queued",
+          progress: {
+            phase: "queued",
+            lane: "Legacy full benchmark",
+            currentCaseId: null,
+            currentCaseLabel: "Queued evaluation",
+            completedCases: 0,
+            totalCases: 35,
+            remainingCases: 35,
+            percent: 0,
+            executionState: "local_preflight",
+            detail: "The run is queued."
+          }
+        }), { status: 202 }));
+      }
+      if (init?.method === "GET" && url.includes(`/api/evaluation/run?runId=${runId}`)) {
+        getCount += 1;
+        if (getCount === 1) {
+          return Promise.reject(new TypeError("temporary connection loss"));
+        }
+        return Promise.resolve(new Response(JSON.stringify({
+          runId,
+          status: "prepared",
+          progress: {
+            phase: "terminal",
+            lane: "Legacy full benchmark",
+            currentCaseId: null,
+            currentCaseLabel: "Dry-run preparation complete",
+            completedCases: 35,
+            totalCases: 35,
+            remainingCases: 0,
+            percent: 100,
+            executionState: "local_preflight",
+            detail: "Current-product preflight completed."
+          },
+          result: {
+            benchmarkMode: "current_product",
+            scoreOrigin: "unscored",
+            scope: "full",
+            runId,
+            status: "prepared",
+            benchmarkVersion: "current-product-retrieval.v1",
+            metrics: [],
+            metricScores: {},
+            resultRows: 0,
+            totalSamples: 7,
+            eligibleSamples: 0,
+            skippedSamples: 7,
+            metricFailures: 0,
+            detail: "Dry-run evidence only."
+          }
+        })));
+      }
+      return Promise.resolve(new Response("unavailable", { status: 503 }));
+    });
+
+    renderShell(getInitialWorkspaceSnapshot());
+    openDashboardEvaluation();
+    fireEvent.click(screen.getByRole("button", { name: "Configure run" }));
+    fireEvent.click(screen.getByRole("button", { name: "Run Evaluation" }));
+
+    await waitFor(() => expect(getCount).toBe(1));
+    await waitFor(() => {
+      const progress = screen.getByLabelText("Live evaluation progress");
+      expect(progress).toHaveTextContent("reconnecting · running");
+      expect(progress).toHaveTextContent("Reconnecting to the evaluation service");
+      expect(progress).toHaveTextContent("0 completed / 7 remaining of 7");
+      expect(progress).toHaveTextContent("Full evaluation");
+      expect(progress).toHaveTextContent("the server run remains active");
+      expect(progress).not.toHaveTextContent("35");
+    });
+
+    await waitFor(() => expect(getCount).toBe(2), { timeout: 3_000 });
+    await waitFor(() => {
+      const progress = screen.getByLabelText("Live evaluation progress");
+      expect(progress).toHaveTextContent("terminal · prepared");
+      expect(progress).toHaveTextContent("7 completed / 0 remaining of 7");
+      expect(progress).not.toHaveTextContent("35");
+    });
+    fireEvent.click(screen.getByText("Comparable stored runs", { selector: "summary" }));
+    expect(screen.getByLabelText("Evaluation history and trends")).toHaveTextContent(runId);
+  });
+
+  it.each([404, 410])(
+    "terminates a permanently missing evaluation poll after HTTP %i and leaves the run action available",
+    async (statusCode) => {
+    const runId = `async-gone-${statusCode}-current-product-1`;
+    let getCount = 0;
+    vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
+      const url = String(input);
+      if (init?.method === "POST" && url.includes("/api/evaluation/run")) {
+        return Promise.resolve(new Response(JSON.stringify({
+          runId,
+          status: "queued",
+          progress: {
+            phase: "queued",
+            lane: "RAG / Retrieval",
+            currentCaseId: null,
+            currentCaseLabel: "Queued evaluation",
+            completedCases: 0,
+            totalCases: 7,
+            remainingCases: 7,
+            percent: 0,
+            executionState: "provider_authorized",
+            detail: "The run is queued."
+          }
+        }), { status: 202 }));
+      }
+      if (init?.method === "GET" && url.includes(`/api/evaluation/run?runId=${runId}`)) {
+        getCount += 1;
+        return Promise.resolve(new Response("gone", { status: statusCode }));
+      }
+      return Promise.resolve(new Response("unavailable", { status: 503 }));
+    });
+
+    renderShell(getInitialWorkspaceSnapshot());
+    openDashboardEvaluation();
+    fireEvent.click(screen.getByRole("button", { name: "Configure run" }));
+    fireEvent.click(screen.getByRole("button", { name: "Run Evaluation" }));
+
+    await waitFor(() => {
+      const progress = screen.getByLabelText("Live evaluation progress");
+      expect(progress).toHaveTextContent("terminal · failed");
+      expect(progress).toHaveTextContent("polling failed");
+      expect(progress).toHaveTextContent(`Evaluation run ${runId} is no longer available (HTTP ${statusCode}).`);
+      expect(progress).toHaveTextContent("Use Run Evaluation to retry.");
+    });
+    expect(getCount).toBe(1);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Run Evaluation" })).toBeEnabled();
+    }, { timeout: 3_000 });
+  });
+
+  it("stops after bounded persistent status-service failures and preserves retry UX", async () => {
+    const runId = "async-persistent-5xx-current-product-1";
+    let getCount = 0;
+    vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
+      const url = String(input);
+      if (init?.method === "POST" && url.includes("/api/evaluation/run")) {
+        return Promise.resolve(new Response(JSON.stringify({
+          runId,
+          status: "queued",
+          progress: {
+            phase: "queued",
+            lane: "RAG / Retrieval",
+            currentCaseId: null,
+            currentCaseLabel: "Queued evaluation",
+            completedCases: 0,
+            totalCases: 7,
+            remainingCases: 7,
+            percent: 0,
+            executionState: "provider_authorized",
+            detail: "The run is queued."
+          }
+        }), { status: 202 }));
+      }
+      if (init?.method === "GET" && url.includes(`/api/evaluation/run?runId=${runId}`)) {
+        getCount += 1;
+        return Promise.resolve(new Response("temporarily unavailable", { status: 503 }));
+      }
+      return Promise.resolve(new Response("unavailable", { status: 503 }));
+    });
+
+    renderShell(getInitialWorkspaceSnapshot());
+    openDashboardEvaluation();
+    fireEvent.click(screen.getByRole("button", { name: "Configure run" }));
+    fireEvent.click(screen.getByRole("button", { name: "Run Evaluation" }));
+
+    await waitFor(() => expect(getCount).toBe(3), { timeout: 4_000 });
+    await waitFor(() => {
+      const progress = screen.getByLabelText("Live evaluation progress");
+      expect(progress).toHaveTextContent("terminal · failed");
+      expect(progress).toHaveTextContent("polling failed");
+      expect(progress).toHaveTextContent("status remained unavailable after 3 consecutive refresh attempts");
+      expect(progress).toHaveTextContent("Use Run Evaluation to retry.");
+    });
+    expect(getCount).toBe(3);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Run Evaluation" })).toBeEnabled();
+    }, { timeout: 3_000 });
+  });
+
+  it("aborts an active evaluation poll on unmount without persisting evaluation history", async () => {
+    const runId = "async-unmount-current-product-1";
+    const pollState: { signal: AbortSignal | null } = { signal: null };
+    const persistenceClient = createEmptyPersistenceClient();
+    vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
+      const url = String(input);
+      if (init?.method === "POST" && url.includes("/api/evaluation/run")) {
+        return Promise.resolve(new Response(JSON.stringify({
+          runId,
+          status: "queued",
+          progress: {
+            phase: "queued",
+            lane: "RAG / Retrieval",
+            currentCaseId: null,
+            currentCaseLabel: "Queued evaluation",
+            completedCases: 0,
+            totalCases: 7,
+            remainingCases: 7,
+            percent: 0,
+            executionState: "local_preflight",
+            detail: "The run is queued."
+          }
+        }), { status: 202 }));
+      }
+      if (init?.method === "GET" && url.includes(`/api/evaluation/run?runId=${runId}`)) {
+        pollState.signal = init.signal ?? null;
+        return new Promise<Response>((_resolve, reject) => {
+          pollState.signal?.addEventListener("abort", () => {
+            const abortError = new Error("Evaluation poll aborted");
+            abortError.name = "AbortError";
+            reject(abortError);
+          }, { once: true });
+        });
+      }
+      return Promise.resolve(new Response("unavailable", { status: 503 }));
+    });
+
+    const view = renderShell(getInitialWorkspaceSnapshot(), { persistenceClient });
+    await waitFor(() => expect(persistenceClient.load).toHaveBeenCalled());
+    openDashboardEvaluation();
+    fireEvent.click(screen.getByRole("button", { name: "Configure run" }));
+    vi.mocked(persistenceClient.save).mockClear();
+    fireEvent.click(screen.getByRole("button", { name: "Run Evaluation" }));
+
+    await waitFor(() => expect(pollState.signal).not.toBeNull());
+    view.unmount();
+    expect(pollState.signal?.aborted).toBe(true);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(vi.mocked(persistenceClient.save).mock.calls.every(
+      ([record]) => (record.preferences?.evaluationHistory.length ?? 0) === 0
+    )).toBe(true);
+  });
+
+  it("completes a non-RAG case selection locally without calling the Evaluation API", async () => {
+    const evaluationFetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("unexpected", { status: 500 })
+    );
+
+    renderShell(getInitialWorkspaceSnapshot());
+    openDashboardEvaluation();
+    fireEvent.click(screen.getByRole("button", { name: "Configure run" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Selected cases/ }));
+
+    expect(screen.getByText("3 cases selected")).toBeVisible();
+    expect(screen.queryByRole("checkbox", { name: /current-product public benchmark/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Run Evaluation" }));
+
+    await waitFor(() => {
+      const progress = screen.getByLabelText("Live evaluation progress");
+      expect(progress).toHaveTextContent("100% complete");
+      expect(progress).toHaveTextContent("local snapshot completed · completed");
+      expect(progress).toHaveTextContent("No retrieval, generation, or evaluator provider calls were made");
+    });
+    expect(evaluationFetch.mock.calls.some(([input]) => String(input).includes("/api/evaluation/run"))).toBe(false);
+
+    fireEvent.click(screen.getByText("Comparable stored runs", { selector: "summary" }));
+    const history = screen.getByLabelText("Evaluation history and trends");
+    expect(history).toHaveTextContent("LOCAL WORKSPACE RUN");
+    expect(history).toHaveTextContent("0/3 selected contracts observed");
+  });
+
+  it("filters a mixed case selection and keeps a complete-looking one-case diagnostic unscored", async () => {
+    const canonicalCaseId = CURRENT_PRODUCT_RETRIEVAL_CASE_IDS[0];
+    const runId = "mixed-canonical-subset-1";
+    const evaluationFetch = vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
+      const url = String(input);
+      if (init?.method === "POST" && url.includes("/api/evaluation/run")) {
+        return Promise.resolve(new Response(JSON.stringify({
+          runId,
+          status: "queued",
+          progress: {
+            phase: "queued",
+            lane: "RAG / Retrieval",
+            currentCaseId: null,
+            currentCaseLabel: "Queued canonical retrieval subset",
+            completedCases: 0,
+            totalCases: 1,
+            remainingCases: 1,
+            percent: 0,
+            executionState: "provider_authorized",
+            detail: "The canonical subset is queued."
+          }
+        }), { status: 202 }));
+      }
+      if (init?.method === "GET" && url.includes(`/api/evaluation/run?runId=${runId}`)) {
+        return Promise.resolve(new Response(JSON.stringify({
+          runId,
+          status: "completed",
+          progress: {
+            phase: "terminal",
+            lane: "RAG / Retrieval",
+            currentCaseId: null,
+            currentCaseLabel: "Canonical subset complete",
+            completedCases: 1,
+            totalCases: 1,
+            remainingCases: 0,
+            percent: 100,
+            executionState: "provider_completed",
+            detail: "One canonical retrieval case completed."
+          },
+          result: {
+            benchmarkMode: "current_product",
+            scoreOrigin: "unscored",
+            scope: "cases",
+            runId,
+            status: "completed",
+            benchmarkVersion: "current-product-retrieval.v1",
+            datasetFingerprint: "sha256:dataset-mixed-1234567890",
+            retrievalFingerprint: "sha256:retrieval-mixed-1234567890",
+            promptFingerprint: "sha256:prompt-mixed-1234567890",
+            generationFingerprint: "sha256:generation-mixed-1234567890",
+            evaluatedAt: "2026-07-14T08:30:00.000Z",
+            metrics: ["faithfulness", "answer_relevancy", "context_precision", "context_recall", "context_relevancy"],
+            metricScores: {
+              faithfulness: .9,
+              answer_relevancy: .9,
+              context_precision: .9,
+              context_recall: .9,
+              context_relevancy: .9
+            },
+            resultRows: 1,
+            totalSamples: 1,
+            eligibleSamples: 1,
+            skippedSamples: 0,
+            metricFailures: 0,
+            provider: "OpenAI",
+            model: "gpt-5-mini",
+            generationModel: "gpt-5-mini",
+            evaluator: "OpenAI / gpt-5-mini",
+            embeddingModel: "text-embedding-3-small",
+            ragasVersion: "0.3.9",
+            metricContract: "five-metric-equal-weight.v1",
+            detail: "Diagnostic canonical subset completed.",
+            caseResults: []
+          }
+        })));
+      }
+      return Promise.resolve(new Response("unavailable", { status: 503 }));
+    });
+
+    renderShell(getInitialWorkspaceSnapshot());
+    openDashboardEvaluation();
+    fireEvent.click(screen.getByRole("button", { name: "Configure run" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Selected cases/ }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /Runtime selection for fast live visuals/i }));
+    expect(screen.getByText("4 cases selected")).toBeVisible();
+    fireEvent.click(screen.getByRole("checkbox", { name: /current-product public benchmark/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Run Evaluation" }));
+
+    await waitFor(() => expect(evaluationFetch).toHaveBeenCalledWith(
+      expect.stringContaining(`/api/evaluation/run?runId=${runId}`),
+      expect.objectContaining({ method: "GET" })
+    ));
+    const postCall = evaluationFetch.mock.calls.find(([, init]) => init?.method === "POST");
+    const postBody = JSON.parse(String(postCall?.[1]?.body));
+    expect(postBody.caseIds).toEqual([canonicalCaseId]);
+    expect(postBody.caseIds).toHaveLength(1);
+
+    fireEvent.click(screen.getByText("Comparable stored runs", { selector: "summary" }));
+    await waitFor(() => {
+      const history = screen.getByLabelText("Evaluation history and trends");
+      expect(history).toHaveTextContent(runId);
+      expect(history).toHaveTextContent("0/4 selected contracts observed");
+      expect(history).toHaveTextContent("UNSCORED CURRENT-PRODUCT RUN");
+    });
+    const retrievalEvaluation = screen.getByLabelText("RAGAS retrieval evaluation");
+    expect(retrievalEvaluation).toHaveTextContent("68.03%");
+    expect(retrievalEvaluation).toHaveTextContent("v9-current-product-final-retained");
+    expect(retrievalEvaluation).not.toHaveTextContent("90.00%");
   });
 
   it("lets a user inspect a Demo scenario before loading and running its prompt", () => {

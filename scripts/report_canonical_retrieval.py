@@ -11,15 +11,16 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import chromadb
-
 from creative_coding_assistant.core import load_settings
 from creative_coding_assistant.eval import build_capstone_retrieval_demo_pack
 from creative_coding_assistant.rag.retrieval import (
     KnowledgeBaseRetriever,
     build_query_embedder,
 )
-from creative_coding_assistant.vectorstore import ChromaCollection
+from creative_coding_assistant.vectorstore import (
+    ChromaCollection,
+    create_chroma_client,
+)
 
 
 class _ExistingCollectionsOnlyClient:
@@ -76,7 +77,7 @@ def main(argv: tuple[str, ...] | None = None) -> int:
     if not kb_path.exists():
         raise SystemExit(f"Configured Chroma index does not exist: {kb_path}")
 
-    client = chromadb.PersistentClient(path=str(kb_path))
+    client = create_chroma_client(settings, path=kb_path)
     retriever = KnowledgeBaseRetriever(
         client=_ExistingCollectionsOnlyClient(client),
         embedder=query_embedder,

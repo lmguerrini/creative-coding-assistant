@@ -169,7 +169,7 @@ For the complete source-aligned view, use:
 | Creative artifacts | Source extraction, preview preparation, critique, one refinement loop, export | A generated artifact is not a successful preview until its runtime surface validates it |
 | Live browser preview | Validated contracts for p5.js, Three.js, GLSL, and Tone.js | React Three Fiber and Hydra remain code/export; external creative tools are handoffs |
 | Sessions and memory | SQLite workspace snapshots plus local Chroma conversation/project memory | Local single-user posture; memory embeddings send successful prompt/answer text to OpenAI when configured |
-| Evaluation | Explicit Dashboard evaluation action, committed public fixtures, machine-readable retrieval report | RAGAS fixture quality and current retrieval coverage are separate measurements |
+| Evaluation | Dashboard current-product runner, seven-case public RAG benchmark, five reference-aware RAGAS metrics, history, and machine-readable evidence | The 35-case catalog is contract coverage; Full executes seven RAG cases and records three local snapshot lanes rather than generating 35 answers |
 | Observability | Published workflow events, provider usage metadata, optional LangSmith adapter | LangSmith is off unless explicitly configured; telemetry is not model reasoning |
 
 The [Capability Matrix](docs/CAPABILITY_MATRIX.md) gives a fuller implemented,
@@ -220,28 +220,43 @@ PYTHONPATH=src .venv/bin/python scripts/report_canonical_retrieval.py --limit 5
 This still sends the public benchmark queries to the configured embedding
 provider. Retrieved excerpt text remains local.
 
-### Approved public RAGAS fixture
+### Current-product RAGAS evidence
 
-The product includes a committed, transcribed summary of an approved
-provider-scored fixture that used four synthetic, public-safe rows, RAGAS
-0.4.3, `gpt-4o-mini`, and `text-embedding-3-small`. All four rows were eligible,
-none were skipped, and no metric call failed. The repository does not claim the
-untracked raw result JSONL or run manifest as a committed artifact:
+The canonical public evidence at
+[`demo/evaluation/current_product_ragas_evidence.json`](demo/evaluation/current_product_ragas_evidence.json)
+binds the current repository's retrieval, prompt, generation, and evaluator
+pipelines to benchmark `current-product-retrieval.v1`. The retained run
+`v9-current-product-final-retained`, evaluated on 2026-07-14 with RAGAS 0.4.3,
+evaluator `gpt-4o-mini`, generator `gpt-5-mini-2025-08-07`, and embedding model
+`text-embedding-3-small`, completed all seven eligible cases with zero skips
+and zero metric failures:
 
-| Metric | Mean | What it says here |
-|---|---:|---|
-| Context precision | 1.0000 | The fixture's useful contexts were highly ranked |
-| Faithfulness | 0.2958 | Many answer claims were not supported tightly enough by supplied context |
-| Answer relevancy | 0.4743 | Answers only partly matched evaluator expectations for the questions |
-| Context relevancy | 0.6875 | Retrieved excerpts were moderately useful to the questions |
+| Metric | Mean |
+|---|---:|
+| Context precision | 51.96428571169692% |
+| Faithfulness | 64.8989898989899% |
+| Answer relevancy | 56.62963631284655% |
+| Context relevancy | 85.71428571428571% |
+| Context recall | 80.95238095238094% |
+| Equal-weight Retrieval Quality macro | **68.03191571804%** |
 
-The equal-weight display macro across those four means is 61.44%. It is not a
-canonical RAGAS metric, a project grade, a current-product score, or a golden
-case pass rate. Context recall is missing because the fixture has no
-independently justified reference answers. Current local Chroma excerpts are
-not approved for an external end-to-end evaluator run, so current-product
-provider-assisted RAGAS remains blocked rather than silently substituted with
-the synthetic score.
+The dataset fingerprint is
+`sha256:b5fbc0e7cc9a523658eee8b0fc5cd7c417aa10540f8919e10bc2c4e10a40705f`.
+The score is current-product RAG evidence, not a project grade, aesthetic score,
+or universal quality claim.
+
+The former 61.44% display came from a four-row synthetic approved fixture with
+only four measured dimensions and no context-recall denominator. It remains in
+Evaluation History as historical evaluator evidence; it is no longer the
+primary Retrieval Quality. The root cause was
+`EVALUATION_PIPELINE_DEFECT`: the Dashboard's primary score was disconnected
+from current retrieval, prompt, generation, and benchmark state.
+
+The frozen 35-case catalog describes product-authored evaluation contracts, not
+35 provider executions. **Full evaluation** runs the seven canonical RAG cases
+and records current local Creative, Workflow, and Reliability snapshots. Those
+three snapshot lanes remain separate from RAGAS and are not additional generated
+answers.
 
 See [`demo/evaluation/README.md`](demo/evaluation/README.md) and
 [`docs/eval.md`](docs/eval.md) for the fixtures, privacy decision, commands, and
@@ -260,7 +275,7 @@ the machine.
 | Retrieval | The query text goes to OpenAI embeddings; ranked knowledge excerpts are read from local Chroma and may enter the generation prompt |
 | KB sync | Approved official-source text goes to OpenAI embeddings before local Chroma storage |
 | Conversation memory | Successful user and assistant text goes to OpenAI embeddings, then the text and vectors are stored locally |
-| RAGAS | Only an explicitly selected committed sanitized/redacted dataset may cross the evaluator boundary, and live calls require opt-in |
+| RAGAS | Only the committed public current-product benchmark or another explicitly reviewed sanitized/redacted dataset may cross the evaluator boundary; raw local sessions and arbitrary Chroma excerpts remain excluded, and live calls require opt-in |
 | LangSmith | Optional trace metadata is sent only when tracing and credentials are deliberately enabled |
 
 Raw local evaluation rows, workspace snapshots, local Chroma excerpts, `.env`,

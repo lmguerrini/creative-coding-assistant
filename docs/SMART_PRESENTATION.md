@@ -9,7 +9,7 @@ ten-minute demonstration and five-minute question period.
 | Dimension | Reviewable commitment | Evidence and boundary |
 |---|---|---|
 | **Specific** | Convert a text prompt or validated image reference into an inspectable creative-code response with the requested and resolved workflow, executed-node trace, sources, artifact, and preview metadata. | [Architecture Walkthrough](ARCHITECTURE_WALKTHROUGH.md); image data reaches the generation payload, but queued image bytes are request-scoped rather than restored from saved sessions. |
-| **Measurable** | Demonstrate the four canonical live preview domains; publish route/node evidence; report fixed retrieval coverage and separate RAGAS component means without collapsing them into a quality claim. | [Capability Matrix](CAPABILITY_MATRIX.md), [retrieval report](../demo/evaluation/canonical_retrieval_report.json), and [Evaluation Metrics Summary](EVALUATION_METRICS_SUMMARY.md). |
+| **Measurable** | Demonstrate the four canonical live preview domains; publish route/node evidence; report fixed retrieval coverage and five current-product RAGAS component means without collapsing them into a whole-product claim. | [Capability Matrix](CAPABILITY_MATRIX.md), [retrieval report](../demo/evaluation/canonical_retrieval_report.json), and [Evaluation Metrics Summary](EVALUATION_METRICS_SUMMARY.md). |
 | **Achievable** | Use a local Next.js 15 client, exact-path Python WSGI API, compiled LangGraph, local Chroma/SQLite stores, and one implemented OpenAI provider route with no more than one Multi refinement. | [System Overview](SYSTEM_OVERVIEW.md); optional provider/network dependencies are explicit. |
 | **Relevant** | Reduce the gap between a creative intention and a reviewable browser-oriented code artifact while teaching rather than hiding technical choices. | It addresses the official Outcome Quality, Learning Application, Ethical Considerations, and Presentation criteria; its primary implementation patterns align with Cases 1, 2, and 5. Case 7 is supporting and incomplete because no controlled parameter-experiment dataset exists. |
 | **Time-bound** | Complete one end-to-end proof in the ten-minute capstone window, using evidence stamped by its own run time rather than implying continuous production monitoring. | The canonical retrieval artifact records `2026-07-13T05:05:33.306298+00:00`; it is a fixed report, not a live dashboard. |
@@ -24,8 +24,9 @@ ten-minute demonstration and five-minute question period.
 > retrieval evidence: seven of seven fixed cases completed, sixteen of
 > twenty-three expected source anchors were covered, and eighteen of nineteen
 > requested domains were covered. Those are coverage measures, not artistic or
-> grounded-answer quality. A separate four-case synthetic RAGAS run supplies
-> component means and is labeled separately. The scope is achievable because the
+> grounded-answer quality. A seven-case current-product RAGAS run reports a
+> 68.03 percent five-metric macro, while the old four-case synthetic fixture is
+> labeled historical. The scope is achievable because the
 > implementation is deliberately bounded: a Next.js client, a WSGI API, one
 > compiled LangGraph, local Chroma and SQLite storage, one implemented generation
 > provider, and at most one Multi refinement. It is relevant because creative
@@ -43,22 +44,25 @@ ten-minute demonstration and five-minute question period.
 | Fixed retrieval cases completed | 7/7 | The committed canonical run returned results for every fixed query | Every expected source or ideal grounded answer was found |
 | Expected source-anchor coverage | 16/23 (69.57%) | How many expected anchors appeared in the fixed top-five results | Semantic correctness of every retrieved chunk |
 | Requested-domain coverage | 18/19 (94.74%) | How broadly the results covered requested domains | Source-anchor precision or answer faithfulness |
-| Synthetic RAGAS context precision | 0.999999999925 | Component behavior on four approved synthetic cases | Live product precision or a project grade |
-| Synthetic RAGAS faithfulness | 0.29583333333333334 | A visible weakness on that fixture | A universal hallucination rate |
-| Synthetic RAGAS answer relevancy | 0.4742546883775048 | A bounded answer-alignment signal on that fixture | Human artistic relevance |
-| Synthetic RAGAS context relevancy | 0.6875 | A bounded context signal on that fixture | Context recall, which is absent |
+| Current RAGAS context precision | 0.5196428571169692 | Retrieval ordering on seven public current-product cases | Universal product precision or a project grade |
+| Current RAGAS faithfulness | 0.648989898989899 | Grounding on those seven answers | A universal hallucination rate |
+| Current RAGAS answer relevancy | 0.5662963631284655 | Bounded answer alignment on the current benchmark | Human artistic relevance |
+| Current RAGAS context relevancy | 0.8571428571428571 | Usefulness of selected contexts on the benchmark | Every source is ideal |
+| Current RAGAS context recall | 0.8095238095238094 | Coverage against authored reference answers/context | Recall for unrelated product lanes |
+| Current Retrieval Quality macro | 0.6803191571804 | Equal-weight summary of the five RAGAS means | Accuracy, project grade, or aesthetic judgment |
 | Multi refinement budget | At most 1 | Review cannot loop without bound | That every retry improves artistic quality |
 
-The UI's **61.44%** macro display is an arithmetic summary of the four recorded
-component means. It is not an official RAGAS metric, a whole-product score, a
-capstone grade, or a substitute for missing context recall.
+The primary **68.03%** macro is an arithmetic summary of the five current RAGAS
+means. It is not a whole-product score or capstone grade. The old **61.44%**
+four-metric fixture remains historical and has no context-recall denominator.
 
 ## Live verification sequence
 
 1. **Specific:** submit one supported-domain prompt and point out the requested
    mode, resolved route, node trace, source context, artifact, and preview.
 2. **Measurable:** open the fixed retrieval report and keep its three coverage
-   measures separate; open the synthetic RAGAS components only if time permits.
+   measures separate; show the current five RAGAS components and historical
+   fixture boundary.
 3. **Achievable:** show the system diagram and identify the single generation
    boundary, bounded review loop, and local stores.
 4. **Relevant:** connect the artifact and explanation to the creative coder's

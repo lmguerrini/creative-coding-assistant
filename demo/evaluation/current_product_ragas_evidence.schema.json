@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://creative-coding-assistant.local/schemas/current-product-ragas-evidence.v1.json",
+  "title": "CCA current-product public RAGAS evidence",
+  "description": "Public-safe aggregates, per-case metrics/source IDs, and provenance. Raw questions, reference text, generated answers, and retrieved excerpts are forbidden.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "benchmarkMode",
+    "scoreOrigin",
+    "scope",
+    "runId",
+    "status",
+    "benchmarkVersion",
+    "datasetId",
+    "datasetVersion",
+    "selectedCaseIds",
+    "datasetFingerprint",
+    "retrievalFingerprint",
+    "promptFingerprint",
+    "generationFingerprint",
+    "outputFingerprint",
+    "selectionFingerprint",
+    "kbFingerprint",
+    "evaluatedAt",
+    "timestamp",
+    "metrics",
+    "metricScores",
+    "retrievalScore",
+    "resultRows",
+    "totalSamples",
+    "eligibleSamples",
+    "skippedSamples",
+    "metricFailures",
+    "provider",
+    "model",
+    "generationModel",
+    "evaluator",
+    "evaluatorModel",
+    "embeddingModel",
+    "ragasVersion",
+    "metricContract",
+    "durationMs",
+    "detail",
+    "privacyClass",
+    "caseResults"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "current-product-ragas-evidence.v1" },
+    "benchmarkMode": { "const": "current_product" },
+    "scoreOrigin": { "const": "current_product" },
+    "scope": { "enum": ["full", "rag"] },
+    "runId": { "type": "string", "minLength": 1 },
+    "status": { "const": "completed" },
+    "benchmarkVersion": { "const": "current-product-retrieval.v1" },
+    "datasetId": { "const": "capstone_kb_expansion_retrieval_demo_pack" },
+    "datasetVersion": { "const": "current-product-retrieval.v1" },
+    "selectedCaseIds": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "datasetFingerprint": { "$ref": "#/$defs/fingerprint" },
+    "retrievalFingerprint": { "$ref": "#/$defs/fingerprint" },
+    "promptFingerprint": { "$ref": "#/$defs/fingerprint" },
+    "generationFingerprint": { "$ref": "#/$defs/fingerprint" },
+    "outputFingerprint": { "$ref": "#/$defs/fingerprint" },
+    "selectionFingerprint": { "$ref": "#/$defs/fingerprint" },
+    "kbFingerprint": { "$ref": "#/$defs/fingerprint" },
+    "evaluatedAt": { "type": "string", "format": "date-time" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "metrics": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/metricName" }
+    },
+    "metricScores": { "$ref": "#/$defs/metricScores" },
+    "retrievalScore": { "$ref": "#/$defs/score" },
+    "resultRows": { "const": 7 },
+    "totalSamples": { "const": 7 },
+    "eligibleSamples": { "const": 7 },
+    "skippedSamples": { "const": 0 },
+    "metricFailures": { "const": 0 },
+    "provider": { "type": "string", "minLength": 1 },
+    "model": { "type": "string", "minLength": 1 },
+    "generationModel": { "type": "string", "minLength": 1 },
+    "evaluator": { "type": "string", "minLength": 1 },
+    "evaluatorModel": { "type": "string", "minLength": 1 },
+    "embeddingModel": { "type": "string", "minLength": 1 },
+    "ragasVersion": { "type": "string", "minLength": 1 },
+    "metricContract": { "const": "ragas-current-product-reference.v2" },
+    "durationMs": { "type": "integer", "minimum": 0 },
+    "detail": { "type": "string", "minLength": 1 },
+    "privacyClass": {
+      "const": "public_official_contexts_with_authored_references"
+    },
+    "caseResults": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": { "$ref": "#/$defs/caseResult" }
+    }
+  },
+  "$defs": {
+    "fingerprint": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "metricName": {
+      "enum": [
+        "context_precision",
+        "faithfulness",
+        "answer_relevancy",
+        "context_relevancy",
+        "context_recall"
+      ]
+    },
+    "metricScores": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context_precision",
+        "faithfulness",
+        "answer_relevancy",
+        "context_relevancy",
+        "context_recall"
+      ],
+      "properties": {
+        "context_precision": { "$ref": "#/$defs/score" },
+        "faithfulness": { "$ref": "#/$defs/score" },
+        "answer_relevancy": { "$ref": "#/$defs/score" },
+        "context_relevancy": { "$ref": "#/$defs/score" },
+        "context_recall": { "$ref": "#/$defs/score" }
+      }
+    },
+    "caseResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "caseId",
+        "sourceIds",
+        "domains",
+        "metrics",
+        "metricErrors",
+        "promptFingerprint",
+        "generationFingerprint"
+      ],
+      "properties": {
+        "caseId": { "type": "string", "minLength": 1 },
+        "sourceIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "domains": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "metrics": { "$ref": "#/$defs/metricScores" },
+        "metricErrors": { "type": "object", "maxProperties": 0 },
+        "promptFingerprint": { "$ref": "#/$defs/fingerprint" },
+        "generationFingerprint": { "$ref": "#/$defs/fingerprint" }
+      }
+    }
+  }
+}

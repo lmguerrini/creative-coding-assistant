@@ -139,24 +139,26 @@ removes weak structural content. The committed
 [canonical report](../demo/evaluation/canonical_retrieval_report.json) binds
 the result to 1,445 local KB metadata records and a selection fingerprint.
 
-### Approved RAGAS evidence
+### Current-product RAGAS evidence
 
-The committed product summary reports an approved provider-scored fixture over
-four committed synthetic/public input rows, not current private sessions. The
-raw scored JSONL and run manifest are not tracked artifacts:
+The committed canonical summary reports the retained current retrieval,
+prompt, generation, and evaluator paths over seven public RAG cases:
 
 | Metric | Mean | Interpretation |
 |---|---:|---|
-| Context precision | `0.999999999925` | Strong useful-context ordering in this small fixture |
-| Faithfulness | `0.29583333333333334` | Weak support for many answer claims |
-| Answer relevancy | `0.4742546883775048` | Partial match to evaluator expectations |
-| Context relevancy | `0.6875` | Moderately useful excerpts |
+| Context precision | `0.5196428571169692` | The weakest retrieval-ordering dimension; improvement remains justified |
+| Faithfulness | `0.648989898989899` | Most answer claims were supported, with material gaps remaining |
+| Answer relevancy | `0.5662963631284655` | Partial answer alignment; evaluator variability and terminal caveats remain limits |
+| Context relevancy | `0.8571428571428571` | Most selected contexts were useful to their questions |
+| Context recall | `0.8095238095238094` | Reference-aware evidence coverage across the seven cases |
+| Equal-weight macro | `0.6803191571804` (68.03191571804%) | Current Retrieval Quality, not a Capstone grade or human-quality score |
 
-All four rows were eligible; none were skipped; no metric failed. The 61.44%
-equal-weight display macro is useful only as a compact view of those component
-means. It is not an official RAGAS metric, an end-to-end current-product score,
-a golden-case pass rate, or a Capstone grade. Context recall is missing because
-there are no independently justified reference answers.
+All seven rows were eligible and scored; none were skipped and no metric
+failed. The dataset fingerprint is
+`sha256:b5fbc0e7cc9a523658eee8b0fc5cd7c417aa10540f8919e10bc2c4e10a40705f`.
+The former 61.44% four-row fixture remains historical evidence with no
+context-recall denominator. Showing it as primary was classified
+`EVALUATION_PIPELINE_DEFECT` and has been corrected.
 
 ### Learning Application conclusion
 
@@ -180,8 +182,8 @@ boundaries, and the risks of generated outputs?
 | Prompt and generated answer | Stored in workspace/session and optional local memory/eval rows | Prompt/context go to OpenAI generation; successful prompt/answer go to OpenAI embeddings when memory recording is configured | Choose content, credentials, and whether to retain/delete local session data |
 | Image reference | Browser-local until submit; stripped from durable session attachment state | Pixels enter the configured-provider payload only on explicit submit; live receipt/use/influence need separate evidence | Use public non-sensitive images; remove before submit or do not submit |
 | Official KB source text | Chunks and vectors stored in local Chroma | Source is fetched from approved URL; chunk text goes to OpenAI embeddings; selected excerpts may enter generation | Select/check/update sources explicitly |
-| Raw local evaluation sessions | Stored under ignored `data/eval/` | External evaluation is avoided by the public action | Use only reviewed committed sanitized/redacted datasets |
-| Evaluation fixture | Committed synthetic or redacted public rows | Goes to evaluator only after explicit live-call authorization | Dry-run first; inspect dataset and cost warning |
+| Raw local evaluation sessions | Stored under ignored `data/eval/` | External evaluation remains excluded | Use only reviewed committed public/sanitized/redacted datasets |
+| Evaluation fixture | Committed current-product public benchmark or historical synthetic/redacted rows | Goes to evaluator only after explicit live-call authorization | Dry-run first; inspect dataset, fingerprints, and cost warning |
 | Trace metadata | Local stream contains safe status/lineage | Optional LangSmith metadata only when tracing and key are enabled | Keep tracing disabled by default |
 | Secrets | Local `.env`, secret-bearing Pydantic settings | Used only to authenticate selected services | Never commit or display `.env`/keys |
 
@@ -253,8 +255,8 @@ defend trade-offs in 5 minutes of questions?
    memory, and external-call consent.
 5. **5:00–7:00 — Demo:** run one flagship artifact, inspect source/preview,
    then make one refinement or reload the session.
-6. **7:00–8:30 — Evaluation:** show 7/7, 16/23, 18/19 separately from the four
-   RAGAS component means and their fixture boundary.
+6. **7:00–8:30 — Evaluation:** show 7/7, 16/23, and 18/19 as retrieval-only
+   coverage, then show the five current-product RAGAS means and 68.03% macro.
 7. **8:30–9:30 — Challenge:** explain why false-positive retrieval coverage was
    removed or how image bytes were made genuine, bounded provider input.
 8. **9:30–10:00 — Next:** grounded-answer quality, Auto diversity, evaluated
@@ -265,8 +267,9 @@ defend trade-offs in 5 minutes of questions?
 - Why does Single Agent skip RAG?
 - Is Multi Agent really multiple LLMs or parallel work?
 - Why does Auto currently resolve Multi?
-- What does 61.44% mean—and what does it not mean?
-- Why is faithfulness low despite near-perfect fixture context precision?
+- What does 68.03% mean—and what does it not mean?
+- Why is 61.44% historical, and why did the Evaluation pipeline show it before?
+- Why are context precision and answer relevancy still weak?
 - What leaves the machine during generation, embeddings, evaluation, and
   tracing?
 - How does an image actually reach the model, and is it persisted?

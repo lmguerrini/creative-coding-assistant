@@ -106,22 +106,30 @@ audio analysis; Tone.js is browser playback only. See
 
 ### 5. Read the evaluation correctly (2 minutes)
 
-The product contains a committed, transcribed summary of an approved
-provider-scored synthetic/public fixture: four of four eligible rows, no skips,
-no metric failures, and an equal-weight macro score of
-`0.6143970054089596` (61.44%). Its component means
-are context precision `0.999999999925`, faithfulness
-`0.29583333333333334`, answer relevancy `0.4742546883775048`, and context
-relevancy `0.6875`. Context recall is missing because the fixture has no
-independently justified reference answers. This fixture does **not** measure
-current-product or golden-case quality.
+The primary Retrieval Quality is now the canonical current-product run
+`v9-current-product-final-retained`: seven of seven eligible RAG cases, no
+skips, no metric failures, and an equal-weight five-metric macro of
+`0.6803191571804` (68.03191571804%). Its component means are Context Precision
+51.96428571169692%, Faithfulness 64.8989898989899%, Answer Relevancy
+56.62963631284655%, Context Relevancy 85.71428571428571%, and Context Recall
+80.95238095238094%. The dataset fingerprint is
+`sha256:b5fbc0e7cc9a523658eee8b0fc5cd7c417aa10540f8919e10bc2c4e10a40705f`.
+
+The old 61.44% display remains in History as a four-row synthetic approved
+fixture with no context-recall result. It was obsolete as a primary score; the
+root cause was `EVALUATION_PIPELINE_DEFECT`, because that fixture did not
+execute the current retrieval, prompt, generation, and benchmark paths.
 
 Current local retrieval on a fixed seven-query, top-five report improved from
 9/23 to 16/23 substantive expected-source overlaps (69.57%) and from 7/19 to
 18/19 requested-domain coverage (94.74%). All seven queries returned five
-results. A current-product provider-assisted RAGAS rerun is blocked because the
-local Chroma excerpts are not approved for the external transfer required by
-that evaluation run.
+results. This retrieval-only report remains separate from the current-product
+RAGAS macro even though both use seven public benchmark cases.
+
+The Evaluation catalog contains 35 deduplicated prompt contracts. That number
+is contract coverage, not execution. Full runs seven current-product RAG cases
+and records current local Creative, Workflow, and Reliability snapshots; those
+snapshots are not additional generated or RAGAS-scored cases.
 No human evaluation is claimed. See
 [EVALUATION_METRICS_SUMMARY.md](EVALUATION_METRICS_SUMMARY.md) and
 [eval.md](eval.md).
@@ -168,7 +176,8 @@ not implicit parts of these local checks.
 | Three workflow choices | Current UI, published graph, Inspector, and tests | A mode name does not prove parallel execution |
 | Image-guided request | Current request-scoped upload path and browser validation | Provider-payload inclusion occurs only on submit; live receipt/use/influence is unproven; no durable attachment restoration |
 | Grounded retrieval | Local Chroma report bound to its chunk count and fingerprint | Registered, indexed, retrieved, and cited are different states |
-| 61.44% RAGAS macro | Approved synthetic public fixture | Not a current-product score; context recall is missing |
+| 68.03% Retrieval Quality | Seven-case current-product public RAGAS evidence | Five-metric RAG macro, not a project grade or artistic-quality score |
+| 61.44% RAGAS macro | Historical four-row synthetic fixture | Obsolete as primary Retrieval Quality; context recall is missing |
 | External-tool support | Generated code and export handoff packages | No external-tool execution, control, deployment, or validation |
 | Usability or aesthetic quality | Human observation, if a reviewer performs it | No completed human study is claimed by the repository |
 

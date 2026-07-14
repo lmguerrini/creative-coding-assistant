@@ -172,12 +172,11 @@ Provider-assisted generation can send selected retrieved contexts with the
 prompt. Provider-scored evaluation can send its selected evaluation rows and
 contexts. These are separate external transfers and require separate review.
 
-The current local Chroma excerpts are not approved for transfer through the
-current-product RAGAS generation/evaluation run, so that rerun is marked
-`BLOCKED_BY_EXECUTION_ENVIRONMENT`. Do not work
-around the block by uploading the index or raw session JSONL. Use only an
-explicitly approved synthetic/public fixture for the documented external
-evaluation path.
+The canonical current-product evaluation uses the reviewed committed public
+benchmark and reports 68.03% across five RAGAS means. That approval does not
+extend to arbitrary local Chroma excerpts or raw session JSONL. Do not broaden
+the result by uploading the index or private rows; use only an explicitly
+reviewed public, synthetic, or redacted dataset for an external evaluation path.
 
 ## Retention, export, and deletion
 

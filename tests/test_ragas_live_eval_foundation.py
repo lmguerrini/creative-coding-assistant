@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import asyncio
 import json
+import os
 import unittest
 from datetime import UTC, datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from creative_coding_assistant.contracts import AssistantMode, CreativeCodingDomain
@@ -20,6 +23,7 @@ from creative_coding_assistant.eval.ragas_models import (
     DEFAULT_RAGAS_METRICS,
     SUPPORTED_RAGAS_METRICS,
     RagasLiveEvalDataset,
+    RagasLiveEvalRow,
     load_live_session_samples,
     prepare_ragas_live_eval_dataset,
     resolve_ragas_metric_names,
@@ -31,7 +35,11 @@ from creative_coding_assistant.eval.ragas_runner import (
     RagasEvaluatorConfig,
     RagasLiveEvalRunManifest,
     RagasLiveEvalRunResult,
+    RagasProviderBoundaryError,
     RagasProviderCostBoundaryError,
+    _coerce_score,
+    _disable_ragas_analytics,
+    _evaluate_collection_rows,
     ragas_run_manifest_path,
     run_ragas_live_eval,
 )
@@ -177,6 +185,7 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
     def test_resolve_ragas_metric_names_deduplicates_and_validates(self) -> None:
         self.assertIn("answer_relevancy", SUPPORTED_RAGAS_METRICS)
         self.assertIn("context_relevancy", SUPPORTED_RAGAS_METRICS)
+        self.assertIn("context_recall", SUPPORTED_RAGAS_METRICS)
         self.assertNotIn("multi_modal_faithfulness", SUPPORTED_RAGAS_METRICS)
         self.assertNotIn("multimodal_faithfulness", SUPPORTED_RAGAS_METRICS)
         self.assertEqual(resolve_ragas_metric_names(None), DEFAULT_RAGAS_METRICS)
@@ -194,12 +203,201 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unsupported RAGAs metric"):
             resolve_ragas_metric_names(("multi_modal_faithfulness",))
 
+    def test_evaluator_output_budget_supports_structured_faithfulness_results(self) -> None:
+        config = RagasEvaluatorConfig()
+
+        self.assertEqual(config.max_output_tokens, 8192)
+        with self.assertRaises(ValueError):
+            RagasEvaluatorConfig(max_output_tokens=128)
+
+    def test_default_backend_uses_reference_aware_precision_and_recall(self) -> None:
+        calls: dict[str, list[dict[str, object]]] = {}
+
+        class FakeMetric:
+            def __init__(self, name: str, score: float) -> None:
+                self.name = name
+                self.score = score
+
+            async def ascore(self, **kwargs: object) -> object:
+                calls.setdefault(self.name, []).append(kwargs)
+                return SimpleNamespace(value=self.score)
+
+        rows = (
+            RagasLiveEvalRow(
+                sample_id="referenced",
+                user_input="question",
+                response="answer",
+                retrieved_contexts=("context",),
+                ground_truth="reference",
+            ),
+            RagasLiveEvalRow(
+                sample_id="legacy-unreferenced",
+                user_input="question",
+                response="answer",
+                retrieved_contexts=("context",),
+            ),
+        )
+        scores = asyncio.run(
+            _evaluate_collection_rows(
+                rows,
+                (
+                    "context_precision",
+                    "faithfulness",
+                    "answer_relevancy",
+                    "context_relevancy",
+                    "context_recall",
+                ),
+                metrics={
+                    "context_precision_with_reference": FakeMetric("precision_with_reference", 0.8),
+                    "context_precision_without_reference": FakeMetric("precision_without_reference", 0.6),
+                    "faithfulness": FakeMetric("faithfulness", 0.75),
+                    "answer_relevancy": FakeMetric("answer_relevancy", 0.9),
+                    "context_relevancy": FakeMetric("context_relevancy", 0.5),
+                    "context_recall": FakeMetric("context_recall", 0.7),
+                },
+                max_workers=2,
+                timeout_seconds=5,
+            )
+        )
+
+        self.assertEqual(
+            calls["precision_with_reference"],
+            [
+                {
+                    "user_input": "question",
+                    "reference": "reference",
+                    "retrieved_contexts": ["context"],
+                }
+            ],
+        )
+        self.assertEqual(
+            calls["precision_without_reference"],
+            [
+                {
+                    "user_input": "question",
+                    "response": "answer",
+                    "retrieved_contexts": ["context"],
+                }
+            ],
+        )
+        self.assertEqual(
+            calls["faithfulness"],
+            [
+                {
+                    "user_input": "question",
+                    "response": "answer",
+                    "retrieved_contexts": ["context"],
+                },
+                {
+                    "user_input": "question",
+                    "response": "answer",
+                    "retrieved_contexts": ["context"],
+                },
+            ],
+        )
+        self.assertEqual(
+            calls["answer_relevancy"],
+            [
+                {"user_input": "question", "response": "answer"},
+                {"user_input": "question", "response": "answer"},
+            ],
+        )
+        self.assertEqual(
+            calls["context_relevancy"],
+            [
+                {"user_input": "question", "retrieved_contexts": ["context"]},
+                {"user_input": "question", "retrieved_contexts": ["context"]},
+            ],
+        )
+        self.assertEqual(len(calls["context_recall"]), 1)
+        self.assertEqual(scores[0]["context_precision"], 0.8)
+        self.assertEqual(scores[0]["context_recall"], 0.7)
+        self.assertEqual(scores[1]["context_precision"], 0.6)
+        self.assertIsNone(scores[1]["context_recall"])
+
+    def test_ragas_secondary_analytics_are_disabled_at_backend_boundary(self) -> None:
+        with patch.dict("os.environ", {"RAGAS_DO_NOT_TRACK": "false"}):
+            _disable_ragas_analytics()
+
+            self.assertEqual(os.environ["RAGAS_DO_NOT_TRACK"], "true")
+
+    def test_provider_wide_evaluator_failure_is_not_reduced_to_null_metrics(
+        self,
+    ) -> None:
+        class UnavailableProviderMetric:
+            async def ascore(self, **kwargs: object) -> object:
+                del kwargs
+                raise TimeoutError("provider unavailable")
+
+        row = RagasLiveEvalRow(
+            sample_id="provider-failure",
+            user_input="question",
+            response="answer",
+            retrieved_contexts=("context",),
+            ground_truth="reference",
+        )
+
+        with self.assertRaises(RagasProviderBoundaryError):
+            asyncio.run(
+                _evaluate_collection_rows(
+                    (row,),
+                    ("faithfulness", "answer_relevancy"),
+                    metrics={
+                        "faithfulness": UnavailableProviderMetric(),
+                        "answer_relevancy": UnavailableProviderMetric(),
+                    },
+                    max_workers=2,
+                    timeout_seconds=5,
+                )
+            )
+
+    def test_isolated_evaluator_parse_failure_remains_a_null_metric(self) -> None:
+        class ParseFailureMetric:
+            async def ascore(self, **kwargs: object) -> object:
+                del kwargs
+                raise json.JSONDecodeError("invalid evaluator JSON", "", 0)
+
+        class SuccessfulMetric:
+            async def ascore(self, **kwargs: object) -> object:
+                del kwargs
+                return SimpleNamespace(value=0.75)
+
+        row = RagasLiveEvalRow(
+            sample_id="parse-failure",
+            user_input="question",
+            response="answer",
+            retrieved_contexts=("context",),
+            ground_truth="reference",
+        )
+
+        scores = asyncio.run(
+            _evaluate_collection_rows(
+                (row,),
+                ("faithfulness", "answer_relevancy"),
+                metrics={
+                    "faithfulness": ParseFailureMetric(),
+                    "answer_relevancy": SuccessfulMetric(),
+                },
+                max_workers=2,
+                timeout_seconds=5,
+            )
+        )
+
+        self.assertIsNone(scores[0]["faithfulness"])
+        self.assertEqual(scores[0]["answer_relevancy"], 0.75)
+
+    def test_metric_scores_outside_the_supported_unit_interval_are_null(self) -> None:
+        self.assertIsNone(_coerce_score(-0.01))
+        self.assertIsNone(_coerce_score(1.01))
+        self.assertIsNone(_coerce_score(float("nan")))
+        self.assertEqual(_coerce_score(0.0), 0.0)
+        self.assertEqual(_coerce_score(1.0), 1.0)
+
     def test_load_live_session_samples_reads_jsonl_records(self) -> None:
         with TemporaryDirectory() as temp_dir:
             input_path = Path(temp_dir) / "live_sessions.jsonl"
             input_path.write_text(
-                _sample(sample_id="sample-1", with_context=True).model_dump_json()
-                + "\n\n",
+                _sample(sample_id="sample-1", with_context=True).model_dump_json() + "\n\n",
                 encoding="utf-8",
             )
 
@@ -215,12 +413,8 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
             input_path.write_text(
                 "\n".join(
                     (
-                        _sample(
-                            sample_id="sample-1", with_context=True
-                        ).model_dump_json(),
-                        _sample(
-                            sample_id="sample-2", with_context=False
-                        ).model_dump_json(),
+                        _sample(sample_id="sample-1", with_context=True).model_dump_json(),
+                        _sample(sample_id="sample-2", with_context=False).model_dump_json(),
                     )
                 ),
                 encoding="utf-8",
@@ -235,9 +429,7 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
             )
 
             payload = json.loads(output_path.read_text(encoding="utf-8"))
-            manifest = json.loads(
-                ragas_run_manifest_path(output_path).read_text(encoding="utf-8")
-            )
+            manifest = json.loads(ragas_run_manifest_path(output_path).read_text(encoding="utf-8"))
 
         self.assertEqual(result.total_samples, 2)
         self.assertEqual(result.eligible_samples, 1)
@@ -278,9 +470,7 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
                 evaluated_at=datetime(2026, 4, 29, 12, 0, tzinfo=UTC),
             )
 
-            manifest = json.loads(
-                ragas_run_manifest_path(output_path).read_text(encoding="utf-8")
-            )
+            manifest = json.loads(ragas_run_manifest_path(output_path).read_text(encoding="utf-8"))
 
         self.assertTrue(result.dry_run)
         self.assertEqual(result.result_rows, ())
@@ -315,18 +505,10 @@ class RagasLiveEvalFoundationTests(unittest.TestCase):
             input_path.write_text(
                 "\n".join(
                     (
-                        _sample(
-                            sample_id="sample-1", with_context=True
-                        ).model_dump_json(),
-                        _sample(
-                            sample_id="sample-2", with_context=False
-                        ).model_dump_json(),
-                        _sample(
-                            sample_id="sample-3", with_context=True
-                        ).model_dump_json(),
-                        _sample(
-                            sample_id="sample-4", with_context=True
-                        ).model_dump_json(),
+                        _sample(sample_id="sample-1", with_context=True).model_dump_json(),
+                        _sample(sample_id="sample-2", with_context=False).model_dump_json(),
+                        _sample(sample_id="sample-3", with_context=True).model_dump_json(),
+                        _sample(sample_id="sample-4", with_context=True).model_dump_json(),
                     )
                 ),
                 encoding="utf-8",

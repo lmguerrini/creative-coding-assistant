@@ -1,28 +1,34 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Activity, ArrowRight, BarChart3, CheckCircle2, ChevronDown, Database, FlaskConical, Gauge, History, LineChart, ShieldCheck, Sparkles } from "lucide-react";
 import {
   buildGoldenEvaluationDataset,
+  buildEvaluationBenchmarkRun,
+  CURRENT_PRODUCT_RETRIEVAL_GOLDEN_CASE_IDS,
   createEvaluationCandidate,
+  currentProductRetrievalScoreFromEvidence,
   formatEvaluationCategory,
   formatEvaluationMetric,
+  matchesCurrentProductEvidenceIdentity,
   type EvaluationBenchmarkRun,
   type EvaluationCandidate,
   type EvaluationCaseResult,
   type EvaluationCategory,
+  type EvaluationExecutionProgress,
   type EvaluationMetricResult,
   type EvaluationMetricStatus,
+  type EvaluationProgressCallback,
   type EvaluationRunRequest,
-  type EvaluationScope
+  type EvaluationScope,
+  type RagasExecutionEvidence
 } from "@/lib/evaluation-benchmark";
 import type { EvaluationHistoryRecord } from "@/lib/product-controls";
 import type { ProductIntelligenceModel } from "@/lib/product-intelligence";
 import {
-  CANONICAL_RETRIEVAL_EVOLUTION,
   CURRENT_APPROVED_RAGAS_EVALUATED_AT,
   CURRENT_APPROVED_RAGAS_EVIDENCE,
-  CURRENT_CANONICAL_RETRIEVAL_REPORT
+  CURRENT_PRODUCT_RAGAS_EVIDENCE
 } from "@/lib/current-ragas-evidence";
 import {
   DashboardCallout,
@@ -36,15 +42,19 @@ import {
 } from "./dashboard-page-primitives";
 
 type Props = {
+  currentProductEvidence?: RagasExecutionEvidence | null;
   history: EvaluationHistoryRecord[];
   model: ProductIntelligenceModel;
-  onRun: (request: EvaluationRunRequest) => Promise<void>;
+  onRun: (
+    request: EvaluationRunRequest,
+    onProgress: EvaluationProgressCallback
+  ) => Promise<void>;
   running: boolean;
 };
 
 const categories: EvaluationCategory[] = ["rag", "creative_artifact", "workflow", "product_reliability"];
 const scopes: { id: EvaluationScope; label: string; detail: string }[] = [
-  { id: "full", label: "Full benchmark", detail: "All four categories and all canonical cases" },
+  { id: "full", label: "Full evaluation", detail: "Seven canonical RAG cases plus current creative, workflow, and reliability workspace snapshots" },
   { id: "rag", label: "RAG / Retrieval", detail: "Retrieval contracts and optional RAGAS evidence" },
   { id: "creative_artifact", label: "Creative Artifacts", detail: "Artifact, preview, runtime, and quality evidence" },
   { id: "workflow", label: "Agents & Workflow", detail: "Route, nodes, latency, retries, and recovery" },
@@ -56,61 +66,17 @@ const retrievalMetrics = [
   { id: "faithfulness", label: "Faithfulness", detail: "How well the answer is grounded in the retrieved context." },
   { id: "answer_relevancy", label: "Answer Relevancy", detail: "How directly the answer addresses the benchmark question." },
   { id: "context_precision", label: "Context Precision", detail: "How much of the retrieved context is useful and correctly ranked." },
-  { id: "context_recall", label: "Context Recall", detail: "Requires justified reference answers, which the approved fixture does not yet publish." },
+  { id: "context_recall", label: "Context Recall", detail: "How completely retrieved evidence covers the independently reviewed reference answer." },
   { id: "context_relevancy", label: "Context Relevancy", detail: "How consistently the retrieved context contains information useful for answering the query." }
 ] as const;
 
-const currentRetrievalEvolution = CANONICAL_RETRIEVAL_EVOLUTION[CANONICAL_RETRIEVAL_EVOLUTION.length - 1];
-
-const retrievalMetricDiagnostics = {
-  faithfulness: {
-    target: "At least 80% under the same approved fixture, evaluator model, embedding model, and RAGAS version.",
-    rootCause: "Approved baseline answers contain compound claims whose supporting excerpts do not entail every clause.",
-    improvement: "Generation now requests short, direct, excerpt-grounded claims, source IDs, explicit inference labels, and visible evidence gaps.",
-    delta: "NOT_COMPARABLE — the comparable current-product provider rerun is blocked.",
-    limitation: "The approved provider-scored fixture summary remains the latest scored evidence; local knowledge-base excerpts cannot cross the provider boundary.",
-    nextStep: "On the next eligible sanitized run, retain per-claim support verdicts and inspect unsupported clauses before making another product change."
-  },
-  answer_relevancy: {
-    target: "At least 80% under the same approved fixture, evaluator model, embedding model, and RAGAS version.",
-    rootCause: "Several approved baseline answers broaden the response beyond the question instead of leading with the requested answer.",
-    improvement: "The product prompt contract now prioritizes the direct answer before supporting detail and separates evidence from inference.",
-    delta: "NOT_COMPARABLE — no current-product run exists under the same scored contract.",
-    limitation: "The impact is not claimed until the same approved evaluation contract can run in an eligible environment.",
-    nextStep: "Retain RAGAS reverse-generated questions and noncommittal flags on the next comparable sanitized run, then diagnose only repeatable failure patterns."
-  },
-  context_precision: {
-    target: "Maintain at least 80% under an unchanged, broader approved fixture; the current four-row result is 100%.",
-    rootCause: "No material weakness was observed in the four-row approved fixture; useful evidence was already ranked first.",
-    improvement: "No score-seeking change was made. Retrieval work targeted breadth and multi-domain coverage instead.",
-    delta: "NOT_COMPARABLE — the approved baseline is 100%, but no eligible current-product rerun exists.",
-    limitation: "Four sanitized rows are too narrow to establish broad precision across the full product. No reviewed graded relevance judgments exist for calibrating a similarity threshold.",
-    nextStep: "Retain the current bounded semantic pool. Add a threshold only in a future reviewed graded-relevance benchmark, never to improve anchor overlap."
-  },
-  context_recall: {
-    target: "MISSING_EVIDENCE — no numerical target is defensible until reviewed reference answers exist.",
-    rootCause: "The approved fixture does not publish justified reference answers required for this metric.",
-    improvement: "The gap remains visible as MISSING_EVIDENCE rather than being converted to zero or inferred from another metric.",
-    delta: "NOT_COMPARABLE — the metric has no defensible score or prior value.",
-    limitation: "Reference-answer evidence must be authored and reviewed for a future benchmark version, not retrofitted to raise this score.",
-    nextStep: "Author and independently review reference answers for a future version before enabling Context Recall; keep the current baseline unchanged."
-  },
-  context_relevancy: {
-    target: "At least 80% under the same approved fixture, evaluator model, embedding model, and RAGAS version.",
-    rootCause: "The exact RAGAS cause is unproven because evaluator votes and explanations were not retained. Separately, the local benchmark exposed one-domain candidate-pool saturation.",
-    improvement: "Explicit multi-domain requests now fan out across domains, merge candidates by distance, reject filtered navigation/index evidence, and prefer unseen sources in the final top-k.",
-    delta: "NOT_COMPARABLE as RAGAS; current verified local domain coverage improved +57.89 pts under the fixed retrieval pack.",
-    limitation: "Context Relevancy remains 68.75% until the approved provider evaluation can rerun comparably. A distinct but weaker semantic candidate can still displace a stronger repeated-source chunk.",
-    nextStep: "On a future eligible sanitized run, retain evaluator relevance votes and explanations; continue only product-wide ranking changes supported by repeated graded failures."
-  }
-} as const;
-
-type EvaluationProgress = {
-  executionMode: "deterministic_local" | "provider_assisted";
-  phase: "running" | "response_received" | "ended";
-  previousRunId: string | null;
-  selectedContracts: number;
-};
+const currentProductMetricIds = [
+  "faithfulness",
+  "answer_relevancy",
+  "context_precision",
+  "context_recall",
+  "context_relevancy"
+] as const;
 
 const coverageRows = [
   ["RAG architecture", "Retrieval-required cases, source contracts, RAGAS precision/faithfulness/relevancy", "Measured only from recorded answer + context evidence"],
@@ -119,59 +85,143 @@ const coverageRows = [
   ["Reliability", "Runtime health, persistence evidence, Product Bug signals, validation manifests", "Test suites are blocked unless explicitly executed"],
   ["Provider observability", "Provider/model, token usage, cost, duration, evaluator dataset", "Unavailable values are not estimated or fabricated"],
   ["Reproducibility", "Versioned prompt contracts, stable fingerprint, append-only local history", "Canonical prompts remain immutable"],
-  ["Safety & privacy", "Explicit provider consent and approved public-safe RAGAS fixtures", "Raw local sessions never enter provider evaluation"]
+  ["Safety & privacy", "Explicit provider consent and public-only current-product benchmark evidence", "Raw local sessions and private KB content never enter provider evaluation"]
 ] as const;
 
-export function CapstoneEvaluationWorkspace({ history, model: _model, onRun, running }: Props) {
+export function CapstoneEvaluationWorkspace({
+  currentProductEvidence = CURRENT_PRODUCT_RAGAS_EVIDENCE,
+  history,
+  model,
+  onRun,
+  running
+}: Props) {
   const dataset = useMemo(buildGoldenEvaluationDataset, []);
+  const committedCurrentProductRun = useMemo(() => {
+    if (
+      !currentProductEvidence?.timestamp ||
+      currentProductRetrievalScoreFromEvidence(currentProductEvidence) == null
+    ) return null;
+    return buildEvaluationBenchmarkRun({
+      model,
+      now: new Date(currentProductEvidence.timestamp),
+      ragas: currentProductEvidence,
+      request: {
+        scope: "rag",
+        caseIds: [],
+        allowProviderCalls: true,
+        approvedRagasDataset: "sanitized_public"
+      }
+    });
+  }, [currentProductEvidence, model]);
   const benchmarkHistory = useMemo(
-    () => history.flatMap((entry) => entry.benchmark ? [entry.benchmark] : []),
-    [history]
+    () => {
+      const persisted = history.flatMap((entry) => entry.benchmark ? [entry.benchmark] : []);
+      const combined = committedCurrentProductRun
+        ? [...persisted.filter((run) => run.runId !== committedCurrentProductRun.runId), committedCurrentProductRun]
+        : persisted;
+      return combined.sort((left, right) => runTimestamp(left) - runTimestamp(right));
+    },
+    [committedCurrentProductRun, history]
   );
-  const latest = benchmarkHistory.at(-1) ?? null;
+  const latestAttempt = benchmarkHistory.at(-1) ?? null;
+  const latestCurrentProductAttempt = [...benchmarkHistory]
+    .reverse()
+    .find((run) => run.ragas.benchmarkMode === "current_product") ?? null;
+  const currentRetrievalRun = [...benchmarkHistory]
+    .reverse()
+    .find(isFullyCompletedCurrentProductRun) ?? null;
   const [scope, setScope] = useState<EvaluationScope>("full");
   const [caseIds, setCaseIds] = useState<string[]>(() => dataset.cases.slice(0, 3).map((item) => item.id));
   const [allowProviderCalls, setAllowProviderCalls] = useState(false);
-  const [approvedRagasDataset, setApprovedRagasDataset] = useState<"sanitized_public" | "redacted_public">("sanitized_public");
   const [runOpen, setRunOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<"all" | EvaluationCategory>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | EvaluationMetricStatus>("all");
   const [query, setQuery] = useState("");
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<EvaluationCandidate[]>([]);
-  const [progress, setProgress] = useState<EvaluationProgress | null>(null);
-  const selectedRun = benchmarkHistory.find((item) => item.id === selectedHistoryId) ?? latest;
-  const ragCaseIds = dataset.cases.filter((item) => item.categories.includes("rag")).map((item) => item.id);
+  const [progress, setProgress] = useState<EvaluationExecutionProgress | null>(null);
+  const runInFlight = useRef(false);
+  const previousCurrentAttemptId = useRef<string | null>(latestCurrentProductAttempt?.id ?? null);
+  const selectedHistoryRun = benchmarkHistory.find((item) => item.id === selectedHistoryId) ?? null;
+  const selectedRun = selectedHistoryRun ?? latestAttempt;
+  const viewingHistorical = Boolean(
+    selectedHistoryRun && selectedHistoryRun.id !== currentRetrievalRun?.id
+  );
+  const ragCaseIds = [...CURRENT_PRODUCT_RETRIEVAL_GOLDEN_CASE_IDS];
   const comparableHistory = selectedRun
     ? benchmarkHistory.filter((item) => isComparableHistoryRun(item, selectedRun))
     : [];
   const selectedCount = scope === "cases"
     ? caseIds.length
     : scope === "full"
-      ? dataset.cases.length
-      : dataset.cases.filter((item) => item.categories.includes(scope)).length;
+      ? CURRENT_PRODUCT_RETRIEVAL_GOLDEN_CASE_IDS.length
+      : scope === "rag"
+        ? CURRENT_PRODUCT_RETRIEVAL_GOLDEN_CASE_IDS.length
+        : dataset.cases.filter((item) => item.categories.includes(scope)).length;
   const selectedScopeLabel = scopes.find((item) => item.id === scope)?.label ?? "Selected evaluation";
-  const selectedHasRag = scope === "full" || scope === "rag" || (scope === "cases" && dataset.cases.some((item) => caseIds.includes(item.id) && item.categories.includes("rag")));
-  const isRunning = running || progress?.phase === "running";
+  const selectedHasRag = scope === "full" || scope === "rag" || (scope === "cases" && caseIds.some((caseId) => CURRENT_PRODUCT_RETRIEVAL_GOLDEN_CASE_IDS.includes(caseId)));
+  const providerAuthorized = selectedHasRag && allowProviderCalls;
+  const isRunning = running || runInFlight.current;
+
+  useEffect(() => {
+    const nextId = latestCurrentProductAttempt?.id ?? null;
+    if (nextId && previousCurrentAttemptId.current !== nextId) {
+      setSelectedHistoryId(null);
+    }
+    previousCurrentAttemptId.current = nextId;
+  }, [latestCurrentProductAttempt?.id]);
 
   async function run() {
+    if (runInFlight.current || running || selectedCount === 0) return;
     const selectedCases = scope === "full"
-      ? dataset.cases
+      ? dataset.cases.filter((item) => CURRENT_PRODUCT_RETRIEVAL_GOLDEN_CASE_IDS.includes(item.id))
       : scope === "cases"
         ? dataset.cases.filter((item) => caseIds.includes(item.id))
-        : dataset.cases.filter((item) => item.categories.includes(scope));
-    const executionMode = selectedHasRag && allowProviderCalls ? "provider_assisted" : "deterministic_local";
-    setProgress({ executionMode, phase: "running", previousRunId: latest?.id ?? null, selectedContracts: selectedCases.length });
+        : scope === "rag"
+          ? dataset.cases.filter((item) => CURRENT_PRODUCT_RETRIEVAL_GOLDEN_CASE_IDS.includes(item.id))
+          : dataset.cases.filter((item) => item.categories.includes(scope));
+    runInFlight.current = true;
+    setRunOpen(true);
+    setProgress({
+      runId: null,
+      status: "preflight",
+      phase: "preflight",
+      lane: selectedScopeLabel,
+      currentCaseId: null,
+      currentCaseLabel: providerAuthorized ? "Preparing current-product benchmark" : "Preparing local preflight / workspace snapshot",
+      completedCases: 0,
+      totalCases: selectedCases.length,
+      remainingCases: selectedCases.length,
+      percent: 0,
+      executionState: providerAuthorized ? "provider_authorized" : "local_preflight",
+      detail: providerAuthorized
+        ? "The current-product benchmark request is being validated before retrieval, generation, and evaluation."
+        : "No retrieval, generation, or evaluator provider calls will run; this cannot publish a new Retrieval Quality score."
+    });
     try {
       await onRun({
         scope,
         caseIds: scope === "cases" ? caseIds : [],
-        allowProviderCalls: selectedHasRag && allowProviderCalls,
-        approvedRagasDataset
-      });
-      setProgress((current) => current ? { ...current, phase: "response_received" } : current);
-    } catch {
-      setProgress((current) => current ? { ...current, phase: "ended" } : current);
+        allowProviderCalls: providerAuthorized,
+        approvedRagasDataset: "sanitized_public"
+      }, setProgress);
+    } catch (error) {
+      setProgress((current) => ({
+        runId: current?.runId ?? null,
+        status: "failed",
+        phase: "terminal",
+        lane: current?.lane ?? selectedScopeLabel,
+        currentCaseId: current?.currentCaseId ?? null,
+        currentCaseLabel: "Evaluation stopped",
+        completedCases: current?.completedCases ?? 0,
+        totalCases: current?.totalCases ?? selectedCases.length,
+        remainingCases: current?.remainingCases ?? selectedCases.length,
+        percent: current?.percent ?? null,
+        executionState: current?.executionState ?? "unavailable",
+        detail: error instanceof Error ? error.message : "The evaluation ended unexpectedly."
+      }));
+    } finally {
+      runInFlight.current = false;
     }
   }
 
@@ -187,7 +237,7 @@ export function CapstoneEvaluationWorkspace({ history, model: _model, onRun, run
       <DashboardSection
         action={(
           <div className="evaluationLaunchActions">
-            <button className="capstonePrimaryButton" disabled={isRunning || selectedCount === 0} onClick={() => { setRunOpen(true); void run(); }} type="button">
+            <button className="capstonePrimaryButton" disabled={isRunning || selectedCount === 0} onClick={() => void run()} type="button">
               <Sparkles aria-hidden="true" size={16} /> {isRunning ? "Evaluation running…" : "Run Evaluation"}
             </button>
             <button className="capstoneConfigureButton" disabled={isRunning} onClick={() => setRunOpen(true)} type="button">Configure run</button>
@@ -204,25 +254,46 @@ export function CapstoneEvaluationWorkspace({ history, model: _model, onRun, run
           className="evaluationLabMetrics"
           label="Evaluation benchmark summary"
           metrics={[
-            { label: "Benchmark corpus", value: `${dataset.cases.length} unique cases` },
-            { label: "Dataset", value: dataset.version },
-            { label: "Fingerprint", value: dataset.fingerprint.slice(0, 10) },
-            { detail: "Four supported metrics · four sanitized rows", label: "Approved RAGAS baseline", tone: "warning", value: "61.44%" }
+            {
+              detail: "Frozen contract coverage only; Full does not generate all 35 prompts.",
+              label: "Benchmark corpus",
+              value: `${dataset.cases.length} unique cases`
+            },
+            {
+              detail: currentRetrievalRun ? "Newest fully completed current-product retrieval run" : "Current-product benchmark has not completed",
+              label: "Benchmark",
+              value: currentRetrievalRun?.benchmarkVersion ?? "Awaiting current run"
+            },
+            {
+              detail: currentRetrievalRun?.runId ?? "No current-product run identifier",
+              label: "Dataset fingerprint",
+              value: currentRetrievalRun ? shortFingerprint(currentRetrievalRun.datasetFingerprint) : "—"
+            },
+            {
+              detail: currentRetrievalRun
+                ? `${currentRetrievalRun.ragas.resultRows}/${currentRetrievalRun.ragas.totalSamples} current-product cases · target 85% · stretch 90%`
+                : "Run the current product to establish a score · target 85% · stretch 90%",
+              label: "Current Retrieval Quality",
+              tone: currentRetrievalRun ? "good" : "warning",
+              value: formatPreciseScore(currentProductRetrievalScore(currentRetrievalRun))
+            }
           ]}
         />
         <DashboardCallout
-          detail={`Selected: ${selectedScopeLabel} · ${selectedCount} contract${selectedCount === 1 ? "" : "s"} · deterministic local evidence by default. The approved-fixture RAGAS macro is not current-product quality.`}
+          detail={scope === "full"
+            ? "Selected: Full evaluation · seven canonical current-product RAG cases plus current local creative, workflow, and reliability workspace snapshots. The snapshots are not additional generated or evaluator-scored cases. A new RAGAS score requires provider authorization."
+            : `Selected: ${selectedScopeLabel} · ${selectedCount} defined contract${selectedCount === 1 ? "" : "s"} · local preflight/workspace evidence by default. A new current-product RAGAS score requires provider authorization. Defined contracts are not claimed executed until live progress confirms them.`}
           icon={ShieldCheck}
           title="Scope and evidence stay explicit"
           tone="warning"
         />
       </DashboardSection>
 
-      <QualityBoundaryMap ragCaseCount={ragCaseIds.length} run={selectedRun} />
+      <QualityBoundaryMap ragCaseCount={ragCaseIds.length} run={currentRetrievalRun} />
 
       <RetrievalEvaluation
         ragCaseIds={ragCaseIds}
-        run={selectedRun}
+        run={currentRetrievalRun}
       />
 
       <DashboardDisclosure
@@ -237,7 +308,7 @@ export function CapstoneEvaluationWorkspace({ history, model: _model, onRun, run
             { label: "Fail", tone: "danger", value: selectedRun?.counts.fail ?? 0 },
             { label: "Blocked", value: selectedRun?.counts.blocked ?? 0 },
             { label: "Missing", value: selectedRun?.counts.missing ?? 0 },
-            { label: "Not run", value: selectedRun?.counts.notRun ?? dataset.cases.length }
+            { label: "Not-run result rows", value: selectedRun?.counts.notRun ?? 0 }
           ]}
         />
         <section aria-label="Evaluation categories" className="evaluationCategoriesContent">
@@ -279,7 +350,7 @@ export function CapstoneEvaluationWorkspace({ history, model: _model, onRun, run
         <DashboardSection
           action={<button className="evaluationCloseButton" disabled={isRunning} onClick={() => setRunOpen(false)} type="button">Close</button>}
           className="evaluationRunControls"
-          detail="Choose the evidence scope, execution boundary, and optional provider authorization before running the benchmark."
+          detail="Choose the evidence scope and execution boundary. Provider authorization is required whenever the selection includes current-product RAGAS scoring."
           eyebrow="Run controls"
           icon={Gauge}
           label="Evaluation preflight"
@@ -297,23 +368,32 @@ export function CapstoneEvaluationWorkspace({ history, model: _model, onRun, run
           <div className="evaluationPreflightGrid">
             <Preflight
               label="Execution"
-              value={allowProviderCalls ? "Provider-assisted RAGAS + local benchmark" : "Deterministic local benchmark"}
-              detail={allowProviderCalls ? "Approved public-safe fixture only; explicitly authorized" : "Always available; no provider call"}
+              value={providerAuthorized ? "Provider-assisted current-product benchmark" : "Local preflight / workspace snapshot"}
+              detail={providerAuthorized
+                ? "Public official KB excerpts only; explicitly authorized"
+                : selectedHasRag
+                  ? "Zero retrieval, generation, or evaluator provider calls; no new Retrieval Quality score"
+                  : "Non-RAG workspace-lane evidence only; zero provider calls"}
             />
-            <Preflight label="Selection" value={`${selectedCount} canonical contracts`} detail={`${scope.replace(/_/g, " ")} scope · current local snapshot is analyzed`} />
+            <Preflight
+              label="Defined selection"
+              value={scope === "full" ? "7 canonical RAG cases + workspace snapshots" : `${selectedCount} canonical contracts`}
+              detail={scope === "full"
+                ? "Live case progress covers the seven RAG cases; local creative, workflow, and reliability evidence is snapshotted separately."
+                : `${scope.replace(/_/g, " ")} scope · live progress reports the cases actually executed`}
+            />
             <Preflight label="History" value="Append locally" detail="Up to 24 run records survive reload" />
-            <Preflight label="Cost" value={allowProviderCalls ? "Estimate unavailable" : "$0 provider evaluation"} detail={allowProviderCalls ? "Actual provider usage is reported when published" : "Local evidence only"} />
+            <Preflight label="Cost" value={providerAuthorized ? "Estimate unavailable" : "$0 provider calls"} detail={providerAuthorized ? "Actual provider usage is reported when published" : "Local preflight/workspace-lane evidence only"} />
           </div>
           {selectedHasRag ? (
             <div className="evaluationProviderGate">
               <ShieldCheck aria-hidden="true" size={20} />
-              <div><strong>Provider-assisted RAGAS is optional</strong><p>Only a committed public-safe benchmark fixture may leave the app. Raw local sessions are never eligible.</p></div>
-              <select aria-label="Approved RAGAS dataset" disabled={!allowProviderCalls} onChange={(event) => setApprovedRagasDataset(event.target.value as typeof approvedRagasDataset)} value={approvedRagasDataset}><option value="sanitized_public">Sanitized public fixture</option><option value="redacted_public">Redacted public fixture</option></select>
-              <label><input checked={allowProviderCalls} onChange={(event) => setAllowProviderCalls(event.target.checked)} type="checkbox" /> I explicitly authorize evaluator provider calls for this approved fixture.</label>
+              <div><strong>Provider authorization is required for a new current-product RAGAS score</strong><p>The benchmark may send only committed public questions and public official-documentation excerpts. Raw sessions and private KB content remain ineligible. Non-RAG workspace lanes can run without provider authorization.</p></div>
+              <label><input checked={allowProviderCalls} onChange={(event) => setAllowProviderCalls(event.target.checked)} type="checkbox" /> I explicitly authorize evaluator provider calls for this current-product public benchmark.</label>
             </div>
           ) : null}
-          {progress ? <EvaluationRunProgress datasetVersion={dataset.version} progress={progress} run={latest} /> : null}
-          <footer className="evaluationRunActions"><span>{selectedCount === 0 ? "Select at least one case." : allowProviderCalls ? "Provider call authorized for approved RAGAS fixture." : "No evaluator provider will be called."}</span><button className="capstonePrimaryButton" disabled={isRunning || selectedCount === 0} onClick={() => void run()} type="button">{isRunning ? "Running…" : `Run ${selectedCount} case${selectedCount === 1 ? "" : "s"}`}</button></footer>
+          {progress ? <EvaluationRunProgress datasetVersion={dataset.version} progress={progress} /> : null}
+          <footer className="evaluationRunActions"><span>{selectedCount === 0 ? "Select at least one case." : providerAuthorized ? "Provider authorization is saved for the next above-fold Run Evaluation action." : selectedHasRag ? "Without provider authorization, the next run publishes only local preflight/workspace evidence and no new Retrieval Quality score." : "This non-RAG workspace lane runs without provider calls. Use the above-fold Run Evaluation action to start."}</span></footer>
         </DashboardSection>
       ) : null}
 
@@ -329,6 +409,14 @@ export function CapstoneEvaluationWorkspace({ history, model: _model, onRun, run
             icon={BarChart3}
             title="Measured outcomes and evidence gaps"
           />
+          {viewingHistorical && selectedHistoryRun ? (
+            <DashboardCallout
+              detail={`You are inspecting historical run ${selectedHistoryRun.runId ?? selectedHistoryRun.id}. Primary Retrieval Quality remains bound to the newest fully completed current-product run.`}
+              icon={History}
+              title="Historical run selected"
+              tone="warning"
+            />
+          ) : null}
           {comparableHistory.length >= 2 ? (
             <div className="evaluationTrendGrid">
               {categories.map((category) => <Trend key={category} category={category} runs={comparableHistory} />)}
@@ -359,12 +447,37 @@ export function CapstoneEvaluationWorkspace({ history, model: _model, onRun, run
       <DashboardDisclosure className="evaluationWorkspaceDisclosure" summary="Comparable stored runs">
         <section aria-label="Evaluation history and trends" className="evaluationHistoryContent">
           <DashboardSectionHeader
-            detail="Deltas appear only when dataset fingerprint, scope, selected cases, and metrics are comparable."
+            detail="Deltas appear only when pipeline fingerprints, scope, selected cases, and evaluator contracts are comparable."
             eyebrow="History"
             icon={History}
             title="Comparable stored runs"
           />
-          {benchmarkHistory.length ? <div className="evaluationRunHistory">{[...benchmarkHistory].reverse().map((run) => <button aria-pressed={selectedRun?.id === run.id} key={run.id} onClick={() => setSelectedHistoryId(run.id)} type="button"><Status status={statusTone(run.statusLabel)} /><span><strong>{run.scope.replace(/_/g, " ")}</strong><small>{formatDate(run.completedAt)} · {run.executedCases}/{run.selectedCases} cases</small></span><span><strong>{run.provider ?? "Local only"}</strong><small>{run.totalTokens == null ? "Tokens unavailable" : `${run.totalTokens.toLocaleString()} tokens`} · {run.estimatedCost == null ? "Cost unavailable" : `${run.currency} ${run.estimatedCost.toFixed(4)}`}</small></span></button>)}</div> : <p className="evaluationEmpty">No rich benchmark run is stored yet. Existing legacy attempts remain preserved but are not comparable.</p>}
+          <DashboardInfoCard
+            className="evaluationHistoricalBaseline"
+            detail={`Equal-weight mean of four measured dimensions on four committed sanitized rows. Context Recall is absent. Evaluated ${formatDate(CURRENT_APPROVED_RAGAS_EVALUATED_AT)} with ${CURRENT_APPROVED_RAGAS_EVIDENCE.model ?? "model unavailable"}; never used as current-product Retrieval Quality.`}
+            eyebrow="Historical approved fixture · not current product"
+            title="61.44%"
+            tone="warning"
+          >
+            <small>Run {CURRENT_APPROVED_RAGAS_EVIDENCE.runId} · {CURRENT_APPROVED_RAGAS_EVIDENCE.datasetVersion} · four-metric limitation</small>
+          </DashboardInfoCard>
+          {benchmarkHistory.length ? <div className="evaluationRunHistory">{[...benchmarkHistory].reverse().map((run) => {
+            const isCurrent = run.id === currentRetrievalRun?.id;
+            const isLatestAttempt = run.id === latestAttempt?.id;
+            const originLabel = isCurrent
+              ? "CURRENT PRODUCT"
+              : run.ragas.benchmarkMode === "current_product"
+                ? run.scoreOrigin === "current_product"
+                  ? "PRIOR CURRENT-PRODUCT RUN"
+                  : "UNSCORED CURRENT-PRODUCT RUN"
+                : run.ragas.benchmarkMode === "historical_fixture"
+                  ? "HISTORICAL FIXTURE"
+                  : "LOCAL WORKSPACE RUN";
+            const completion = run.scope === "full"
+              ? `${run.ragas.resultRows}/7 RAG cases evaluated · local workspace snapshots recorded separately`
+              : `${run.executedCases}/${run.selectedCases} selected contracts observed`;
+            return <button aria-pressed={selectedRun?.id === run.id} key={run.id} onClick={() => setSelectedHistoryId(run.id)} type="button"><Status status={statusTone(run.statusLabel)} /><span><strong>{originLabel} · {run.scope.replace(/_/g, " ")}</strong><small>{formatDate(run.timestamp ?? run.completedAt)} · {completion}{isLatestAttempt ? " · latest attempt" : ""}</small></span><span><strong>{run.evaluator ?? run.provider ?? "Local only"}</strong><small>{run.runId ?? run.id} · {shortFingerprint(run.ragas.datasetFingerprint)}</small></span></button>;
+          })}</div> : <p className="evaluationEmpty">No current-product benchmark run is stored yet. The historical approved fixture above remains comparison evidence only.</p>}
         </section>
       </DashboardDisclosure>
 
@@ -383,7 +496,7 @@ export function CapstoneEvaluationWorkspace({ history, model: _model, onRun, run
             </table>
           </DashboardTableFrame>
           <DashboardDisclosure className="evaluationMethodology" summary="Methodology, scoring, and limitations">
-            <div><p><strong>Golden dataset.</strong> {dataset.rawSourceCount} product-authored records are normalized into {dataset.cases.length} unique prompt contracts; {dataset.duplicateCount} aliases are deduplicated. IDs and a deterministic fingerprint make changes visible.</p><p><strong>Metric separation.</strong> RAGAS metrics apply only to recorded answers with contexts. Product-specific creative, workflow, runtime, and persistence signals retain their own labels. No cross-category global score is calculated because these lanes measure different constructs.</p><p><strong>Missing evidence.</strong> BLOCKED_BY_EXECUTION_ENVIRONMENT means a required evaluator, credential, network, or test runner was unavailable. MISSING_EVIDENCE means the current product did not publish defensible proof. Neither is converted to zero.</p><p><strong>Known limits.</strong> Context recall has no justified reference answers in the approved fixtures. Visual clarity and interaction success need rendered or human evidence. Historic QA can inform review but never becomes a current run result.</p></div>
+            <div><p><strong>Golden dataset.</strong> {dataset.rawSourceCount} product-authored records are normalized into {dataset.cases.length} unique prompt contracts; {dataset.duplicateCount} aliases are deduplicated. IDs and a deterministic fingerprint make selection changes visible.</p><p><strong>Metric separation.</strong> RAGAS metrics apply only to current generated answers with current retrieved contexts. Product-specific creative, workflow, runtime, and persistence signals retain their own labels. No cross-category global score is calculated.</p><p><strong>Missing evidence.</strong> BLOCKED_BY_EXECUTION_ENVIRONMENT means a required evaluator, credential, network, or runner was unavailable. MISSING_EVIDENCE means the current product did not publish defensible proof. Neither becomes zero.</p><p><strong>Known limits.</strong> Context Recall requires independently reviewed reference answers. Visual clarity and interaction success need rendered or human evidence. Historical QA remains comparison evidence and never becomes a current result.</p></div>
           </DashboardDisclosure>
         </section>
       </DashboardDisclosure>
@@ -402,20 +515,19 @@ function formatQualityLane(category: EvaluationCategory) {
 }
 
 function QualityBoundaryMap({ ragCaseCount, run }: { ragCaseCount: number; run: EvaluationBenchmarkRun | null }) {
-  const approvedScores = ["faithfulness", "answer_relevancy", "context_precision", "context_relevancy"].flatMap((id) => {
-    const score = CURRENT_APPROVED_RAGAS_EVIDENCE.metricScores[id];
-    return score == null ? [] : [score];
-  });
-  const approvedRetrievalScore = approvedScores.length
-    ? approvedScores.reduce((sum, score) => sum + score, 0) / approvedScores.length
-    : null;
+  const retrievalScore = currentProductRetrievalScore(run);
   const categorySignal = (category: EvaluationCategory) => run?.categoryResults.find((result) => result.category === category)?.score ?? null;
+  const measuredMetrics = currentProductMetricIds.filter((id) => run?.ragas.metricScores[id] != null).length;
+  const completedCases = run?.ragas.resultRows ?? 0;
+  const totalCases = run?.ragas.totalSamples ?? ragCaseCount;
   const lanes = [
     {
-      classification: "MEASURED BASELINE",
-      detail: "Equal-weight mean of four supported RAGAS dimensions on the committed public-safe fixture only.",
+      classification: run ? "CURRENT PRODUCT" : "NOT MEASURED",
+      detail: run
+        ? "Equal-weight mean of all five justified RAGAS dimensions from the newest fully completed current-product benchmark."
+        : "No fully completed current-product retrieval benchmark is available. Historical fixture evidence is kept in History only.",
       label: "Retrieval Quality",
-      value: formatPreciseScore(approvedRetrievalScore)
+      value: formatPreciseScore(retrievalScore)
     },
     {
       classification: "SEPARATE LANE",
@@ -437,15 +549,17 @@ function QualityBoundaryMap({ ragCaseCount, run }: { ragCaseCount: number; run: 
     },
     {
       classification: "COVERAGE ONLY",
-      detail: `Current verified: ${CURRENT_CANONICAL_RETRIEVAL_REPORT.casesWithResults}/${CURRENT_CANONICAL_RETRIEVAL_REPORT.retrievalPackCases} canonical retrieval-pack queries returned results; 0/${ragCaseCount} golden RAG contracts have exact end-to-end RAGAS evidence. Coverage is not quality.`,
+      detail: run
+        ? `${completedCases}/${totalCases} current-product retrieval cases published terminal evidence. Coverage is not quality.`
+        : `${ragCaseCount} retrieval contracts are defined; none is claimed executed until a current-product run completes.`,
       label: "Benchmark Coverage",
-      value: `${CURRENT_CANONICAL_RETRIEVAL_REPORT.casesWithResults}/${CURRENT_CANONICAL_RETRIEVAL_REPORT.retrievalPackCases} retrieval queries`
+      value: run ? `${completedCases}/${totalCases} executed` : "Awaiting run"
     },
     {
       classification: "COVERAGE ONLY",
-      detail: "Four of five requested Retrieval dimensions are measured; missing evidence is not a zero.",
+      detail: `${measuredMetrics}/5 justified current-product Retrieval dimensions are measured; missing evidence is not a zero.`,
       label: "Evidence Coverage",
-      value: "4/5 RAG metrics"
+      value: `${measuredMetrics}/5 RAG metrics`
     }
   ] as const;
 
@@ -481,22 +595,16 @@ function QualityBoundaryMap({ ragCaseCount, run }: { ragCaseCount: number; run: 
 }
 
 function RetrievalEvaluation({ ragCaseIds, run }: { ragCaseIds: string[]; run: EvaluationBenchmarkRun | null }) {
-  const supportedMetricIds = ["faithfulness", "answer_relevancy", "context_precision", "context_relevancy"] as const;
-  const runHasMeasuredRagas = supportedMetricIds.some((id) => run?.ragas.metricScores[id] != null);
-  const evidence = runHasMeasuredRagas && run ? run.ragas : CURRENT_APPROVED_RAGAS_EVIDENCE;
-  const usingCommittedSummary = !runHasMeasuredRagas;
-  const requestedSupportedIds = supportedMetricIds.filter((id) => evidence.metrics.includes(id));
-  const supportedScores = requestedSupportedIds.flatMap((id) => {
-    const score = evidence.metricScores[id] ?? findRetrievalMetric(run, id)?.score ?? null;
+  const evidence = run?.ragas ?? null;
+  const supportedScores = currentProductMetricIds.flatMap((id) => {
+    const score = evidence?.metricScores[id] ?? null;
     return score == null ? [] : [score];
   });
-  const retrievalScore = supportedScores.length
-    ? supportedScores.reduce((total, score) => total + score, 0) / supportedScores.length
-    : null;
-  const evidenceCoverage = supportedScores.length / retrievalMetrics.length;
+  const retrievalScore = currentProductRetrievalScore(run);
+  const evidenceCoverage = supportedScores.length / currentProductMetricIds.length;
   const productReliability = run?.categoryResults.find((result) => result.category === "product_reliability") ?? null;
   const retrievalStatus = retrievalScore == null
-    ? ["blocked", "prepared", "not_requested"].includes(evidence.state) ? "blocked" : "missing_evidence"
+    ? run ? "missing_evidence" : "not_run"
     : scoreStatus(retrievalScore);
 
   return (
@@ -504,65 +612,65 @@ function RetrievalEvaluation({ ragCaseIds, run }: { ragCaseIds: string[]; run: E
       action={(
         <div className="retrievalExecutionBadge">
           <Status status={retrievalStatus} />
-          <strong>{formatRagasDataset(evidence.datasetId)}</strong>
-          <small>{usingCommittedSummary ? `committed transcribed baseline summary · ${formatDate(CURRENT_APPROVED_RAGAS_EVALUATED_AT)}${run ? ` · current attempt ${run.ragas.state.replace(/_/g, " ")}` : ""}` : `${evidence.state.replace(/_/g, " ")} · ${evidence.provider ?? "provider not reported"}`}</small>
+          <strong>{run?.benchmarkVersion ?? "No current-product score"}</strong>
+          <small>{run ? `${run.ragas.state.replace(/_/g, " ")} · ${run.evaluator ?? "evaluator not reported"}` : "Run the current product to publish Retrieval Quality"}</small>
         </div>
       )}
       className="evaluationRetrievalSection"
-      detail="Only supported measurements from the approved public-safe fixture enter the score. Missing or unsupported metrics remain visible and never become zero."
-      eyebrow={usingCommittedSummary ? "Approved RAGAS baseline" : "Selected RAGAS run"}
+      detail="Only a fully completed current-product run with all five justified dimensions can become primary Retrieval Quality. Missing or partial evidence remains visible and never becomes zero."
+      eyebrow="Current-product RAGAS"
       icon={Database}
       label="RAGAS retrieval evaluation"
-      title="Retrieval quality, with every evidence boundary visible"
+      title="Current Retrieval Quality, with complete provenance"
     >
 
       <div className="evaluationRetrievalOverview">
         <article className="dashboardInnerCard retrievalOverallScore" data-status={retrievalStatus}>
-          <span><Gauge aria-hidden="true" size={15} /> Approved-fixture Overall Retrieval Score</span>
+          <span><Gauge aria-hidden="true" size={15} /> Current-product Overall Retrieval Score</span>
           <strong>{formatPreciseScore(retrievalScore)}</strong>
           <div className="evaluationScoreTrack"><i style={{ width: `${(retrievalScore ?? 0) * 100}%` }} /></div>
-          <p>{supportedScores.length}/{requestedSupportedIds.length} requested, supported RAGAS dimensions measured. {supportedScores.length < requestedSupportedIds.length ? "The score is provisional until supported evidence is complete." : "Each measured dimension contributes equally."} {usingCommittedSummary ? "Shown from the committed transcribed summary of the approved provider-scored fixture." : "Shown from this workspace run."}</p>
+          <p>{supportedScores.length}/5 justified RAGAS dimensions measured. {retrievalScore == null ? "No partial metric set is promoted to the primary score." : "Each dimension contributes equally; target 85%, stretch 90%."}</p>
         </article>
         <DashboardCardGrid className="evaluationRetrievalBoundaries" label="Retrieval score boundaries" layout="equal" role="list">
           <EvaluationBoundaryCard
-            detail={`${CURRENT_CANONICAL_RETRIEVAL_REPORT.casesWithResults}/${CURRENT_CANONICAL_RETRIEVAL_REPORT.retrievalPackCases} canonical retrieval-pack queries returned ranked results; 0/${ragCaseIds.length} exact golden contracts have end-to-end RAGAS evidence`}
+            detail={run ? `${run.ragas.resultRows}/${run.ragas.totalSamples} current-product retrieval cases published scored evidence.` : `${ragCaseIds.length} retrieval contracts are defined; no execution is claimed before a run completes.`}
             label="Benchmark coverage"
-            value={`${CURRENT_CANONICAL_RETRIEVAL_REPORT.casesWithResults}/${CURRENT_CANONICAL_RETRIEVAL_REPORT.retrievalPackCases} retrieval queries`}
+            value={run ? `${run.ragas.resultRows}/${run.ragas.totalSamples} executed` : "Awaiting run"}
           />
           <EvaluationBoundaryCard
             caution
-            detail={`${supportedScores.length}/${retrievalMetrics.length} requested RAG metric dimensions measured. This is not an overall product or project score.`}
+            detail={`${supportedScores.length}/5 justified current-product RAG metric dimensions measured. This is not an overall product or project score.`}
             label="Evidence coverage"
             value={formatScore(evidenceCoverage)}
           />
           <EvaluationBoundaryCard
-            detail={productReliability?.score == null ? "Not measured in the selected run. Runtime, persistence, validation, and bug evidence remain a separate quality lane." : "Measured from product reliability evidence only; never included in the Retrieval Quality baseline."}
+            detail={productReliability?.score == null ? "Not measured in the selected run. Runtime, persistence, validation, and bug evidence remain a separate quality lane." : "Measured from product reliability evidence only; never included in current-product Retrieval Quality."}
             label="Product Reliability"
             value={productReliability?.score == null ? "Not measured" : formatScore(productReliability.score)}
           />
         </DashboardCardGrid>
       </div>
 
-      <ScoreCompositionContract evidence={evidence} />
+      {run ? <CurrentRunProvenance run={run} /> : null}
 
-      <DashboardDisclosure className="evaluationDeepDisclosure" summary="Retrieval engineering evolution — eight verified iterations">
-        <RetrievalEngineeringEvolution />
+      {evidence ? <ScoreCompositionContract evidence={evidence} /> : null}
+
+      <DashboardDisclosure className="evaluationDeepDisclosure" summary="Current-product retrieval engineering evolution">
+        <RetrievalEngineeringEvolution run={run} />
       </DashboardDisclosure>
 
       <DashboardCardGrid className="evaluationRagasMetricGrid" label="RAGAS metric scores" layout="compact" role="list">
         {retrievalMetrics.map((definition) => {
           const metric = findRetrievalMetric(run, definition.id);
-          const score = evidence.metricScores[definition.id] ?? metric?.score ?? null;
+          const score = evidence?.metricScores[definition.id] ?? metric?.score ?? null;
           const status = score == null
-            ? definition.id === "context_recall"
-              ? "missing_evidence"
-              : metric?.status ?? (evidence.state === "blocked" ? "blocked" : "missing_evidence")
+            ? metric?.status ?? (run ? "missing_evidence" : "not_run")
             : scoreStatus(score);
           const value = score == null
             ? status === "blocked" ? "BLOCKED" : status === "missing_evidence" ? "MISSING EVIDENCE" : "NOT RUN"
             : formatPreciseScore(score);
           const evidenceDetail = score != null
-            ? `Real RAGAS score across ${evidence.resultRows} approved retrieval rows.`
+            ? `Current-product RAGAS score across ${evidence?.resultRows ?? 0} retrieval cases.`
             : metric?.detail ?? "No defensible measurement is published for this dimension.";
           return (
             <article className="dashboardInnerCard evaluationRagasMetricCard" data-status={status} key={definition.id} role="listitem">
@@ -576,19 +684,19 @@ function RetrievalEvaluation({ ragCaseIds, run }: { ragCaseIds: string[]; run: E
       </DashboardCardGrid>
 
       <DashboardDisclosure className="evaluationDeepDisclosure" summary="Metric diagnostics — root cause, change, delta, and next step">
-        <MetricDiagnostics />
+        <MetricDiagnostics run={run} />
       </DashboardDisclosure>
 
       <DashboardDisclosure className="evaluationDeepDisclosure" summary="Evidence lineage and evaluation execution timeline">
         <div className="retrievalEvidenceGrid">
-          <EvidenceLineage evidence={evidence} />
-          <RetrievalExecutionTimeline />
+          {evidence ? <EvidenceLineage evidence={evidence} /> : <p>No current-product evidence lineage has been published.</p>}
+          <RetrievalExecutionTimeline run={run} />
         </div>
       </DashboardDisclosure>
 
       <DashboardCallout
         as="footer"
-        detail={`${evidence.resultRows} evaluated rows from ${evidence.eligibleSamples}/${evidence.totalSamples} eligible fixture samples; raw workspace sessions are excluded. ${evidence.model ?? "Evaluator model not reported"} · RAGAS ${evidence.ragasVersion ?? "version unavailable"}. The separate canonical retrieval report covers ${CURRENT_CANONICAL_RETRIEVAL_REPORT.casesWithResults}/${CURRENT_CANONICAL_RETRIEVAL_REPORT.retrievalPackCases} queries. Context Recall stays visible until justified reference answers exist.`}
+        detail={run ? `${run.ragas.resultRows} evaluated current-product cases from ${run.ragas.eligibleSamples}/${run.ragas.totalSamples} eligible cases. ${run.evaluator ?? "Evaluator not reported"} · ${run.embeddingModel ?? "embedding not reported"} · RAGAS ${run.ragas.ragasVersion ?? "version unavailable"}.` : "No current-product Retrieval Quality evidence is published. Historical approved-fixture evidence remains available in History for comparison only."}
         icon={ShieldCheck}
         title="Evidence provenance and limits"
       />
@@ -596,68 +704,70 @@ function RetrievalEvaluation({ ragCaseIds, run }: { ragCaseIds: string[]; run: E
   );
 }
 
-function RetrievalEngineeringEvolution() {
-  const baseline = CANONICAL_RETRIEVAL_EVOLUTION[0];
-  const current = currentRetrievalEvolution;
-  const sourceDelta = current.sourceCoverage.ratio - baseline.sourceCoverage.ratio;
-  const domainDelta = current.domainCoverage.ratio - baseline.domainCoverage.ratio;
+function CurrentRunProvenance({ run }: { run: EvaluationBenchmarkRun }) {
+  return (
+    <DashboardMetricGrid
+      className="evaluationRunProvenance"
+      label="Current Retrieval Quality provenance"
+      metrics={[
+        { label: "Score origin", value: run.scoreOrigin.replace(/_/g, " ") },
+        { label: "Benchmark version", value: run.benchmarkVersion },
+        { label: "Dataset fingerprint", value: shortFingerprint(run.datasetFingerprint) },
+        { label: "Retrieval fingerprint", value: shortFingerprint(run.retrievalFingerprint) },
+        { label: "Prompt fingerprint", value: shortFingerprint(run.promptFingerprint) },
+        { label: "Generation fingerprint", value: shortFingerprint(run.generationFingerprint) },
+        { label: "Generation model", value: run.generationModel ?? "Unavailable" },
+        { label: "Evaluator", value: run.evaluator ?? "Unavailable" },
+        { label: "Embedding model", value: run.embeddingModel ?? "Unavailable" },
+        { label: "Timestamp", value: formatDate(run.timestamp) },
+        { label: "Run identifier", value: run.runId }
+      ]}
+    />
+  );
+}
+
+function RetrievalEngineeringEvolution({ run }: { run: EvaluationBenchmarkRun | null }) {
   return (
     <section aria-label="Retrieval engineering evolution" className="retrievalEvolutionPanel">
       <header>
-        <div><span><LineChart aria-hidden="true" size={14} /> Engineering evolution</span><strong>Real retrieval gains, kept separate from RAGAS</strong></div>
-        <small>Current verified · fixed canonical retrieval pack · same 7 queries · top 5 results</small>
+        <div><span><LineChart aria-hidden="true" size={14} /> Current run evidence</span><strong>Per-case retrieval measurements from the selected current-product run</strong></div>
+        <small>{run ? `${run.ragas.resultRows}/${run.ragas.totalSamples} cases · ${formatDate(run.timestamp)}` : "No completed current-product run"}</small>
       </header>
       <div className="retrievalRagasComparison">
-        <div><span>Approved-fixture RAGAS</span><strong>61.44%</strong><small>Latest scored baseline</small></div>
+        <div><span>Current Retrieval Quality</span><strong>{formatPreciseScore(currentProductRetrievalScore(run))}</strong><small>Target 85% · stretch 90%</small></div>
         <ArrowRight aria-hidden="true" size={17} />
-        <div data-status="blocked"><span>Current-product RAGAS rerun</span><strong>BLOCKED_BY_EXECUTION_ENVIRONMENT</strong><small>Local KB excerpts cannot cross the provider boundary</small></div>
-        <div><span>Comparable RAGAS delta</span><strong>—</strong><small>Withheld, never inferred from local coverage</small></div>
+        <div><span>Current benchmark</span><strong>{run?.benchmarkVersion ?? "Awaiting run"}</strong><small>{run?.runId ?? "No run identifier"}</small></div>
+        <div><span>Comparable delta</span><strong>{formatDelta(run?.categoryResults.find((item) => item.category === "rag")?.delta ?? null)}</strong><small>Only same dataset and evaluator contracts compare</small></div>
       </div>
       <div className="retrievalEvolutionStages">
-        {CANONICAL_RETRIEVAL_EVOLUTION.map((stage, index) => {
-          const sourceRatio = stage.sourceCoverage.ratio;
-          const domainRatio = stage.domainCoverage.ratio;
+        {(run?.ragas.caseRows ?? []).map((row, index) => {
+          const scores = Object.values(row.metrics).filter((score): score is number => typeof score === "number");
+          const caseScore = scores.length ? scores.reduce((sum, score) => sum + score, 0) / scores.length : null;
           return (
-            <article key={stage.label}>
-              <header><span>0{index + 1}</span><strong>{stage.label}</strong></header>
-              <p>{stage.finding}</p>
-              <div><span>Expected-source overlap</span><strong>{stage.sourceCoverage.covered}/{stage.sourceCoverage.expected} · {formatScore(sourceRatio)}</strong><i><b style={{ width: `${sourceRatio * 100}%` }} /></i></div>
-              <div><span>Requested-domain coverage</span><strong>{stage.domainCoverage.covered}/{stage.domainCoverage.expected} · {formatScore(domainRatio)}</strong><i><b style={{ width: `${domainRatio * 100}%` }} /></i></div>
+            <article key={row.sampleId}>
+              <header><span>{String(index + 1).padStart(2, "0")}</span><strong>{row.sampleId}</strong></header>
+              <p>{row.domains.join(" · ") || "Domains unavailable"}</p>
+              <div><span>Measured metric mean</span><strong>{formatPreciseScore(caseScore)}</strong><i><b style={{ width: `${(caseScore ?? 0) * 100}%` }} /></i></div>
+              <div><span>Retrieved sources</span><strong>{row.sourceIds.length}</strong></div>
             </article>
           );
         })}
+        {!run?.ragas.caseRows.length ? <p>No per-case current-product evidence has been published.</p> : null}
       </div>
       <footer>
-        <span><strong>{formatPreciseDelta(sourceDelta)}</strong> expected-source overlap</span>
-        <span><strong>{formatPreciseDelta(domainDelta)}</strong> requested-domain coverage</span>
-        <small>Coverage anchors describe retrieval breadth. They are not answer quality, evidence completeness, or an overall product score. {CURRENT_CANONICAL_RETRIEVAL_REPORT.qualityInterpretation}</small>
-        <small className="retrievalReportProof">Machine evidence: {CURRENT_CANONICAL_RETRIEVAL_REPORT.reportArtifact} · {CURRENT_CANONICAL_RETRIEVAL_REPORT.kbSnapshot.recordCount.toLocaleString()} chunks · KB {shortFingerprint(CURRENT_CANONICAL_RETRIEVAL_REPORT.kbSnapshot.metadataFingerprint)} · selection {shortFingerprint(CURRENT_CANONICAL_RETRIEVAL_REPORT.selectionFingerprint)}</small>
+        <small>Case evidence, metric means, and source counts are read directly from the current run. They are never substituted with the historical approved fixture.</small>
+        <small className="retrievalReportProof">Retrieval {shortFingerprint(run?.retrievalFingerprint ?? null)} · prompt {shortFingerprint(run?.promptFingerprint ?? null)} · generation {shortFingerprint(run?.generationFingerprint ?? null)}</small>
       </footer>
     </section>
   );
 }
 
 function ScoreCompositionContract({ evidence }: { evidence: EvaluationBenchmarkRun["ragas"] }) {
-  const includedMetricIds = ["faithfulness", "answer_relevancy", "context_precision", "context_relevancy"] as const;
+  const includedMetricIds = currentProductMetricIds;
   const exclusions = [
     {
-      classification: "MISSING_EVIDENCE",
-      detail: "The approved fixture has no justified reference answers, so Context Recall has no defensible value and contributes neither zero nor weight.",
-      label: "Context Recall"
-    },
-    {
-      classification: "BLOCKED_BY_EXECUTION_ENVIRONMENT",
-      detail: "Current local knowledge-base excerpts cannot cross the evaluator-provider boundary, so no current-product provider RAGAS score is claimed.",
-      label: "Current-product provider RAGAS rerun"
-    },
-    {
-      classification: "NOT_COMPARABLE",
-      detail: "The approved provider fixture score and the current local retrieval-coverage report use different evidence, methods, and contracts; their delta is withheld.",
-      label: "Approved baseline versus current local retrieval"
-    },
-    {
       classification: "SUBJECTIVE",
-      detail: "Artistic merit, visual clarity, and interaction quality require rendered or human observation and never enter the Retrieval Quality baseline.",
+      detail: "Artistic merit, visual clarity, and interaction quality require rendered or human observation and never enter current-product Retrieval Quality.",
       label: "Artistic and visual judgement"
     },
     {
@@ -666,11 +776,18 @@ function ScoreCompositionContract({ evidence }: { evidence: EvaluationBenchmarkR
       label: "Cross-category aggregate"
     }
   ] as const;
+  const missingMetrics = includedMetricIds
+    .filter((metricId) => evidence.metricScores[metricId] == null)
+    .map((metricId) => ({
+      classification: "MISSING_EVIDENCE" as const,
+      detail: `${retrievalMetrics.find((item) => item.id === metricId)?.label ?? metricId} is absent from this run and contributes neither zero nor weight. The run cannot become primary Retrieval Quality.`,
+      label: retrievalMetrics.find((item) => item.id === metricId)?.label ?? metricId
+    }));
 
   return (
     <DashboardDisclosure
       className="retrievalScoreContract"
-      summary={<div><span><ShieldCheck aria-hidden="true" size={14} /> Retrieval score contract</span><strong>Exactly what enters the approved baseline</strong></div>}
+      summary={<div><span><ShieldCheck aria-hidden="true" size={14} /> Retrieval score contract</span><strong>Exactly what enters current-product Retrieval Quality</strong></div>}
     >
         <section aria-label="Included retrieval metrics">
           <header><span>Included</span><strong>Equal weight inside Retrieval Quality only</strong></header>
@@ -679,7 +796,7 @@ function ScoreCompositionContract({ evidence }: { evidence: EvaluationBenchmarkR
             const score = evidence.metricScores[metricId] ?? null;
             return (
               <article key={metricId}>
-                <div><strong>{metric?.label}</strong><small>{score == null ? "No published comparable value" : "Same approved fixture, evaluator, embedding, and RAGAS contract"}</small></div>
+                <div><strong>{metric?.label}</strong><small>{score == null ? "No published current-product value" : "Current-product benchmark under the visible evaluator and embedding contract"}</small></div>
                 <span>{formatPreciseScore(score)}</span>
                 <em data-classification={score == null ? "MISSING_EVIDENCE" : "INCLUDED"}>{score == null ? "MISSING_EVIDENCE" : "INCLUDED"}</em>
               </article>
@@ -688,7 +805,7 @@ function ScoreCompositionContract({ evidence }: { evidence: EvaluationBenchmarkR
         </section>
         <section aria-label="Excluded evaluation evidence">
           <header><span>Excluded</span><strong>Visible, justified, never coerced to zero</strong></header>
-          {exclusions.map((exclusion) => (
+          {[...missingMetrics, ...exclusions].map((exclusion) => (
             <article key={exclusion.label}>
               <div><strong>{exclusion.label}</strong><small>{exclusion.detail}</small></div>
               <em data-classification={exclusion.classification}>{exclusion.classification}</em>
@@ -699,25 +816,27 @@ function ScoreCompositionContract({ evidence }: { evidence: EvaluationBenchmarkR
   );
 }
 
-function MetricDiagnostics() {
+function MetricDiagnostics({ run }: { run: EvaluationBenchmarkRun | null }) {
+  const ragResult = run?.categoryResults.find((item) => item.category === "rag") ?? null;
+  const recommendation = run?.recommendations.find((item) => item.category === "rag") ?? null;
   return (
     <section aria-label="Metric engineering diagnostics" className="retrievalDiagnostics">
-      <header><div><span><Activity aria-hidden="true" size={14} /> Metric diagnostics</span><strong>What the baseline exposed—and what changed</strong></div><small>Open a metric for root cause, product change, delta, and remaining limit.</small></header>
+      <header><div><span><Activity aria-hidden="true" size={14} /> Metric diagnostics</span><strong>What the current-product run measured</strong></div><small>Open a metric for current evidence, target, provenance change, and next step.</small></header>
       <div>
         {retrievalMetrics.map((metric) => {
-          const diagnosis = retrievalMetricDiagnostics[metric.id];
-          const baselineScore = CURRENT_APPROVED_RAGAS_EVIDENCE.metricScores[metric.id] ?? null;
+          const score = run?.ragas.metricScores[metric.id] ?? null;
+          const belowTarget = score != null && score < .85;
           return (
             <details key={metric.id}>
-              <summary><span>{metric.label}</span><strong>{formatPreciseScore(baselineScore)}</strong><ChevronDown aria-hidden="true" size={14} /></summary>
+              <summary><span>{metric.label}</span><strong>{formatPreciseScore(score)}</strong><ChevronDown aria-hidden="true" size={14} /></summary>
               <dl>
-                <div><dt>Current approved score</dt><dd>{baselineScore == null ? "MISSING_EVIDENCE" : formatPreciseScore(baselineScore)}</dd></div>
-                <div><dt>Target</dt><dd>{diagnosis.target}</dd></div>
-                <div><dt>Root cause</dt><dd>{diagnosis.rootCause}</dd></div>
-                <div><dt>Product improvement</dt><dd>{diagnosis.improvement}</dd></div>
-                <div><dt>Comparable benchmark delta</dt><dd>{diagnosis.delta}</dd></div>
-                <div><dt>Remaining limitation</dt><dd>{diagnosis.limitation}</dd></div>
-                <div><dt>Recommended next engineering step</dt><dd>{diagnosis.nextStep}</dd></div>
+                <div><dt>Current-product score</dt><dd>{score == null ? "MISSING_EVIDENCE" : formatPreciseScore(score)}</dd></div>
+                <div><dt>Target</dt><dd>85% acceptance · 90% stretch under the same benchmark and evaluator contract.</dd></div>
+                <div><dt>Root cause</dt><dd>{score == null ? "This run did not publish a defensible score for the metric." : belowTarget ? "The current metric remains below the acceptance target; inspect the per-case evidence before changing the product." : "No below-target defect is established by the current metric."}</dd></div>
+                <div><dt>Product version</dt><dd>Retrieval {shortFingerprint(run?.retrievalFingerprint ?? null)} · prompt {shortFingerprint(run?.promptFingerprint ?? null)} · generation {shortFingerprint(run?.generationFingerprint ?? null)}</dd></div>
+                <div><dt>Comparable benchmark delta</dt><dd>{formatDelta(ragResult?.delta ?? null)}</dd></div>
+                <div><dt>Remaining limitation</dt><dd>{run?.ragas.detail ?? "No current-product benchmark has completed."}</dd></div>
+                <div><dt>Recommended next engineering step</dt><dd>{recommendation?.detail ?? (belowTarget ? `Review the lowest ${metric.label} case evidence and improve the real retrieval or generation path.` : "Retain the current behavior and broaden independently reviewed benchmark coverage.")}</dd></div>
               </dl>
             </details>
           );
@@ -748,16 +867,16 @@ function EvidenceLineage({ evidence }: { evidence: EvaluationBenchmarkRun["ragas
   );
 }
 
-function RetrievalExecutionTimeline() {
+function RetrievalExecutionTimeline({ run }: { run: EvaluationBenchmarkRun | null }) {
+  const categoryResults = run?.categoryResults ?? [];
   return (
     <section aria-label="Retrieval evaluation execution timeline" className="retrievalTimeline">
-      <header><span><Activity aria-hidden="true" size={14} /> Execution timeline</span><strong>Current engineering loop</strong></header>
+      <header><span><Activity aria-hidden="true" size={14} /> Execution timeline</span><strong>{run ? "Newest current-product terminal run" : "Awaiting current-product run"}</strong></header>
       <ol>
-        <li data-status="pass"><i /><div><span>Current canonical retrieval run</span><strong>COMPLETE · 7/7 queries returned results</strong><small>Local excerpts stayed local; public query embedding used the configured embedding provider.</small></div></li>
-        <li data-status="pass"><i /><div><span>Truthful evidence correction</span><strong>19/23 RAW ANCHORS → 15/23 SUBSTANTIVE → 16/23 FINAL</strong><small>False heading/index coverage was removed before bounded headroom recovered useful Three.js guidance.</small></div></li>
-        <li data-status="pass"><i /><div><span>Current retrieval evidence</span><strong>16/23 SUBSTANTIVE ANCHORS · 18/19 DOMAINS</strong><small>{CURRENT_CANONICAL_RETRIEVAL_REPORT.qualityInterpretation}</small></div></li>
-        <li data-status="blocked"><i /><div><span>Current-product RAGAS rerun</span><strong>BLOCKED_BY_EXECUTION_ENVIRONMENT</strong><small>Local knowledge-base excerpts are not eligible to cross the provider boundary.</small></div></li>
-        <li data-status="missing_evidence"><i /><div><span>Context Recall</span><strong>MISSING_EVIDENCE</strong><small>The approved fixture has no justified reference answers for this metric.</small></div></li>
+        {categoryResults.map((category) => (
+          <li data-status={category.status} key={category.category}><i /><div><span>{formatQualityLane(category.category)}</span><strong>{category.status.replace(/_/g, " ").toUpperCase()} · {category.measuredMetrics}/{category.applicableMetrics} metrics</strong><small>{category.detail}</small></div></li>
+        ))}
+        {run ? <li data-status={run.ragas.state === "completed" ? "pass" : run.ragas.state}><i /><div><span>Terminal evidence publication</span><strong>{run.ragas.state.replace(/_/g, " ").toUpperCase()} · {run.ragas.resultRows}/{run.ragas.totalSamples} retrieval cases</strong><small>{run.ragas.detail}</small></div></li> : <li data-status="not_run"><i /><div><span>Current-product benchmark</span><strong>NOT RUN</strong><small>Use Run Evaluation to begin the selected current-product scope.</small></div></li>}
       </ol>
     </section>
   );
@@ -767,39 +886,22 @@ function EvaluationBoundaryCard({ caution = false, detail, label, value }: { cau
   return <article className="dashboardInnerCard evaluationBoundaryCard" data-caution={caution} role="listitem"><span>{label}</span><strong>{value}</strong><p>{detail}</p></article>;
 }
 
-function EvaluationRunProgress({ datasetVersion, progress, run }: { datasetVersion: string; progress: EvaluationProgress; run: EvaluationBenchmarkRun | null }) {
-  const publishedRun = run && run.id !== progress.previousRunId ? run : null;
-  const providerAssisted = progress.executionMode === "provider_assisted";
-  const total = providerAssisted ? publishedRun?.ragas.totalSamples || 4 : 1;
-  const completed = providerAssisted
-    ? publishedRun?.ragas.state === "completed" ? publishedRun.ragas.resultRows : 0
-    : publishedRun ? 1 : 0;
-  const remaining = Math.max(0, total - completed);
-  const exactProgressAvailable = publishedRun != null;
-  const percent = exactProgressAvailable && total ? Math.round(completed / total * 100) : null;
-  const currentCase = providerAssisted
-    ? "Approved fixture rows · per-row state unavailable"
-    : "Current workspace snapshot";
-  const currentMetric = providerAssisted
-    ? "RAGAS metric batch · per-metric state unavailable"
-    : "Local product evidence contracts";
-  const phaseLabel = publishedRun
-    ? `${publishedRun.ragas.state.replace(/_/g, " ")} · stored result published`
-    : progress.phase === "running"
-      ? providerAssisted ? "Authorized provider batch in progress" : "Local snapshot analysis in progress · provider off"
-      : progress.phase === "response_received" ? "Batch response received · awaiting stored result" : "Run ended · inspect the published result state";
+function EvaluationRunProgress({ datasetVersion, progress }: { datasetVersion: string; progress: EvaluationExecutionProgress }) {
+  const percent = progress.percent;
+  const indeterminate = percent == null && !["terminal", "completed"].includes(progress.phase.toLowerCase());
   return (
     <section aria-label="Live evaluation progress" aria-live="polite" className="evaluationLiveProgress">
-      <header><span><Activity aria-hidden="true" size={15} /> Live run</span><strong>{percent == null ? "Estimated progress: indeterminate" : `${percent}% confirmed`}</strong></header>
-      <div aria-label="Estimated evaluation progress" aria-valuemax={100} aria-valuemin={0} {...(percent == null ? {} : { "aria-valuenow": percent })} className="evaluationProgressTrack" data-indeterminate={percent == null} role="progressbar"><i style={{ width: percent == null ? "28%" : `${percent}%` }} /></div>
+      <header><span><Activity aria-hidden="true" size={15} /> Live run</span><strong>{percent == null ? "Progress pending" : `${percent}% complete`}</strong></header>
+      <div aria-label="Evaluation progress" aria-valuemax={100} aria-valuemin={0} {...(percent == null ? {} : { "aria-valuenow": percent })} className="evaluationProgressTrack" data-indeterminate={indeterminate} role="progressbar"><i style={{ width: percent == null ? "28%" : `${percent}%` }} /></div>
       <dl>
-        <div><dt>Current benchmark</dt><dd>{datasetVersion} · {progress.selectedContracts} contracts enumerated</dd></div>
-        <div><dt>Current case</dt><dd>{currentCase}</dd></div>
-        <div><dt>Current metric</dt><dd>{currentMetric}</dd></div>
-        <div><dt>Completed / remaining</dt><dd>{completed} confirmed / {remaining} unresolved {providerAssisted ? "fixture rows" : "snapshot"}</dd></div>
-        <div><dt>Execution state</dt><dd>{phaseLabel}</dd></div>
+        <div><dt>Current benchmark</dt><dd>{datasetVersion} · {progress.runId ?? "run ID pending"}</dd></div>
+        <div><dt>Current lane</dt><dd>{progress.lane}</dd></div>
+        <div><dt>Current case</dt><dd>{progress.currentCaseLabel}{progress.currentCaseId ? ` · ${progress.currentCaseId}` : ""}</dd></div>
+        <div><dt>Completed / remaining</dt><dd>{progress.completedCases} completed / {progress.remainingCases} remaining of {progress.totalCases}</dd></div>
+        <div><dt>Execution phase</dt><dd>{progress.phase.replace(/_/g, " ")} · {progress.status.replace(/_/g, " ")}</dd></div>
+        <div><dt>Local / provider state</dt><dd>{progress.executionState.replace(/_/g, " ")}</dd></div>
       </dl>
-      <small>The synchronous evaluator exposes no per-case callback, so progress stays indeterminate until a stored response arrives. Golden contracts are enumerated for coverage; they are not presented as 31 executed generations.</small>
+      <small>{progress.detail}</small>
     </section>
   );
 }
@@ -811,18 +913,10 @@ function findRetrievalMetric(run: EvaluationBenchmarkRun | null, metricId: strin
 }
 
 function isComparableHistoryRun(run: EvaluationBenchmarkRun, anchor: EvaluationBenchmarkRun) {
-  return run.datasetFingerprint === anchor.datasetFingerprint &&
+  return matchesCurrentProductEvidenceIdentity(run.ragas, anchor.ragas) &&
     run.scope === anchor.scope &&
     run.selectedCaseIds.join("|") === anchor.selectedCaseIds.join("|") &&
-    run.ragas.datasetId === anchor.ragas.datasetId &&
-    run.ragas.datasetVersion === anchor.ragas.datasetVersion &&
-    run.ragas.privacyClass === anchor.ragas.privacyClass &&
-    [...run.ragas.metrics].sort().join("|") === [...anchor.ragas.metrics].sort().join("|") &&
-    run.ragas.model === anchor.ragas.model &&
-    run.ragas.provider === anchor.ragas.provider &&
-    run.ragas.embeddingModel === anchor.ragas.embeddingModel &&
-    run.ragas.ragasVersion === anchor.ragas.ragasVersion &&
-    run.ragas.metricContract === anchor.ragas.metricContract;
+    run.ragas.privacyClass === anchor.ragas.privacyClass;
 }
 
 function Trend({ category, runs }: { category: EvaluationCategory; runs: EvaluationBenchmarkRun[] }) {
@@ -834,13 +928,39 @@ function CaseRow({ caseResult, onCandidate }: { caseResult: EvaluationCaseResult
   return <details><summary><Status status={caseResult.status} /><span><strong>{caseResult.title}</strong><small>{caseResult.domain} · {caseResult.origins.join(", ")}</small></span><strong>{formatScore(caseResult.score)}</strong><ChevronDown aria-hidden="true" size={15} /></summary><div className="evaluationCaseDetail"><div className="evaluationExpected"><span>Expected</span><strong>{caseResult.expectedArtifact}</strong><p>{caseResult.previewContract}</p></div><div className="evaluationMetricList">{caseResult.metrics.map((metric) => <article key={`${caseResult.caseId}-${metric.id}`}><header><Status status={metric.status} /><strong>{formatEvaluationMetric(metric.id)}</strong><span>{formatScore(metric.score)}</span></header><p>{metric.detail}</p><small>{metric.kind === "ragas" ? "RAGAS" : "Product-specific"} · {metric.evidenceClass.replace(/_/g, " ")} · target {metric.target == null ? "n/a" : `${Math.round(metric.target * 100)}%`} · gap {metric.gap == null ? "n/a" : `${Math.round(metric.gap * 100)} pts`}</small></article>)}</div>{caseResult.recommendation ? <aside><div><span>Recommended next step</span><strong>{caseResult.recommendation.title}</strong><p>{caseResult.recommendation.detail}</p></div><button onClick={() => onCandidate(caseResult)} type="button">Create improved candidate</button></aside> : null}</div></details>;
 }
 
-function EmptyResults() { return <div className="evaluationEmptyState"><FlaskConical aria-hidden="true" size={24} /><strong>No benchmark result yet</strong><p>Run the deterministic local benchmark. Provider access is optional and affects only approved RAGAS evidence.</p></div>; }
+function EmptyResults() { return <div className="evaluationEmptyState"><FlaskConical aria-hidden="true" size={24} /><strong>No benchmark result yet</strong><p>Provider authorization is required to publish a new current-product Retrieval Quality score. Non-RAG workspace lanes can run without provider calls.</p></div>; }
 function formatScore(value: number | null) { return value == null ? "—" : `${Math.round(value * 100)}%`; }
 function formatPreciseScore(value: number | null) { return value == null ? "—" : `${(value * 100).toFixed(2)}%`; }
 function formatDelta(value: number | null) { return value == null ? "—" : `${value > 0 ? "+" : ""}${Math.round(value * 100)} pts`; }
-function formatPreciseDelta(value: number | null) { return value == null ? "—" : `${value > 0 ? "+" : ""}${(value * 100).toFixed(2)} pts`; }
 function formatDate(value: string) { const date = new Date(value); return Number.isNaN(date.getTime()) ? value : date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }); }
-function formatRagasDataset(value: string) { return value === "sanitized_public" ? "Sanitized public fixture" : value === "redacted_public" ? "Redacted public fixture" : value.replace(/_/g, " "); }
-function scoreStatus(value: number): EvaluationMetricStatus { return value >= .8 ? "pass" : value >= .6 ? "partial" : "fail"; }
-function shortFingerprint(value: string) { return value.replace(/^sha256:/, "").slice(0, 12); }
+function runTimestamp(run: EvaluationBenchmarkRun) { const value = new Date(run.timestamp ?? run.completedAt).getTime(); return Number.isNaN(value) ? 0 : value; }
+function scoreStatus(value: number): EvaluationMetricStatus { return value >= .85 ? "pass" : value >= .6 ? "partial" : "fail"; }
+function shortFingerprint(value: string | null) { return value ? value.replace(/^sha256:/, "").slice(0, 12) : "Unavailable"; }
 function statusTone(value: EvaluationBenchmarkRun["statusLabel"]): EvaluationMetricStatus { if (value === "Blocked") return "blocked"; if (value === "Needs Improvement") return "fail"; if (value === "Incomplete Evidence") return "missing_evidence"; return "pass"; }
+
+function isFullyCompletedCurrentProductRun(run: EvaluationBenchmarkRun) {
+  const retrievalScore = currentProductRetrievalScoreFromEvidence(run.ragas);
+  return (run.scope === "full" || run.scope === "rag") &&
+    retrievalScore != null &&
+    run.scoreOrigin === "current_product" &&
+    run.benchmarkVersion === run.ragas.benchmarkVersion &&
+    run.datasetFingerprint === run.ragas.datasetFingerprint &&
+    run.retrievalFingerprint === run.ragas.retrievalFingerprint &&
+    run.promptFingerprint === run.ragas.promptFingerprint &&
+    run.generationFingerprint === run.ragas.generationFingerprint &&
+    run.outputFingerprint === run.ragas.outputFingerprint &&
+    run.selectionFingerprint === run.ragas.selectionFingerprint &&
+    run.kbFingerprint === run.ragas.kbFingerprint &&
+    run.generationModel === run.ragas.generationModel &&
+    run.evaluator === run.ragas.evaluator &&
+    run.evaluatorModel === run.ragas.evaluatorModel &&
+    run.embeddingModel === run.ragas.embeddingModel &&
+    run.retrievalScore === retrievalScore &&
+    run.timestamp === run.ragas.timestamp &&
+    run.runId === run.ragas.runId;
+}
+
+function currentProductRetrievalScore(run: EvaluationBenchmarkRun | null) {
+  if (!run || !isFullyCompletedCurrentProductRun(run)) return null;
+  return currentProductRetrievalScoreFromEvidence(run.ragas);
+}

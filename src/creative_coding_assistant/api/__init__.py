@@ -25,6 +25,8 @@ from creative_coding_assistant.api.evaluation import (
     DEFAULT_EVALUATION_PATH,
     EVALUATION_CONTRACT_VERSION,
     EvaluationApplication,
+    EvaluationJobRegistry,
+    EvaluationRunRequest,
     create_evaluation_app,
 )
 from creative_coding_assistant.api.health import (
@@ -113,6 +115,8 @@ __all__ = [
     "DEFAULT_KNOWLEDGE_BASE_PATH",
     "EVALUATION_CONTRACT_VERSION",
     "EvaluationApplication",
+    "EvaluationJobRegistry",
+    "EvaluationRunRequest",
     "HealthCheckApplication",
     "KNOWLEDGE_BASE_CONTRACT_VERSION",
     "KnowledgeBaseApplication",

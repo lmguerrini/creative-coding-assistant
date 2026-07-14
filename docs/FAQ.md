@@ -73,27 +73,35 @@ be registered but fail to index, or be indexed without appearing in a request's
 top results. Inspect request-specific retrieval evidence. See
 [DATA_AND_KB.md](DATA_AND_KB.md).
 
-## What does the 61.44% score mean?
+## What does the 68.03% score mean?
 
-It is the equal-weight macro of four RAGAS metric means on a committed
-four-row synthetic/public approved fixture: context precision, faithfulness,
-answer relevancy, and context relevancy. It is not 61.44% accuracy, not a
-project grade, and not current-product or golden-case quality. Context recall
-is missing rather than treated as zero.
+It is the equal-weight macro of Context Precision, Faithfulness, Answer
+Relevancy, Context Relevancy, and Context Recall on seven frozen current-product
+public RAG cases. All seven were eligible and scored with no skips or metric
+failures. It is not 68.03% accuracy, a project grade, or artistic-quality
+judgment. The former 61.44% four-row fixture remains historical and has no
+context-recall result.
 
 ## Did retrieval improve beyond that score?
 
 The current local retrieval report improved substantive expected-source overlap
 from 9/23 to 16/23 and requested-domain coverage from 7/19 to 18/19 on the same
 fixed seven queries and top-five limit. This is a separate local retrieval
-coverage result, not a new RAGAS score and not directly comparable to 61.44%.
+coverage result, not the same measure as the 68.03% five-metric RAGAS macro.
 
-## Why is current-product RAGAS blocked?
+## What remains blocked after current-product RAGAS completed?
 
-The exact current path would require local Chroma excerpts to cross an external
-generation/evaluation-provider boundary. That transfer is not approved, so the
-run is marked `BLOCKED_BY_EXECUTION_ENVIRONMENT`. Uploading private session or
-index content is not an acceptable workaround.
+The canonical run uses the reviewed committed public benchmark. Raw local
+session text and arbitrary local Chroma excerpts remain outside the external
+generation/evaluation-provider boundary. Uploading private session or index
+content is still not an acceptable way to broaden the score.
+
+## Does Full run all 35 catalog prompts?
+
+No. The 35 entries are stable contract coverage. Full executes the seven
+canonical current-product RAG cases and records current local Creative,
+Workflow, and Reliability snapshots. Those snapshots are not additional model
+generations or RAGAS rows.
 
 ## Has a human usability or artistic-quality study been completed?
 

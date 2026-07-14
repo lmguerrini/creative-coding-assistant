@@ -72,6 +72,35 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
         self.assertEqual(record.workflow.product_outcome.product_outcome, "PARTIAL")
         self.assertEqual(record.workflow.product_outcome.preview_status, "UNAVAILABLE")
 
+    def test_schema_v3_preserves_nested_evaluation_benchmark_aliases(self) -> None:
+        payload = _session_payload(schema_version=3)
+        preferences = payload["preferences"]
+        assert isinstance(preferences, dict)
+        benchmark = _evaluation_benchmark_payload()
+        preferences["evaluationHistory"] = [
+            _evaluation_history_payload(benchmark=benchmark)
+        ]
+
+        record = WorkspaceSessionRecord.model_validate(payload)
+        serialized = record.model_dump(mode="json", by_alias=True)
+        restored = WorkspaceSessionRecord.model_validate_json(
+            record.model_dump_json(by_alias=True)
+        )
+
+        history = record.preferences.evaluation_history
+        self.assertEqual(len(history), 1)
+        self.assertEqual(history[0].run_id, "eval-run-current-product-001")
+        self.assertEqual(history[0].benchmark, benchmark)
+        serialized_preferences = serialized["preferences"]
+        assert isinstance(serialized_preferences, dict)
+        serialized_history = serialized_preferences["evaluationHistory"]
+        assert isinstance(serialized_history, list)
+        self.assertEqual(serialized_history[0]["benchmark"], benchmark)
+        self.assertEqual(
+            restored.preferences.evaluation_history[0].benchmark,
+            benchmark,
+        )
+
     def test_sqlite_repository_round_trips_session_records(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             repository = SQLiteWorkspaceSessionRepository(
@@ -93,6 +122,31 @@ class WorkspaceSessionPersistenceTests(unittest.TestCase):
         self.assertEqual(restored.title, "Persisted sketch session")
         self.assertEqual(restored.messages[-1].role, "assistant")
         self.assertEqual(restored.preview.artifact_name, "preview-request.json")
+
+    def test_sqlite_repository_round_trips_nested_evaluation_benchmark(self) -> None:
+        payload = _session_payload(schema_version=3)
+        preferences = payload["preferences"]
+        assert isinstance(preferences, dict)
+        benchmark = _evaluation_benchmark_payload()
+        preferences["evaluationHistory"] = [
+            _evaluation_history_payload(benchmark=benchmark)
+        ]
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repository = SQLiteWorkspaceSessionRepository(
+                Path(temp_dir) / "workspace.sqlite3"
+            )
+            repository.upsert(WorkspaceSessionRecord.model_validate(payload))
+            restored = repository.get(
+                user_id=DEFAULT_LOCAL_USER_ID,
+                session_id=DEFAULT_LOCAL_SESSION_ID,
+            )
+
+        self.assertIsNotNone(restored)
+        assert restored is not None
+        history = restored.preferences.evaluation_history
+        self.assertEqual(len(history), 1)
+        self.assertEqual(history[0].benchmark, benchmark)
 
     def test_wsgi_endpoint_saves_and_restores_session(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -382,6 +436,121 @@ def _session_payload(
                 "focus": "Audio-reactive projection field",
             }
         },
+    }
+
+
+def _evaluation_history_payload(
+    *,
+    benchmark: dict[str, object],
+) -> dict[str, object]:
+    return {
+        "id": "evaluation-history-current-product-001",
+        "runId": "eval-run-current-product-001",
+        "datasetId": "current_product",
+        "metrics": [
+            "context_precision",
+            "faithfulness",
+            "answer_relevancy",
+            "context_relevancy",
+            "context_recall",
+        ],
+        "status": "completed",
+        "detail": "Current-product retrieval benchmark completed.",
+        "evaluatedAt": "2026-07-14T10:00:00Z",
+        "resultRows": 7,
+        "metricFailures": 0,
+        "dryRun": False,
+        "providerCallsAllowed": True,
+        "benchmark": benchmark,
+    }
+
+
+def _evaluation_benchmark_payload() -> dict[str, object]:
+    return {
+        "schemaVersion": 3,
+        "id": "benchmark-current-product-001",
+        "datasetVersion": "current-product-retrieval.v1",
+        "datasetFingerprint": "sha256:dataset",
+        "promptVersion": "current-product-prompt.v1",
+        "scope": "rag",
+        "selectedCaseIds": ["framework_selection_hydra_p5"],
+        "startedAt": "2026-07-14T09:58:00Z",
+        "completedAt": "2026-07-14T10:00:00Z",
+        "durationMs": 120000,
+        "executionMode": "provider_assisted",
+        "environmentStatus": "ready",
+        "statusLabel": "Demo Ready",
+        "measuredScore": 0.9,
+        "targetThreshold": 0.85,
+        "evidenceCompleteness": 1.0,
+        "caseCoverage": 1.0,
+        "executedCases": 7,
+        "selectedCases": 7,
+        "counts": {
+            "pass": 7,
+            "partial": 0,
+            "fail": 0,
+            "blocked": 0,
+            "missing": 0,
+            "notRun": 0,
+        },
+        "categoryResults": [
+            {
+                "category": "rag",
+                "status": "pass",
+                "score": 0.9,
+            }
+        ],
+        "caseResults": [
+            {
+                "caseId": "framework_selection_hydra_p5",
+                "title": "Hydra and p5.js framework selection",
+                "status": "pass",
+                "categories": ["rag"],
+                "metrics": [
+                    {
+                        "id": "faithfulness",
+                        "status": "pass",
+                        "score": 0.91,
+                    }
+                ],
+            }
+        ],
+        "recommendations": [],
+        "missingMetricIds": [],
+        "provider": "OpenAI",
+        "model": "gpt-5-mini",
+        "workflow": "multi_agent",
+        "totalTokens": 8000,
+        "estimatedCost": None,
+        "currency": "USD",
+        "ragas": {
+            "state": "completed",
+            "runId": "eval-run-current-product-001",
+            "metricScores": {
+                "context_precision": 0.92,
+                "faithfulness": 0.91,
+                "answer_relevancy": 0.89,
+                "context_relevancy": 0.88,
+                "context_recall": 0.9,
+            },
+            "caseRows": [
+                {
+                    "sampleId": "framework_selection_hydra_p5",
+                    "sourceIds": ["hydra_docs", "p5_reference"],
+                }
+            ],
+        },
+        "scoreOrigin": "current_product",
+        "benchmarkVersion": "current-product-retrieval.v1",
+        "retrievalFingerprint": "sha256:retrieval",
+        "promptFingerprint": "sha256:prompt",
+        "generationFingerprint": "sha256:generation",
+        "generationModel": "gpt-5-mini",
+        "evaluator": "gpt-4o-mini",
+        "embeddingModel": "text-embedding-3-small",
+        "timestamp": "2026-07-14T10:00:00Z",
+        "runId": "eval-run-current-product-001",
     }
 
 

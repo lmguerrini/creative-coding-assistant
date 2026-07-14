@@ -23,7 +23,7 @@ from creative_coding_assistant.rag.retrieval import (
     KnowledgeBaseSearchResult,
 )
 from creative_coding_assistant.rag.retrieval.domain_intent import (
-    detect_explicit_query_domains,
+    resolve_effective_query_domains,
 )
 from creative_coding_assistant.rag.sources import OfficialSourceType
 
@@ -204,8 +204,10 @@ def build_retrieval_context_request(
     if RouteCapability.OFFICIAL_DOCS not in route_decision.capabilities:
         return None
 
-    explicit_domains = detect_explicit_query_domains(assistant_request.query)
-    domains = explicit_domains or route_decision.domains or assistant_request.domains
+    domains = resolve_effective_query_domains(
+        query=assistant_request.query,
+        selected_domains=route_decision.domains or assistant_request.domains,
+    )
     if len(domains) == 1:
         domain = domains[0]
     elif domains:

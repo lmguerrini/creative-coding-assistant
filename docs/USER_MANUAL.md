@@ -163,12 +163,14 @@ confirmation and use backup/restore behavior on failure. See
 
 ## Evaluation
 
-The Evaluation surface reports evidence by scope and status. The displayed
-61.44% equal-weight RAGAS macro belongs to an approved synthetic public fixture,
-not to current-product outputs. Current local retrieval improvements use a
-different report and must not be blended with that macro. A current-product
-provider-assisted rerun remains blocked by the external data boundary. No human
-evaluation is claimed. Full interpretation is in
+The Evaluation surface reports evidence by scope and status. The primary
+68.03% Retrieval Quality is the equal-weight five-metric macro from seven
+current-product public RAG cases, all eligible and scored with no failures or
+skips. The 61.44% four-row synthetic fixture remains historical. Current local
+retrieval coverage uses a different report and must not be blended with either
+RAGAS macro. The 35-case catalog represents contract coverage; Full executes
+seven RAG cases and records local Creative, Workflow, and Reliability snapshots
+rather than generating 35 answers. No human evaluation is claimed. Full interpretation is in
 [EVALUATION_METRICS_SUMMARY.md](EVALUATION_METRICS_SUMMARY.md).
 
 ## Export and handoff

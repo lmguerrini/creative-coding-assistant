@@ -40,8 +40,8 @@ conformance report, or completed human-subject study.
 
 - Provider failure, missing evidence, and blocked measurement remain distinct
   from success and zero.
-- The 61.44% RAGAS macro is labeled as an approved synthetic/public fixture,
-  not current-product quality.
+- The 68.03% RAGAS macro is labeled as seven-case current-product RAG evidence,
+  not a project grade or artistic-quality score; 61.44% remains historical.
 - Current local retrieval coverage is reported separately from RAGAS.
 - No completed human evaluation, external DCC execution, public deployment, or
   autonomous agent swarm is claimed.
@@ -52,10 +52,10 @@ conformance report, or completed human-subject study.
   included in support bundles.
 - Raw `data/eval/live_sessions.jsonl` is private by default and must not be sent
   to an evaluator without a new, documented privacy approval.
-- Local Chroma excerpts are not approved for the blocked current-product RAGAS
-  rerun.
-- Public evaluation evidence uses an explicitly approved synthetic fixture or
-  reviewed redacted fixture rather than raw session text.
+- Arbitrary local Chroma excerpts and raw session rows are not covered by the
+  public current-product benchmark approval.
+- Public evaluation evidence uses the reviewed current-product benchmark or an
+  explicitly approved synthetic/redacted fixture rather than raw session text.
 
 ### Provenance and user control
 
@@ -108,16 +108,15 @@ not mean “cannot appear in an export.”
 
 ## Evaluation privacy decision
 
-The approved four-row fixture is committed synthetic/public material and is the
-only basis of the current 61.44% RAGAS macro. The local retrieval report
-contains non-text lineage, ratios, fingerprints, and counts; local excerpt text
-does not need to be published. The exact current-product provider-assisted
-RAGAS path remains `BLOCKED_BY_EXECUTION_ENVIRONMENT` because local Chroma
-excerpts are not approved for the external transfer required by that run.
+The canonical seven-case current-product benchmark is reviewed public material
+and is the basis of the current 68.03% RAGAS macro. The older four-row
+synthetic/public fixture remains historical at 61.44%. The local retrieval
+report contains non-text lineage, ratios, fingerprints, and counts; arbitrary
+local excerpt text does not need to be published or externally evaluated.
 
-Do not resolve that block by treating consent to generation as consent to
-evaluation, uploading raw live-session rows, or copying private excerpts into a
-new “sanitized” file without a content review. Data minimization and purpose
+Do not treat approval of the public benchmark as consent to evaluate arbitrary
+local content, upload raw live-session rows, or copy private excerpts into a new
+“sanitized” file without content review. Data minimization and purpose
 limitation apply independently to generation, embeddings, evaluation, tracing,
 and public evidence.
 

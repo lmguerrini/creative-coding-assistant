@@ -126,7 +126,7 @@ class PromptTemplateFoundationTests(unittest.TestCase):
             response.sections[0].content,
         )
         self.assertIn(
-            "do not silently fill evidence gaps",
+            "do not append an inventory of missing details",
             response.sections[0].content,
         )
 
@@ -192,23 +192,13 @@ class PromptTemplateFoundationTests(unittest.TestCase):
             )
         )
 
-        user_section = next(
-            section
-            for section in response.sections
-            if section.name is RenderedPromptSectionName.USER
-        )
+        user_section = next(section for section in response.sections if section.name is RenderedPromptSectionName.USER)
         system_section = next(
-            section
-            for section in response.sections
-            if section.name is RenderedPromptSectionName.SYSTEM
+            section for section in response.sections if section.name is RenderedPromptSectionName.SYSTEM
         )
         self.assertIn("Image References:", user_section.content)
         self.assertIn(
-            (
-                "- warm-neon-grid-glass.png "
-                "(image/png, 68 bytes, visual input attached, "
-                "id: image-reference-1)"
-            ),
+            ("- warm-neon-grid-glass.png (image/png, 68 bytes, visual input attached, id: image-reference-1)"),
             user_section.content,
         )
         self.assertNotIn("data:image/png", user_section.content)
@@ -262,15 +252,9 @@ class PromptTemplateFoundationTests(unittest.TestCase):
             )
         )
         system_section = next(
-            section
-            for section in response.sections
-            if section.name is RenderedPromptSectionName.SYSTEM
+            section for section in response.sections if section.name is RenderedPromptSectionName.SYSTEM
         )
-        user_section = next(
-            section
-            for section in response.sections
-            if section.name is RenderedPromptSectionName.USER
-        )
+        user_section = next(section for section in response.sections if section.name is RenderedPromptSectionName.USER)
 
         self.assertIn("Selected Artifact Refinement:", system_section.content)
         self.assertIn("Target only the selected artifact", system_section.content)
@@ -316,8 +300,7 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         renderer = JinjaPromptRenderer()
         assistant_request = AssistantRequest(
             query=(
-                "Create a minimal audio-reactive glowing golden ratio spiral "
-                "with a calm atmosphere and pulsing motion."
+                "Create a minimal audio-reactive glowing golden ratio spiral with a calm atmosphere and pulsing motion."
             ),
             domains=(
                 CreativeCodingDomain.P5_JS,
@@ -381,10 +364,7 @@ class PromptTemplateFoundationTests(unittest.TestCase):
             system_section,
         )
         self.assertIn(
-            (
-                "Keep explanation short and add setup or run notes only when "
-                "they are useful."
-            ),
+            ("Keep explanation short and add setup or run notes only when they are useful."),
             rendered.sections[0].content,
         )
         self.assertIn(
@@ -404,7 +384,7 @@ class PromptTemplateFoundationTests(unittest.TestCase):
                 mode=AssistantMode.EXPLAIN,
                 capabilities=(RouteCapability.OFFICIAL_DOCS,),
             ),
-            assembled_context=None,
+            assembled_context=_assembled_context(memory_context=None),
         )
         prompt_input_response = StructuredPromptInputBuilder().build(prompt_input)
 
@@ -426,6 +406,19 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         )
         self.assertIn(
             "Avoid full runnable projects unless the user explicitly asks for them.",
+            system_section,
+        )
+        self.assertIn(
+            "Lead with a self-contained answer in the first sentence",
+            system_section,
+        )
+        self.assertIn("normally 120 to 220 words", system_section)
+        self.assertIn(
+            "do not append a follow-up question or an",
+            system_section,
+        )
+        self.assertIn(
+            "offer to do more work",
             system_section,
         )
 
@@ -560,6 +553,61 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         )
         self.assertNotIn(
             "Prefer React Three Fiber components and hooks",
+            system_section,
+        )
+
+    def test_renderer_preserves_bridge_scope_without_false_ui_override_guidance(
+        self,
+    ) -> None:
+        renderer = JinjaPromptRenderer()
+        selected_domains = (
+            CreativeCodingDomain.TONE_JS,
+            CreativeCodingDomain.P5_JS,
+            CreativeCodingDomain.THREE_JS,
+        )
+        assistant_request = AssistantRequest(
+            query=(
+                "Explain how Tone.js coordinates timing across the browser "
+                "visual runtime."
+            ),
+            domains=selected_domains,
+            mode=AssistantMode.EXPLAIN,
+        )
+        prompt_input = StructuredPromptInputBuilder().build(
+            build_prompt_input_request(
+                assistant_request=assistant_request,
+                route_decision=RouteDecision(
+                    route=RouteName.EXPLAIN,
+                    mode=AssistantMode.EXPLAIN,
+                    domains=selected_domains,
+                    capabilities=(RouteCapability.OFFICIAL_DOCS,),
+                ),
+                assembled_context=None,
+            )
+        )
+
+        rendered = renderer.render(
+            build_rendered_prompt_request(
+                route_decision=RouteName.EXPLAIN,
+                prompt_input=prompt_input,
+            )
+        )
+
+        self.assertEqual(
+            prompt_input.user_input.detected_domains,
+            (CreativeCodingDomain.TONE_JS,),
+        )
+        self.assertEqual(prompt_input.user_input.effective_domains, selected_domains)
+        system_section = rendered.sections[0].content
+        self.assertIn("Domain Scope: multi-domain selection", system_section)
+        self.assertIn("Detected Query Domains:", system_section)
+        self.assertNotIn("UI Selected Domains:", system_section)
+        self.assertNotIn(
+            "Prioritize the explicitly detected query domains",
+            system_section,
+        )
+        self.assertIn(
+            "Bridge domains only when the request actually spans them",
             system_section,
         )
 
@@ -1033,9 +1081,7 @@ class PromptTemplateFoundationTests(unittest.TestCase):
         service = AssistantService(
             route_fn=_route_generate_with_memory_and_docs,
             memory_gateway=_FakeMemoryGateway(response=_empty_memory_context()),
-            retrieval_gateway=_FakeRetrievalGateway(
-                response=_empty_retrieval_context()
-            ),
+            retrieval_gateway=_FakeRetrievalGateway(response=_empty_retrieval_context()),
             context_assembler=OrchestrationContextAssembler(),
             prompt_input_builder=StructuredPromptInputBuilder(),
             prompt_renderer=JinjaPromptRenderer(),
@@ -1118,9 +1164,7 @@ def _assembled_context(
     retrieval_context: RetrievalContextResponse | None | object = _UNSET,
 ) -> AssembledContextResponse:
     memory_context = _memory_context() if memory_context is None else memory_context
-    retrieval_context = (
-        _retrieval_context() if retrieval_context is _UNSET else retrieval_context
-    )
+    retrieval_context = _retrieval_context() if retrieval_context is _UNSET else retrieval_context
     request = build_assembled_context_request(
         route_decision=RouteDecision(
             route=route,
@@ -1137,22 +1181,10 @@ def _assembled_context(
     return AssembledContextResponse(
         request=request,
         summary=AssembledContextSummary(
-            recent_turn_count=(
-                len(memory_context.recent_turns) if memory_context is not None else 0
-            ),
-            has_running_summary=(
-                memory_context.running_summary is not None
-                if memory_context is not None
-                else False
-            ),
-            project_memory_count=(
-                len(memory_context.project_memories)
-                if memory_context is not None
-                else 0
-            ),
-            retrieval_chunk_count=(
-                len(retrieval_context.chunks) if retrieval_context is not None else 0
-            ),
+            recent_turn_count=(len(memory_context.recent_turns) if memory_context is not None else 0),
+            has_running_summary=(memory_context.running_summary is not None if memory_context is not None else False),
+            project_memory_count=(len(memory_context.project_memories) if memory_context is not None else 0),
+            retrieval_chunk_count=(len(retrieval_context.chunks) if retrieval_context is not None else 0),
         ),
         memory_context=memory_context,
         retrieval_context=retrieval_context,

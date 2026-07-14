@@ -83,14 +83,14 @@ Then show the evaluation boundary:
 - The canonical fixed retrieval run completed all **7/7** cases.
 - It covered **16/23 expected source anchors (69.57%)**.
 - It covered **18/19 requested domains (94.74%)**.
-- A separate four-case approved synthetic RAGAS fixture reported context
-  precision `0.999999999925`, faithfulness `0.29583333333333334`, answer
-  relevancy `0.4742546883775048`, and context relevancy `0.6875`.
+- The current seven-case RAGAS run reported context precision
+  `0.5196428571169692`, faithfulness `0.648989898989899`, answer relevancy
+  `0.5662963631284655`, context relevancy `0.8571428571428571`, and context
+  recall `0.8095238095238094`.
 
-Do not merge those values into one product-quality score. The displayed 61.44%
-macro is an arithmetic presentation summary across the four component means,
-not an official RAGAS metric, a project grade, or proof of current live-output
-quality. Context recall is not present in that result.
+The five current means form the 68.03% Retrieval Quality macro. Do not present
+it as a whole-product score, project grade, or human artistic judgment. The old
+61.44% four-row fixture remains historical and has no context-recall result.
 
 ## Evidence ledger for the slide
 
@@ -99,7 +99,7 @@ quality. Context recall is not present in that result.
 | Single and Multi execute different paths | [Runtime workflow graph](../architecture/workflow_graph.md) and streamed node events | Multi responsibilities are sequential; only generation crosses the model boundary |
 | Image-guided input is genuine | [Architecture Walkthrough](ARCHITECTURE_WALKTHROUGH.md) and multimodal request tests | At most four PNG/JPEG/WebP/GIF files, 1 MiB each; request bytes are not restored with sessions |
 | Retrieval is evaluated | [`canonical_retrieval_report.json`](../demo/evaluation/canonical_retrieval_report.json) | Coverage is not grounded-answer quality |
-| RAGAS components exist | [Evaluation Metrics Summary](EVALUATION_METRICS_SUMMARY.md) | Four approved synthetic fixtures; no context-recall value |
+| Current-product RAGAS components exist | [Evaluation Metrics Summary](EVALUATION_METRICS_SUMMARY.md) | Seven public RAG cases; five metrics; no whole-product claim |
 | Browser previews are bounded | [Capability Matrix](CAPABILITY_MATRIX.md) | Four canonical live domains; other adapters/handoffs are not the same claim |
 | Privacy is inspectable | [Ethics & Privacy Assessment](ETHICS_PRIVACY_ASSESSMENT.md) | Provider and embedding calls can send user/source text off-device; no production auth claim |
 

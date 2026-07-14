@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -63,7 +63,10 @@ import type {
 import { OutputFeedbackPanel } from "./output-feedback-panel";
 import { UserGuide } from "./user-guide";
 import { CapstoneEvaluationWorkspace } from "./capstone-evaluation-workspace";
-import type { EvaluationRunRequest } from "@/lib/evaluation-benchmark";
+import type {
+  EvaluationProgressCallback,
+  EvaluationRunRequest
+} from "@/lib/evaluation-benchmark";
 import { buildMultiPreviewComparisonModel } from "@/lib/multi-preview-comparison";
 import { PreviewRendererSurface } from "./preview-renderer-surface";
 import {
@@ -113,7 +116,10 @@ type ProductIntelligenceDashboardProps = {
   model: ProductIntelligenceModel;
   onCategoryChange: (category: ProductIntelligenceCategory) => void;
   onClose: () => void;
-  onRunEvaluation?: (request: EvaluationRunRequest) => Promise<void>;
+  onRunEvaluation?: (
+    request: EvaluationRunRequest,
+    onProgress: EvaluationProgressCallback
+  ) => Promise<void>;
   evaluationHistory?: EvaluationHistoryRecord[];
   feedback?: DashboardFeedback;
   settings?: DashboardSettingsControls;
@@ -411,15 +417,21 @@ export function ProductIntelligenceDashboard({
     ? "ready"
     : getDashboardGroupTone(activeGroup, model, primarySection);
   const [evaluationRunning, setEvaluationRunning] = useState(false);
+  const evaluationRunInFlight = useRef(false);
 
-  async function runEvaluation(request: EvaluationRunRequest) {
-    if (!onRunEvaluation || evaluationRunning) {
+  async function runEvaluation(
+    request: EvaluationRunRequest,
+    onProgress: EvaluationProgressCallback
+  ) {
+    if (!onRunEvaluation || evaluationRunInFlight.current) {
       return;
     }
+    evaluationRunInFlight.current = true;
     setEvaluationRunning(true);
     try {
-      await onRunEvaluation(request);
+      await onRunEvaluation(request, onProgress);
     } finally {
+      evaluationRunInFlight.current = false;
       setEvaluationRunning(false);
     }
   }
@@ -527,7 +539,10 @@ function DashboardGroupView({
   evaluationRunning: boolean;
   group: DashboardGroup;
   model: ProductIntelligenceModel;
-  onRunEvaluation?: (request: EvaluationRunRequest) => Promise<void>;
+  onRunEvaluation?: (
+    request: EvaluationRunRequest,
+    onProgress: EvaluationProgressCallback
+  ) => Promise<void>;
   evaluationHistory: EvaluationHistoryRecord[];
   feedback?: DashboardFeedback;
   settings?: DashboardSettingsControls;
@@ -565,7 +580,10 @@ function DashboardGroupBody({
   evaluationRunning: boolean;
   group: DashboardGroup;
   model: ProductIntelligenceModel;
-  onRunEvaluation?: (request: EvaluationRunRequest) => Promise<void>;
+  onRunEvaluation?: (
+    request: EvaluationRunRequest,
+    onProgress: EvaluationProgressCallback
+  ) => Promise<void>;
   evaluationHistory: EvaluationHistoryRecord[];
   feedback?: DashboardFeedback;
   settings?: DashboardSettingsControls;
@@ -1739,7 +1757,10 @@ function EvaluationDashboardSurface({
   evaluationHistory: EvaluationHistoryRecord[];
   evaluationRunning: boolean;
   model: ProductIntelligenceModel;
-  onRunEvaluation: (request: EvaluationRunRequest) => Promise<void>;
+  onRunEvaluation: (
+    request: EvaluationRunRequest,
+    onProgress: EvaluationProgressCallback
+  ) => Promise<void>;
 }) {
   const telemetry = model.details?.telemetryDashboard;
   const workstation = model.details?.workstationDashboard;

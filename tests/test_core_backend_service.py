@@ -72,6 +72,89 @@ class CoreBackendServiceTests(unittest.TestCase):
         )
         self.assertEqual(decision.domain_selection, DomainSelectionShape.MULTI)
 
+    def test_route_request_preserves_selected_domains_for_explicit_bridge_query(
+        self,
+    ) -> None:
+        selected_domains = (
+            CreativeCodingDomain.TONE_JS,
+            CreativeCodingDomain.P5_JS,
+            CreativeCodingDomain.THREE_JS,
+        )
+
+        decision = route_request(
+            AssistantRequest(
+                query=(
+                    "Explain how Tone.js coordinates timing across the browser "
+                    "visual runtime."
+                ),
+                domains=selected_domains,
+                mode=AssistantMode.EXPLAIN,
+            )
+        )
+
+        self.assertEqual(decision.domains, selected_domains)
+        self.assertEqual(decision.domain_selection, DomainSelectionShape.MULTI)
+
+    def test_route_request_keeps_explicit_domain_precedence_outside_bridge_scope(
+        self,
+    ) -> None:
+        cases = (
+            (
+                "Explain the Tone.js transport and scheduling model.",
+                (
+                    CreativeCodingDomain.TONE_JS,
+                    CreativeCodingDomain.P5_JS,
+                    CreativeCodingDomain.THREE_JS,
+                ),
+                (CreativeCodingDomain.TONE_JS,),
+            ),
+            (
+                "Explain a p5.js sketch.",
+                (
+                    CreativeCodingDomain.TONE_JS,
+                    CreativeCodingDomain.THREE_JS,
+                ),
+                (CreativeCodingDomain.P5_JS,),
+            ),
+            (
+                "Explain how Tone.js and p5.js fit together.",
+                (
+                    CreativeCodingDomain.TONE_JS,
+                    CreativeCodingDomain.P5_JS,
+                    CreativeCodingDomain.THREE_JS,
+                ),
+                (
+                    CreativeCodingDomain.P5_JS,
+                    CreativeCodingDomain.TONE_JS,
+                ),
+            ),
+            (
+                "Explain how the selected creative systems fit together.",
+                (
+                    CreativeCodingDomain.TONE_JS,
+                    CreativeCodingDomain.P5_JS,
+                    CreativeCodingDomain.THREE_JS,
+                ),
+                (
+                    CreativeCodingDomain.TONE_JS,
+                    CreativeCodingDomain.P5_JS,
+                    CreativeCodingDomain.THREE_JS,
+                ),
+            ),
+        )
+
+        for query, selected_domains, expected_domains in cases:
+            with self.subTest(query=query):
+                decision = route_request(
+                    AssistantRequest(
+                        query=query,
+                        domains=selected_domains,
+                        mode=AssistantMode.EXPLAIN,
+                    )
+                )
+
+                self.assertEqual(decision.domains, expected_domains)
+
     def test_route_decision_normalizes_legacy_domain_to_single_selection(self) -> None:
         decision = RouteDecision(
             route=RouteName.DEBUG,

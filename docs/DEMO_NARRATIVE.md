@@ -73,9 +73,10 @@ workflow graph reflects execution evidence.
 **Say:**
 
 > Evaluation is split into Retrieval, AI/RAGAS, Creative, and
-> Workflow/Reliability lanes. The approved four-row sanitized RAGAS fixture has
-> a 61.44 percent macro across four measured dimensions, but it is historical
-> and not comparable to current retrieval. Context Recall is missing. For
+> Workflow/Reliability lanes. The primary current-product Retrieval Quality is
+> 68.03 percent across five RAGAS dimensions on seven of seven public RAG cases,
+> with no skips or metric failures. The old 61.44 percent four-row fixture is
+> preserved in History, not shown as current product quality. For
 > runtime behavior, deterministic browser fixtures prove request identity,
 > rendering, fullscreen, refinement, persistence, and reload. They do not prove
 > a new model generation.
@@ -106,10 +107,11 @@ not only unit contracts.
 
 **Say:**
 
-> The highest-value next steps are evidence closure, not more feature labels:
-> a current public-safe RAG evaluation with reference answers, a controlled
-> image-influence study, final presentation-machine rehearsal, accessibility
-> evidence, and decomposition of the largest modules. Image transport is
+> The highest-value next steps are evidence depth, not more feature labels:
+> broaden the seven-case public-safe RAG benchmark, improve context precision
+> and answer relevancy without changing its contract, run a controlled
+> image-influence study, collect accessibility evidence, and decompose the
+> largest modules. Image transport is
 > already proven, but image influence is not, so I do not claim complete
 > multimodal quality today.
 
