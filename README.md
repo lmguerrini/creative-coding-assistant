@@ -358,10 +358,6 @@ These controls expose relevant model parameters, but they are not evidence of a
 completed comparative performance-tuning experiment. Unsupported sampling
 parameters are omitted instead of being reported as applied.
 
-![Advanced Dashboard settings for theme, typography, layout, workflow, and creativity][screenshot-settings]
-
-*Session-scoped settings expose presentation and prompt defaults without changing retained artifacts.*
-
 ## Multimodal and creative coding capabilities
 
 The input path supports text plus up to four PNG, JPEG, WebP, or GIF references
@@ -393,14 +389,6 @@ Generated code can be copied, downloaded, refined, and saved inside workspace
 snapshots. A prepared preview contract is not proof of a rendered frame; the
 browser performs its own preflight and reports runtime state after backend
 finalization. See [Domain Experience](docs/DOMAIN_EXPERIENCE.md).
-
-![Fullscreen p5.js Physarum trail-field preview][screenshot-fullscreen-p5]
-
-*Fullscreen p5.js presents the interactive trail field without hiding that it remains a browser runtime.*
-
-![Fullscreen GLSL Chladni light-field preview][screenshot-fullscreen-glsl]
-
-*Fullscreen GLSL isolates the validated fragment-shader result as a focused visual surface.*
 
 ## Evaluation methodology
 
@@ -563,11 +551,6 @@ controls if the application becomes hosted. See [Future Work](docs/FUTURE_WORK.m
 | Troubleshooting | [Troubleshooting](docs/TROUBLESHOOTING.md) |
 | Planned improvements | [Future Work](docs/FUTURE_WORK.md) |
 
-## License and usage boundary
-
-No repository license is currently declared. Do not assume permission to
-redistribute, sublicense, or use the project in production until the owner adds
-an explicit license.
 
 [screenshot-workspace]: assets/screenshots/creative-workspace.jpg
 [screenshot-user-guide]: assets/screenshots/user-guide.jpg
@@ -575,10 +558,7 @@ an explicit license.
 [screenshot-architecture]: assets/screenshots/dashboard-architecture.jpg
 [screenshot-demo-mode]: assets/screenshots/demo-mode.jpg
 [screenshot-knowledge-base]: assets/screenshots/dashboard-kb.jpg
-[screenshot-settings]: assets/screenshots/dashboard-settings.jpg
 [screenshot-preview-runtime]: assets/screenshots/preview-runtime.jpg
 [screenshot-domains]: assets/screenshots/dashboard-domains.jpg
-[screenshot-fullscreen-p5]: assets/screenshots/full-screen-p5.jpg
-[screenshot-fullscreen-glsl]: assets/screenshots/full-screen-glsl.jpg
 [screenshot-artifacts]: assets/screenshots/dashboard-artifacts.jpg
 [screenshot-telemetry]: assets/screenshots/dashboard-telemetry.jpg
