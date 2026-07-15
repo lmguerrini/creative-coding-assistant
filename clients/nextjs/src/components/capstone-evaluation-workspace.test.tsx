@@ -54,7 +54,7 @@ function currentProductEvidence({
     state,
     runId,
     evaluatedAt: timestamp,
-    datasetId: "capstone_kb_expansion_retrieval_demo_pack",
+    datasetId: "creative_coding_retrieval_benchmark",
     datasetVersion: "current-product-retrieval.v1",
     privacyClass: "public_official_contexts_with_authored_references",
     metrics: backendMetricOrder,
@@ -136,7 +136,7 @@ function historyRecord(run: EvaluationBenchmarkRun): EvaluationHistoryRecord {
   };
 }
 
-describe("Capstone Evaluation workspace", () => {
+describe("Evaluation workspace", () => {
   it("keeps the primary score current-product-only and the historical 61.44% fixture inside History", () => {
     render(<CapstoneEvaluationWorkspace currentProductEvidence={null} history={[]} model={model} onRun={vi.fn()} running={false} />);
 
@@ -154,8 +154,10 @@ describe("Capstone Evaluation workspace", () => {
     expect(overall).not.toBeNull();
     expect(within(overall as HTMLElement).getByText("—")).toBeVisible();
     expect(retrieval).toHaveTextContent("No partial metric set is promoted to the primary score");
-    expect(screen.getByLabelText("Evaluation benchmark summary")).toHaveTextContent("target 85% · stretch 90%");
+    expect(screen.getByLabelText("Evaluation benchmark summary")).toHaveTextContent("five-metric retrieval score");
     expect(screen.queryByText("Approved-fixture Overall Retrieval Score")).not.toBeInTheDocument();
+    expect(screen.queryByText(/85% acceptance/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/90% stretch/i)).not.toBeInTheDocument();
 
     const historySummary = screen.getByText("Comparable stored runs", { selector: "summary" });
     const historyDisclosure = historySummary.closest("details");
@@ -318,7 +320,7 @@ describe("Capstone Evaluation workspace", () => {
     const provenance = screen.getByLabelText("Current Retrieval Quality provenance");
     expect(provenance).toHaveTextContent("current product");
     expect(provenance).toHaveTextContent("current-product-retrieval.v1");
-    expect(provenance).toHaveTextContent("b5fbc0e7cc9a");
+    expect(provenance).toHaveTextContent("b8166276522f");
     expect(provenance).toHaveTextContent("aaaaaaaaaaaa");
     expect(provenance).toHaveTextContent("bbbbbbbbbbbb");
     expect(provenance).toHaveTextContent("cccccccccccc");

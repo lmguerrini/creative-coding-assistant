@@ -97,7 +97,7 @@ class EvaluationRunRequest(BaseModel):
     )
     allow_provider_calls: bool = Field(default=False, alias="allowProviderCalls")
     dry_run: bool = Field(default=True, alias="dryRun")
-    approved_dataset: Literal["sanitized_public", "redacted_public"] = Field(
+    approved_dataset: Literal["sanitized_public"] = Field(
         default="sanitized_public",
         alias="approvedDataset",
     )
@@ -126,11 +126,6 @@ APPROVED_EVALUATION_DATASETS = {
         "path": Path("demo/evaluation/sanitized_ragas_live_sessions.jsonl"),
         "version": "sanitized-ragas.v1",
         "privacy_class": "committed_synthetic_public",
-    },
-    "redacted_public": {
-        "path": Path("demo/evaluation/redacted_live_session_ragas_latest4.jsonl"),
-        "version": "redacted-live-latest4.v1",
-        "privacy_class": "committed_redacted_public",
     },
 }
 

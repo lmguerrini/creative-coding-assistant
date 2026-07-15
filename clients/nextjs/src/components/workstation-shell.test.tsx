@@ -74,7 +74,7 @@ function canonicalEvaluationResult(overrides: Record<string, unknown> = {}) {
     runId: "canonical-evaluation-result",
     status: "completed",
     benchmarkVersion: "current-product-retrieval.v1",
-    datasetId: "capstone_kb_expansion_retrieval_demo_pack",
+    datasetId: "creative_coding_retrieval_benchmark",
     datasetVersion: "current-product-retrieval.v1",
     selectedCaseIds: [...CURRENT_PRODUCT_RETRIEVAL_CASE_IDS],
     datasetFingerprint: CURRENT_PRODUCT_RETRIEVAL_DATASET_FINGERPRINT,
@@ -1241,6 +1241,33 @@ describe("WorkstationShell", () => {
     expect(screen.queryByText("Type a prompt to begin")).not.toBeInTheDocument();
   });
 
+  it("starts new workspaces in User Mode while keeping Developer Mode available", async () => {
+    renderShell(getInitialWorkspaceSnapshot(), {}, { mode: "user" });
+
+    const displayMode = getWorkspaceSettingsControl("Display mode");
+    expect(displayMode).toHaveTextContent("User");
+    expect(
+      screen.getByRole("complementary", { name: "Right inspector" })
+    ).toHaveAttribute("data-state", "collapsed");
+    expect(screen.queryByRole("tab", { name: "Workflow" })).not.toBeInTheDocument();
+
+    fireEvent.click(displayMode);
+
+    expect(displayMode).toHaveTextContent("Developer");
+    expect(screen.getByRole("tab", { name: "Workflow" })).toBeVisible();
+
+    closeWorkspaceSettingsPanel();
+    fireEvent.click(screen.getByRole("button", { name: "New session" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("complementary", { name: "Right inspector" })
+      ).toHaveAttribute("data-state", "collapsed")
+    );
+    expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent("User");
+    expect(screen.queryByRole("tab", { name: "Workflow" })).not.toBeInTheDocument();
+  });
+
   it("opens the full Product Intelligence Dashboard from the workspace", () => {
     renderShell(getInitialWorkspaceSnapshot());
 
@@ -1829,7 +1856,7 @@ describe("WorkstationShell", () => {
     });
     const retrievalEvaluation = screen.getByLabelText("RAGAS retrieval evaluation");
     expect(retrievalEvaluation).toHaveTextContent("68.03%");
-    expect(retrievalEvaluation).toHaveTextContent("v9-current-product-final-retained");
+    expect(retrievalEvaluation).toHaveTextContent("current-product-public-retained");
     expect(retrievalEvaluation).not.toHaveTextContent("90.00%");
   });
 
@@ -1859,7 +1886,7 @@ describe("WorkstationShell", () => {
     expect(
       within(demoMode).getByRole("heading", {
         level: 1,
-        name: "Capstone scenarios"
+        name: "Creative scenarios"
       })
     ).toBeVisible();
     expect(
@@ -1878,12 +1905,12 @@ describe("WorkstationShell", () => {
 
     fireEvent.click(
       within(demoScenarioList).getByRole("button", {
-        name: /Failure-recovery rehearsal/
+        name: /Failure recovery/
       })
     );
     expect(
       within(demoMode).getByRole("article", {
-        name: "Selected demo scenario Failure-recovery rehearsal"
+        name: "Selected demo scenario Failure recovery"
       })
     ).toBeVisible();
 
@@ -1897,10 +1924,10 @@ describe("WorkstationShell", () => {
     expect(
       within(demoMode).getAllByText("Recursive aurora garden").length
     ).toBeGreaterThan(1);
-    const presenterRunbook = within(demoMode).getByText("Presenter runbook").closest("details");
-    expect(presenterRunbook).not.toHaveAttribute("open");
-    fireEvent.click(within(demoMode).getByText("Presenter runbook"));
-    expect(presenterRunbook).toHaveAttribute("open");
+    const demoWorkflow = within(demoMode).getByText("Demo workflow").closest("details");
+    expect(demoWorkflow).not.toHaveAttribute("open");
+    fireEvent.click(within(demoMode).getByText("Demo workflow"));
+    expect(demoWorkflow).toHaveAttribute("open");
     fireEvent.click(within(demoMode).getByRole("button", { name: /Load prompt & run/ }));
 
     expect(screen.queryByRole("region", { name: "Demo Mode" })).not.toBeInTheDocument();
@@ -2040,7 +2067,7 @@ describe("WorkstationShell", () => {
       within(userDemoMode).queryByRole("region", { name: "Featured demo paths" })
     ).not.toBeInTheDocument();
     expect(within(userDemoMode).queryByText("Technical contract")).not.toBeInTheDocument();
-    expect(within(userDemoMode).getByText("Presenter runbook").closest("details"))
+    expect(within(userDemoMode).getByText("Demo workflow").closest("details"))
       .toHaveAttribute("open");
 
     await waitFor(() =>
@@ -2164,14 +2191,15 @@ describe("WorkstationShell", () => {
       persistenceClient: createEmptyPersistenceClient()
     });
 
-    expect(
-      await screen.findByRole("group", { name: "Empty creative workspace" })
-    ).toBeVisible();
+    const emptyWorkspace = await screen.findByRole("group", {
+      name: "Empty creative workspace"
+    });
+    expect(emptyWorkspace).toBeVisible();
     expect(screen.getByLabelText("Creative session overview")).not.toHaveAttribute(
       "role",
       "log"
     );
-    expect(screen.getByText("New creative session")).toBeVisible();
+    expect(within(emptyWorkspace).getByText("New creative session")).toBeVisible();
     expect(screen.getByText("Describe the creative system you want to build.")).toBeVisible();
     expect(screen.getByRole("textbox", { name: "Assistant prompt" })).toHaveAttribute(
       "placeholder",
@@ -2487,6 +2515,7 @@ describe("WorkstationShell", () => {
 
   it("updates the complete workflow graph from the selected route", () => {
     renderShell();
+    fireEvent.click(screen.getByRole("tab", { name: "Overview" }));
     const selector = screen.getByRole("combobox", { name: "Workflow" });
     const graph = screen.getByLabelText("Full live workflow");
 
@@ -2624,12 +2653,10 @@ describe("WorkstationShell", () => {
       await Promise.resolve();
     });
 
-    expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent(
-      "Developer"
-    );
+    expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent("User");
     expect(screen.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
       "data-state",
-      "open"
+      "collapsed"
     );
     expect(
       await screen.findByRole("group", { name: "Empty creative workspace" })
@@ -2683,18 +2710,16 @@ describe("WorkstationShell", () => {
     expect(screen.queryByRole("region", { name: "Demo Mode" })).not.toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue("");
     expect(screen.getByRole("button", { name: "Demo Mode" })).toBeVisible();
-    expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent(
-      "Developer"
-    );
+    expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent("User");
     expect(screen.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
       "data-state",
-      "open"
+      "collapsed"
     );
     expect(
       await screen.findByRole("group", { name: "Empty creative workspace" })
     ).toBeVisible();
     await waitFor(() => {
-      expect(screen.getByRole("tab", { name: "Overview" })).toBeVisible();
+      expect(screen.queryByRole("tab", { name: "Workflow" })).not.toBeInTheDocument();
       expect(
         screen.queryByRole("region", { name: "Preview workspace" })
       ).not.toBeInTheDocument();
@@ -6117,7 +6142,7 @@ describe("WorkstationShell", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("keeps preview runtime failures presenter-friendly in User Mode", async () => {
+  it("keeps preview runtime failures user-friendly in User Mode", async () => {
     const snapshot = snapshotWithThreePreview();
     renderUserShell({
       ...snapshot,
@@ -7281,7 +7306,7 @@ describe("WorkstationShell", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("exports the current workspace bundle through the existing approval flow", async () => {
+  it("downloads a live export artifact and exports its current workspace bundle", async () => {
     const anchorClick = vi
       .spyOn(HTMLAnchorElement.prototype, "click")
       .mockImplementation(() => undefined);
@@ -7294,12 +7319,49 @@ describe("WorkstationShell", () => {
       value: vi.fn()
     });
 
-    renderShell(snapshotWithActiveTab("Artifacts"));
-    const notesArtifact = screen.getByLabelText("projection-notes.md artifact");
+    const snapshot = snapshotWithActiveTab("Artifacts");
+    const liveExportArtifact: ArtifactSummary = {
+      id: "live-response-artifact",
+      title: "assistant-response.md",
+      type: "export",
+      language: "Markdown",
+      status: "Generated",
+      summary: "Hydrated from the latest live generation output.",
+      content: "# Generated response\n\nA live-generated export artifact.",
+      actions: ["Open", "Copy", "Download", "Export"]
+    };
+    renderShell({
+      ...snapshot,
+      artifacts: [liveExportArtifact]
+    });
+    const liveArtifact = screen.getByLabelText("assistant-response.md artifact");
 
     fireEvent.click(
-      within(notesArtifact).getByRole("button", {
-        name: "Export Bundle projection-notes.md"
+      within(liveArtifact).getByRole("button", {
+        name: "Download File assistant-response.md"
+      })
+    );
+
+    expect(screen.getByLabelText("Operator checkpoint")).toHaveTextContent(
+      "Download artifact"
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Download file" }));
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(anchorClick).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.getByText("assistant-response.md downloaded.")).toBeVisible();
+    const downloadedArtifact = anchorClick.mock
+      .instances[0] as unknown as HTMLAnchorElement;
+    expect(downloadedArtifact.download).toBe("assistant-response.md");
+
+    fireEvent.click(
+      within(liveArtifact).getByRole("button", {
+        name: "Export Bundle assistant-response.md"
       })
     );
 
@@ -7313,11 +7375,11 @@ describe("WorkstationShell", () => {
     });
 
     await waitFor(() => {
-      expect(anchorClick).toHaveBeenCalledTimes(1);
+      expect(anchorClick).toHaveBeenCalledTimes(2);
     });
     expect(screen.getByText("Project bundle exported.")).toBeVisible();
 
-    const anchor = anchorClick.mock.instances[0] as unknown as HTMLAnchorElement;
+    const anchor = anchorClick.mock.instances[1] as unknown as HTMLAnchorElement;
     expect(anchor.download).toBe("local-nextjs-workspace-bundle.zip");
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));

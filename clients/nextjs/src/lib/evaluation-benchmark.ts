@@ -275,7 +275,7 @@ export type EvaluationRunRequest = {
   scope: EvaluationScope;
   caseIds: string[];
   allowProviderCalls: boolean;
-  approvedRagasDataset: "sanitized_public" | "redacted_public";
+  approvedRagasDataset: "sanitized_public";
 };
 
 export type EvaluationProgressCallback = (
@@ -340,7 +340,7 @@ const ragasMetrics = [
 ] as const;
 
 export const CURRENT_PRODUCT_RETRIEVAL_DATASET_FINGERPRINT =
-  "sha256:b5fbc0e7cc9a523658eee8b0fc5cd7c417aa10540f8919e10bc2c4e10a40705f";
+  "sha256:b8166276522f662404abd2cb7743572c1e4d3d9858e106f4bddccc9d0e4a49c8";
 
 export const CURRENT_PRODUCT_RETRIEVAL_CASE_IDS = Object.freeze([
   "runtime_selection_hydra_vs_p5",
@@ -725,7 +725,7 @@ export function currentProductRetrievalScoreFromEvidence(
     evidence.benchmarkMode !== "current_product" ||
     evidence.scoreOrigin !== "current_product" ||
     evidence.benchmarkVersion !== "current-product-retrieval.v1" ||
-    evidence.datasetId !== "capstone_kb_expansion_retrieval_demo_pack" ||
+    evidence.datasetId !== "creative_coding_retrieval_benchmark" ||
     evidence.datasetVersion !== "current-product-retrieval.v1" ||
     evidence.datasetFingerprint !== CURRENT_PRODUCT_RETRIEVAL_DATASET_FINGERPRINT ||
     evidence.privacyClass !== "public_official_contexts_with_authored_references" ||

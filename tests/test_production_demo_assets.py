@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 
 from creative_coding_assistant.orchestration import (
     ProductionDemoAssetPlan,
@@ -61,6 +62,7 @@ REQUIRED_RECORD_FIELDS = {
     "serialization_version",
     "metadata_only",
 }
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 class ProductionDemoAssetsTests(unittest.TestCase):
@@ -71,19 +73,26 @@ class ProductionDemoAssetsTests(unittest.TestCase):
         self.assertEqual(plan.serialization_version, "production_demo_asset_plan.v1")
         self.assertEqual(
             plan.source_retrieval_demo_pack_id,
-            "capstone_kb_expansion_retrieval_demo_pack",
+            "creative_coding_retrieval_benchmark",
         )
         self.assertIn("luminous audio-reactive Three.js scene", plan.demo_prompt)
+        self.assertIn("product demo", plan.demo_prompt)
+        self.assertNotIn("capstone", plan.demo_prompt.casefold())
         self.assertEqual(plan.demo_workflow_steps, REQUIRED_WORKFLOW_STEPS)
         self.assertEqual(plan.explanation_talking_points, REQUIRED_TALKING_POINTS)
         self.assertEqual(
             plan.preview_media_paths,
             (
-                "assets/preview_current.png",
-                "assets/preview_v1.png",
-                "assets/preview_v2.png",
+                "assets/screenshots-archive/preview_current.png",
+                "assets/screenshots-archive/preview_v1.png",
+                "assets/screenshots-archive/preview_v2.png",
             ),
         )
+        for relative_path in plan.preview_media_paths:
+            self.assertTrue(
+                (PROJECT_ROOT / relative_path).is_file(),
+                f"missing fallback preview asset: {relative_path}",
+            )
         self.assertGreaterEqual(len(plan.retrieval_scenario_ids), 7)
         self.assertEqual(plan.asset_kinds, REQUIRED_ASSET_KINDS)
         self.assertEqual(plan.asset_count, 5)
@@ -120,9 +129,15 @@ class ProductionDemoAssetsTests(unittest.TestCase):
         self.assertIsNotNone(retrieval)
         assert preview is not None
         assert retrieval is not None
+        prompt = production_demo_asset_by_kind("demo_prompt", plan)
+        assert prompt is not None
         self.assertEqual(len(ready_assets), 5)
-        self.assertIn("assets/preview_current.png", preview.present_items)
+        self.assertIn(
+            "assets/screenshots-archive/preview_current.png",
+            preview.present_items,
+        )
         self.assertIn("shader_post_fx_pipeline", retrieval.present_items)
+        self.assertIn("creative_coding_prompt", prompt.present_items)
 
         for record in plan.records:
             dumped = record.model_dump(mode="json")

@@ -1,7 +1,7 @@
 """Canonical, public-safe capability contracts for creative-coding domains.
 
-The routing registry owns names and prompt guidance.  This module owns the
-additional product claim a reviewer needs to make a safe decision: whether an
+The routing registry owns names and prompt guidance. This module owns the
+additional product signal needed for a safe decision: whether an
 artifact is generated as browser-preview code, code to export, or an external
 tool handoff.  It intentionally does not infer support from a filename or a
 client-side adapter.

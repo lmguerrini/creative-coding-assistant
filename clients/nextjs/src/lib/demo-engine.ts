@@ -227,7 +227,7 @@ export function validateDemoPromptContracts(
       issues.push(`${scenario.id}: p5 demo prompt must include the bounded runtime surface.`);
     }
     if (fixtureKind === "controlled_failure" && !/do not claim/i.test(scenario.prompt)) {
-      issues.push(`${scenario.id}: failure rehearsal must prohibit a false preview claim.`);
+      issues.push(`${scenario.id}: failure scenario must prohibit a false preview claim.`);
     }
     if (fixtureKind === "image_reference" && !/attached image/i.test(scenario.prompt)) {
       issues.push(`${scenario.id}: image-reference prompt must state its input boundary.`);

@@ -1307,7 +1307,7 @@ describe("live artifact hydration", () => {
       title: "assistant-response.md",
       type: "export",
       language: "Markdown",
-      actions: ["Open", "Copy", "Download"]
+      actions: ["Open", "Copy", "Download", "Export"]
     });
     expect(document.content).toContain("Use a slower modulation curve");
     expect(result.previewArtifactId).toBe("");

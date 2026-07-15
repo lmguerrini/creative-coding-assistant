@@ -462,6 +462,7 @@ describe("workspace persistence client", () => {
   });
 
   it("normalizes workspace preferences into safe persisted values", () => {
+    expect(defaultWorkspacePreferences.showDebugPanels).toBe(false);
     expect(
       normalizeWorkspacePreferences({
         theme: "matrix",

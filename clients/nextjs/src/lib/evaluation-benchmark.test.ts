@@ -41,7 +41,7 @@ function canonicalCurrentProductEvidence(
     state: "completed",
     runId: "canonical-current-product-run",
     evaluatedAt: "2026-07-14T09:00:00.000Z",
-    datasetId: "capstone_kb_expansion_retrieval_demo_pack",
+    datasetId: "creative_coding_retrieval_benchmark",
     datasetVersion: "current-product-retrieval.v1",
     privacyClass: "public_official_contexts_with_authored_references",
     metrics: backendMetricOrder,
@@ -271,7 +271,7 @@ describe("canonical evaluation benchmark", () => {
       ragas: {
         ...emptyRagasEvidence(),
         state: "prepared",
-        datasetId: "capstone_kb_expansion_retrieval_demo_pack",
+        datasetId: "creative_coding_retrieval_benchmark",
         totalSamples: 7,
         skippedSamples: 7,
         detail: "Dry-run evidence only."
@@ -384,11 +384,10 @@ describe("canonical evaluation benchmark", () => {
       previousRun: first,
       ragas: {
         ...first.ragas,
-        datasetId: "redacted_public",
-        datasetVersion: "redacted-live-latest4.v1",
-        privacyClass: "committed_redacted_public"
+        datasetId: "sanitized_public_variant",
+        datasetVersion: "sanitized-ragas.v2"
       },
-      request: { ...request, approvedRagasDataset: "redacted_public" }
+      request
     });
 
     expect(first.categoryResults[0]?.score).not.toBeNull();

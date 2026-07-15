@@ -370,6 +370,7 @@ type WorkspacePersistenceState =
   | "unavailable";
 type ArtifactTransferAction = Extract<ArtifactAction, "Download" | "Export">;
 type ArtifactActionFeedback = {
+  action: "Copy" | ArtifactTransferAction;
   artifactId: string;
   state: "success" | "error";
 };
@@ -413,7 +414,7 @@ const userModeInspectorTabs = new Set<ProductIntelligenceCategory>([
   "Domains",
   "Settings"
 ]);
-const userModeDefaultInspectorTab: ProductIntelligenceCategory = "Preview";
+const userModeDefaultInspectorTab: InspectorTabName = "Preview";
 const persistenceStateLabels = {
   loading: "Restoring session",
   ready: "Local session ready",
@@ -1691,17 +1692,28 @@ export function WorkstationShell({
         title: "New creative session"
       }
     };
+    const nextLayout = normalizeWorkspaceLayoutState({
+      ...layoutState,
+      inspectorCollapsed: defaultWorkspaceLayoutState.inspectorCollapsed
+    });
+    const nextPreferences = normalizeWorkspacePreferences({
+      ...workspacePreferences,
+      showDebugPanels: defaultWorkspacePreferences.showDebugPanels
+    });
     hasLoadedPersistenceRef.current = false;
     lastPersistedFingerprintRef.current = null;
     skipNextPersistenceSaveRef.current = true;
     resetSessionState(titledSnapshot);
+    setActiveTab(userModeDefaultInspectorTab);
+    setLayoutState(nextLayout);
+    setWorkspacePreferences(nextPreferences);
     setActivePersistenceClient(nextClient);
     await nextClient.save(
       createWorkspaceSessionRecord({
         activeArtifactId: "",
-        activeInspectorTab: "Overview",
-        layout: layoutState,
-        preferences: workspacePreferences,
+        activeInspectorTab: userModeDefaultInspectorTab,
+        layout: nextLayout,
+        preferences: nextPreferences,
         previewArtifactId: "",
         previewOpen: false,
         snapshot: titledSnapshot
@@ -3473,16 +3485,21 @@ export function WorkstationShell({
     );
     setFeedbackState(
       artifact.id,
+      "Copy",
       wasCopied ? "success" : "error",
       copyFeedbackTimerRef,
       setCopyFeedback
     );
   }
 
-  function handleArtifactTransfer(artifact: ArtifactSummary) {
+  function handleArtifactTransfer(
+    action: ArtifactTransferAction,
+    artifact: ArtifactSummary
+  ) {
+    const exportsProjectBundle = isProjectBundleExportAction(action, artifact);
     requestOperatorApproval({
-      actionId: getArtifactTransferApprovalActionId(artifact),
-      artifactTitle: isProjectBundleExportArtifact(artifact)
+      actionId: getArtifactTransferApprovalActionId(action, artifact),
+      artifactTitle: exportsProjectBundle
         ? interactiveSnapshot.workspace.name
         : artifact.title,
       execute: () => {
@@ -3491,7 +3508,7 @@ export function WorkstationShell({
           setPreviewContextArtifactId(artifact.id);
         }
         setArtifactTransferError(null);
-        const wasTransferred = isProjectBundleExportArtifact(artifact)
+        const wasTransferred = exportsProjectBundle
           ? (() => {
               const bundle = buildProjectBundle({
                 approvalSummary,
@@ -3520,12 +3537,13 @@ export function WorkstationShell({
             );
         setFeedbackState(
           artifact.id,
+          action,
           wasTransferred ? "success" : "error",
           transferFeedbackTimerRef,
           setTransferFeedback
         );
         if (!wasTransferred) {
-          const transferError = createArtifactTransferError(artifact);
+          const transferError = createArtifactTransferError(action, artifact);
           setArtifactTransferError(transferError);
           throw new Error(transferError.userMessage);
         }
@@ -3557,7 +3575,7 @@ export function WorkstationShell({
     }
 
     if (action === "Download" || action === "Export") {
-      handleArtifactTransfer(artifact);
+      handleArtifactTransfer(action, artifact);
       return;
     }
 
@@ -4672,7 +4690,10 @@ type InspectorPanelProps = {
   onArtifactRefine: (artifact: ArtifactSummary, instruction: string) => Promise<void>;
   onArtifactRename: (artifact: ArtifactSummary, requestedTitle: string) => string | null;
   onArtifactSelect: (artifact: ArtifactSummary) => void;
-  onArtifactTransfer: (artifact: ArtifactSummary) => void;
+  onArtifactTransfer: (
+    action: ArtifactTransferAction,
+    artifact: ArtifactSummary
+  ) => void;
   onClarificationOptionSelect: (option: string) => Promise<void>;
   productIntelligence: ProductIntelligenceModel;
   previewController: PreviewControllerModel;
@@ -5199,7 +5220,10 @@ type CodeInspectorProps = {
   document: ArtifactDocument;
   highlightedLines: HighlightedLine[];
   onArtifactCopy: (artifact: ArtifactSummary) => Promise<void>;
-  onArtifactTransfer: (artifact: ArtifactSummary) => void;
+  onArtifactTransfer: (
+    action: ArtifactTransferAction,
+    artifact: ArtifactSummary
+  ) => void;
   showDebugPanels: boolean;
   transferFeedback: ArtifactActionFeedback | null;
 };
@@ -5214,7 +5238,10 @@ function CodeInspector({
   showDebugPanels,
   transferFeedback
 }: CodeInspectorProps) {
-  const transferAction = getArtifactTransferAction(artifact.actions);
+  const transferActions = artifact.actions.filter(
+    (action): action is ArtifactTransferAction =>
+      action === "Download" || action === "Export"
+  );
   const actionMessage = getArtifactActionMessage(
     artifact,
     copyFeedback,
@@ -5263,14 +5290,15 @@ function CodeInspector({
                   transferFeedback
                 )}
           </button>
-          {transferAction ? (
+          {transferActions.map((transferAction) => (
             <button
               aria-label={`${
                 showDebugPanels
                   ? formatArtifactActionLabel(transferAction, artifact)
                   : formatUserArtifactActionLabel(transferAction)
               } ${displayDocumentName}`}
-              onClick={() => onArtifactTransfer(artifact)}
+              key={transferAction}
+              onClick={() => onArtifactTransfer(transferAction, artifact)}
               type="button"
             >
               {showDebugPanels
@@ -5287,7 +5315,7 @@ function CodeInspector({
                     transferFeedback
                   )}
             </button>
-          ) : null}
+          ))}
         </div>
       </header>
       <div className="codePanelMeta" aria-label="Artifact metadata" role="list">
@@ -6365,30 +6393,17 @@ function clampNumber(value: number, minimum: number, maximum: number) {
 
 function setFeedbackState(
   artifactId: string,
+  action: ArtifactActionFeedback["action"],
   state: ArtifactActionFeedback["state"],
   timerRef: { current: number | null },
   setFeedback: (feedback: ArtifactActionFeedback | null) => void
 ) {
   clearTimer(timerRef.current);
-  setFeedback({ artifactId, state });
+  setFeedback({ action, artifactId, state });
   timerRef.current = window.setTimeout(() => {
     setFeedback(null);
     timerRef.current = null;
   }, artifactFeedbackDurationMs);
-}
-
-function getArtifactTransferAction(
-  actions: ArtifactAction[]
-): ArtifactTransferAction | null {
-  if (actions.includes("Download")) {
-    return "Download";
-  }
-
-  if (actions.includes("Export")) {
-    return "Export";
-  }
-
-  return null;
 }
 
 function formatUserArtifactLabel(artifact: ArtifactSummary) {
@@ -6503,8 +6518,12 @@ function formatUserArtifactActionLabel(action: ArtifactAction) {
     return "Copy";
   }
 
-  if (action === "Download" || action === "Export") {
-    return "Save";
+  if (action === "Download") {
+    return "Download";
+  }
+
+  if (action === "Export") {
+    return "Export project";
   }
 
   return action;
@@ -6522,7 +6541,8 @@ function getUserArtifactActionButtonLabel(
 
   if (
     (action === "Download" || action === "Export") &&
-    transferFeedback?.artifactId === artifact.id
+    transferFeedback?.artifactId === artifact.id &&
+    transferFeedback.action === action
   ) {
     return transferFeedback.state === "success" ? "Saved" : "Save unavailable";
   }
@@ -6660,7 +6680,8 @@ function getArtifactActionButtonLabel(
 
   if (
     (action === "Download" || action === "Export") &&
-    transferFeedback?.artifactId === artifact.id
+    transferFeedback?.artifactId === artifact.id &&
+    transferFeedback.action === action
   ) {
     if (transferFeedback.state === "success") {
       if (action === "Export" && isBundleExport) {
@@ -6692,8 +6713,8 @@ function getArtifactActionMessage(
   }
 
   if (transferFeedback?.artifactId === artifact.id) {
-    const transferAction = getArtifactTransferAction(artifact.actions);
-    const isBundleExport = isProjectBundleExportArtifact(artifact);
+    const transferAction = transferFeedback.action as ArtifactTransferAction;
+    const isBundleExport = isProjectBundleExportAction(transferAction, artifact);
     const transferVerb = transferAction === "Export" ? "exported" : "downloaded";
     const transferTarget = isBundleExport ? "Project bundle" : artifact.title;
 
@@ -6982,8 +7003,11 @@ function splitArtifactContentLines(content: string) {
   return lines.length > 0 ? lines : [""];
 }
 
-function createArtifactTransferError(artifact: ArtifactSummary) {
-  if (isProjectBundleExportArtifact(artifact)) {
+function createArtifactTransferError(
+  action: ArtifactTransferAction,
+  artifact: ArtifactSummary
+) {
+  if (isProjectBundleExportAction(action, artifact)) {
     return createWorkstationError({
       type: "project_bundle_export_failed",
       category: "artifact_export",
@@ -6996,35 +7020,40 @@ function createArtifactTransferError(artifact: ArtifactSummary) {
     });
   }
 
-  const transferAction = getArtifactTransferAction(artifact.actions) ?? "Export";
-  const actionLabel = transferAction === "Export" ? "export" : "download";
+  const actionLabel = action === "Export" ? "export" : "download";
 
   return createWorkstationError({
-    type: transferAction === "Export" ? "artifact_export_failed" : "artifact_download_failed",
+    type: action === "Export" ? "artifact_export_failed" : "artifact_download_failed",
     category: "artifact_export",
     subsystem: "artifact_transfer",
     userMessage: `The workspace could not ${actionLabel} ${artifact.title}.`,
     recoverable: true,
     suggestedAction:
       "Retry the transfer from the Artifacts tab or continue working in the current session.",
-    retryLabel: transferAction === "Export" ? "Retry export" : "Retry download"
+    retryLabel: action === "Export" ? "Retry export" : "Retry download"
   });
 }
 
 function getArtifactTransferApprovalActionId(
+  action: ArtifactTransferAction,
   artifact: ArtifactSummary
 ): HitlActionId {
-  if (isProjectBundleExportArtifact(artifact)) {
+  if (isProjectBundleExportAction(action, artifact)) {
     return "project_bundle_export";
   }
 
-  return artifact.actions.includes("Download")
-    ? "artifact_download"
-    : "artifact_export";
+  return action === "Download" ? "artifact_download" : "artifact_export";
 }
 
 function isProjectBundleExportArtifact(artifact: ArtifactSummary) {
   return artifact.type === "export" && artifact.actions.includes("Export");
+}
+
+function isProjectBundleExportAction(
+  action: ArtifactTransferAction,
+  artifact: ArtifactSummary
+) {
+  return action === "Export" && isProjectBundleExportArtifact(artifact);
 }
 
 function buildHitlApprovalError(request: HitlApprovalRequest) {

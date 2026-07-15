@@ -942,7 +942,7 @@
   color: var(--foreground);
 }
 
-.telemetryReviewerHero {
+.telemetryOutcomeHero {
   display: grid;
   grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.4fr);
   gap: var(--dashboard-space-2);
@@ -994,12 +994,12 @@
   gap: 8px;
 }
 
-.evaluationLaunchActions .capstonePrimaryButton {
+.evaluationLaunchActions .evaluationPrimaryButton {
   min-height: 36px;
   margin: 0;
 }
 
-.evaluationLaunchActions .capstoneConfigureButton,
+.evaluationLaunchActions .evaluationConfigureButton,
 .evaluationCloseButton {
   min-height: 36px;
   padding: 0 12px;
@@ -1012,7 +1012,7 @@
   font-weight: 760;
 }
 
-.evaluationLaunchActions .capstoneConfigureButton:hover,
+.evaluationLaunchActions .evaluationConfigureButton:hover,
 .evaluationCloseButton:hover {
   border-color: var(--dashboard-border-strong);
   color: var(--foreground);
@@ -2709,6 +2709,14 @@
   animation: workspaceControlSpin 900ms linear infinite;
 }
 
+@media (min-width: 761px) and (max-width: 1180px) {
+  .applicationFloatingPanel,
+  .applicationFloatingPanel--settings {
+    right: auto;
+    left: 0;
+  }
+}
+
 @media (max-width: 760px) {
   .applicationFloatingPanel,
   .applicationFloatingPanel--settings {
@@ -2945,7 +2953,7 @@
 }
 
 .demoScenarioDetail :is(
-  .demoRunbookDisclosure,
+  .demoWorkflowDisclosure,
   .demoPromptDisclosure,
   .demoTechnicalDisclosure
 ) > .dashboardDisclosureBody {
@@ -4567,18 +4575,18 @@ button.workspaceAttachmentOption:focus-visible {
 }
 
 .previewRuntimeErrorCard,
-.previewRuntimePresenterFallback {
+.previewRuntimeUserFallback {
   border-color: rgba(255, 150, 135, 0.28);
   background:
     linear-gradient(135deg, rgba(255, 150, 135, 0.09), transparent 72%),
     rgba(16, 21, 29, 0.96);
 }
 
-.previewRuntimePresenterFallback :is(strong, p) {
+.previewRuntimeUserFallback :is(strong, p) {
   color: inherit;
 }
 
-.previewRuntimePresenterFallback p {
+.previewRuntimeUserFallback p {
   color: var(--preview-hud-muted);
 }
 
@@ -5206,7 +5214,7 @@ button.workspaceAttachmentOption:focus-visible {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .telemetryReviewerHero,
+  .telemetryOutcomeHero,
   .browserUsageOverview .userUsageMetrics,
   .evaluationLabMetrics,
   .evaluationRetrievalOverview,
@@ -5252,7 +5260,7 @@ button.workspaceAttachmentOption:focus-visible {
   .dashboardCardGrid[data-layout="compact"],
   .dashboardMetricGrid,
   .aiAgentContextMetrics,
-  .telemetryReviewerHero,
+  .telemetryOutcomeHero,
   .telemetryRunMetrics,
   .telemetrySignalMetrics,
   .browserUsageOverview .userUsageMetrics {

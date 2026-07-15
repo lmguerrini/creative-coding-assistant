@@ -15,12 +15,13 @@ fixtures. Detailed methodology and commands live in
 These files contain benchmark, pipeline, model, eligibility, failure, and run
 provenance. The Dashboard remains authoritative for the current dynamic result.
 
-## Historical fixtures
+## Historical fixture
 
-The `sanitized_*` and `redacted_*` JSONL files exercise the historical
-recorded-session evaluator and its manifests. They are synthetic or redacted,
-not raw user sessions. Their results do not execute the complete current
-retrieval, prompt, and generation path and are not the current product score.
+The `sanitized_*` JSONL files exercise the historical recorded-session evaluator
+and its manifest with synthetic public inputs. Their results do not execute the
+complete current retrieval, prompt, and generation path and are not the current
+product score. Redacted recorded-session rows and detailed evaluator output stay
+local even when their content has been reviewed.
 
 Provider-scored reuse requires explicit authorization and review of the exact
 payload. Raw `data/eval/` records, private session text, local Chroma excerpts,

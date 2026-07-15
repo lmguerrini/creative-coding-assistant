@@ -1,9 +1,9 @@
 # Demo Prompt Library
 
-> **Historical V8 prompt set.** These prompts support the archived eight-flow
+> **Compatibility prompt set.** These prompts support the archived eight-flow
 > demo material. The current in-app source of truth is
-> `clients/nextjs/src/lib/demo-mode.ts`; the current standalone set is
-> [V9.5 Exact Prompt Library](v9_5_exact_prompt_library.md).
+> `clients/nextjs/src/lib/demo-mode.ts`; the compatibility-named standalone set
+> is the [Exact Prompt Library](v9_5_exact_prompt_library.md).
 
 These prompts support the static local launcher and offline fixture inspection.
 They are demo assets, not product prompt-template mutations.
@@ -22,8 +22,8 @@ escalation boundaries.
 Coverage: creative-code generation, official-source grounding, browser audio,
 artifact inspection, and explicit runtime boundaries.
 
-Fallback: use `assets/preview_current.png` and `demo/golden_demo_dataset.json`
-if provider, retrieval, or preview access fails.
+Fallback: use `assets/screenshots-archive/preview_current.png` and
+`demo/golden_demo_dataset.json` if provider, retrieval, or preview access fails.
 
 ## Secondary Prompts
 

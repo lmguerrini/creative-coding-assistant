@@ -54,7 +54,7 @@
     "runId": { "type": "string", "minLength": 1 },
     "status": { "const": "completed" },
     "benchmarkVersion": { "const": "current-product-retrieval.v1" },
-    "datasetId": { "const": "capstone_kb_expansion_retrieval_demo_pack" },
+    "datasetId": { "const": "creative_coding_retrieval_benchmark" },
     "datasetVersion": { "const": "current-product-retrieval.v1" },
     "selectedCaseIds": {
       "type": "array",

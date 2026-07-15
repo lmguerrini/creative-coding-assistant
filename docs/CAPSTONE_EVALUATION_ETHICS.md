@@ -5,9 +5,10 @@ current-product benchmark and five RAGAS metrics. The Dashboard owns current
 dynamic results; committed evidence is a public-safe projection that excludes
 raw prompts, answers, references, and retrieved excerpts.
 
-Historical synthetic or redacted fixtures validate evaluator schemas and
-compatibility. They do not exercise the complete current retrieval, prompt, and
-generation path and therefore are not the current product result.
+Historical synthetic fixtures validate evaluator schemas and compatibility.
+They do not exercise the complete current retrieval, prompt, and generation
+path and therefore are not the current product result. Recorded-session rows,
+including redacted ones, remain outside the public repository boundary.
 
 The main trust boundaries are:
 

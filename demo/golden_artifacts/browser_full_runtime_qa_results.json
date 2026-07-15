@@ -3,10 +3,10 @@
   "checked_at": "2026-07-08T16:05:59Z",
   "harness": "demo/golden_artifacts/browser_full_runtime_qa.html",
   "local_url": "http://127.0.0.1:8126/demo/golden_artifacts/browser_full_runtime_qa.html",
-  "server_root": "<local-temp>/v8_runtime_qa",
+  "server_root": "<local-temp>/browser_runtime_qa",
   "server_command": ".venv/bin/python -m http.server 8126 --bind 127.0.0.1",
   "dependency_install_command": "npm install p5 three hydra-synth",
-  "dependency_workspace": "<local-temp>/v8_runtime_qa",
+  "dependency_workspace": "<local-temp>/browser_runtime_qa",
   "temporary_dependencies": {
     "hydra-synth": "1.4.0",
     "p5": "2.3.0",
@@ -125,7 +125,7 @@
         "http_status": 200
       },
       {
-        "path": "demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl",
+        "path": "demo/evaluation/current_product_ragas_evidence.json",
         "http_status": 200
       }
     ]

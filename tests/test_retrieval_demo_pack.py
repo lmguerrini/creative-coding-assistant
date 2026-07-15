@@ -18,7 +18,7 @@ class RetrievalDemoPackTests(unittest.TestCase):
 
         self.assertEqual(pack.operational_scope, CCA_OPERATIONAL_KB_SCOPE)
         self.assertEqual(pack.holomind_boundary, FUTURE_HOLOMIND_BOUNDARY)
-        self.assertEqual(pack.pack_id, "capstone_kb_expansion_retrieval_demo_pack")
+        self.assertEqual(pack.pack_id, "creative_coding_retrieval_benchmark")
         self.assertGreaterEqual(len(pack.scenarios), 6)
 
     def test_demo_pack_uses_registered_source_ids_and_nonempty_domains(self) -> None:
@@ -64,7 +64,7 @@ class RetrievalDemoPackTests(unittest.TestCase):
         self.assertEqual(first, second)
         self.assertEqual(
             first,
-            "sha256:b5fbc0e7cc9a523658eee8b0fc5cd7c417aa10540f8919e10bc2c4e10a40705f",
+            "sha256:b8166276522f662404abd2cb7743572c1e4d3d9858e106f4bddccc9d0e4a49c8",
         )
 
     def test_demo_requests_preserve_query_and_domain_filters(self) -> None:

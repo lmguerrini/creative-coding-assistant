@@ -10,7 +10,7 @@ const {
   submitCreativePrompt
 } = require("./support/quality-gates");
 
-test.describe("V9.6 workstation E2E smoke", () => {
+test.describe("Workstation E2E smoke", () => {
   test("loads localhost and preserves first-run shell reliability", async ({ page }) => {
     const consoleGate = installConsoleGate(page);
     await installApiMocks(page);
@@ -30,6 +30,10 @@ test.describe("V9.6 workstation E2E smoke", () => {
     await installApiMocks(page);
     await expectLoadedWorkstation(page);
 
+    const expandInspector = page.getByRole("button", { name: "Expand inspector" });
+    if (await expandInspector.isVisible().catch(() => false)) {
+      await expandInspector.click();
+    }
     const inspectorTabs = page.getByRole("tablist", { name: "Inspector tabs" });
     await expect(inspectorTabs).toBeVisible();
     const labelLayout = await inspectorTabs.locator("button span").evaluateAll((labels) =>
@@ -132,6 +136,10 @@ test.describe("V9.6 workstation E2E smoke", () => {
     );
 
     await expect(page.getByRole("region", { name: "Preview workspace" })).toBeVisible();
+    const expandInspector = page.getByRole("button", { name: "Expand inspector" });
+    if (await expandInspector.isVisible().catch(() => false)) {
+      await expandInspector.click();
+    }
     await page.getByRole("tab", { name: "Preview" }).click();
     await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).toContainText(
       "Tone.js audio surface"
@@ -156,7 +164,7 @@ test.describe("V9.6 workstation E2E smoke", () => {
     const demoMode = page.getByRole("region", { name: "Demo Mode" });
     const demoScenarios = demoMode.getByRole("list", { name: "Demo Mode scenarios" });
     await expect(demoMode).toBeVisible();
-    await expect(demoMode).toContainText("Capstone scenarios");
+    await expect(demoMode).toContainText("Creative scenarios");
 
     await demoScenarios
       .getByRole("button", { name: /Recursive aurora garden/ })
@@ -189,7 +197,7 @@ test.describe("V9.6 workstation E2E smoke", () => {
     await expect(demoMode).toBeVisible();
     await expect(page.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
       "data-state",
-      "open"
+      "collapsed"
     );
 
     await expect(demoMode).toContainText("10 flows");
@@ -221,16 +229,12 @@ test.describe("V9.6 workstation E2E smoke", () => {
       .getByRole("list", { name: "Demo Mode scenarios" })
       .getByRole("button", { name: /Recursive aurora garden/ })
       .click();
-    await page.getByRole("button", { name: "Settings" }).click();
+    await page.getByRole("button", { exact: true, name: "Settings" }).click();
     const displayMode = page.getByRole("button", { name: "Display mode" });
-    await expect(displayMode).toContainText(
-      "Developer"
-    );
-    await displayMode.click();
     await expect(displayMode).toContainText(
       "User"
     );
-    await page.getByRole("button", { name: "Settings" }).click();
+    await page.getByRole("button", { exact: true, name: "Settings" }).click();
     await expect(page.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
       "data-state",
       "collapsed"
@@ -242,12 +246,12 @@ test.describe("V9.6 workstation E2E smoke", () => {
     await expect(page.getByRole("tab", { name: "Saved" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "Runtime" })).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Settings" }).click();
+    await page.getByRole("button", { exact: true, name: "Settings" }).click();
     await displayMode.click();
     await expect(displayMode).toContainText(
       "Developer"
     );
-    await page.getByRole("button", { name: "Settings" }).click();
+    await page.getByRole("button", { exact: true, name: "Settings" }).click();
     await expect(page.getByRole("tab", { name: "Workflow" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "Telemetry" })).toBeVisible();
 
@@ -255,7 +259,7 @@ test.describe("V9.6 workstation E2E smoke", () => {
     await page.getByRole("button", { name: "Use Deep Blue theme" }).click();
     await expect(page.locator(".workstation")).toHaveAttribute("data-theme", "codex");
 
-    await page.getByRole("button", { name: "Settings" }).click();
+    await page.getByRole("button", { exact: true, name: "Settings" }).click();
     await page.getByRole("button", { name: "Clear workspace session" }).click();
     await page.getByRole("button", { name: "Clear workspace" }).click();
 
@@ -263,13 +267,13 @@ test.describe("V9.6 workstation E2E smoke", () => {
     await expect(page.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue("");
     await expect(page.getByRole("region", { name: "Preview workspace" })).toHaveCount(0);
     await expect(page.getByRole("group", { name: "Empty creative workspace" })).toBeVisible();
-    await page.getByRole("button", { name: "Settings" }).click();
+    await page.getByRole("button", { exact: true, name: "Settings" }).click();
     await expect(page.getByRole("button", { name: "Display mode" })).toContainText(
-      "Developer"
+      "User"
     );
     await expect(page.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
       "data-state",
-      "open"
+      "collapsed"
     );
     consoleGate.assertClean();
   });
@@ -286,9 +290,9 @@ test.describe("V9.6 workstation E2E smoke", () => {
       "Create a compact p5 fallback sketch if the provider is unavailable."
     );
 
-    await expect(
-      page.getByLabel("Product outcome summary").getByText("Provider fallback completed")
-    ).toBeVisible();
+    await expect(page.getByLabel("Current session", { exact: true })).toContainText(
+      "Provider fallback completed"
+    );
     await expect(page.getByRole("region", { name: "Preview workspace" })).toContainText(
       "Preview unavailable"
     );

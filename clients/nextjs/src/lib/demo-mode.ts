@@ -50,12 +50,12 @@ export const demoModeScenarioCatalog = [
     concept: audioShowcasePrompt.concept,
     purpose: "Open with a memorable audio-visual system that remains safe in a silent room.",
     description:
-      "A complementary two-voice score drives a polished spectrum while remaining silent until the presenter opts in.",
+      "A complementary two-voice score drives a polished spectrum while remaining silent until the user opts in.",
     category: "Audio-visual browser scene",
     runtime: audioShowcasePrompt.runtime,
     workflowMode: "single_agent",
     workflow: "Single-agent executable audio artifact",
-    inputRequirement: "No upload is needed; audio stays optional and muted until the presenter chooses Start audio.",
+    inputRequirement: "No upload is needed; audio stays optional and muted until the user chooses Start audio.",
     prompt: audioShowcasePrompt.prompt,
     expectedArtifact: audioShowcasePrompt.expectedArtifact,
     expectedPreview:
@@ -107,7 +107,7 @@ export const demoModeScenarioCatalog = [
     runtime: threeShowcasePrompt.runtime,
     workflowMode: "single_agent",
     workflow: "Single-agent runnable-code generation",
-    inputRequirement: "No upload is needed; fullscreen is the optional presentation interaction.",
+    inputRequirement: "No upload is needed; fullscreen is the optional preview interaction.",
     prompt: threeShowcasePrompt.prompt,
     expectedArtifact: threeShowcasePrompt.expectedArtifact,
     expectedPreview: "One nonblank animated WebGL scene whose sculpture, orbit rigs, parent transforms, lights, and camera motion are all visible.",
@@ -254,7 +254,7 @@ export const demoModeScenarioCatalog = [
     concept: "A supplied image reference guides palette and composition without becoming a live texture dependency",
     purpose: "Show the image-reference workflow while keeping the generated browser artifact self-contained.",
     description:
-      "The presenter attaches a small reference image, then asks for a p5.js palette study that records the image as a creative cue rather than treating it as an executable asset.",
+      "The user attaches a small reference image, then asks for a p5.js palette study that records the image as a creative cue rather than treating it as an executable asset.",
     category: "Multimodal creative workflow",
     runtime: "p5.js browser preview with image-reference context",
     workflowMode: "single_agent",
@@ -276,12 +276,12 @@ export const demoModeScenarioCatalog = [
   },
   {
     id: "failure-recovery-rehearsal",
-    title: "Failure-recovery rehearsal",
+    title: "Failure recovery",
     concept: "An honest provider and offline fallback boundary",
     purpose: "Show what stays available when a live provider cannot complete a request.",
     description:
-      "This is a controlled recovery rehearsal: the validation fixture produces the same provider-fallback state that a real unavailable provider would surface, without pretending a fallback is a live preview.",
-    category: "Failure-recovery workflow",
+      "This controlled failure scenario produces the same provider-fallback state that a real unavailable provider would surface, without pretending a fallback is a live preview.",
+    category: "Failure recovery workflow",
     runtime: "Controlled provider-fallback and local-draft state",
     workflowMode: "auto",
     workflow: "Provider-failure recovery with retry and code-only fallback",
@@ -306,7 +306,7 @@ export const demoModeScenarios = demoModeScenarioCatalog;
 
 export const demoModeScenarioCount = demoModeScenarios.length;
 
-export const demoModeRecommendedLiveSequence = [
+export const demoModeRecommendedSequence = [
   {
     role: "Audio-visual opener",
     scenarioId: "cymatic-chladni-audiovisual",
@@ -323,7 +323,7 @@ export const demoModeRecommendedLiveSequence = [
     role: "Spatial hero",
     scenarioId: "kinetic-three-hero",
     title: "Kinetic orbit sculpture",
-    rationale: "A bounded Three.js scene with fullscreen-ready presentation."
+    rationale: "A bounded Three.js scene with a fullscreen-ready preview."
   },
   {
     role: "Technical close-up",

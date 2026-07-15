@@ -1,7 +1,7 @@
 # Immersive Audiovisual Composer
 
-The V8.6 catalog defines a bounded Immersive Audiovisual Composer. It composes
-symbolic, geometric, architectural, narrative,
+The Immersive Audiovisual Composition catalog defines a bounded composer. It
+combines symbolic, geometric, architectural, narrative,
 audiovisual, preview, and audience-experience guidance into a deterministic
 composition report.
 
@@ -21,26 +21,26 @@ The implementation lives in:
 ## Runtime Boundary
 
 - The composer is local, deterministic, typed, and report-only.
-- V8.1 contributes KB provenance, confidence, audiovisual reference records,
-  and bounded knowledge evidence.
-- V8.2 contributes symbolic motifs, symbolic-to-visual/audio operations, color
+- Creative Knowledge Distillation contributes KB provenance, confidence,
+  audiovisual reference records, and bounded knowledge evidence.
+- Symbolic Translation contributes symbolic motifs, symbolic-to-visual/audio operations, color
   language, and explainability.
-- V8.3 contributes geometry patterns, harmonic ratios, light/audio mappings,
+- Sacred Geometry contributes geometry patterns, harmonic ratios, light/audio mappings,
   animation parameters, and algorithmic guidance.
-- V8.4 contributes spatial topology, architectural thresholds, installation
+- Sacred Architecture contributes spatial topology, architectural thresholds, installation
   flow, semantic nodes, and audience path guidance.
-- V8.5 contributes narrative scene sequence, ritual timing, emotional arcs,
+- Mythopoetic Narrative contributes narrative scene sequence, ritual timing, emotional arcs,
   temporal/spatial dramaturgy, and audience communication.
 - Existing V3 audio-visual scene metadata contributes scene phases, cues,
   transitions, timing plans, fallback strategy, and pacing risks.
 - Existing V6.2 style profiles are reused as advisory style references only.
-- Existing browser preview foundations are audited and reused, not duplicated.
+- Existing browser preview foundations are documented and reused, not duplicated.
 - The module does not mutate prompts, LangGraph workflow control, preview
   runtime, storage, provider/model routing, generated output, frontend UI,
-  external DCC tools, MCP integrations, V8.7 OS behavior, V8.8 showcase
-  systems, HoloMind, or HOLOiVERSE.
+  external DCC tools, MCP integrations, HoloGenesis OS behavior, Demo Mode,
+  HoloMind, or HOLOiVERSE.
 
-## Cataloged V8.6 Surfaces
+## Cataloged Immersive Audiovisual Composition Surfaces
 
 - Scene graph nodes and transitions with symbolic, geometric, architectural,
   narrative, audio, audience, and preview layers.
@@ -55,11 +55,11 @@ The implementation lives in:
   simulation.
 - Explainable artistic decisions with rationale, evidence, affected layers, and
   reused surface IDs.
-- Preview audit classifications for existing Three.js, p5.js, GLSL, Hydra,
+- Preview boundary classifications for existing Three.js, p5.js, GLSL, Hydra,
   browser sandbox, live preview loop, validation, recovery, and multi-preview
   comparison foundations.
 
-## Preview Audit
+## Preview Boundary Inventory
 
 | Preview item | Catalog observation and boundary |
 | --- | --- |
@@ -75,10 +75,11 @@ The implementation lives in:
 
 ## Excluded Boundaries
 
-- V8.6 does not add frontend preview runtimes because the audited foundations
-  already exist.
-- V8.6 does not implement preview repair, artifact execution, automatic
-  critique-refinement-preview workflow control, or export rendering.
+- Immersive Audiovisual Composition does not add frontend preview runtimes
+  because the documented foundations already exist.
+- Immersive Audiovisual Composition does not implement preview repair, artifact
+  execution, automatic critique-refinement-preview workflow control, or export
+  rendering.
 - HoloGenesis, HoloMind, HOLOiVERSE, and demo-showcase runtime behavior remain
   outside this capability.
 - Unity, Unreal, Blender, Houdini, TouchDesigner, Ableton, and MCP integrations

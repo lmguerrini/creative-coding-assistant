@@ -1,8 +1,8 @@
-# V9.5 Exact Prompt Library
+# Exact Prompt Library
 
 The in-app source of truth is `clients/nextjs/src/lib/demo-mode.ts`. This
-operator copy is intentionally exact at release time; if either copy changes,
-re-run the Demo Mode contract tests.
+compatibility-named copy mirrors the supported scenario prompts; if either copy
+changes, re-run the Demo Mode contract tests.
 
 ## Cymatic Chladni study
 
@@ -58,7 +58,7 @@ Return only one fenced markdown block named chladni-touchdesigner-handoff.md. Wr
 Using the attached image only as palette and composition guidance, create exactly one global-mode .p5.js artifact named reference-palette-study.p5.js with setup() and draw(). Make a self-contained abstract field with no image loading, external assets, imports, HTML, Markdown, or prose. Return only the artifact.
 ```
 
-## Failure-recovery rehearsal
+## Failure recovery
 
 ```text
 Create a concise fallback-ready design brief for a browser-native generative study. State the preferred supported runtime, one validation step, and a code-only fallback. Do not claim that a preview ran if the provider is unavailable.

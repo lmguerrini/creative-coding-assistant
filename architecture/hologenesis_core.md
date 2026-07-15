@@ -1,9 +1,9 @@
 # HoloGenesis Creative Operating System
 
-The V8.7 catalog defines a bounded HoloGenesis report and planning layer. It
-combines V8.1 through V8.6 metadata into deterministic reports for curatorial
-reasoning, creative synthesis, recommendations, readiness scoring, and project
-bundle outlines.
+The HoloGenesis catalog defines a bounded report and planning layer. It combines
+Creative Knowledge Distillation through Immersive Audiovisual Composition
+metadata into deterministic reports for curatorial reasoning, creative
+synthesis, recommendations, readiness scoring, and project bundle outlines.
 
 > **Reference notice:** “Operating System” is a catalog label, not an active OS,
 > autonomous agent layer, or current product surface. For executable behavior,
@@ -20,27 +20,27 @@ The implementation lives in:
 ## Runtime Boundary
 
 - The HoloGenesis layer is local, deterministic, typed, and report-only.
-- V8.1 contributes creative knowledge records, KB reality, provenance, and
-  confidence.
-- V8.2 contributes symbolic motifs, symbolic explainability, operational
+- Creative Knowledge Distillation contributes creative knowledge records, KB
+  reality, provenance, and confidence.
+- Symbolic Translation contributes symbolic motifs, symbolic explainability, operational
   guidance, and non-authoritative interpretation boundaries.
-- V8.3 contributes geometry patterns, harmonic guidance, animation parameters,
+- Sacred Geometry contributes geometry patterns, harmonic guidance, animation parameters,
   light mappings, and audio mappings.
-- V8.4 contributes spatial topology, installation guidance, semantic nodes,
+- Sacred Architecture contributes spatial topology, installation guidance, semantic nodes,
   thresholds, axes, and architecture provenance.
-- V8.5 contributes narrative graph signals, scene sequences, creative brief,
-  presentation narrative, demo story, and audience communication.
-- V8.6 contributes immersive scene graph, visual language, sacred lighting,
-  symbolic color, spatial audio, audience journey, preview audit, and artistic
+- Mythopoetic Narrative contributes narrative graph signals, scene sequences,
+  creative briefs, project narrative, scenario story, and user communication.
+- Immersive Audiovisual Composition contributes immersive scene graph, visual
+  language, sacred lighting, symbolic color, spatial audio, audience journey,
+  preview boundaries, and artistic
   decisions.
 - Existing V3 creative translation and creative planning are reused for
   creative intent and runtime planning context.
 - The module does not mutate prompts, LangGraph workflow control, preview
   runtime, storage, provider/model routing, generated output, frontend UI,
-  external DCC tools, MCP tools, HoloMind, HOLOiVERSE, or V8.8 demo showcase
-  behavior.
+  external DCC tools, MCP tools, HoloMind, HOLOiVERSE, or Demo Mode behavior.
 
-## Cataloged V8.7 Surfaces
+## Cataloged HoloGenesis Surfaces
 
 - Unified Symbolic, Sacred Knowledge, Geometry, Narrative, and Installation
   graph projections.
@@ -52,14 +52,15 @@ The implementation lives in:
   consistency framing, symbolic explainability, and aesthetic evaluation.
 - Qualitative installation simulation report behavior through readiness scores
   and review notes.
-- Multi-domain creative synthesis across V8.1 through V8.6.
+- Multi-domain creative synthesis across Creative Knowledge Distillation through
+  Immersive Audiovisual Composition.
 - Creative project bundle outlines for project architecture, portfolio, README,
   public product outputs, pipeline, workflow, tool and tech stack recommendations,
   tradeoff analysis, creative research mode, and reference discovery planning.
 
-## External Integration Audit
+## External Integration Boundary
 
-| Integration | V8.7 classification |
+| Integration | HoloGenesis classification |
 | --- | --- |
 | Unity | Export planning only |
 | Unreal | Export planning only |
@@ -68,7 +69,7 @@ The implementation lives in:
 | Houdini | Export planning only |
 | MCP Creative Tool Layer | Export planning only |
 
-These audit entries may recommend manual downstream handoff notes, but they do
+These boundary entries may recommend manual downstream handoff notes, but they do
 not execute editors, create files, call APIs, invoke tools, or claim live
 integration.
 

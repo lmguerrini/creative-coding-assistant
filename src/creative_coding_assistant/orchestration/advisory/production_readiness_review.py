@@ -1,4 +1,4 @@
-"""V5.6 production readiness review metadata."""
+"""Production readiness metadata."""
 
 from __future__ import annotations
 
@@ -40,12 +40,11 @@ ProductionReadinessStatus = Literal["ready", "guarded", "blocked"]
 PRODUCTION_READINESS_RECORD_SERIALIZATION_VERSION = "production_readiness_record.v1"
 PRODUCTION_READINESS_REVIEW_SERIALIZATION_VERSION = "production_readiness_review.v1"
 PRODUCTION_READINESS_REVIEW_AUTHORITY_BOUNDARY = (
-    "V5.6 production readiness review metadata aggregates configuration, "
+    "Production readiness metadata aggregates configuration, "
     "safety, UX explainability, deployment, deterministic failure, and MVP demo "
     "posture for inspection only; it does not change configuration, provision "
     "providers, install runtimes, execute providers, deploy services, emit "
-    "HITL requests, mutate workflows, generate assets, write storage, merge, "
-    "push, tag, or apply Runtime Evolution."
+    "HITL requests, mutate workflows, generate assets, or write storage."
 )
 
 _REQUIRED_AREAS: tuple[ProductionReadinessArea, ...] = (
@@ -67,8 +66,6 @@ _BLOCKED_RUNTIME_BEHAVIORS = (
     "workflow_control",
     "asset_generation",
     "persistent_storage_write",
-    "merge_push_tag_operation",
-    "runtime_evolution_application",
 )
 
 
@@ -122,7 +119,7 @@ class ProductionReadinessRecord(BaseModel):
 
 
 class ProductionReadinessReview(BaseModel):
-    """Aggregate V5.6 production readiness review."""
+    """Aggregate production readiness metadata."""
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -257,7 +254,7 @@ def build_production_readiness_review(
         blocking_finding_count=sum(len(record.blocking_findings) for record in records),
         production_readiness_status=_review_status(records),
         mvp_readiness_statement=(
-            "Ready for capstone/portfolio demo with explicit operator configuration "
+            "Ready for local product validation with explicit user configuration "
             "and deployment assumptions; not yet an automated external deployment."
         ),
     )
@@ -379,12 +376,12 @@ def _records(
             evidence=(
                 f"demo_asset_status:{demo_source.demo_asset_status}",
                 f"release_candidate_status:{candidate_source.release_candidate_status}",
-                "capstone_portfolio_demo:ready_with_operator_configuration",
+                "local_product_demo:ready_with_user_configuration",
             ),
             guarded_findings=tuple(candidate_source.guarded_record_ids),
             blocking_findings=(),
             actions=(
-                "Use V5.6 demo assets for capstone and portfolio walkthrough.",
+                "Use existing demo assets for local product validation.",
                 "State external deployment and provider configuration assumptions explicitly.",
             ),
         ),

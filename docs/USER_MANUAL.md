@@ -93,7 +93,7 @@ reference-guided scenario also requires an image.
 | Single-agent line study | Bounded single-agent route |
 | Export handoff package | External-tool handoff boundary |
 | Reference-guided palette study | Request-scoped image input |
-| Failure-recovery rehearsal | Visible degraded/failure behavior |
+| Failure recovery | Visible degraded/failure behavior |
 
 A scenario card is a reproducible starting point, not proof of its outcome.
 Observe the current run and its evidence.

@@ -1,4 +1,4 @@
-// Public V8 golden artifact: p5.js generative morphogenesis sketch.
+// Public golden artifact: p5.js generative morphogenesis sketch.
 // Boundary: aesthetic geometry and growth systems only, not authority or truth claim.
 
 let rotationPhase = 0;

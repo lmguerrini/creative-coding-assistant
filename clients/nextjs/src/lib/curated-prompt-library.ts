@@ -134,7 +134,7 @@ export const demoShowcasePromptLibrary = [
     prompt:
       "Create exactly one executable .tone.js artifact named polyrhythmic-constellation.tone.js. Use a Tone.FMSynth and a Tone.MembraneSynth, two Tone.Sequence patterns with complementary notes and 8n/16n subdivisions, Tone.Transport.bpm.value = 108, and Tone.Transport.start(). Keep the score elegant and sparse. Use only variable declarations and Tone namespace calls; do not create DOM, canvas, buttons, listeners, files, imports, HTML, Markdown, or prose. The controlled preview supplies a silent-first spectrum and explicit Start audio action. Return only the artifact.",
     expectedArtifact: "polyrhythmic-constellation.tone.js",
-    previewBoundary: "Visuals mount silently; audio starts only after an explicit presenter action.",
+    previewBoundary: "Visuals mount silently; audio starts only after an explicit Start audio action.",
     fallback: "Use the silent spectrum and inspect the generated Tone.js score."
   },
   {
@@ -186,7 +186,7 @@ export const domainStarterPromptLibrary = [
       "Create exactly one .hydra.js artifact named feedback-lattice.hydra.js using a compact osc(), noise(), shape(), modulate(), and out(o0) chain. Do not use HTML, imports, external textures, Markdown, or prose. Return only the artifact.",
     expectedArtifact: "feedback-lattice.hydra.js",
     previewBoundary: "Keep this starter code/export-only in Demo Mode until dedicated browser evidence is recorded.",
-    fallback: "Inspect the Hydra source and use a p5.js or GLSL hero for the live presentation."
+    fallback: "Inspect the Hydra source and use a p5.js or GLSL hero for a live preview."
   },
   {
     id: "signal-bloom-gsap",

@@ -1,4 +1,4 @@
-"""V5.6 production creative readiness review metadata."""
+"""Production creative readiness metadata."""
 
 from __future__ import annotations
 
@@ -39,14 +39,13 @@ PRODUCTION_CREATIVE_READINESS_REVIEW_SERIALIZATION_VERSION = (
     "production_creative_readiness_review.v1"
 )
 PRODUCTION_CREATIVE_READINESS_AUTHORITY_BOUNDARY = (
-    "V5.6 production creative readiness review metadata aggregates existing "
+    "Production creative readiness metadata aggregates existing "
     "demo assets, creative analytics, and production readiness records for "
-    "creative release inspection only; it does not evaluate generated output, "
+    "product validation only; it does not evaluate generated output, "
     "collect creative metrics, execute creative scoring, generate variants or "
     "assets, execute retrieval, mutate prompts or artifacts, modify generated "
     "output, route providers or models, execute providers or workflows, write "
-    "memory or storage, deploy, emit HITL requests, merge, push, tag, or apply "
-    "Runtime Evolution."
+    "memory or storage, deploy, or emit HITL requests."
 )
 
 _SOURCE_SURFACES = (
@@ -82,8 +81,6 @@ _BLOCKED_RUNTIME_BEHAVIORS = (
     "memory_write",
     "persistent_storage_write",
     "deployment_execution",
-    "merge_push_tag_operation",
-    "runtime_evolution_application",
 )
 
 
@@ -149,7 +146,7 @@ class ProductionCreativeReadinessRecord(BaseModel):
 
 
 class ProductionCreativeReadinessReview(BaseModel):
-    """Aggregate V5.6 production creative readiness review."""
+    """Aggregate production creative readiness metadata."""
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -300,7 +297,7 @@ def build_production_creative_readiness_review(
         blocking_finding_count=sum(len(record.blocking_findings) for record in records),
         creative_readiness_status=_review_status(records),
         capstone_creative_readiness_statement=(
-            "Ready for capstone creative demo walkthrough with existing prompt, "
+            "Creative demo materials are available for local product validation: "
             "preview media, retrieval scenarios, workflow narrative, and "
             "explanation cues; creative analytics remain guarded metadata, not "
             "generated-output evaluation."
@@ -368,7 +365,7 @@ def _prompt_record(
     prompt = demo_source.demo_prompt
     findings = _findings_for_missing_terms(
         prompt,
-        ("capstone", "Three.js", "audio-reactive", "explanation"),
+        ("Three.js", "audio-reactive", "explanation"),
     )
     return _record(
         area="creative_prompt_readiness",
@@ -380,7 +377,7 @@ def _prompt_record(
             f"explanation_talking_points:{len(demo_source.explanation_talking_points)}",
         ),
         ready_signals=(
-            "capstone_prompt",
+            "creative_coding_prompt",
             "three_js_prompt",
             "audio_reactive_direction",
             "explanation_requirements",
@@ -388,8 +385,8 @@ def _prompt_record(
         guarded_findings=findings,
         blocking_findings=(),
         actions=(
-            "Use the prepared capstone prompt as the demo creative brief.",
-            "Keep prompt changes explicit and operator-controlled.",
+            "Use the prepared prompt as the creative-coding brief.",
+            "Keep prompt changes explicit and user-controlled.",
         ),
     )
 
@@ -413,7 +410,7 @@ def _preview_record(
         guarded_findings=guarded,
         blocking_findings=(),
         actions=(
-            "Use existing preview media for the release walkthrough.",
+            "Use existing preview media as fallback product evidence.",
             "Do not render or overwrite preview media during readiness review.",
         ),
     )
@@ -469,7 +466,7 @@ def _quality_record(
         guarded_findings=guarded,
         blocking_findings=(),
         actions=(
-            "Present quality readiness as passive metadata only.",
+            "Expose quality readiness as passive metadata only.",
             "Do not evaluate generated output or execute creative scoring.",
         ),
     )

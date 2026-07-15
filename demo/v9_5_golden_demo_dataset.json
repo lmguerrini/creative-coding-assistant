@@ -1,7 +1,7 @@
 {
   "schema_version": "v9.5-demo-dataset.v1",
-  "purpose": "Deterministic rehearsal metadata for V9.5 Demo Mode.",
-  "claim_boundary": "This dataset is an operator rehearsal and fallback contract. It is not a provider response, a retrieval result, or proof that a renderer has run.",
+  "purpose": "Deterministic scenario metadata for Demo Mode.",
+  "claim_boundary": "This dataset is a local scenario and fallback contract. It is not a provider response, a retrieval result, or proof that a renderer has run.",
   "scenario_ids": [
     "cymatic-chladni-audiovisual",
     "physarum-p5-hero",

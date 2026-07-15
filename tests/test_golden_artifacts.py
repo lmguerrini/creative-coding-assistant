@@ -11,46 +11,8 @@ class GoldenArtifactEvidenceTests(unittest.TestCase):
         samples = load_live_session_samples(Path("demo/evaluation/sanitized_ragas_live_sessions.jsonl"))
 
         self.assertEqual(len(samples), 4)
-        self.assertTrue(all(sample.conversation_id == "sanitized-capstone-ragas" for sample in samples))
+        self.assertTrue(all(sample.conversation_id == "sanitized-public-ragas" for sample in samples))
         self.assertTrue(all(sample.retrieved_contexts for sample in samples))
-        self.assertFalse(
-            any(
-                private_marker in sample.model_dump_json().lower()
-                for sample in samples
-                for private_marker in ("/users/", "api_key", "bearer ", "sk-", "password")
-            )
-        )
-
-    def test_redacted_latest_live_ragas_evidence_is_safe_and_scored(self) -> None:
-        samples = load_live_session_samples(Path("demo/evaluation/redacted_live_session_ragas_latest4.jsonl"))
-        rows = [
-            json.loads(line)
-            for line in Path("demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl")
-            .read_text(encoding="utf-8")
-            .splitlines()
-            if line.strip()
-        ]
-        manifest = json.loads(
-            Path("demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl.manifest.json").read_text(
-                encoding="utf-8"
-            )
-        )
-
-        self.assertEqual(len(samples), 4)
-        self.assertTrue(all(sample.conversation_id == "redacted-live-session-latest4" for sample in samples))
-        self.assertEqual(len(rows), 4)
-        self.assertEqual(manifest["result_rows"], 4)
-        self.assertEqual(manifest["metric_failures"], 0)
-        self.assertEqual(
-            manifest["metrics"],
-            ["context_precision", "faithfulness", "answer_relevancy"],
-        )
-        for row in rows:
-            self.assertEqual(row["metric_errors"], {})
-            self.assertEqual(
-                set(row["metrics"]),
-                {"context_precision", "faithfulness", "answer_relevancy"},
-            )
         self.assertFalse(
             any(
                 private_marker in sample.model_dump_json().lower()
@@ -168,7 +130,7 @@ class GoldenArtifactEvidenceTests(unittest.TestCase):
         self.assertIn("Creative Coding Assistant Demo Launcher", launcher)
         self.assertIn("./final_demo_suite.json", launcher)
         self.assertIn("./golden_artifacts/browser_full_runtime_qa.html", launcher)
-        self.assertIn("./evaluation/redacted_live_session_ragas_latest4_results.jsonl", launcher)
+        self.assertIn("./evaluation/current_product_ragas_evidence.json", launcher)
         self.assertIn("hydra_feedback_lattice.js", launcher)
 
     def test_final_demo_suite_has_eight_startable_flows_with_boundaries(self) -> None:

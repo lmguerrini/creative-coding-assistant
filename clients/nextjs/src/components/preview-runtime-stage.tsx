@@ -111,9 +111,9 @@ export function PreviewRuntimeStage({
           ...source,
           title: route.surfaceTitle
         };
-  const presenterStatusLabel =
+  const userStatusLabel =
     !showDiagnostics && status.error ? "Preview fallback available" : status.label;
-  const presenterStatusDetail =
+  const userStatusDetail =
     !showDiagnostics && status.error
       ? "This artifact needs a compatible preview route. Use the reload control after selecting runnable code, or continue with artifact evidence."
       : status.detail;
@@ -151,7 +151,7 @@ export function PreviewRuntimeStage({
       kind,
       preview: currentPreview
     });
-    const visibleInitialStatus = sanitizePreviewRuntimeStatusForPresenter({
+    const visibleInitialStatus = sanitizePreviewRuntimeStatusForUser({
       displayTitle: currentSource.title,
       rawTitle: rawSource.title,
       showDiagnostics,
@@ -181,7 +181,7 @@ export function PreviewRuntimeStage({
     publishRuntimeDiagnostics(visibleInitialStatus, tracker.snapshot());
 
     function handleStatus(nextStatus: PreviewRuntimeStatus) {
-      const visibleStatus = sanitizePreviewRuntimeStatusForPresenter({
+      const visibleStatus = sanitizePreviewRuntimeStatusForUser({
         displayTitle: currentSource.title,
         rawTitle: rawSource.title,
         showDiagnostics,
@@ -292,7 +292,7 @@ export function PreviewRuntimeStage({
             className="previewRuntimeStatus"
           >
             <div className="previewRuntimeOverlayHeader">
-              <small>{presenterStatusLabel}</small>
+              <small>{userStatusLabel}</small>
               <span
                 className="previewRuntimeOverlayHealth"
                 data-tone={overlay.healthTone}
@@ -300,7 +300,7 @@ export function PreviewRuntimeStage({
                 {overlay.healthLabel}
               </span>
             </div>
-            <span>{presenterStatusDetail}</span>
+            <span>{userStatusDetail}</span>
           </div>
           {showDiagnostics ? (
             <div
@@ -339,7 +339,7 @@ export function PreviewRuntimeStage({
               onReload={onReload}
             />
           ) : (
-            <div className="previewRuntimePresenterFallback" role="alert">
+            <div className="previewRuntimeUserFallback" role="alert">
               <strong>Preview fallback ready</strong>
               <p>
                 The current artifact is not runnable in this preview route. Use
@@ -373,7 +373,7 @@ export function PreviewRuntimeStage({
   );
 }
 
-function sanitizePreviewRuntimeStatusForPresenter({
+function sanitizePreviewRuntimeStatusForUser({
   displayTitle,
   rawTitle,
   showDiagnostics,

@@ -320,6 +320,10 @@ async function expectGeneratedPreview(
   page,
   { artifactTitle = "e2e-orbit-sketch.p5.js" } = {}
 ) {
+  const isDeveloperMode =
+    (await page
+      .getByRole("form", { name: "Creative request composer" })
+      .getAttribute("data-mode")) === "developer";
   await expect(page.getByRole("region", { name: "Preview workspace" })).toBeVisible();
   await expandInspectorIfCollapsed(page);
   await expect(page.getByRole("tab", { name: "Preview" })).toHaveAttribute(
@@ -329,9 +333,11 @@ async function expectGeneratedPreview(
   await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).toContainText(
     "P5 sketch surface"
   );
-  await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).toContainText(
-    artifactTitle
-  );
+  if (isDeveloperMode) {
+    await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).toContainText(
+      artifactTitle
+    );
+  }
   const artifactTab = page.getByRole("tab", { name: /^(Artifacts|Saved)$/ });
   await expect(artifactTab).toBeVisible();
   await artifactTab.click();
@@ -339,7 +345,7 @@ async function expectGeneratedPreview(
     "p5.js"
   );
   await expect(page.getByRole("tabpanel", { name: /^(Artifacts|Saved)$/ })).toContainText(
-    artifactTitle
+    isDeveloperMode ? artifactTitle : "P5 Sketch"
   );
   await page.getByRole("tab", { name: "Code" }).click();
   await expect(page.getByRole("tabpanel", { exact: true, name: "Code" })).toContainText(
@@ -348,9 +354,11 @@ async function expectGeneratedPreview(
 }
 
 async function expectWorkspacePersistence(page) {
-  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("button", { exact: true, name: "Theme" }).click();
+  const themes = page.getByRole("dialog", { name: "Theme presets" });
+  await themes.getByRole("button", { name: "Use Matrix theme" }).click();
+  await page.getByRole("button", { exact: true, name: "Settings" }).click();
   const settings = page.getByRole("dialog", { name: "Workspace settings" });
-  await settings.getByRole("button", { name: "Use Matrix theme" }).click();
   await settings.getByRole("button", { exact: true, name: "Compact" }).click();
   await expect(page.locator(".workstation")).toHaveAttribute("data-theme", "matrix");
   await page.reload();
@@ -397,7 +405,7 @@ async function expandInspectorIfCollapsed(page) {
 }
 
 async function switchToDeveloperMode(page) {
-  const settings = page.getByRole("button", { name: "Settings" });
+  const settings = page.getByRole("button", { exact: true, name: "Settings" });
   await settings.click();
   const displayMode = page.getByRole("button", { name: "Display mode" });
   const label = await displayMode.textContent();

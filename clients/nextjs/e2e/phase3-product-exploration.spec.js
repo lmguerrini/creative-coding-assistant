@@ -33,7 +33,7 @@ const runnableDemoScenarios = [
   ["Multi-agent production plan", "multi_agent"],
   ["Single-agent line study", "single_agent"],
   ["Export handoff package", "auto"],
-  ["Failure-recovery rehearsal", "auto"]
+  ["Failure recovery", "auto"]
 ];
 
 const homepagePromptTitles = [
@@ -43,7 +43,7 @@ const homepagePromptTitles = [
   "Cymatic audio study"
 ];
 
-test.describe("V9.7 Phase 3 product exploration", () => {
+test.describe("Product exploration", () => {
   test("reads every live Dashboard page and exposes the local Creative Knowledge inventory", async ({
     page
   }) => {
@@ -113,10 +113,9 @@ test.describe("V9.7 Phase 3 product exploration", () => {
 
       expect(request.postDataJSON()).toMatchObject({ workflowMode });
       await expect(demoMode).toHaveCount(0);
-      await expect(page.getByRole("log", { name: "Conversation" })).toHaveAttribute(
-        "aria-busy",
-        "false"
-      );
+      await expect(
+        page.getByRole("form", { name: "Creative request composer" })
+      ).toHaveAttribute("aria-busy", "false");
     }
 
     await page.getByRole("button", { name: "Demo Mode" }).click();
@@ -149,8 +148,13 @@ test.describe("V9.7 Phase 3 product exploration", () => {
       "phase3-reference.png"
     );
 
+    const referenceRun = referenceDetail.getByRole("button", {
+      name: "Load prompt & run"
+    });
+    await expect(referenceRun).toBeEnabled();
     const streamRequest = page.waitForRequest("**/api/assistant/stream");
-    await referenceDetail.getByRole("button", { name: "Load prompt & run" }).click();
+    await referenceRun.focus();
+    await referenceRun.press("Enter");
     const request = await streamRequest;
     expect(request.postDataJSON()).toMatchObject({
       attachments: [expect.objectContaining({ name: "phase3-reference.png" })],
@@ -180,10 +184,9 @@ test.describe("V9.7 Phase 3 product exploration", () => {
       await page.getByRole("button", { name: "Send prompt" }).click();
       const request = await streamRequest;
       expect(request.postDataJSON()).toMatchObject({ workflowMode: "auto" });
-      await expect(page.getByRole("log", { name: "Conversation" })).toHaveAttribute(
-        "aria-busy",
-        "false"
-      );
+      await expect(
+        page.getByRole("form", { name: "Creative request composer" })
+      ).toHaveAttribute("aria-busy", "false");
     }
 
     consoleGate.assertClean();
@@ -201,6 +204,7 @@ test.describe("V9.7 Phase 3 product exploration", () => {
       await installApiMocks(page, "success");
       await page.setViewportSize({ height: viewport.height, width: viewport.width });
       await expectLoadedWorkstation(page);
+      await ensureRightInspectorOpen(page);
 
       const layout = await page.evaluate(() => ({
         clientWidth: document.documentElement.clientWidth,
@@ -431,4 +435,12 @@ async function expectResponsiveRightInspector(page, viewport) {
   await expect(
     inspector.getByRole("button", { name: "Collapse inspector" })
   ).toBeFocused();
+}
+
+async function ensureRightInspectorOpen(page) {
+  const inspector = page.getByRole("complementary", { name: "Right inspector" });
+  if ((await inspector.getAttribute("data-state")) === "collapsed") {
+    await page.getByRole("button", { name: "Expand inspector" }).click();
+  }
+  await expect(inspector).toHaveAttribute("data-state", "open");
 }

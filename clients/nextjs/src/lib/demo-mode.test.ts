@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  demoModeRecommendedLiveSequence,
+  demoModeRecommendedSequence,
   demoModeScenarioCatalog,
   demoModeScenarioCount,
   demoModeScenarios,
@@ -8,7 +8,7 @@ import {
 } from "./demo-mode";
 
 describe("demo mode scenarios", () => {
-  it("keeps a curated set of presenter-ready, supported workflows visible", () => {
+  it("keeps a curated set of demo-ready, supported workflows visible", () => {
     expect(demoModeScenarioCount).toBe(10);
     expect(demoModeScenarios.map((scenario) => scenario.id)).toEqual([
       "cymatic-chladni-audiovisual",
@@ -59,14 +59,14 @@ describe("demo mode scenarios", () => {
   });
 
   it("keeps the featured sequence within the visible, live browser scenarios", () => {
-    expect(demoModeRecommendedLiveSequence.map((item) => item.scenarioId)).toEqual([
+    expect(demoModeRecommendedSequence.map((item) => item.scenarioId)).toEqual([
       "cymatic-chladni-audiovisual",
       "physarum-p5-hero",
       "kinetic-three-hero",
       "chladni-glsl-hero"
     ]);
     expect(
-      demoModeRecommendedLiveSequence.every((item) =>
+      demoModeRecommendedSequence.every((item) =>
         demoModeScenarios.some((scenario) => scenario.id === item.scenarioId)
       )
     ).toBe(true);

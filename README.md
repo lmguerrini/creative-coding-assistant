@@ -1,10 +1,10 @@
 # Creative Coding Assistant
 
-Creative Coding Assistant is an AI-native creative translation system and
-creative coding platform, delivered as a Creative Workstation. It combines a
-Next.js workstation, a Python API, a bounded LangGraph workflow, official-source
-retrieval, OpenAI generation and embeddings, local persistence, and
-browser-focused preview paths.
+Creative Coding Assistant is a local-first AI-native creative translation
+system and creative coding platform, delivered as a Creative Workstation. It
+combines a Next.js workstation, a Python API, a bounded LangGraph workflow,
+official-source retrieval, OpenAI generation and embeddings, local persistence,
+and browser-focused preview paths.
 
 ![Creative Workspace with sessions, starter briefs, composer, and workflow inspector][screenshot-workspace]
 
@@ -289,6 +289,11 @@ Tone.js, retrieval, workflow selection, image input, exports, and failure
 recovery. Loading a scenario still uses the normal request path and is not
 evidence that a provider or runtime succeeded.
 
+When live preview is unavailable, recovery guidance may use the committed
+images in `assets/screenshots-archive/` as clearly labelled archived references.
+Those images are a manual offline fallback, not evidence of a current live
+render.
+
 ![Demo Mode selector for Tone.js, p5.js, Three.js, and GLSL workflows][screenshot-demo-mode]
 
 *Demo Mode prepares bounded creative-coding scenarios without bypassing the normal request path.*
@@ -385,10 +390,13 @@ runtime with an explicit user start gesture, not an audio-input modality.
 
 *Domain contracts distinguish four live browser runtimes from export-only and external-tool delivery paths.*
 
-Generated code can be copied, downloaded, refined, and saved inside workspace
-snapshots. A prepared preview contract is not proof of a rendered frame; the
-browser performs its own preflight and reports runtime state after backend
-finalization. See [Domain Experience](docs/DOMAIN_EXPERIENCE.md).
+Generated code can be opened, copied, downloaded, refined, and saved inside
+workspace snapshots. Live-generated Markdown/export artifacts retain their
+individual Open, Copy, and Download actions and also expose an operator-approved
+Export project action that downloads the current workspace as a ZIP bundle. A
+prepared preview contract is not proof of a rendered frame; the browser performs
+its own preflight and reports runtime state after backend finalization. See
+[Domain Experience](docs/DOMAIN_EXPERIENCE.md).
 
 ## Evaluation methodology
 
@@ -526,7 +534,7 @@ and may incur cost.
 - The current evaluation benchmark is intentionally small, has evaluator
   variance, and does not replace human usability, accessibility, security, or
   aesthetic evaluation.
-- No public hosted deployment or repository license is claimed.
+- No public hosted deployment is claimed.
 
 ## Future work
 

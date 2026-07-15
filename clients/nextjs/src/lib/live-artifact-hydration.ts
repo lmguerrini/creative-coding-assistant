@@ -956,7 +956,7 @@ function buildArtifactSummary(
       ? inferred.previewKind || inferred.previewEligible
         ? ["Open", "Preview", "Copy", "Download"]
         : ["Open", "Copy", "Download"]
-      : ["Open", "Copy", "Download"];
+      : ["Open", "Copy", "Download", "Export"];
   const runtimeSummary = inferred.previewSupportIssue
     ? `Live preview is unavailable for this source. ${inferred.previewSupportIssue}`
     : inferred.previewKind

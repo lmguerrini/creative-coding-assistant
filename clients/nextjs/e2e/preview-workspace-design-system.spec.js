@@ -28,6 +28,7 @@ test.describe("Preview workspace design-system boundary", () => {
       );
       await expectReadyPreview(page);
 
+      await setDisplayMode(page, "Developer");
       await selectTheme(page, "Deep Blue", "codex");
       await expectDeveloperPreviewBoundary(page);
       await expectBoundedPreviewWorkspace(page, viewport);

@@ -169,8 +169,8 @@
       ]
     }
   ],
-  "datasetFingerprint": "sha256:b5fbc0e7cc9a523658eee8b0fc5cd7c417aa10540f8919e10bc2c4e10a40705f",
-  "datasetId": "capstone_kb_expansion_retrieval_demo_pack",
+  "datasetFingerprint": "sha256:b8166276522f662404abd2cb7743572c1e4d3d9858e106f4bddccc9d0e4a49c8",
+  "datasetId": "creative_coding_retrieval_benchmark",
   "datasetVersion": "current-product-retrieval.v1",
   "detail": "Current assistant retrieval, rendered prompts, generated answers, and reference-aware RAGAS metrics were evaluated on public official contexts.",
   "durationMs": 257447,
@@ -207,7 +207,7 @@
   "resultRows": 7,
   "retrievalFingerprint": "sha256:d382e7961c0fb89f27c223d41347f4ccf59d420b585b957a086d43142858126f",
   "retrievalScore": 0.6803191571804,
-  "runId": "v9-current-product-final-retained",
+  "runId": "current-product-public-retained",
   "schemaVersion": "current-product-ragas-evidence.v1",
   "scope": "rag",
   "scoreOrigin": "current_product",

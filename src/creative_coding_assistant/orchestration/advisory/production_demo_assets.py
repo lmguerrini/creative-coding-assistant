@@ -1,4 +1,4 @@
-"""V5.6 production demo asset readiness metadata."""
+"""Production demo asset readiness metadata."""
 
 from __future__ import annotations
 
@@ -28,12 +28,12 @@ DemoAssetStatus = Literal["ready", "guarded"]
 PRODUCTION_DEMO_ASSET_RECORD_SERIALIZATION_VERSION = "production_demo_asset_record.v1"
 PRODUCTION_DEMO_ASSET_PLAN_SERIALIZATION_VERSION = "production_demo_asset_plan.v1"
 PRODUCTION_DEMO_ASSET_AUTHORITY_BOUNDARY = (
-    "V5.6 production demo asset metadata inventories existing preview media, "
+    "Production demo asset metadata inventories existing preview media, "
     "demo prompts, retrieval scenarios, workflow narrative steps, and "
-    "explanation talking points for operator preparation only; it does not "
+    "explanation cues for product validation only; it does not "
     "generate assets, execute retrieval, run generation, render previews, "
     "write project bundles, mutate artifacts, call providers, change routing, "
-    "deploy, merge, push, tag, or apply Runtime Evolution."
+    "deploy, or control workflows."
 )
 
 _REQUIRED_ASSET_KINDS: tuple[DemoAssetKind, ...] = (
@@ -44,12 +44,12 @@ _REQUIRED_ASSET_KINDS: tuple[DemoAssetKind, ...] = (
     "explanation_talking_points",
 )
 _PREVIEW_MEDIA_PATHS = (
-    "assets/preview_current.png",
-    "assets/preview_v1.png",
-    "assets/preview_v2.png",
+    "assets/screenshots-archive/preview_current.png",
+    "assets/screenshots-archive/preview_v1.png",
+    "assets/screenshots-archive/preview_v2.png",
 )
 _DEMO_PROMPT = (
-    "Create a luminous audio-reactive Three.js scene for a capstone demo: "
+    "Create a luminous audio-reactive Three.js scene for a product demo: "
     "concentric geometry, subtle bloom, FFT-driven motion accents, and a clear "
     "explanation of provider choice, execution mode, estimates, fallback, and "
     "escalation boundaries."
@@ -86,8 +86,6 @@ _BLOCKED_RUNTIME_BEHAVIORS = (
     "workflow_execution",
     "workflow_control",
     "deployment_execution",
-    "merge_push_tag_operation",
-    "runtime_evolution_application",
 )
 
 
@@ -212,7 +210,7 @@ class ProductionDemoAssetPlan(BaseModel):
         if self.demo_asset_status != _plan_status(self.records):
             raise ValueError("demo_asset_status must match records")
         if self.demo_workflow_steps != _DEMO_WORKFLOW_STEPS:
-            raise ValueError("demo_workflow_steps must match release demo flow")
+            raise ValueError("demo_workflow_steps must match the product demo flow")
         if self.explanation_talking_points != _EXPLANATION_TALKING_POINTS:
             raise ValueError("explanation_talking_points must match UX review")
         return self
@@ -297,19 +295,19 @@ def _records(
         ),
         _record(
             asset_kind="demo_prompt",
-            source_refs=("v5_6_demo_prompt",),
+            source_refs=("demo_prompt_contract",),
             required_items=(
-                "capstone_prompt",
+                "creative_coding_prompt",
                 "provider_explanation",
                 "fallback_explanation",
             ),
             present_items=(
-                "capstone_prompt",
+                "creative_coding_prompt",
                 "provider_explanation",
                 "fallback_explanation",
             ),
             operator_notes=(
-                "Start from the prepared capstone creative-coding prompt.",
+                "Use the prepared creative-coding prompt.",
                 "Keep provider, model, mode, estimate, fallback, and escalation explanation visible.",
             ),
         ),
@@ -319,13 +317,13 @@ def _records(
             required_items=scenario_ids,
             present_items=scenario_ids,
             operator_notes=(
-                f"Use {len(scenario_ids)} existing capstone retrieval scenarios.",
+                f"Use {len(scenario_ids)} existing retrieval scenarios.",
                 "Do not execute retrieval during asset inventory.",
             ),
         ),
         _record(
             asset_kind="workflow_narrative",
-            source_refs=("v5_6_end_to_end_demo_flow",),
+            source_refs=("demo_workflow_contract",),
             required_items=_DEMO_WORKFLOW_STEPS,
             present_items=_DEMO_WORKFLOW_STEPS,
             operator_notes=(

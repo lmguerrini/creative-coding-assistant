@@ -1,4 +1,4 @@
-"""V8.8 capstone demo and showcase readiness metadata."""
+"""Product demo experience and fallback-readiness metadata."""
 
 from __future__ import annotations
 
@@ -38,35 +38,34 @@ CapstoneCaseId = Literal[
 DEMO_SHOWCASE_PLAN_SERIALIZATION_VERSION = "demo_showcase_plan.v1"
 DEMO_SHOWCASE_RECORD_SERIALIZATION_VERSION = "demo_showcase_record.v1"
 DEMO_SHOWCASE_AUTHORITY_BOUNDARY = (
-    "V8.8 demo showcase metadata prepares capstone demo prompts, flows, case "
-    "alignment, metrics summaries, fallback scripts, and showcase checklists "
-    "over existing product surfaces only; it does not execute providers, run "
+    "Demo experience metadata describes prompts, product flows, scenario "
+    "coverage, evaluation summaries, fallbacks, and validation checklists over "
+    "existing product surfaces only; it does not execute providers, run "
     "retrieval, render previews, route models, mutate prompts or artifacts, "
-    "write persistent storage, call external DCC or MCP tools, implement "
-    "future autonomous or immersive execution platforms, deploy, merge, push, tag, freeze the release, or "
-    "start the V8 Grand Review."
+    "write persistent storage, call external tools, deploy, or control release "
+    "operations."
 )
 
-_ROADMAP_ITEMS = (
+_COVERAGE_ITEMS = (
     "Demo Mode",
-    "Golden Demo Flows",
-    "Capstone Case Alignment",
-    "Internal Preview Showcase",
+    "Primary Product Flows",
+    "Scenario Coverage",
+    "Preview Fallbacks",
     "Demo Prompt Library",
-    "Evaluation Dashboard",
-    "README Finalization",
-    "Showcase Upload Preparation",
-    "SCR Presentation Support",
-    "SMART Presentation Support",
+    "Evaluation Summary",
+    "Product Boundary Summary",
+    "Artifact Availability Check",
+    "Workflow Context",
+    "Validation Criteria",
     "Ethical AI Summary",
-    "Demo Fallback Mode",
-    "Presentation Polish",
-    "Manual Demo Checklist",
+    "Fallback Guidance",
+    "Product Explanation",
+    "Manual Validation Checklist",
     "Demo Reliability Validation",
-    "Golden Demo Dataset",
-    "Offline Demo Fallback",
+    "Deterministic Demo Dataset",
+    "Offline Fallback",
     "Provider Failure Recovery",
-    "Demo Metrics Dashboard",
+    "Evaluation Metrics Summary",
 )
 _REQUIRED_CASE_IDS: tuple[CapstoneCaseId, ...] = (
     "case_1_rag_knowledge_assistant",
@@ -88,14 +87,11 @@ _BLOCKED_RUNTIME_BEHAVIORS = (
     "holomind_implementation",
     "holoiverse_implementation",
     "deployment_execution",
-    "merge_push_tag_operation",
-    "version_freeze",
-    "grand_review_start",
 )
 
 
 class DemoShowcaseCoverageRecord(BaseModel):
-    """One V8.8 roadmap item mapped to a truthful demo/showcase surface."""
+    """One coverage item mapped to a truthful product surface."""
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -109,7 +105,7 @@ class DemoShowcaseCoverageRecord(BaseModel):
 
 
 class CapstoneCaseAlignment(BaseModel):
-    """Demo claim posture for one Capstone case."""
+    """Compatibility record for one product capability scenario."""
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -122,7 +118,7 @@ class CapstoneCaseAlignment(BaseModel):
 
 
 class DemoPromptRecord(BaseModel):
-    """One prompt in the V8.8 demo prompt library."""
+    """One prompt in the product demo library."""
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -135,7 +131,7 @@ class DemoPromptRecord(BaseModel):
 
 
 class GoldenDemoFlow(BaseModel):
-    """One timed golden demo flow for operator rehearsal."""
+    """One bounded product demo flow."""
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -164,7 +160,7 @@ class DemoMetricSummary(BaseModel):
 
 
 class DemoFallbackPlan(BaseModel):
-    """Operator fallback for a known demo risk."""
+    """Fallback guidance for a known demo risk."""
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -176,7 +172,7 @@ class DemoFallbackPlan(BaseModel):
 
 
 class DemoChecklistItem(BaseModel):
-    """Manual demo, reliability, or showcase-upload checklist item."""
+    """Manual product-validation checklist item."""
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -184,8 +180,8 @@ class DemoChecklistItem(BaseModel):
     category: Literal[
         "manual_demo",
         "reliability",
-        "showcase_upload",
-        "presentation",
+        "artifact_readiness",
+        "product_guidance",
         "ethics",
     ]
     status: DemoShowcaseChecklistStatus
@@ -194,19 +190,19 @@ class DemoChecklistItem(BaseModel):
 
 
 class DemoPresentationSegment(BaseModel):
-    """Timed presentation segment for the 10-minute demo and 5-minute Q&A."""
+    """Product-validation section retained under the compatibility schema."""
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
     segment_id: str = Field(pattern=r"^[a-z0-9]+(?:_[a-z0-9]+)*$")
-    phase: Literal["ten_minute_demo", "five_minute_qa"]
+    phase: Literal["product_walkthrough", "validation_notes"]
     duration_seconds: int = Field(ge=30, le=300)
     purpose: str = Field(min_length=1, max_length=260)
     talking_points: tuple[str, ...] = Field(min_length=1, max_length=8)
 
 
 class DemoShowcasePlan(BaseModel):
-    """V8.8 capstone demo and showcase readiness plan over existing surfaces."""
+    """Demo experience readiness plan over existing product surfaces."""
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -239,7 +235,7 @@ class DemoShowcasePlan(BaseModel):
     demo_prompt_library_prepared: Literal[True] = True
     evaluation_summary_prepared: Literal[True] = True
     readme_finalization_draft_prepared: Literal[True] = True
-    showcase_upload_prepared: Literal[True] = True
+    showcase_upload_prepared: Literal[False] = False
     ethical_ai_summary_prepared: Literal[True] = True
     fallback_mode_prepared: Literal[True] = True
     demo_reliability_validation_prepared: Literal[True] = True
@@ -263,10 +259,10 @@ class DemoShowcasePlan(BaseModel):
     def _plan_matches_records(self) -> Self:
         if self.coverage_items != tuple(record.roadmap_item for record in self.coverage_records):
             raise ValueError("coverage_items must match coverage records")
-        if self.coverage_items != _ROADMAP_ITEMS:
-            raise ValueError("coverage_items must cover the V8.8 roadmap")
+        if self.coverage_items != _COVERAGE_ITEMS:
+            raise ValueError("coverage_items must cover required product surfaces")
         if tuple(alignment.case_id for alignment in self.capstone_case_alignments) != _REQUIRED_CASE_IDS:
-            raise ValueError("capstone case alignment must cover required cases")
+            raise ValueError("scenario alignment must cover required compatibility ids")
         if len({prompt.prompt_id for prompt in self.demo_prompt_library}) != len(self.demo_prompt_library):
             raise ValueError("demo prompt ids must be unique")
         prompt_ids = {prompt.prompt_id for prompt in self.demo_prompt_library}
@@ -281,16 +277,9 @@ class DemoShowcasePlan(BaseModel):
             "time_overrun",
         ):
             raise ValueError("fallback plans must cover required demo triggers")
-        demo_seconds = sum(
-            segment.duration_seconds for segment in self.presentation_segments if segment.phase == "ten_minute_demo"
-        )
-        qa_seconds = sum(
-            segment.duration_seconds for segment in self.presentation_segments if segment.phase == "five_minute_qa"
-        )
-        if demo_seconds != 600:
-            raise ValueError("ten-minute demo segments must total 600 seconds")
-        if qa_seconds != 300:
-            raise ValueError("five-minute Q&A segments must total 300 seconds")
+        phases = {segment.phase for segment in self.presentation_segments}
+        if phases != {"product_walkthrough", "validation_notes"}:
+            raise ValueError("presentation_segments must cover product walkthrough and validation notes")
         return self
 
 
@@ -301,7 +290,7 @@ def build_demo_showcase_plan(
     creative_readiness: ProductionCreativeReadinessReview | None = None,
     retrieval_demo_pack: RetrievalDemoPack | None = None,
 ) -> DemoShowcasePlan:
-    """Build the V8.8 demo/showcase readiness plan without running the demo."""
+    """Build demo experience metadata without running the demo."""
 
     root = Path(project_root or ".").resolve()
     demo_source = demo_assets or build_production_demo_asset_plan(root)
@@ -313,7 +302,7 @@ def build_demo_showcase_plan(
         source_creative_readiness_serialization_version=creative_source.serialization_version,
         source_retrieval_demo_pack_id=retrieval_source.pack_id,
         coverage_records=_coverage_records(),
-        coverage_items=_ROADMAP_ITEMS,
+        coverage_items=_COVERAGE_ITEMS,
         capstone_case_alignments=_case_alignments(),
         golden_demo_flows=_golden_demo_flows(prompts=prompts),
         demo_prompt_library=prompts,
@@ -327,12 +316,10 @@ def build_demo_showcase_plan(
         presentation_segments=_presentation_segments(),
         documentation_refs=(
             "README.md",
-            "docs/CAPSTONE_DEMO_SHOWCASE.md",
-            "docs/CAPSTONE_EVALUATION_ETHICS.md",
             "demo/README.md",
             "demo/demo_prompt_library.md",
             "demo/manual_demo_checklist.md",
-            "demo/showcase_upload_preparation.md",
+            "docs/eval_pipeline.md",
             "architecture/demo_showcase_experience.md",
         ),
         dataset_refs=("demo/golden_demo_dataset.json",),
@@ -343,7 +330,7 @@ def demo_showcase_coverage_by_item(
     roadmap_item: str,
     plan: DemoShowcasePlan | None = None,
 ) -> DemoShowcaseCoverageRecord | None:
-    """Return one V8.8 coverage record by roadmap item."""
+    """Return one coverage record by its compatibility item name."""
 
     source_plan = plan or build_demo_showcase_plan()
     return next((record for record in source_plan.coverage_records if record.roadmap_item == roadmap_item), None)
@@ -385,138 +372,141 @@ def _coverage_records() -> tuple[DemoShowcaseCoverageRecord, ...]:
         (
             "Demo Mode",
             "prepared",
-            "operator-facing demo script and golden dataset",
-            ("docs/CAPSTONE_DEMO_SHOWCASE.md", "demo/golden_demo_dataset.json"),
-            "Prepared as manual demo mode, not a new runtime UI mode or automatic workflow controller.",
-        ),
-        (
-            "Golden Demo Flows",
-            "prepared",
-            "timed golden flow records and demo docs",
+            "product flow metadata and deterministic dataset",
             ("demo/README.md", "demo/golden_demo_dataset.json"),
-            "Flows are rehearsal scripts over existing product behavior; they do not execute the assistant.",
+            "Prepared as inspectable guidance, not an automatic workflow controller.",
         ),
         (
-            "Capstone Case Alignment",
+            "Primary Product Flows",
             "prepared",
-            "case alignment matrix for Cases 1, 2, 3, 5, and 6",
-            ("docs/CAPSTONE_DEMO_SHOWCASE.md",),
-            "Cases 2 and 3 are guarded claims only where existing bounded workflow/search behavior supports them.",
+            "bounded flow records and product documentation",
+            ("demo/README.md", "demo/golden_demo_dataset.json"),
+            "Flows describe existing product behavior and do not execute the assistant.",
         ),
         (
-            "Internal Preview Showcase",
+            "Scenario Coverage",
+            "prepared",
+            "capability coverage across retrieval, workflow, search, coding, and tooling",
+            ("README.md", "src/creative_coding_assistant/eval/retrieval_demo_pack.py"),
+            "Workflow and search claims stay within existing bounded product behavior.",
+        ),
+        (
+            "Preview Fallbacks",
             "supported_existing",
-            "existing preview screenshots and preview surfaces",
-            ("assets/preview_current.png", "src/creative_coding_assistant/preview/contracts.py"),
+            "archived preview references and product preview surfaces",
             (
-                "Preview is showcased through existing internal preview artifacts; "
-                "V8.8 does not render or repair previews."
+                "assets/screenshots-archive/preview_current.png",
+                "src/creative_coding_assistant/preview/contracts.py",
             ),
+            "Archived images are fallback references; this metadata does not render or repair previews.",
         ),
         (
             "Demo Prompt Library",
             "prepared",
             "prompt library records and markdown prompt bank",
             ("demo/demo_prompt_library.md",),
-            "Prompts are operator assets; they do not mutate product prompts or provider selection.",
+            "Prompt records do not mutate product prompts or provider selection.",
         ),
         (
-            "Evaluation Dashboard",
+            "Evaluation Summary",
             "supported_existing",
-            "RAGAs docs, live-session eval CLI, and readiness metrics summary",
+            "evaluation documentation, CLI, and readiness metrics summary",
             ("docs/eval_pipeline.md", "scripts/eval_live_sessions.py"),
-            "Summary references supported manual evaluation; V8.8 does not collect live metrics.",
+            "The summary references supported evaluation paths and does not collect live metrics.",
         ),
         (
-            "README Finalization",
+            "Product Boundary Summary",
             "prepared",
-            "README capstone positioning and claim boundaries",
+            "README product capabilities and claim boundaries",
             ("README.md",),
-            "README updates are a finalization draft before HITL and Grand Review.",
+            "The README remains the primary public product boundary.",
         ),
         (
-            "Showcase Upload Preparation",
+            "Artifact Availability Check",
             "prepared",
-            "showcase upload checklist and manifest",
-            ("demo/showcase_upload_preparation.md",),
-            "Upload preparation is a checklist only; V8.8 does not upload or publish artifacts.",
+            "tracked demo references and archived fallback images",
+            ("demo/README.md", "assets/screenshots-archive/preview_current.png"),
+            "Availability checks inspect tracked references and do not publish artifacts.",
         ),
         (
-            "SCR Presentation Support",
+            "Workflow Context",
             "prepared",
-            "situation, challenge, response presentation structure",
-            ("docs/CAPSTONE_DEMO_SHOWCASE.md",),
-            "Presentation support is scripted guidance, not generated slides.",
+            "bounded workflow stages and execution boundaries",
+            ("architecture/workflow_graph.md", "README.md"),
+            "Workflow context explains existing behavior without controlling execution.",
         ),
         (
-            "SMART Presentation Support",
+            "Validation Criteria",
             "prepared",
-            "specific, measurable, achievable, relevant, time-boxed demo plan",
-            ("docs/CAPSTONE_DEMO_SHOWCASE.md",),
-            "SMART support is planning guidance for the speaker.",
+            "source, runtime, fallback, and evaluation checks",
+            ("demo/manual_demo_checklist.md", "docs/eval_pipeline.md"),
+            "Validation criteria are guidance and do not alter runtime state.",
         ),
         (
             "Ethical AI Summary",
             "prepared",
             "ethical AI and limitations summary",
-            ("docs/CAPSTONE_EVALUATION_ETHICS.md",),
+            ("README.md", "docs/eval_pipeline.md"),
             "Ethics summary is explicit disclosure; it does not add safety enforcement behavior.",
         ),
         (
-            "Demo Fallback Mode",
+            "Fallback Guidance",
             "prepared",
-            "provider, retrieval, preview, network, and timing fallback runbook",
-            ("demo/manual_demo_checklist.md", "docs/CAPSTONE_DEMO_SHOWCASE.md"),
-            "Fallback mode is an operator runbook, not automatic failover logic.",
+            "provider, retrieval, preview, network, and shortened-path guidance",
+            ("demo/manual_demo_checklist.md", "demo/README.md"),
+            "Fallback guidance is descriptive and does not implement automatic failover.",
         ),
         (
-            "Presentation Polish",
+            "Product Explanation",
             "prepared",
-            "10-minute demo and 5-minute Q&A script",
-            ("docs/CAPSTONE_DEMO_SHOWCASE.md",),
-            "Polish is documentation only; V8.8 does not create final slide assets.",
+            "purpose, architecture, product flow, evaluation, and limitations",
+            ("README.md", "architecture/demo_showcase_experience.md"),
+            "Explanation metadata does not create media or alter product output.",
         ),
         (
-            "Manual Demo Checklist",
+            "Manual Validation Checklist",
             "prepared",
-            "manual rehearsal checklist",
+            "manual product-validation checks",
             ("demo/manual_demo_checklist.md",),
-            "Checklist requires human rehearsal before final showcase.",
+            "The checklist keeps validation steps explicit and human-controlled.",
         ),
         (
             "Demo Reliability Validation",
             "prepared",
             "manual reliability checks and fallback criteria",
             ("demo/manual_demo_checklist.md",),
-            "Reliability validation is manual and focused; V8.8 does not run long CI.",
+            "Reliability validation is manual and does not run the full test suite.",
         ),
         (
-            "Golden Demo Dataset",
+            "Deterministic Demo Dataset",
             "prepared",
-            "tracked golden demo dataset",
+            "tracked deterministic demo dataset",
             ("demo/golden_demo_dataset.json",),
-            "Dataset is a deterministic demo aid, not recorded live evaluation output.",
+            "The dataset is a deterministic fixture, not recorded live evaluation output.",
         ),
         (
-            "Offline Demo Fallback",
+            "Offline Fallback",
             "prepared",
-            "offline narrative, screenshots, prompts, and dataset",
-            ("demo/golden_demo_dataset.json", "assets/preview_current.png"),
+            "offline documentation, screenshots, prompts, and dataset",
+            (
+                "demo/golden_demo_dataset.json",
+                "assets/screenshots-archive/preview_current.png",
+            ),
             "Offline fallback is manual; it does not simulate live provider success.",
         ),
         (
             "Provider Failure Recovery",
             "prepared",
-            "provider failure audience framing and recovery steps",
+            "provider failure explanation and recovery steps",
             ("demo/manual_demo_checklist.md",),
-            "Recovery is a scripted operator transition, not automatic provider failover.",
+            "Recovery guidance does not implement automatic provider failover.",
         ),
         (
-            "Demo Metrics Dashboard",
+            "Evaluation Metrics Summary",
             "supported_existing",
-            "read-only metrics summary over existing demo/eval readiness surfaces",
-            ("docs/CAPSTONE_EVALUATION_ETHICS.md",),
-            "Metrics are summarized from existing surfaces and manual eval docs; no live dashboard is added.",
+            "read-only metrics summary over existing evaluation surfaces",
+            ("docs/eval_pipeline.md",),
+            "Metrics are summarized from existing evidence; no live collection is added.",
         ),
     )
     return tuple(
@@ -535,18 +525,17 @@ def _case_alignments() -> tuple[CapstoneCaseAlignment, ...]:
     return (
         CapstoneCaseAlignment(
             case_id="case_1_rag_knowledge_assistant",
-            case_label="Case 1: RAG-powered knowledge assistant",
+            case_label="Source-grounded knowledge assistance",
             alignment_status="primary",
             demo_claim=(
-                "CCA retrieves and frames creative-coding knowledge for runtime, "
-                "shader, and audio-visual guidance."
+                "CCA retrieves and frames creative-coding knowledge for runtime, shader, and audio-visual guidance."
             ),
             evidence_refs=("src/creative_coding_assistant/eval/retrieval_demo_pack.py", "docs/eval_pipeline.md"),
-            boundary="The demo should claim source-grounded creative guidance, not complete coverage of all documents.",
+            boundary="Claim source-grounded creative guidance, not complete coverage of all documents.",
         ),
         CapstoneCaseAlignment(
             case_id="case_2_bounded_agent_automation",
-            case_label="Case 2: Agent automation",
+            case_label="Bounded workflow guidance",
             alignment_status="guarded_support",
             demo_claim="CCA can explain bounded workflow stages and advisory routing/validation metadata.",
             evidence_refs=("architecture/workflow_graph.md", "README.md"),
@@ -554,7 +543,7 @@ def _case_alignments() -> tuple[CapstoneCaseAlignment, ...]:
         ),
         CapstoneCaseAlignment(
             case_id="case_3_source_grounded_search",
-            case_label="Case 3: Smart document search",
+            case_label="Registered-source search",
             alignment_status="guarded_support",
             demo_claim="CCA demonstrates registered-source KB search for creative-coding references.",
             evidence_refs=("src/creative_coding_assistant/eval/retrieval_demo_pack.py", "docs/sync.md"),
@@ -562,18 +551,20 @@ def _case_alignments() -> tuple[CapstoneCaseAlignment, ...]:
         ),
         CapstoneCaseAlignment(
             case_id="case_5_ai_coding_assistant",
-            case_label="Case 5: AI coding assistant for creative coding",
+            case_label="Creative-coding assistance",
             alignment_status="primary",
             demo_claim=(
-                "CCA translates creative intent into code-oriented browser "
-                "runtime guidance and artifact planning."
+                "CCA translates creative intent into code-oriented browser runtime guidance and artifact planning."
             ),
-            evidence_refs=("README.md", "assets/preview_current.png"),
+            evidence_refs=(
+                "README.md",
+                "assets/screenshots-archive/preview_current.png",
+            ),
             boundary="Keep the claim to creative coding assistance, not fully autonomous production delivery.",
         ),
         CapstoneCaseAlignment(
             case_id="case_6_advanced_llm_tools",
-            case_label="Case 6: Advanced LLM tools",
+            case_label="Bounded orchestration and evaluation tools",
             alignment_status="primary",
             demo_claim=(
                 "CCA combines LangGraph orchestration, Chroma-backed retrieval, "
@@ -596,7 +587,7 @@ def _prompt_library(*, demo_source: ProductionDemoAssetPlan) -> tuple[DemoPrompt
     return (
         DemoPromptRecord(
             prompt_id="luminous_audio_reactive_three_scene",
-            title="Luminous audio-reactive Three.js capstone scene",
+            title="Luminous audio-reactive Three.js scene",
             capstone_cases=(
                 "case_1_rag_knowledge_assistant",
                 "case_5_ai_coding_assistant",
@@ -605,7 +596,7 @@ def _prompt_library(*, demo_source: ProductionDemoAssetPlan) -> tuple[DemoPrompt
             prompt_text=demo_source.demo_prompt,
             expected_demo_value="Primary golden flow for prompt to retrieval to artifact to preview to explanation.",
             fallback_notes=(
-                "Use assets/preview_current.png if live preview is unavailable.",
+                "Use the archived fallback preview if live preview is unavailable.",
                 "Use the golden dataset to narrate provider, fallback, and evaluation boundaries.",
             ),
         ),
@@ -634,7 +625,7 @@ def _prompt_library(*, demo_source: ProductionDemoAssetPlan) -> tuple[DemoPrompt
                 "What should I check first, and how should I explain the browser-audio constraints?"
             ),
             expected_demo_value="Shows source-grounded debugging and ethical transparency about browser constraints.",
-            fallback_notes=("Use as a Q&A recovery prompt if the main demo overruns.",),
+            fallback_notes=("Use as a recovery prompt when the primary flow is unavailable.",),
         ),
         DemoPromptRecord(
             prompt_id="shader_post_fx_pipeline",
@@ -649,19 +640,18 @@ def _prompt_library(*, demo_source: ProductionDemoAssetPlan) -> tuple[DemoPrompt
         ),
         DemoPromptRecord(
             prompt_id="offline_showcase_walkthrough",
-            title="Offline showcase walkthrough",
+            title="Offline product walkthrough",
             capstone_cases=(
                 "case_2_bounded_agent_automation",
                 "case_5_ai_coding_assistant",
                 "case_6_advanced_llm_tools",
             ),
             prompt_text=(
-                "Walk through the prepared Creative Coding Assistant demo offline: problem, solution, data, "
-                "evaluation, ethical considerations, fallback plan, challenges, and next steps."
+                "Explain the Creative Coding Assistant offline using its problem, solution, data, "
+                "evaluation, ethical considerations, fallback plan, limitations, and next steps."
             ),
             expected_demo_value=(
-                "Keeps the presentation coherent if provider, retrieval, "
-                "preview, or network access fails."
+                "Keeps the product explanation coherent if provider, retrieval, preview, or network access fails."
             ),
             fallback_notes=(
                 "Use when any live system dependency is unavailable.",
@@ -707,7 +697,7 @@ def _prompt_library(*, demo_source: ProductionDemoAssetPlan) -> tuple[DemoPrompt
             expected_demo_value=(
                 "Covers generative structures and emergent form without unsupported authority claims."
             ),
-            fallback_notes=("Use for generative-systems Q&A or output-quality review.",),
+            fallback_notes=("Use for generative-systems or output-quality guidance.",),
         ),
         DemoPromptRecord(
             prompt_id="installation_immersive_scene_planning",
@@ -723,7 +713,7 @@ def _prompt_library(*, demo_source: ProductionDemoAssetPlan) -> tuple[DemoPrompt
                 "evaluation checks, fallback route, and handoff boundaries."
             ),
             expected_demo_value="Covers bounded planning metadata and handoff guidance.",
-            fallback_notes=("Use for senior-reviewer questions about system direction and next steps.",),
+            fallback_notes=("Use when explaining system direction and bounded next steps.",),
         ),
     )
 
@@ -744,27 +734,31 @@ def _golden_demo_flows(*, prompts: tuple[DemoPromptRecord, ...]) -> tuple[Golden
                 "case_6_advanced_llm_tools",
             ),
             operator_steps=(
-                "State the problem and target user.",
-                "Run or narrate the golden creative-coding prompt.",
+                "Identify the problem and target user.",
+                "Use the prepared creative-coding prompt.",
                 "Show retrieval grounding and runtime/artifact planning.",
-                "Show the preview surface or prepared screenshot.",
+                "Use the preview surface or archived fallback image.",
                 "Explain critique, refinement, fallback, and HITL boundaries.",
             ),
-            evidence_refs=("README.md", "demo/golden_demo_dataset.json", "assets/preview_current.png"),
+            evidence_refs=(
+                "README.md",
+                "demo/golden_demo_dataset.json",
+                "assets/screenshots-archive/preview_current.png",
+            ),
             fallback_trigger="provider_failure",
         ),
         GoldenDemoFlow(
             flow_id="case_alignment_flow",
-            title="Capstone case alignment walkthrough",
+            title="Product scenario coverage",
             duration_seconds=90,
             primary_prompt_id="offline_showcase_walkthrough",
             capstone_cases=_REQUIRED_CASE_IDS,
             operator_steps=(
-                "Map the demo to Cases 5, 1, and 6 as primary alignment.",
-                "Describe Case 2 as bounded workflow explanation only.",
-                "Describe Case 3 as registered-source KB search only.",
+                "Connect the product flow to creative coding, retrieval, and evaluation.",
+                "Keep workflow claims limited to bounded application stages.",
+                "Keep search claims limited to registered and indexed sources.",
             ),
-            evidence_refs=("docs/CAPSTONE_DEMO_SHOWCASE.md",),
+            evidence_refs=("README.md", "architecture/workflow_graph.md"),
             fallback_trigger="time_overrun",
         ),
         GoldenDemoFlow(
@@ -776,23 +770,26 @@ def _golden_demo_flows(*, prompts: tuple[DemoPromptRecord, ...]) -> tuple[Golden
             operator_steps=(
                 "Show retrieval evaluation workflow and known metric boundaries.",
                 "Explain no overclaiming, source grounding, cost boundaries, and provider fallback.",
-                "Name the known limitations before Q&A.",
+                "Include known limitations in the product explanation.",
             ),
-            evidence_refs=("docs/CAPSTONE_EVALUATION_ETHICS.md", "docs/eval_pipeline.md"),
+            evidence_refs=("README.md", "docs/eval_pipeline.md"),
             fallback_trigger="retrieval_unavailable",
         ),
         GoldenDemoFlow(
             flow_id="offline_fallback_flow",
-            title="Offline demo fallback",
+            title="Offline product fallback",
             duration_seconds=30,
             primary_prompt_id="offline_showcase_walkthrough",
             capstone_cases=("case_5_ai_coding_assistant", "case_6_advanced_llm_tools"),
             operator_steps=(
-                "Switch to the golden dataset and screenshots.",
-                "Say which live dependency failed.",
-                "Continue with the same problem, solution, evaluation, and limitations narrative.",
+                "Use the deterministic dataset and archived screenshots.",
+                "Identify the unavailable live dependency.",
+                "Continue with the same problem, solution, evaluation, and limitations.",
             ),
-            evidence_refs=("demo/golden_demo_dataset.json", "assets/preview_current.png"),
+            evidence_refs=(
+                "demo/golden_demo_dataset.json",
+                "assets/screenshots-archive/preview_current.png",
+            ),
             fallback_trigger="network_unavailable",
         ),
         GoldenDemoFlow(
@@ -834,7 +831,7 @@ def _golden_demo_flows(*, prompts: tuple[DemoPromptRecord, ...]) -> tuple[Golden
                 "Show reaction diffusion, flow fields, and particle trails as implementation choices.",
                 "Name source, runtime, and performance boundaries.",
             ),
-            evidence_refs=("demo/demo_prompt_library.md", "docs/CAPSTONE_EVALUATION_ETHICS.md"),
+            evidence_refs=("demo/demo_prompt_library.md", "README.md"),
             fallback_trigger="time_overrun",
         ),
         GoldenDemoFlow(
@@ -849,8 +846,8 @@ def _golden_demo_flows(*, prompts: tuple[DemoPromptRecord, ...]) -> tuple[Golden
             ),
             operator_steps=(
                 "Show concept, runtime, retrieval, preview, artifact, evaluation, and fallback handoff points.",
-                "Repeat no external DCC/MCP execution, autonomous delivery, public deployment, or freeze claims.",
-                "Use the integrated Demo Mode path as the primary presenter frame.",
+                "Repeat no external tool execution, autonomous delivery, or public deployment claims.",
+                "Use the integrated Demo Mode path as the primary product entry point.",
             ),
             evidence_refs=("README.md", "demo/golden_demo_dataset.json"),
             fallback_trigger="provider_failure",
@@ -879,7 +876,7 @@ def _demo_metrics(
             status=demo_assets.demo_asset_status,
             value=f"{len(demo_assets.ready_asset_ids)}/{demo_assets.asset_count} ready",
             source_refs=("src/creative_coding_assistant/orchestration/advisory/production_demo_assets.py",),
-            interpretation="Existing V5.6 demo asset inventory is used as V8.8 evidence.",
+            interpretation="The existing demo asset inventory supplies current readiness evidence.",
         ),
         DemoMetricSummary(
             metric_id="creative_readiness_status",
@@ -897,7 +894,7 @@ def _demo_metrics(
             status="ready" if demo_assets.preview_media_paths else "guarded",
             value=str(len(demo_assets.preview_media_paths)),
             source_refs=demo_assets.preview_media_paths,
-            interpretation="Prepared screenshots support fallback showcase when live preview is unavailable.",
+            interpretation="Archived screenshots support fallback guidance when live preview is unavailable.",
         ),
         DemoMetricSummary(
             metric_id="ragas_context_precision_workflow",
@@ -905,7 +902,7 @@ def _demo_metrics(
             status="manual",
             value="supported_manual_eval",
             source_refs=("docs/eval_pipeline.md", "scripts/eval_live_sessions.py"),
-            interpretation="RAGAs context precision is supported for recorded samples but is not rerun by V8.8.",
+            interpretation="Context precision is supported for approved evaluation samples but is not rerun here.",
         ),
     )
 
@@ -916,57 +913,59 @@ def _fallback_plans() -> tuple[DemoFallbackPlan, ...]:
             trigger="provider_failure",
             fallback_mode="Golden dataset plus prepared screenshots",
             operator_action=(
-                "State the provider failure and continue with the prevalidated "
-                "prompt, dataset, and preview image."
+                "Identify the provider failure and continue with the validated prompt, dataset, and preview image."
             ),
             audience_framing=(
-                "The fallback demonstrates demo reliability without pretending "
-                "a provider response happened."
+                "The fallback demonstrates product reliability without implying a provider response happened."
             ),
-            evidence_refs=("demo/golden_demo_dataset.json", "assets/preview_current.png"),
+            evidence_refs=(
+                "demo/golden_demo_dataset.json",
+                "assets/screenshots-archive/preview_current.png",
+            ),
         ),
         DemoFallbackPlan(
             trigger="retrieval_unavailable",
             fallback_mode="Source-grounding narrative",
             operator_action=(
-                "Show the retrieval demo pack, scenario ids, and eval workflow "
-                "without running retrieval live."
+                "Show the retrieval demo pack, scenario ids, and eval workflow without running retrieval live."
             ),
             audience_framing=(
-                "The system supports source-grounded retrieval, while this "
-                "fallback avoids unverifiable live claims."
+                "The system supports source-grounded retrieval, while this fallback avoids unverifiable live claims."
             ),
             evidence_refs=("src/creative_coding_assistant/eval/retrieval_demo_pack.py", "docs/eval_pipeline.md"),
         ),
         DemoFallbackPlan(
             trigger="preview_unavailable",
-            fallback_mode="Static internal preview showcase",
-            operator_action="Use assets/preview_current.png and explain the preview boundary.",
-            audience_framing=(
-                "The screenshot is a prepared visual reference, not a claim "
-                "that the preview just rendered live."
+            fallback_mode="Archived preview reference",
+            operator_action=(
+                "Load assets/screenshots-archive/preview_current.png and label it "
+                "as an archived fallback rather than a live render."
             ),
-            evidence_refs=("assets/preview_current.png", "docs/CAPSTONE_DEMO_SHOWCASE.md"),
+            audience_framing=(
+                "The screenshot is a prepared visual reference, not a claim that the preview just rendered live."
+            ),
+            evidence_refs=(
+                "assets/screenshots-archive/preview_current.png",
+                "demo/README.md",
+            ),
         ),
         DemoFallbackPlan(
             trigger="network_unavailable",
-            fallback_mode="Offline narrative and Q&A mode",
+            fallback_mode="Offline product walkthrough",
             operator_action=(
-                "Use docs, dataset, and screenshots; skip live provider, "
-                "retrieval, and preview operations."
+                "Use docs, dataset, and screenshots; skip live provider, retrieval, and preview operations."
             ),
-            audience_framing="Offline mode preserves the capstone explanation and makes infrastructure risk explicit.",
+            audience_framing="Offline mode preserves the product explanation and makes infrastructure risk explicit.",
             evidence_refs=("demo/README.md", "demo/golden_demo_dataset.json"),
         ),
         DemoFallbackPlan(
             trigger="time_overrun",
-            fallback_mode="Short-path demo script",
-            operator_action="Jump from primary flow to evaluation/ethics summary and Q&A.",
+            fallback_mode="Essential product path",
+            operator_action="Use the primary flow followed by the evaluation and limitations summary.",
             audience_framing=(
-                "The shortened path preserves the required problem, solution, "
-                "data, evaluation, and next steps."
+                "The shortened path preserves the required problem, solution, data, evaluation, and next steps."
             ),
-            evidence_refs=("docs/CAPSTONE_DEMO_SHOWCASE.md",),
+            evidence_refs=("demo/README.md",),
         ),
     )
 
@@ -974,25 +973,29 @@ def _fallback_plans() -> tuple[DemoFallbackPlan, ...]:
 def _checklist_items() -> tuple[DemoChecklistItem, ...]:
     return (
         DemoChecklistItem(
-            item_id="confirm_branch",
+            item_id="confirm_product_state",
             category="manual_demo",
             status="ready",
-            action="Confirm the demo branch is feature/demo-showcase and no main-branch work is happening.",
+            action="Confirm the local product and deterministic fixtures are available.",
             evidence_refs=("demo/manual_demo_checklist.md",),
         ),
         DemoChecklistItem(
-            item_id="rehearse_primary_flow",
+            item_id="validate_primary_flow",
             category="manual_demo",
             status="manual",
-            action="Rehearse the primary creative-coding flow end to end with a 7-minute target.",
-            evidence_refs=("docs/CAPSTONE_DEMO_SHOWCASE.md",),
+            action="Validate the primary creative-coding flow and its product boundaries.",
+            evidence_refs=("demo/README.md",),
         ),
         DemoChecklistItem(
             item_id="verify_preview_assets",
             category="reliability",
             status="ready",
-            action="Confirm assets/preview_current.png, preview_v1.png, and preview_v2.png are available.",
-            evidence_refs=("assets/preview_current.png", "assets/preview_v1.png", "assets/preview_v2.png"),
+            action="Confirm all archived fallback preview images are available.",
+            evidence_refs=(
+                "assets/screenshots-archive/preview_current.png",
+                "assets/screenshots-archive/preview_v1.png",
+                "assets/screenshots-archive/preview_v2.png",
+            ),
         ),
         DemoChecklistItem(
             item_id="verify_prompt_library",
@@ -1003,51 +1006,47 @@ def _checklist_items() -> tuple[DemoChecklistItem, ...]:
         ),
         DemoChecklistItem(
             item_id="prepare_eval_summary",
-            category="presentation",
+            category="product_guidance",
             status="ready",
             action="Use the evaluation summary to distinguish supported metrics from manual evidence.",
-            evidence_refs=("docs/CAPSTONE_EVALUATION_ETHICS.md", "docs/eval_pipeline.md"),
+            evidence_refs=("README.md", "docs/eval_pipeline.md"),
         ),
         DemoChecklistItem(
             item_id="prepare_ethics_summary",
             category="ethics",
             status="ready",
             action="State source grounding, cost, privacy, provider, and limitation boundaries explicitly.",
-            evidence_refs=("docs/CAPSTONE_EVALUATION_ETHICS.md",),
+            evidence_refs=("README.md",),
         ),
         DemoChecklistItem(
-            item_id="prepare_showcase_upload",
-            category="showcase_upload",
+            item_id="verify_artifact_refs",
+            category="artifact_readiness",
             status="manual",
-            action="Collect README link, demo docs, screenshots, evaluation summary, and known limitations.",
-            evidence_refs=("demo/showcase_upload_preparation.md",),
+            action="Confirm that documented prompts, screenshots, and evaluation references exist.",
+            evidence_refs=("demo/README.md",),
         ),
         DemoChecklistItem(
             item_id="check_no_overclaims",
-            category="presentation",
+            category="product_guidance",
             status="ready",
             action=(
-                "Avoid live DCC/MCP, autonomous execution platform, autonomous "
-                "agent swarm, and generic search claims."
+                "Avoid live DCC/MCP, autonomous execution platform, autonomous agent swarm, and generic search claims."
             ),
-            evidence_refs=("docs/CAPSTONE_DEMO_SHOWCASE.md", "README.md"),
+            evidence_refs=("README.md",),
         ),
         DemoChecklistItem(
-            item_id="run_fallback_rehearsal",
+            item_id="validate_fallbacks",
             category="reliability",
             status="manual",
-            action="Practice provider, retrieval, preview, network, and time-overrun fallback transitions.",
+            action="Validate provider, retrieval, preview, network, and shortened-path fallbacks.",
             evidence_refs=("demo/manual_demo_checklist.md",),
         ),
         DemoChecklistItem(
-            item_id="hitl_before_public_showcase",
-            category="showcase_upload",
+            item_id="confirm_manual_boundaries",
+            category="artifact_readiness",
             status="blocked_until_hitl",
-            action="Stop for HITL review before merge, push, tag, freeze, or public showcase upload.",
-            evidence_refs=(
-                "docs/CAPSTONE_DEMO_SHOWCASE.md",
-                "demo/showcase_upload_preparation.md",
-            ),
+            action="Require explicit human approval before any external publishing action.",
+            evidence_refs=("README.md", "demo/README.md"),
         ),
     )
 
@@ -1055,20 +1054,20 @@ def _checklist_items() -> tuple[DemoChecklistItem, ...]:
 def _presentation_segments() -> tuple[DemoPresentationSegment, ...]:
     return (
         DemoPresentationSegment(
-            segment_id="problem_purpose",
-            phase="ten_minute_demo",
-            duration_seconds=75,
-            purpose="Explain project purpose, target user, and creative-coding problem.",
+            segment_id="product_purpose",
+            phase="product_walkthrough",
+            duration_seconds=60,
+            purpose="Summarize product purpose, target user, and creative-coding problem.",
             talking_points=(
                 "Creative intent is hard to translate into working browser visuals.",
                 "CCA focuses on creative coding.",
             ),
         ),
         DemoPresentationSegment(
-            segment_id="solution_architecture",
-            phase="ten_minute_demo",
-            duration_seconds=90,
-            purpose="Explain the solution architecture at demo depth.",
+            segment_id="system_boundaries",
+            phase="product_walkthrough",
+            duration_seconds=60,
+            purpose="Summarize the implemented architecture and its boundaries.",
             talking_points=(
                 "LangGraph backend",
                 "Chroma-backed KB",
@@ -1077,45 +1076,45 @@ def _presentation_segments() -> tuple[DemoPresentationSegment, ...]:
             ),
         ),
         DemoPresentationSegment(
-            segment_id="primary_live_flow",
-            phase="ten_minute_demo",
-            duration_seconds=255,
-            purpose="Run or narrate the golden prompt-to-artifact flow.",
+            segment_id="primary_product_flow",
+            phase="product_walkthrough",
+            duration_seconds=120,
+            purpose="Describe the validated prompt-to-artifact product flow.",
             talking_points=("prompt", "retrieval", "planning", "artifact", "preview", "critique/refinement"),
         ),
         DemoPresentationSegment(
-            segment_id="evaluation_ethics",
-            phase="ten_minute_demo",
-            duration_seconds=90,
-            purpose="Show evaluation evidence and ethical AI boundaries.",
+            segment_id="evaluation_boundaries",
+            phase="product_walkthrough",
+            duration_seconds=60,
+            purpose="Summarize evaluation evidence and ethical AI boundaries.",
             talking_points=("manual RAGAs workflow", "readiness metrics", "source grounding", "limitations"),
         ),
         DemoPresentationSegment(
-            segment_id="challenges_next_steps",
-            phase="ten_minute_demo",
-            duration_seconds=90,
-            purpose="Close with challenges, fallback, and next steps.",
-            talking_points=("demo reliability", "known limitations", "Grand Review next", "post-capstone hardening"),
+            segment_id="limitations_next_steps",
+            phase="product_walkthrough",
+            duration_seconds=60,
+            purpose="Record known limitations, fallbacks, and bounded next steps.",
+            talking_points=("product reliability", "known limitations", "fallbacks", "future validation"),
         ),
         DemoPresentationSegment(
-            segment_id="qa_data_evaluation",
-            phase="five_minute_qa",
-            duration_seconds=120,
-            purpose="Answer data, retrieval, and evaluation questions.",
+            segment_id="data_retrieval_notes",
+            phase="validation_notes",
+            duration_seconds=60,
+            purpose="Record data, retrieval, and evaluation boundaries.",
             talking_points=("registered sources", "local eval records", "context precision boundary"),
         ),
         DemoPresentationSegment(
-            segment_id="qa_architecture_limits",
-            phase="five_minute_qa",
-            duration_seconds=120,
-            purpose="Answer architecture, provider, and limitation questions.",
+            segment_id="runtime_limitations",
+            phase="validation_notes",
+            duration_seconds=60,
+            purpose="Record architecture, provider, and runtime limitations.",
             talking_points=("provider fallback", "no live DCC/MCP", "no autonomous execution platform", "manual HITL"),
         ),
         DemoPresentationSegment(
-            segment_id="qa_next_steps",
-            phase="five_minute_qa",
+            segment_id="product_followups",
+            phase="validation_notes",
             duration_seconds=60,
-            purpose="Answer next-step and showcase-readiness questions.",
-            talking_points=("V8 Grand Review", "manual rehearsal", "public claim hardening"),
+            purpose="Record product follow-ups and claim-boundary checks.",
+            talking_points=("manual validation", "known limitations", "public claim boundaries"),
         ),
     )

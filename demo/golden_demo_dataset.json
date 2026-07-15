@@ -123,14 +123,14 @@
     "time_overrun"
   ],
   "prepared_assets": [
-    "assets/preview_current.png",
-    "assets/preview_v1.png",
-    "assets/preview_v2.png",
+    "assets/screenshots-archive/preview_current.png",
+    "assets/screenshots-archive/preview_v1.png",
+    "assets/screenshots-archive/preview_v2.png",
     "README.md",
     "docs/CAPSTONE_DEMO_SHOWCASE.md",
     "docs/CAPSTONE_EVALUATION_ETHICS.md",
     "demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl",
-    "demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl",
+    "demo/evaluation/current_product_ragas_evidence.json",
     "demo/final_demo_launcher.html",
     "demo/golden_artifacts/browser_full_runtime_qa_results.json",
     "demo/golden_artifacts/browser_render_qa_results.json",
@@ -142,7 +142,7 @@
   ],
   "known_limitations": [
     "Provider calls can fail or be slow; committed prompts and artifacts remain inspectable.",
-    "Sanitized and redacted RAGAS fixtures are historical evidence; raw private recorded-session rows remain local-only.",
+    "Sanitized synthetic RAGAS fixtures are historical evidence; recorded-session rows remain local-only.",
     "Prepared screenshots are compatibility assets rather than current-session preview evidence.",
     "External creative-tool execution, autonomous delivery, and public deployment are outside this dataset's scope."
   ]

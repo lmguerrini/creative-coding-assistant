@@ -1,4 +1,4 @@
-// Public V8 golden artifact: GLSL kaleidoscope fragment shader.
+// Public golden artifact: GLSL kaleidoscope fragment shader.
 // Boundary: shader code only; host integration must provide uniforms.
 
 #ifdef GL_ES

@@ -77,8 +77,12 @@ class ProductionCreativeReadinessReviewTests(unittest.TestCase):
         self.assertGreater(review.ready_signal_count, 0)
         self.assertGreaterEqual(review.guarded_finding_count, 2)
         self.assertIn(
-            "capstone creative demo",
+            "Creative demo materials are available",
             review.capstone_creative_readiness_statement,
+        )
+        self.assertNotIn(
+            "capstone",
+            review.capstone_creative_readiness_statement.casefold(),
         )
         self.assertIn("does not evaluate generated output", review.authority_boundary)
         self.assertTrue(review.creative_readiness_review_implemented)
@@ -141,7 +145,7 @@ class ProductionCreativeReadinessReviewTests(unittest.TestCase):
         assert workflow is not None
         self.assertGreaterEqual(len(guarded), 2)
         self.assertEqual(prompt.status, "ready")
-        self.assertIn("capstone_prompt", prompt.ready_signals)
+        self.assertIn("creative_coding_prompt", prompt.ready_signals)
         self.assertEqual(quality.status, "guarded")
         self.assertIn(
             "creative_analytics::quality_readiness",

@@ -1,4 +1,4 @@
-"""Operational retrieval demo pack for capstone-oriented KB validation."""
+"""Operational retrieval benchmark for creative-coding KB validation."""
 
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ CURRENT_PRODUCT_RETRIEVAL_METRICS = (
 
 
 class RetrievalDemoScenario(BaseModel):
-    """Small typed retrieval scenario for capstone demo preparation."""
+    """Small typed scenario for the public retrieval benchmark."""
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -421,8 +421,8 @@ _CAPSTONE_RETRIEVAL_DEMO_SCENARIOS = (
 
 def build_capstone_retrieval_demo_pack() -> RetrievalDemoPack:
     return RetrievalDemoPack(
-        pack_id="capstone_kb_expansion_retrieval_demo_pack",
-        title="Capstone KB Expansion Retrieval Demo Pack",
+        pack_id="creative_coding_retrieval_benchmark",
+        title="Creative Coding Official Retrieval Benchmark",
         operational_scope=CCA_OPERATIONAL_KB_SCOPE,
         holomind_boundary=FUTURE_HOLOMIND_BOUNDARY,
         scenarios=_CAPSTONE_RETRIEVAL_DEMO_SCENARIOS,

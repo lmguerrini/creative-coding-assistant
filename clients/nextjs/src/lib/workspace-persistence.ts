@@ -111,7 +111,7 @@ export const defaultWorkspaceLayoutState: WorkspaceLayoutState = {
 export const defaultWorkspacePreferences: WorkspacePreferences = {
   theme: "codex",
   autoOpenPreview: true,
-  showDebugPanels: true,
+  showDebugPanels: false,
   workflowMode: "auto",
   creativity: "balanced",
   personalizationEnabled: true,

@@ -9,7 +9,8 @@ documentation, sanitized fixtures, and non-sensitive browser evidence.
 - current setup, usage, architecture, evaluation, and privacy documentation;
 - committed scenario metadata and prompt libraries;
 - generated creative-code examples with explicit runtime boundaries; and
-- aggregate or redacted evaluation evidence that excludes private text.
+- aggregate evaluation evidence and synthetic fixtures that exclude private
+  session text.
 
 ## Excluded
 
@@ -17,9 +18,5 @@ documentation, sanitized fixtures, and non-sensitive browser evidence.
 - workspace databases, Chroma collections, backups, logs, and caches;
 - raw prompts, answers, retrieved excerpts, and live-session records;
 - private evaluation decisions and provider payloads;
-- presenter notes, reviewer instructions, rubric mappings, and internal audits;
-  and
+- private preparation records and internal reports; and
 - generated submission packages or private screenshots.
-
-The repository license remains undecided. Public visibility alone does not
-grant redistribution or production-use rights.

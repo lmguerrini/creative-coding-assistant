@@ -8,7 +8,7 @@
     "rows": [
       {
         "sample_id": "sanitized_ragas_p5_setup_draw",
-        "user_input": "How should a p5.js sketch structure setup(), draw(), and interaction state for a reviewer-safe animated geometry demo?",
+        "user_input": "How should a p5.js sketch structure setup(), draw(), and interaction state for an inspection-friendly animated geometry demo?",
         "response": "Use setup() for one-time canvas and state initialization, then use draw() for the repeated animation loop. Keep interaction state explicit in simple variables, use frameCount or elapsed time for motion, and describe the geometry language as an aesthetic reference rather than an authority claim.",
         "retrieved_contexts": [
           "The setup() function is used for initialization and runs once when the p5 sketch starts. The draw() function is called repeatedly and is the usual place for animation updates and rendering.",
@@ -32,7 +32,7 @@
       },
       {
         "sample_id": "sanitized_ragas_three_audio_postfx",
-        "user_input": "What is the safest Three.js plan for an audio-reactive luminous scene with post-processing in the capstone demo?",
+        "user_input": "What is the safest Three.js plan for an audio-reactive luminous scene with post-processing in the local product demo?",
         "response": "Build the scene around a renderer, camera, lights, and reusable geometry, then add post-processing as a bounded visual layer. For audio reaction, read frequency data from a Web Audio analyser after a user gesture and map the normalized values to material color, bloom strength, or mesh motion with a fallback if audio input is unavailable.",
         "retrieved_contexts": [
           "Three.js post-processing renders a scene through one or more passes, commonly using an effect composer so visual effects can be layered after the main scene render.",
@@ -89,16 +89,16 @@
       },
       {
         "sample_id": "sanitized_ragas_hydra_boundary",
-        "user_input": "How should the capstone demo discuss Hydra support now that a bounded local hydra-synth artifact path has passed browser QA?",
+        "user_input": "How should the local product demo discuss Hydra support now that a bounded local hydra-synth artifact path has passed browser QA?",
         "response": "Describe Hydra support as limited to the validated local hydra-synth browser artifact path. Say that p5.js, Three.js, GLSL, and Hydra artifacts were generated and QA reviewed, while microphone, Hydra editor, DCC/MCP, autonomous immersive platforms, and public deployment claims remain out of scope.",
         "retrieved_contexts": [
-          "The demo pack includes local browser QA artifacts and provider-backed RAGAs result rows for public or redacted fixtures. It makes no live DCC, autonomous immersive platform, autonomous workflow, merge, push, tag, or freeze claims.",
+          "The demo pack includes local browser QA artifacts and provider-backed RAGAs result rows for synthetic public fixtures. It does not claim live DCC, autonomous immersive platforms or workflows, or repository automation.",
           "Hydra support is limited to the committed hydra-synth browser artifact QA path. The artifact renders through a temporary hydra-synth package with audio detection disabled and no microphone permission request."
         ],
         "ground_truth": null,
         "source_ids": [
           "cca_demo_pack_boundaries",
-          "cca_capstone_evidence_hydra_boundary"
+          "cca_runtime_evidence_hydra_boundary"
         ],
         "domains": [
           "hydra"

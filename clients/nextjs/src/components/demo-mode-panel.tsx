@@ -13,7 +13,7 @@ import {
   type LucideIcon
 } from "lucide-react";
 import {
-  demoModeRecommendedLiveSequence,
+  demoModeRecommendedSequence,
   type DemoModeScenario
 } from "@/lib/demo-mode";
 import {
@@ -47,13 +47,13 @@ export function DemoModePanel({
   const imageAttachmentRequired = activeScenario.requiresImageAttachment === true;
   const canRunActiveScenario = !imageAttachmentRequired || hasImageAttachment;
   const selectedScenarioIcon = getDemoScenarioIcon(activeScenario);
-  const reviewerFacts = [
+  const productFacts = [
     { label: "Purpose", value: activeScenario.purpose },
     { label: "Runtime", value: activeScenario.runtime },
     { label: "Artifact", value: activeScenario.expectedArtifact },
     { label: "Preview", value: activeScenario.expectedPreview }
   ] as const;
-  const presenterRunbook = [
+  const demoWorkflow = [
     { label: "Input", value: activeScenario.inputRequirement },
     { label: "Interaction", value: activeScenario.expectedInteraction },
     { label: "Acceptance", value: activeScenario.expectedValidation },
@@ -83,14 +83,14 @@ export function DemoModePanel({
         eyebrow="Demo Mode"
         headingLevel="h1"
         icon={Play}
-        title="Capstone scenarios"
+        title="Creative scenarios"
       />
 
       {showDebugPanels ? (
         <DashboardSection
           className="demoFeaturedSequence"
-          detail="Four complementary moments create a concise reviewer-ready narrative."
-          eyebrow="Suggested presentation"
+          detail="Four complementary flows create a concise tour of supported runtime paths."
+          eyebrow="Suggested sequence"
           icon={Sparkles}
           label="Featured demo paths"
           title="Recommended live sequence"
@@ -101,7 +101,7 @@ export function DemoModePanel({
             layout="quad"
             role="list"
           >
-            {demoModeRecommendedLiveSequence.map((item) => {
+            {demoModeRecommendedSequence.map((item) => {
               const scenario = scenarios.find(
                 (candidate) => candidate.id === item.scenarioId
               );
@@ -128,7 +128,7 @@ export function DemoModePanel({
 
       <DashboardSection
         className="demoScenarioWorkspace"
-        detail="Choose one bounded flow, inspect its reviewer contract, then load the prompt only when you are ready to run it."
+        detail="Choose one bounded flow, inspect its product contract, then load the prompt only when you are ready to run it."
         eyebrow="Scenario library"
         icon={LayoutGrid}
         label="Demo scenario workspace"
@@ -200,19 +200,19 @@ export function DemoModePanel({
 
             <DashboardDefinitionGrid
               className="demoScenarioQuickFacts"
-              items={reviewerFacts}
-              label="Reviewer essentials"
+              items={productFacts}
+              label="Product essentials"
               layout="compact"
             />
 
             <DashboardDisclosure
-              className="demoRunbookDisclosure"
+              className="demoWorkflowDisclosure"
               defaultOpen={!showDebugPanels}
-              summary="Presenter runbook"
+              summary="Demo workflow"
             >
               <DashboardDefinitionGrid
-                items={presenterRunbook}
-                label="Presenter runbook details"
+                items={demoWorkflow}
+                label="Demo workflow details"
                 layout="wide"
               />
             </DashboardDisclosure>

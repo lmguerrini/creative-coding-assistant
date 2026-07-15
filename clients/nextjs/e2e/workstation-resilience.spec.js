@@ -6,7 +6,7 @@ const {
   submitCreativePrompt
 } = require("./support/quality-gates");
 
-test.describe("V7.4 workstation resilience", () => {
+test.describe("Workstation resilience", () => {
   test("shows a local draft when the assistant stream fails without browser console errors", async ({
     page
   }) => {
@@ -17,7 +17,7 @@ test.describe("V7.4 workstation resilience", () => {
     await submitCreativePrompt(page, "Force a recoverable stream failure.");
 
     await expect(page.getByRole("log", { name: "Conversation" })).toContainText(
-      "Live response error: The live response stopped before completion."
+      "The live response could not complete."
     );
     await expect(page.getByRole("log", { name: "Conversation" })).toContainText(
       "The workflow stopped before the requested output was ready."
@@ -42,7 +42,9 @@ test.describe("V7.4 workstation resilience", () => {
     await expect(page.getByRole("log", { name: "Conversation" })).toContainText(
       "Provider fallback completed"
     );
-    await expect(page.getByLabel("Current session")).not.toContainText("Failure");
+    await expect(page.getByLabel("Current session", { exact: true })).not.toContainText(
+      "Failure"
+    );
     consoleGate.assertClean();
   });
 
@@ -74,13 +76,10 @@ test.describe("V7.4 workstation resilience", () => {
       "PARTIAL"
     );
     await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).toContainText(
-      "Open Code to inspect, copy, or download the component"
+      "Open Code to use the artifact, then regenerate the preview."
     );
     await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).toContainText(
       "React Three Fiber export"
-    );
-    await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).toContainText(
-      "Code/export-only"
     );
     await expect(page.locator('iframe[title*="React Three Fiber"]')).toHaveCount(0);
     consoleGate.assertClean();

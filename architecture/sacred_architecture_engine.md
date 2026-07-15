@@ -1,12 +1,12 @@
 # Sacred Architecture and Reverse Engineering Engine
 
-The V8.4 catalog defines a bounded Sacred Architecture and Reverse Engineering
-Engine. It translates architectural, spatial, proportional,
+The Sacred Architecture catalog defines a bounded architecture and reverse
+engineering engine. It translates architectural, spatial, proportional,
 geometric, symbolic, and installation-oriented intent into deterministic creative
 coding and spatial-composition guidance.
 
 > **Reference notice:** This is a deterministic guidance-contract reference,
-> not an image-analysis runtime or delivery roadmap. For executable behavior,
+> not an image-analysis runtime or delivery plan. For executable behavior,
 > see [System Architecture Overview](system_architecture_overview.md) and
 > [Single and Multi Runtime Routes](workflow_graph.md).
 
@@ -24,17 +24,17 @@ The implementation lives in:
   axis and symmetry, threshold and procession, center/periphery, topology,
   geometry-to-architecture mappings, symbolic-to-spatial mappings, installation
   planning, reverse-engineering cues, evidence, and safe wording.
-- V8.1 Creative Knowledge Distillation is reused for provenance and confidence.
-- V8.2 Symbolic Translation is reused for symbolic-to-spatial motif mapping.
-- V8.3 Sacred Geometry is reused for proportion, geometry, harmonic, temple-axis,
+- Creative Knowledge Distillation is reused for provenance and confidence.
+- Symbolic Translation is reused for symbolic-to-spatial motif mapping.
+- Sacred Geometry is reused for proportion, geometry, harmonic, temple-axis,
   tessellation, mandala, and layout signals.
 - The module does not perform image-based reconstruction, LIDAR interpretation,
   photogrammetry, CAD/BIM/DCC integration, real-building survey, safety
   certification, preview mutation, storage writes, provider/model routing,
-  workflow control, V8.5 narrative behavior, V8.6 immersive composer behavior,
+  workflow control, mythopoetic narrative behavior, immersive composer behavior,
   HoloMind, or HOLOiVERSE.
 
-## Cataloged V8.4 Surfaces
+## Cataloged Sacred Architecture Surfaces
 
 - Sacred architecture pattern taxonomy for harmonic proportion plans, axis and
   threshold procession, radial center/periphery plans, courtyards, modular grids,
@@ -47,18 +47,19 @@ The implementation lives in:
   periphery, exhibit, and light-source roles.
 - Installation and exhibition guidance for audience flow, sightlines, dwell
   nodes, sensory thresholds, and conceptual clearance.
-- Roadmap classification for all V8.4 capability entries.
+- Capability-boundary classification for all Sacred Architecture entries.
 
 ## Reused Systems
 
 - V3 Creative Translation remains the base request-to-guidance surface.
-- V8.1 provides creative knowledge provenance and confidence signals.
-- V8.2 provides bounded symbolic motifs such as axis, threshold, gate, center,
+- Creative Knowledge Distillation provides creative knowledge provenance and
+  confidence signals.
+- Symbolic Translation provides bounded symbolic motifs such as axis, threshold, gate, center,
   mandala, grid, lattice, labyrinth, and void.
-- V8.3 provides sacred geometry and harmonic proportion signals.
+- Sacred Geometry provides sacred geometry and harmonic proportion signals.
 
-V8.4 composes these systems into architecture-specific generation contracts
-instead of duplicating their responsibilities.
+Sacred Architecture composes these systems into architecture-specific
+generation contracts instead of duplicating their responsibilities.
 
 ## Excluded Boundaries
 

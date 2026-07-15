@@ -366,7 +366,7 @@ const dashboardPageCopy: Record<DashboardGroupId, {
   evaluation: {
     eyebrow: "AI engineering lab",
     title: "Measure each quality claim with defensible evidence",
-    detail: "Keep RAG, creative artifact, workflow, and product reliability criteria separate and reviewer-ready."
+    detail: "Keep RAG, creative artifact, workflow, and product reliability criteria separate and evidence-backed."
   },
   manual: {
     eyebrow: "Canonical product documentation",
@@ -842,7 +842,7 @@ function OverviewDashboardSurface({ model }: { model: ProductIntelligenceModel }
         />
       )}
       className="overviewDecisionSurface"
-      detail="The few signals a reviewer needs before opening a deeper Dashboard page."
+      detail="Key product signals before opening a deeper Dashboard page."
       eyebrow="Decision snapshot"
       icon={LayoutDashboard}
       label="Overview decision snapshot"
@@ -867,7 +867,7 @@ function OverviewDashboardSurface({ model }: { model: ProductIntelligenceModel }
           ]}
         />
       </div>
-      <DashboardCardGrid label="Overview reviewer gates" layout="equal" role="list">
+      <DashboardCardGrid label="Overview readiness gates" layout="equal" role="list">
         <DashboardInfoCard detail={artifactDetail} icon={FileCode2} role="listitem" title={artifactTitle} />
         <DashboardInfoCard detail={previewDetail} icon={MonitorPlay} role="listitem" title={`Preview · ${previewLabel}`} tone={preview?.available ? "success" : "warning"} />
         <DashboardInfoCard detail={runtimeDetail} icon={Activity} role="listitem" title={`Runtime · ${runtimeLabel}`} tone={runtime?.signal === "healthy" ? "success" : "warning"} />
@@ -1812,7 +1812,7 @@ function TelemetryObservatory({ model }: { model: ProductIntelligenceModel }) {
       state={telemetry.status}
       title="Outcome and measurement facts"
     >
-        <div className="telemetryReviewerHero">
+        <div className="telemetryOutcomeHero">
           <article className="dashboardInnerCard telemetryOutcomeCard" data-state={telemetry.status}>
             <span>Current product outcome</span>
             <strong>{formatUiStatusLabel(outcome.product_outcome.toLowerCase().replace(/_/g, " "))}</strong>
@@ -1991,7 +1991,7 @@ function PreviewReadinessBoard({ model }: { model: ProductIntelligenceModel }) {
           ? "Artifact, renderer, browser mount, and Runtime health are all published as ready."
           : "At least one readiness gate is still pending. Use the lifecycle above to identify the exact missing contract before reviewing visible output.")}
         icon={ready ? ShieldCheck : AlertTriangle}
-        title={ready ? "Visible Preview is confirmed" : "Preview is not yet reviewer-ready"}
+        title={ready ? "Visible Preview is confirmed" : "Preview is not yet ready"}
         tone={ready ? "success" : "warning"}
       />
     </DashboardSection>

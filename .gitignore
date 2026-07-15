@@ -17,7 +17,7 @@ build/
 outputs/
 assets/archive/
 
-# Private engineering Runtime Pack, ChatGPT/Codex context, and historical review material stay local.
+# Private engineering handoffs, assistant context, and historical review material stay local.
 .runtime_pack/
 .chatgpt_context/
 codex_starter_pack/
@@ -44,6 +44,10 @@ data/eval/
 data/eval/*
 !data/eval/.gitkeep
 data/workspace_sessions.sqlite3*
+
+# Recorded-session evaluation rows stay local; only public-safe aggregate
+# projections and synthetic fixtures are committed.
+demo/evaluation/redacted_live_session_*
 
 # Local environment files.
 .env

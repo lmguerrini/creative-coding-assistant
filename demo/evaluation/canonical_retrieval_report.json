@@ -1,6 +1,6 @@
 {
   "benchmarkCaseCount": 7,
-  "benchmarkId": "capstone_kb_expansion_retrieval_demo_pack",
+  "benchmarkId": "creative_coding_retrieval_benchmark",
   "cases": [
     {
       "caseId": "runtime_selection_hydra_vs_p5",

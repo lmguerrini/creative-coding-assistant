@@ -1,11 +1,11 @@
 # Symbolic Translation Engine
 
-The V8.2 catalog defines a bounded Symbolic Translation Engine. It translates
-user-visible symbolic, artistic, mythopoetic, geometric, ritual,
+The Symbolic Translation catalog defines a bounded guidance engine. It
+translates user-visible symbolic, artistic, mythopoetic, geometric, ritual,
 aesthetic, and conceptual intent into structured creative coding guidance.
 
 > **Reference notice:** This is a deterministic guidance-contract reference,
-> not a separate runtime subsystem or delivery roadmap. For executable
+> not a separate runtime subsystem or delivery plan. For executable
 > behavior, see [System Architecture Overview](system_architecture_overview.md)
 > and [Single and Multi Runtime Routes](workflow_graph.md).
 
@@ -19,38 +19,38 @@ The implementation lives in
   families, parameter names, composition guidance, and safety boundaries.
 - V3 Creative Translation, Semantic Motif, and Symbolic Narrative outputs can
   be reused as source evidence when available.
-- V8.1 creative knowledge distillation records are reused as provenance and
+- Creative Knowledge Distillation records are reused as provenance and
   confidence signals where relevant.
 - The module does not mutate the LangGraph workflow, route providers/models,
   change prompt rendering, write storage, mutate preview runtime, create UI, or
   execute generated artifacts.
-- The module does not implement HoloMind, HOLOiVERSE, or V8.3 Sacred Geometry
-  Engine.
+- The module does not implement HoloMind, HOLOiVERSE, or the Sacred Geometry
+  engine.
 
-## Cataloged V8.2 Surfaces
+## Cataloged Symbolic Translation Surfaces
 
-- Typed motif, operation, provenance, confidence, roadmap-assessment, and
+- Typed motif, operation, provenance, confidence, capability-assessment, and
   report contracts.
 - Bounded motif-to-creative-coding mappings for supported symbols such as
   spiral, mandala, phoenix, labyrinth, threshold, mirror, seed, wave, pulse,
   grid, network, void, flame, tree, and related operational motifs.
 - Operational guidance for visual structure, motion, audio, runtime families,
   parameter mapping, composition, and interpretation boundaries.
-- V8.1 provenance/confidence integration for symbolic and operational
+- Creative Knowledge Distillation provenance/confidence integration for symbolic and operational
   creative-knowledge records.
 - Prompt-line rendering that exposes boundaries, evidence, guidance, risks, and
   HITL questions.
-- Roadmap reality classification for all V8.2 items.
+- Capability-boundary classification for all Symbolic Translation items.
 
 ## Reused Systems
 
 - V3 Creative Translation remains the base request-to-guidance surface.
 - V3 Semantic Motif remains the richer motif hierarchy and recurrence surface.
 - V3 Symbolic Narrative remains the phased symbolic-arc surface.
-- V8.1 Creative Knowledge Distillation remains the provenance and confidence
-  source for repository and demo-domain knowledge records.
+- Creative Knowledge Distillation remains the provenance and confidence source
+  for repository and demo-domain knowledge records.
 
-V8.2 composes these systems into an operational translation report instead of
+Symbolic Translation composes these systems into an operational translation report instead of
 duplicating their responsibilities.
 
 ## Excluded Boundaries

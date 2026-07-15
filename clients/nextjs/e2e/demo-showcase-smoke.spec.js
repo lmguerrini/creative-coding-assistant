@@ -9,7 +9,7 @@ const { showcaseSmokeCases } = require("./support/demo-fixtures");
 const localFixtureBoundary =
   "Local deterministic showcase fixture for browser smoke; this is not provider-backed generation evidence.";
 
-test.describe("V9.8 canonical showcase browser smoke (local deterministic fixtures)", () => {
+test.describe("Canonical showcase browser smoke (local deterministic fixtures)", () => {
   for (const showcase of showcaseSmokeCases) {
     test(`${showcase.title}: request, runtime, fullscreen, refinement, reload, and quality`, async ({
       page
@@ -17,6 +17,7 @@ test.describe("V9.8 canonical showcase browser smoke (local deterministic fixtur
       const consoleGate = installConsoleGate(page);
       await installApiMocks(page, `showcase:${showcase.id}`);
       await expectLoadedWorkstation(page);
+      await enableDeveloperMode(page);
 
       const generationRequest = await runShowcaseFromReviewedDemoDetail(page, showcase);
       const generationPayload = generationRequest.postDataJSON();
@@ -196,7 +197,7 @@ async function assertCreativeSessionFullscreenRestore(page) {
   }));
 
   expect(before).toEqual({ inspector: "open", preview: "open", sidebar: "open" });
-  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("button", { exact: true, name: "Settings" }).click();
   await page
     .getByRole("button", {
       name: "Toggle Fullscreen Creative Session from quick actions"
@@ -208,7 +209,7 @@ async function assertCreativeSessionFullscreenRestore(page) {
   await expect(workstation).toHaveAttribute("data-sidebar-state", "collapsed");
   await expect(page.getByRole("region", { name: "Creative session" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("button", { exact: true, name: "Settings" }).click();
   await page
     .getByRole("button", {
       name: "Toggle Fullscreen Creative Session from quick actions"
@@ -246,6 +247,19 @@ async function expandInspector(page) {
     "data-state",
     "open"
   );
+}
+
+async function enableDeveloperMode(page) {
+  const trigger = page.getByRole("button", { exact: true, name: "Settings" });
+  await trigger.click();
+  const panel = page.getByRole("dialog", { name: "Workspace settings" });
+  const displayMode = panel.getByRole("button", { name: "Display mode" });
+  if ((await displayMode.textContent())?.includes("User")) {
+    await displayMode.click();
+  }
+  await expect(displayMode).toContainText("Developer");
+  await panel.press("Escape");
+  await expect(panel).toHaveCount(0);
 }
 
 async function readTwoDimensionalCanvasEnergy(canvas) {

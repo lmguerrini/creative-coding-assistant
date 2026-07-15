@@ -233,14 +233,14 @@ export function CapstoneEvaluationWorkspace({
   });
 
   return (
-    <section aria-label="Capstone evaluation workspace" className="evaluationWorkspace">
+    <section aria-label="Evaluation workspace" className="evaluationWorkspace">
       <DashboardSection
         action={(
           <div className="evaluationLaunchActions">
-            <button className="capstonePrimaryButton" disabled={isRunning || selectedCount === 0} onClick={() => void run()} type="button">
+            <button className="evaluationPrimaryButton" disabled={isRunning || selectedCount === 0} onClick={() => void run()} type="button">
               <Sparkles aria-hidden="true" size={16} /> {isRunning ? "Evaluation running…" : "Run Evaluation"}
             </button>
-            <button className="capstoneConfigureButton" disabled={isRunning} onClick={() => setRunOpen(true)} type="button">Configure run</button>
+            <button className="evaluationConfigureButton" disabled={isRunning} onClick={() => setRunOpen(true)} type="button">Configure run</button>
           </div>
         )}
         className="evaluationLabIntro"
@@ -271,8 +271,8 @@ export function CapstoneEvaluationWorkspace({
             },
             {
               detail: currentRetrievalRun
-                ? `${currentRetrievalRun.ragas.resultRows}/${currentRetrievalRun.ragas.totalSamples} current-product cases · target 85% · stretch 90%`
-                : "Run the current product to establish a score · target 85% · stretch 90%",
+                ? `${currentRetrievalRun.ragas.resultRows}/${currentRetrievalRun.ragas.totalSamples} current-product cases · five-metric retrieval score`
+                : "Run the current product to establish a five-metric retrieval score",
               label: "Current Retrieval Quality",
               tone: currentRetrievalRun ? "good" : "warning",
               value: formatPreciseScore(currentProductRetrievalScore(currentRetrievalRun))
@@ -482,10 +482,10 @@ export function CapstoneEvaluationWorkspace({
       </DashboardDisclosure>
 
       <DashboardDisclosure className="evaluationWorkspaceDisclosure" summary="Evaluation claim mapping and methodology">
-        <section aria-label="Capstone evaluation mapping" className="evaluationCoverageContent">
+        <section aria-label="Evaluation claim mapping" className="evaluationCoverageContent">
           <DashboardSectionHeader
             detail="The matrix separates measurable product evidence from checks that require another environment or human observation."
-            eyebrow="Capstone coverage"
+            eyebrow="Evaluation coverage"
             icon={CheckCircle2}
             title="What each evaluation claim is built from"
           />
@@ -629,7 +629,7 @@ function RetrievalEvaluation({ ragCaseIds, run }: { ragCaseIds: string[]; run: E
           <span><Gauge aria-hidden="true" size={15} /> Current-product Overall Retrieval Score</span>
           <strong>{formatPreciseScore(retrievalScore)}</strong>
           <div className="evaluationScoreTrack"><i style={{ width: `${(retrievalScore ?? 0) * 100}%` }} /></div>
-          <p>{supportedScores.length}/5 justified RAGAS dimensions measured. {retrievalScore == null ? "No partial metric set is promoted to the primary score." : "Each dimension contributes equally; target 85%, stretch 90%."}</p>
+          <p>{supportedScores.length}/5 justified RAGAS dimensions measured. {retrievalScore == null ? "No partial metric set is promoted to the primary score." : "Each dimension contributes equally."}</p>
         </article>
         <DashboardCardGrid className="evaluationRetrievalBoundaries" label="Retrieval score boundaries" layout="equal" role="list">
           <EvaluationBoundaryCard
@@ -734,7 +734,7 @@ function RetrievalEngineeringEvolution({ run }: { run: EvaluationBenchmarkRun | 
         <small>{run ? `${run.ragas.resultRows}/${run.ragas.totalSamples} cases · ${formatDate(run.timestamp)}` : "No completed current-product run"}</small>
       </header>
       <div className="retrievalRagasComparison">
-        <div><span>Current Retrieval Quality</span><strong>{formatPreciseScore(currentProductRetrievalScore(run))}</strong><small>Target 85% · stretch 90%</small></div>
+        <div><span>Current Retrieval Quality</span><strong>{formatPreciseScore(currentProductRetrievalScore(run))}</strong><small>Five dimensions · equal weight</small></div>
         <ArrowRight aria-hidden="true" size={17} />
         <div><span>Current benchmark</span><strong>{run?.benchmarkVersion ?? "Awaiting run"}</strong><small>{run?.runId ?? "No run identifier"}</small></div>
         <div><span>Comparable delta</span><strong>{formatDelta(run?.categoryResults.find((item) => item.category === "rag")?.delta ?? null)}</strong><small>Only same dataset and evaluator contracts compare</small></div>
@@ -821,22 +821,21 @@ function MetricDiagnostics({ run }: { run: EvaluationBenchmarkRun | null }) {
   const recommendation = run?.recommendations.find((item) => item.category === "rag") ?? null;
   return (
     <section aria-label="Metric engineering diagnostics" className="retrievalDiagnostics">
-      <header><div><span><Activity aria-hidden="true" size={14} /> Metric diagnostics</span><strong>What the current-product run measured</strong></div><small>Open a metric for current evidence, target, provenance change, and next step.</small></header>
+      <header><div><span><Activity aria-hidden="true" size={14} /> Metric diagnostics</span><strong>What the current-product run measured</strong></div><small>Open a metric for current evidence, provenance, limitations, and next step.</small></header>
       <div>
         {retrievalMetrics.map((metric) => {
           const score = run?.ragas.metricScores[metric.id] ?? null;
-          const belowTarget = score != null && score < .85;
           return (
             <details key={metric.id}>
               <summary><span>{metric.label}</span><strong>{formatPreciseScore(score)}</strong><ChevronDown aria-hidden="true" size={14} /></summary>
               <dl>
                 <div><dt>Current-product score</dt><dd>{score == null ? "MISSING_EVIDENCE" : formatPreciseScore(score)}</dd></div>
-                <div><dt>Target</dt><dd>85% acceptance · 90% stretch under the same benchmark and evaluator contract.</dd></div>
-                <div><dt>Root cause</dt><dd>{score == null ? "This run did not publish a defensible score for the metric." : belowTarget ? "The current metric remains below the acceptance target; inspect the per-case evidence before changing the product." : "No below-target defect is established by the current metric."}</dd></div>
+                <div><dt>Interpretation</dt><dd>No acceptance threshold is inferred from this seven-case benchmark; compare scores only under the same benchmark and evaluator contract.</dd></div>
+                <div><dt>Evidence boundary</dt><dd>{score == null ? "This run did not publish a defensible score for the metric." : "Inspect per-case evidence before attributing a score change to the product."}</dd></div>
                 <div><dt>Product version</dt><dd>Retrieval {shortFingerprint(run?.retrievalFingerprint ?? null)} · prompt {shortFingerprint(run?.promptFingerprint ?? null)} · generation {shortFingerprint(run?.generationFingerprint ?? null)}</dd></div>
                 <div><dt>Comparable benchmark delta</dt><dd>{formatDelta(ragResult?.delta ?? null)}</dd></div>
                 <div><dt>Remaining limitation</dt><dd>{run?.ragas.detail ?? "No current-product benchmark has completed."}</dd></div>
-                <div><dt>Recommended next engineering step</dt><dd>{recommendation?.detail ?? (belowTarget ? `Review the lowest ${metric.label} case evidence and improve the real retrieval or generation path.` : "Retain the current behavior and broaden independently reviewed benchmark coverage.")}</dd></div>
+                <div><dt>Recommended next engineering step</dt><dd>{recommendation?.detail ?? (score == null ? `Collect comparable ${metric.label} evidence under the same contract.` : "Retain the current behavior and broaden independently reviewed benchmark coverage.")}</dd></div>
               </dl>
             </details>
           );

@@ -7,7 +7,7 @@ import {
   selectPersonalizationContext
 } from "./product-controls";
 
-describe("V9.7 product controls", () => {
+describe("product controls", () => {
   it("maps the compact creativity choices to bounded provider requests", () => {
     expect(buildGenerationControls("controlled").requestedTemperature).toBe(0.35);
     expect(buildGenerationControls("balanced").requestedTemperature).toBe(0.7);

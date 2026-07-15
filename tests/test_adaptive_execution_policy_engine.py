@@ -278,6 +278,20 @@ class AdaptiveExecutionPolicyEngineTests(unittest.TestCase):
             tuple(action.action_kind for action in plan.manual_actions),
             REQUIRED_MANUAL_ACTIONS,
         )
+        actions_by_kind = {
+            action.action_kind: action for action in plan.manual_actions
+        }
+        runtime_review = actions_by_kind["runtime_evolution_review"]
+        provider_setup = actions_by_kind["provider_provisioning"]
+        self.assertEqual(
+            runtime_review.recommended_model,
+            provider_setup.recommended_model,
+        )
+        self.assertNotEqual(runtime_review.recommended_model, "Runtime Pack")
+        self.assertEqual(
+            runtime_review.suggested_source_category,
+            "Runtime vendor documentation",
+        )
         for action in plan.manual_actions:
             self.assertTrue(action.manual_action_required)
             self.assertTrue(action.hitl_required)

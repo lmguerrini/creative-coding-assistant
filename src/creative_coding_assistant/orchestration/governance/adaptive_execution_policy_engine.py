@@ -1396,11 +1396,11 @@ def _manual_actions(
         AdaptiveExecutionManualAction(
             action_id="adaptive_execution_manual_action::runtime_evolution_review",
             action_kind="runtime_evolution_review",
-            recommended_model="Runtime Pack",
-            suggested_source_category="Runtime Evolution Review",
+            recommended_model=task_decision.recommended_model_profile_id,
+            suggested_source_category="Runtime vendor documentation",
             reason_summary=(
-                "Runtime Evolution remains review-only and requires HITL before "
-                "any runtime methodology or workflow change."
+                "Changes to runtime behavior require explicit human approval; "
+                "no runtime or workflow change is applied automatically."
             ),
         ),
     )

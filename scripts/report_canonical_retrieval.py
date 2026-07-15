@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Report read-only retrieval coverage for the canonical Capstone demo pack."""
+"""Report read-only retrieval coverage for the canonical product benchmark."""
 
 from __future__ import annotations
 

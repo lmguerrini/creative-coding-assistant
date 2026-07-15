@@ -417,8 +417,8 @@ describe("Product Intelligence surfaces", () => {
       /OpenAI.*Configured server-side/
     );
     expect(screen.getByRole("group", { name: "Headings scale" })).toBeVisible();
-    expect(screen.getByRole("button", { name: /Display mode.*Developer/i }))
-      .toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: /Display mode.*User/i }))
+      .toHaveAttribute("aria-pressed", "false");
 
     const largeChoices = screen.getAllByRole("button", { name: "large" });
     fireEvent.click(largeChoices[0]!);

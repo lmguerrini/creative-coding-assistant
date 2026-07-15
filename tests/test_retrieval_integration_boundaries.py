@@ -19,6 +19,7 @@ from creative_coding_assistant.orchestration import (
     RouteDecision,
     RouteName,
     build_retrieval_context_request,
+    route_request,
 )
 from creative_coding_assistant.rag.retrieval import (
     KnowledgeBaseRetrievalRequest,
@@ -829,7 +830,7 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
         )
         gateway = _FakeGateway(response=retrieval_context)
         service = AssistantService(
-            route_fn=_route_with_docs,
+            route_fn=route_request,
             retrieval_gateway=gateway,
         )
         request = AssistantRequest(
@@ -901,7 +902,7 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
             raised_error=RuntimeError("boom"),
         )
         service = AssistantService(
-            route_fn=_route_with_docs,
+            route_fn=route_request,
             retrieval_gateway=gateway,
         )
         request = AssistantRequest(
@@ -934,7 +935,7 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
         )
         gateway = _FakeGateway(response=retrieval_context)
         service = AssistantService(
-            route_fn=_route_with_docs,
+            route_fn=route_request,
             retrieval_gateway=gateway,
         )
         request = AssistantRequest(
@@ -969,7 +970,7 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
         )
         gateway = _FakeGateway(response=retrieval_context)
         service = AssistantService(
-            route_fn=_route_with_docs,
+            route_fn=route_request,
             retrieval_gateway=gateway,
         )
         request = AssistantRequest(
@@ -989,6 +990,50 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
             gateway.requests[0].filters.domains,
             (CreativeCodingDomain.P5_JS,),
         )
+
+    def test_assistant_service_auto_single_agent_skips_generic_retrieval(self) -> None:
+        for mode in (AssistantMode.EXPLAIN, AssistantMode.DEBUG):
+            with self.subTest(mode=mode):
+                gateway = _FakeGateway(
+                    response=RetrievalContextResponse(
+                        request=RetrievalContextRequest(
+                            query="Unused",
+                            route=RouteName(mode.value),
+                        ),
+                    )
+                )
+                service = AssistantService(
+                    route_fn=route_request,
+                    retrieval_gateway=gateway,
+                )
+                request = AssistantRequest(
+                    query="Describe the creative coding approach.",
+                    mode=mode,
+                )
+
+                events = tuple(service.stream(request))
+                route_event = first_event(
+                    events,
+                    StreamEventType.STATUS,
+                    "route_selected",
+                )
+
+                self.assertIn(
+                    RouteCapability.OFFICIAL_DOCS.value,
+                    route_event.payload["route"]["capabilities"],
+                )
+                self.assertEqual(
+                    route_event.payload["route"]["execution"]["resolved_mode"],
+                    "single_agent",
+                )
+                self.assertFalse(
+                    route_event.payload["route"]["execution"]["researcher_required"]
+                )
+                self.assertEqual(len(gateway.requests), 0)
+                self.assertNotIn(
+                    StreamEventType.RETRIEVAL,
+                    [event.event_type for event in legacy_events(events)],
+                )
 
     def test_assistant_service_skips_retrieval_without_docs_capability(self) -> None:
         gateway = _FakeGateway(
@@ -1017,15 +1062,6 @@ class RetrievalIntegrationBoundaryTests(unittest.TestCase):
             ],
         )
         self.assertEqual(len(gateway.requests), 0)
-
-
-def _route_with_docs(request: AssistantRequest) -> RouteDecision:
-    return RouteDecision(
-        route=RouteName.EXPLAIN,
-        mode=request.mode,
-        domain=request.domain,
-        capabilities=(RouteCapability.OFFICIAL_DOCS,),
-    )
 
 
 def _route_without_docs(request: AssistantRequest) -> RouteDecision:

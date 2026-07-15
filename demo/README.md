@@ -19,8 +19,8 @@ retriever, or browser runtime succeeded in the current session.
 
 ## Asset map
 
-- `v9_5_golden_demo_dataset.json` and `v9_5_exact_prompt_library.md`: current
-  scenario metadata and prompts.
+- `v9_5_golden_demo_dataset.json` and `v9_5_exact_prompt_library.md`:
+  compatibility-named current scenario metadata and prompts.
 - `golden_demo_dataset.json` and `final_demo_suite.json`: compatibility data for
   the static launcher and passive demo metadata.
 - `golden_artifacts/`: generated source plus local browser-harness evidence.

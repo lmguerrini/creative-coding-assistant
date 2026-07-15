@@ -127,6 +127,10 @@ class ProductionReleaseAuditTests(unittest.TestCase):
             "architecture_freeze_audit",
             audit,
         )
+        creative = production_release_audit_record_by_area(
+            "creative_readiness_audit",
+            audit,
+        )
         controls = production_release_audit_record_by_area(
             "release_control_audit",
             audit,
@@ -136,10 +140,12 @@ class ProductionReleaseAuditTests(unittest.TestCase):
         self.assertIsNotNone(validation)
         self.assertIsNotNone(deployment)
         self.assertIsNotNone(architecture)
+        self.assertIsNotNone(creative)
         self.assertIsNotNone(controls)
         assert validation is not None
         assert deployment is not None
         assert architecture is not None
+        assert creative is not None
         assert controls is not None
         self.assertGreaterEqual(len(guarded), 1)
         self.assertIn("final_validation_pending", validation.guarded_findings)
@@ -149,6 +155,11 @@ class ProductionReleaseAuditTests(unittest.TestCase):
             deployment.guarded_findings,
         )
         self.assertIn("no_architecture_expansion_required", architecture.pass_findings)
+        self.assertIn("creative_demo_materials_available", creative.pass_findings)
+        self.assertNotIn(
+            "capstone_creative_demo_materials_ready",
+            creative.pass_findings,
+        )
 
         for record in audit.records:
             dumped = record.model_dump(mode="json")

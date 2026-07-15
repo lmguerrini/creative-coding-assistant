@@ -55,9 +55,8 @@ class ProductionReadinessReviewTests(unittest.TestCase):
         self.assertEqual(review.blocked_record_ids, ())
         self.assertEqual(review.blocking_finding_count, 0)
         self.assertGreaterEqual(review.guarded_finding_count, 1)
-        self.assertIn(
-            "Ready for capstone/portfolio demo", review.mvp_readiness_statement
-        )
+        self.assertIn("Ready for local product validation", review.mvp_readiness_statement)
+        self.assertNotIn("capstone", review.mvp_readiness_statement.casefold())
         self.assertIn("does not change configuration", review.authority_boundary)
         self.assertTrue(review.production_readiness_review_implemented)
         self.assertTrue(review.configuration_review_implemented)

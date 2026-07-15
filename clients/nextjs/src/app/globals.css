@@ -48,19 +48,19 @@ html[data-cca-theme="aqua"] {
   --button-radius: 10px;
 }
 
-/* Canonical Capstone evaluation workspace */
-.capstoneEvaluation { display: grid; gap: 18px; color: var(--text-primary, #f5f5f5); }
-.capstoneEvaluationHero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 300px); gap: 24px; padding: 26px; border: 1px solid rgba(74, 158, 255, .26); border-radius: 18px; background: radial-gradient(circle at 100% 0, rgba(32, 128, 255, .14), transparent 44%), linear-gradient(145deg, rgba(255,255,255,.045), rgba(255,255,255,.018)); }
-.capstoneEvaluationHero h2 { margin: 9px 0 8px; max-width: 720px; font-size: clamp(23px, 3vw, 36px); line-height: 1.05; letter-spacing: -.04em; }
-.capstoneEvaluationHero p { max-width: 760px; margin: 0; color: var(--text-secondary, #a9adb5); font-size: 13px; line-height: 1.65; }
-.capstoneEyebrow,.evaluationSectionHeading>span { display: flex; align-items: center; gap: 7px; color: #4cabff; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-.capstoneHeroMeta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
-.capstoneHeroMeta span { display: flex; gap: 5px; padding: 7px 9px; border: 1px solid rgba(255,255,255,.08); border-radius: 8px; background: rgba(0,0,0,.14); color: #9298a2; font-size: 10px; }
-.capstoneHeroMeta strong { color: #e8ebef; }
-.capstoneHeroAction { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 8px; padding: 18px; border: 1px solid rgba(255,255,255,.09); border-radius: 13px; background: rgba(8,10,14,.34); }
-.capstoneHeroAction>strong { font-size: 15px; }.capstoneHeroAction>small { color: #89909b; }
-.capstonePrimaryButton { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; margin-top: 6px; padding: 0 16px; border: 1px solid #319dfc; border-radius: 9px; background: #1686e8; color: white; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 8px 22px rgba(0,111,230,.2); }
-.capstonePrimaryButton:hover:not(:disabled) { background: #2699ff; }.capstonePrimaryButton:disabled { opacity: .52; cursor: wait; }
+/* Evaluation workspace */
+.evaluationStandaloneWorkspace { display: grid; gap: 18px; color: var(--text-primary, #f5f5f5); }
+.evaluationStandaloneHero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 300px); gap: 24px; padding: 26px; border: 1px solid rgba(74, 158, 255, .26); border-radius: 18px; background: radial-gradient(circle at 100% 0, rgba(32, 128, 255, .14), transparent 44%), linear-gradient(145deg, rgba(255,255,255,.045), rgba(255,255,255,.018)); }
+.evaluationStandaloneHero h2 { margin: 9px 0 8px; max-width: 720px; font-size: clamp(23px, 3vw, 36px); line-height: 1.05; letter-spacing: -.04em; }
+.evaluationStandaloneHero p { max-width: 760px; margin: 0; color: var(--text-secondary, #a9adb5); font-size: 13px; line-height: 1.65; }
+.evaluationStandaloneEyebrow,.evaluationSectionHeading>span { display: flex; align-items: center; gap: 7px; color: #4cabff; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.evaluationStandaloneHeroMeta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.evaluationStandaloneHeroMeta span { display: flex; gap: 5px; padding: 7px 9px; border: 1px solid rgba(255,255,255,.08); border-radius: 8px; background: rgba(0,0,0,.14); color: #9298a2; font-size: 10px; }
+.evaluationStandaloneHeroMeta strong { color: #e8ebef; }
+.evaluationStandaloneHeroAction { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 8px; padding: 18px; border: 1px solid rgba(255,255,255,.09); border-radius: 13px; background: rgba(8,10,14,.34); }
+.evaluationStandaloneHeroAction>strong { font-size: 15px; }.evaluationStandaloneHeroAction>small { color: #89909b; }
+.evaluationPrimaryButton { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; margin-top: 6px; padding: 0 16px; border: 1px solid #319dfc; border-radius: 9px; background: #1686e8; color: white; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 8px 22px rgba(0,111,230,.2); }
+.evaluationPrimaryButton:hover:not(:disabled) { background: #2699ff; }.evaluationPrimaryButton:disabled { opacity: .52; cursor: wait; }
 .evaluationQualityMap { display:grid; gap:11px; padding:15px; border:1px solid rgba(255,255,255,.085); border-radius:13px; background:rgba(255,255,255,.022); }
 .evaluationQualityMap>header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }.evaluationQualityMap>header>div { display:grid; gap:4px; }.evaluationQualityMap>header span { display:flex; align-items:center; gap:6px; color:#56b4ff; font-size:8px; font-weight:850; letter-spacing:.09em; text-transform:uppercase; }.evaluationQualityMap>header strong { font-size:12px; }.evaluationQualityMap>header small { max-width:390px; color:#77818c; font-size:8px; line-height:1.45; text-align:right; }
 .evaluationQualityMap>div { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:7px; }.evaluationQualityMap article { min-width:0; padding:11px; border:1px solid rgba(255,255,255,.065); border-radius:8px; background:rgba(0,0,0,.13); }.evaluationQualityMap article>span,.evaluationQualityMap article>strong,.evaluationQualityMap article>small { display:block; }.evaluationQualityMap article>span { color:#aeb7c0; font-size:8px; font-weight:850; }.evaluationQualityMap article>strong { margin-top:7px; color:#edf1f4; font-size:15px; letter-spacing:-.025em; }.evaluationQualityMap article>small { width:fit-content; margin-top:6px; padding:3px 5px; border-radius:4px; background:rgba(77,169,246,.08); color:#62b8ff; font-size:6.5px; font-style:normal; font-weight:850; letter-spacing:.05em; }.evaluationQualityMap article>p { margin:7px 0 0; color:#77828e; font-size:7.2px; line-height:1.45; }
@@ -132,7 +132,7 @@ html[data-cca-theme="aqua"] {
   .evaluationPreflightGrid { grid-template-columns:repeat(2,1fr); }
 }
 @media (max-width: 760px) {
-  .capstoneEvaluationHero { grid-template-columns:1fr; padding:18px; }.capstoneHeroAction { padding:13px; }
+  .evaluationStandaloneHero { grid-template-columns:1fr; padding:18px; }.evaluationStandaloneHeroAction { padding:13px; }
   .evaluationQualityMap>header { align-items:flex-start; flex-direction:column; }.evaluationQualityMap>header small { max-width:none; text-align:left; }.evaluationQualityMap>div { grid-template-columns:1fr; }
   .retrievalEvaluation { padding:15px; }.retrievalEvaluationHeader { grid-template-columns:1fr; }.retrievalExecutionBadge { justify-items:start; min-width:0; text-align:left; }.retrievalScoreSummary,.retrievalMetricGrid,.retrievalEvolutionStages,.retrievalDiagnostics>div,.retrievalRagasComparison { grid-template-columns:1fr; }.retrievalMetricGrid article>p,.retrievalEvolutionStages article>p { min-height:0; }.evaluationLiveProgress dl { grid-template-columns:repeat(2,minmax(0,1fr)); }.evaluationLiveProgress dd { overflow:visible; text-overflow:clip; white-space:normal; }
   .retrievalScoreContract>summary { grid-template-columns:minmax(0,1fr) auto; }.retrievalScoreContract>summary>small { display:none; }.retrievalScoreContract>div { grid-template-columns:1fr; }.retrievalScoreContract article,.retrievalScoreContract section:last-child article { grid-template-columns:minmax(0,1fr); }.retrievalScoreContract article>em { max-width:100%; width:fit-content; }
@@ -536,7 +536,7 @@ pre,
   white-space: pre-wrap;
 }
 
-.previewRuntimePresenterFallback {
+.previewRuntimeUserFallback {
   display: grid;
   gap: 5px;
   padding: 12px;
@@ -548,13 +548,13 @@ pre,
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.24);
 }
 
-.previewRuntimePresenterFallback strong {
+.previewRuntimeUserFallback strong {
   color: var(--foreground);
   font-size: 12px;
   line-height: 1.2;
 }
 
-.previewRuntimePresenterFallback p {
+.previewRuntimeUserFallback p {
   margin: 0;
   color: var(--muted-strong);
   font-size: 12px;
@@ -10471,7 +10471,7 @@ html[data-cca-theme="blueprint"] .codeViewer {
   padding: 12px;
 }
 
-/* V9.7 persistent session rail: its own scroll never changes chat height. */
+/* The persistent session rail scrolls independently from the chat. */
 @media (min-width: 761px) {
   .workspaceLayout {
     grid-template-columns:
@@ -10891,7 +10891,7 @@ html[data-cca-theme="blueprint"] .codeViewer {
   }
 }
 
-/* V9.4 keeps persistent KB inventory and request-scoped retrieval visibly distinct. */
+/* Persistent KB inventory and request-scoped retrieval remain visibly distinct. */
 .domainExperienceSurface {
   display: grid;
   min-width: 0;
@@ -11614,7 +11614,7 @@ html[data-cca-theme="blueprint"] .codeViewer {
   }
 }
 
-/* V9.3 shared product UX system: Dashboard and Inspector read from the same model. */
+/* Dashboard and Inspector read from the same product model. */
 .productDashboard {
   display: grid;
   min-height: min(760px, calc(100vh - 84px));
@@ -12227,7 +12227,7 @@ html[data-cca-heading-font-size] .workstation .dashboardNavSection > h2 {
   font-size: var(--label-font-size) !important;
 }
 
-/* Overview: reviewer-first synthesis; generic surface treatment lives in the Design System. */
+/* Overview synthesis; generic surface treatment lives in the Design System. */
 .overviewDecisionGrid {
   display: grid;
   grid-template-columns: minmax(260px, 0.82fr) minmax(0, 1.7fr);
@@ -12326,7 +12326,7 @@ html[data-cca-heading-font-size] .workstation .dashboardNavSection > h2 {
   display: block;
 }
 
-/* V9.8 Dashboard reviewer hierarchy, truthful previews, and run evidence. */
+/* Dashboard hierarchy, truthful previews, and run evidence. */
 .architectureRouteGrid article > span {
   color: var(--teal);
   font-size: 10px;
@@ -12523,7 +12523,7 @@ html[data-cca-heading-font-size] .workstation .dashboardNavSection > h2 {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
 }
 
-.telemetryReviewerHero {
+.telemetryOutcomeHero {
   display: grid;
   grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.4fr);
   gap: 12px;
@@ -12613,7 +12613,7 @@ html[data-cca-heading-font-size] .workstation .dashboardNavSection > h2 {
   padding: 0 12px 12px;
 }
 
-.capstoneConfigureButton {
+.evaluationConfigureButton {
   min-height: 30px;
   padding: 0;
   border: 0;
@@ -12624,8 +12624,8 @@ html[data-cca-heading-font-size] .workstation .dashboardNavSection > h2 {
   font-weight: 780;
 }
 
-.capstoneConfigureButton:hover:not(:disabled) { color: #c5e4ff; }
-.capstoneConfigureButton:disabled { cursor: wait; opacity: 0.5; }
+.evaluationConfigureButton:hover:not(:disabled) { color: #c5e4ff; }
+.evaluationConfigureButton:disabled { cursor: wait; opacity: 0.5; }
 
 .evaluationCategoryCard[data-measured="false"] {
   background:
@@ -12657,7 +12657,7 @@ html[data-cca-heading-font-size] .workstation .dashboardNavSection > h2 {
 }
 
 @media (max-width: 980px) {
-  .telemetryReviewerHero { grid-template-columns: minmax(0, 1fr); }
+  .telemetryOutcomeHero { grid-template-columns: minmax(0, 1fr); }
   .telemetryLifecycleRail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -12670,7 +12670,7 @@ html[data-cca-heading-font-size] .workstation .dashboardNavSection > h2 {
   .artifactVisualPreview .previewSurface[data-chrome="comparison"],
   .artifactVisualPreview .previewSurface[data-chrome="comparison"] .previewRuntimeStage,
   .artifactVisualPreview .previewSurface[data-chrome="comparison"] .previewRuntimeFrame { min-height: 180px; }
-  .telemetryReviewerHero,
+  .telemetryOutcomeHero,
   .telemetryLifecycleRail { padding-right: 16px; padding-left: 16px; }
 }
 
@@ -13082,7 +13082,7 @@ html[data-cca-label-font-size] .workstation :is(
   font-size: var(--label-font-size) !important;
 }
 
-/* V9.6 product UX finalization */
+/* Product workspace refinements */
 @media (min-width: 761px) {
   html,
   body {
@@ -13207,7 +13207,7 @@ html[data-cca-label-font-size] .workstation :is(
   gap: 14px;
 }
 
-/* Dashboard V9.7 follow-up: one decision per page, with scan-friendly cards. */
+/* Dashboard pages use scan-friendly cards with one primary decision. */
 .productDashboard {
   grid-template-columns: minmax(236px, 292px) minmax(0, 1fr);
 }
@@ -14142,7 +14142,7 @@ html[data-cca-label-font-size] .workstation :is(
   }
 }
 
-/* Knowledge Base V9.8: match the dashboard's readable card scale. */
+/* Knowledge Base cards match the dashboard's readable scale. */
 .knowledgeDashboardView .kbInventorySurface[data-header-mode="embedded"] {
   padding: 20px 22px 24px;
 }
@@ -14657,7 +14657,7 @@ html[data-cca-label-font-size] .workstation :is(
     var(--dashboard-inner-card-background);
 }
 
-.dashboardVisualSection.telemetryObservatory > .telemetryReviewerHero,
+.dashboardVisualSection.telemetryObservatory > .telemetryOutcomeHero,
 .dashboardVisualSection.telemetryObservatory > .telemetryLifecycleRail,
 .dashboardVisualSection.telemetryObservatory > .telemetrySignalGrid {
   padding: 0;
@@ -14909,7 +14909,7 @@ html[data-cca-label-font-size] .workstation :is(
   }
 }
 
-/* Dashboard V10: readable cards use the curated-study scale everywhere. */
+/* Dashboard cards use the curated-study scale consistently. */
 .productDashboardContent {
   --dashboard-readable-card-min: 280px;
   --dashboard-readable-card-padding: 16px;

@@ -1,4 +1,4 @@
-// Public V8 golden artifact: Three.js audio-reactive scene module.
+// Public golden artifact: Three.js audio-reactive scene module.
 // Boundary: requires a page that provides THREE and a user gesture for audio.
 
 export function createAudioReactiveScene({ THREE, canvas, audioElement }) {

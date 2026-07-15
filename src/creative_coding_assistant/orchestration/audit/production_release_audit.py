@@ -1,4 +1,4 @@
-"""V5.6 production release audit metadata."""
+"""Production release audit metadata."""
 
 from __future__ import annotations
 
@@ -49,7 +49,7 @@ PRODUCTION_RELEASE_AUDIT_RECORD_SERIALIZATION_VERSION = (
 )
 PRODUCTION_RELEASE_AUDIT_SERIALIZATION_VERSION = "production_release_audit.v1"
 PRODUCTION_RELEASE_AUDIT_AUTHORITY_BOUNDARY = (
-    "V5.6 production release audit metadata reviews release candidate, "
+    "Production release audit metadata reviews release candidate, "
     "packaging, deployment, production readiness, creative readiness, "
     "architecture freeze, validation, and release-control posture for "
     "inspection only; it does not create release artifacts, run package "
@@ -105,7 +105,7 @@ _BLOCKED_RUNTIME_BEHAVIORS = (
 
 
 class ProductionReleaseAuditRecord(BaseModel):
-    """One V5.6 production release audit record."""
+    """One production release audit record."""
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -163,7 +163,7 @@ class ProductionReleaseAuditRecord(BaseModel):
 
 
 class ProductionReleaseAudit(BaseModel):
-    """V5.6 production release audit aggregate."""
+    """Production release audit aggregate."""
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
 
@@ -238,7 +238,7 @@ class ProductionReleaseAudit(BaseModel):
         if len(self.source_surface_ids) != len(self.source_serialization_versions):
             raise ValueError("source ids and serialization versions must align")
         if self.pending_release_gate_ids != _PENDING_RELEASE_GATES:
-            raise ValueError("pending_release_gate_ids must match V5.6 gates")
+            raise ValueError("pending_release_gate_ids must match required gates")
         if self.audit_ids != tuple(record.audit_id for record in self.records):
             raise ValueError("audit_ids must match records")
         if self.audit_areas != tuple(record.audit_area for record in self.records):
@@ -446,7 +446,7 @@ def _records(
             ),
             pass_findings=(
                 "creative_readiness_review_present",
-                "capstone_creative_demo_materials_ready",
+                "creative_demo_materials_available",
             ),
             guarded_findings=tuple(creative_source.guarded_record_ids),
             blocking_findings=tuple(creative_source.blocked_record_ids),
