@@ -2,6 +2,7 @@ const { test, expect } = require("@playwright/test");
 const {
   kineticOrbitSculptureSource
 } = require("./support/demo-fixtures");
+const { mountSandboxRuntime } = require("./support/preview-sandbox");
 
 test("renders the Kinetic Orbit Sculpture with real Three.js scene-graph motion", async ({ page }) => {
   const pageErrors = [];
@@ -18,21 +19,21 @@ test("renders the Kinetic Orbit Sculpture with real Three.js scene-graph motion"
     }
   };
 
-  await page.goto(`/preview-sandbox.html#${encodeURIComponent(JSON.stringify(runtime))}`);
+  const sandbox = await mountSandboxRuntime(page, runtime);
 
-  await expect(page.locator("body")).toHaveAttribute("data-runtime-state", "running");
-  await expect(page.locator("body")).toHaveAttribute("data-three-runtime-revision", "176");
-  await expect(page.locator("#preview-canvas")).toBeVisible();
+  await expect(sandbox.locator("body")).toHaveAttribute("data-runtime-state", "running");
+  await expect(sandbox.locator("body")).toHaveAttribute("data-three-runtime-revision", "176");
+  await expect(sandbox.locator("#preview-canvas")).toBeVisible();
   await expect
-    .poll(async () => Number(await page.locator("body").getAttribute("data-three-frame-energy")))
+    .poll(async () => Number(await sandbox.locator("body").getAttribute("data-three-frame-energy")))
     .toBeGreaterThan(80);
 
-  const firstSignature = await page
+  const firstSignature = await sandbox
     .locator("body")
     .getAttribute("data-three-frame-signature");
   expect(firstSignature).toBeTruthy();
   await expect
-    .poll(() => page.locator("body").getAttribute("data-three-frame-signature"))
+    .poll(() => sandbox.locator("body").getAttribute("data-three-frame-signature"))
     .not.toBe(firstSignature);
 
   expect(kineticOrbitSculptureSource).toContain("new THREE.TorusKnotGeometry");

@@ -22,8 +22,10 @@ escalation boundaries.
 Coverage: creative-code generation, official-source grounding, browser audio,
 artifact inspection, and explicit runtime boundaries.
 
-Fallback: use `assets/screenshots-archive/preview_current.png` and
-`demo/golden_demo_dataset.json` if provider, retrieval, or preview access fails.
+Fallback: use the static current-product reference
+`assets/screenshots/preview-runtime.jpg` and `demo/golden_demo_dataset.json` if
+provider, retrieval, or preview access fails. Label the image as product
+documentation, not evidence of a live render.
 
 ## Secondary Prompts
 

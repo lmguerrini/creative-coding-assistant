@@ -301,18 +301,21 @@ def build_demo_showcase_plan(
         source_demo_assets_serialization_version=demo_source.serialization_version,
         source_creative_readiness_serialization_version=creative_source.serialization_version,
         source_retrieval_demo_pack_id=retrieval_source.pack_id,
-        coverage_records=_coverage_records(),
+        coverage_records=_coverage_records(demo_assets=demo_source),
         coverage_items=_COVERAGE_ITEMS,
-        capstone_case_alignments=_case_alignments(),
-        golden_demo_flows=_golden_demo_flows(prompts=prompts),
+        capstone_case_alignments=_case_alignments(demo_assets=demo_source),
+        golden_demo_flows=_golden_demo_flows(
+            demo_assets=demo_source,
+            prompts=prompts,
+        ),
         demo_prompt_library=prompts,
         demo_metrics=_demo_metrics(
             demo_assets=demo_source,
             creative_readiness=creative_source,
             retrieval_demo_pack=retrieval_source,
         ),
-        fallback_plans=_fallback_plans(),
-        checklist_items=_checklist_items(),
+        fallback_plans=_fallback_plans(demo_assets=demo_source),
+        checklist_items=_checklist_items(demo_assets=demo_source),
         presentation_segments=_presentation_segments(),
         documentation_refs=(
             "README.md",
@@ -367,7 +370,11 @@ def demo_showcase_fallback_by_trigger(
     return next((fallback for fallback in source_plan.fallback_plans if fallback.trigger == normalized), None)
 
 
-def _coverage_records() -> tuple[DemoShowcaseCoverageRecord, ...]:
+def _coverage_records(
+    *,
+    demo_assets: ProductionDemoAssetPlan,
+) -> tuple[DemoShowcaseCoverageRecord, ...]:
+    primary_preview_media = demo_assets.preview_media_paths[0]
     rows: tuple[tuple[str, DemoShowcaseCoverageStatus, str, tuple[str, ...], str], ...] = (
         (
             "Demo Mode",
@@ -393,12 +400,12 @@ def _coverage_records() -> tuple[DemoShowcaseCoverageRecord, ...]:
         (
             "Preview Fallbacks",
             "supported_existing",
-            "archived preview references and product preview surfaces",
+            "current public preview references and product preview surfaces",
             (
-                "assets/screenshots-archive/preview_current.png",
+                primary_preview_media,
                 "src/creative_coding_assistant/preview/contracts.py",
             ),
-            "Archived images are fallback references; this metadata does not render or repair previews.",
+            "Static product images are visual references only; this metadata does not render or repair previews.",
         ),
         (
             "Demo Prompt Library",
@@ -424,8 +431,8 @@ def _coverage_records() -> tuple[DemoShowcaseCoverageRecord, ...]:
         (
             "Artifact Availability Check",
             "prepared",
-            "tracked demo references and archived fallback images",
-            ("demo/README.md", "assets/screenshots-archive/preview_current.png"),
+            "tracked demo references and current public product images",
+            ("demo/README.md", primary_preview_media),
             "Availability checks inspect tracked references and do not publish artifacts.",
         ),
         (
@@ -490,7 +497,7 @@ def _coverage_records() -> tuple[DemoShowcaseCoverageRecord, ...]:
             "offline documentation, screenshots, prompts, and dataset",
             (
                 "demo/golden_demo_dataset.json",
-                "assets/screenshots-archive/preview_current.png",
+                primary_preview_media,
             ),
             "Offline fallback is manual; it does not simulate live provider success.",
         ),
@@ -521,7 +528,10 @@ def _coverage_records() -> tuple[DemoShowcaseCoverageRecord, ...]:
     )
 
 
-def _case_alignments() -> tuple[CapstoneCaseAlignment, ...]:
+def _case_alignments(
+    *,
+    demo_assets: ProductionDemoAssetPlan,
+) -> tuple[CapstoneCaseAlignment, ...]:
     return (
         CapstoneCaseAlignment(
             case_id="case_1_rag_knowledge_assistant",
@@ -558,7 +568,7 @@ def _case_alignments() -> tuple[CapstoneCaseAlignment, ...]:
             ),
             evidence_refs=(
                 "README.md",
-                "assets/screenshots-archive/preview_current.png",
+                demo_assets.preview_media_paths[0],
             ),
             boundary="Keep the claim to creative coding assistance, not fully autonomous production delivery.",
         ),
@@ -596,7 +606,8 @@ def _prompt_library(*, demo_source: ProductionDemoAssetPlan) -> tuple[DemoPrompt
             prompt_text=demo_source.demo_prompt,
             expected_demo_value="Primary golden flow for prompt to retrieval to artifact to preview to explanation.",
             fallback_notes=(
-                "Use the archived fallback preview if live preview is unavailable.",
+                "Use the current public preview reference if live preview is "
+                "unavailable, and label it as static evidence.",
                 "Use the golden dataset to narrate provider, fallback, and evaluation boundaries.",
             ),
         ),
@@ -718,7 +729,11 @@ def _prompt_library(*, demo_source: ProductionDemoAssetPlan) -> tuple[DemoPrompt
     )
 
 
-def _golden_demo_flows(*, prompts: tuple[DemoPromptRecord, ...]) -> tuple[GoldenDemoFlow, ...]:
+def _golden_demo_flows(
+    *,
+    demo_assets: ProductionDemoAssetPlan,
+    prompts: tuple[DemoPromptRecord, ...],
+) -> tuple[GoldenDemoFlow, ...]:
     prompt_ids = {prompt.prompt_id for prompt in prompts}
     if "luminous_audio_reactive_three_scene" not in prompt_ids:
         raise ValueError("primary prompt is required")
@@ -737,13 +752,13 @@ def _golden_demo_flows(*, prompts: tuple[DemoPromptRecord, ...]) -> tuple[Golden
                 "Identify the problem and target user.",
                 "Use the prepared creative-coding prompt.",
                 "Show retrieval grounding and runtime/artifact planning.",
-                "Use the preview surface or archived fallback image.",
+                "Use the preview surface or a labeled static product reference.",
                 "Explain critique, refinement, fallback, and HITL boundaries.",
             ),
             evidence_refs=(
                 "README.md",
                 "demo/golden_demo_dataset.json",
-                "assets/screenshots-archive/preview_current.png",
+                demo_assets.preview_media_paths[0],
             ),
             fallback_trigger="provider_failure",
         ),
@@ -782,13 +797,13 @@ def _golden_demo_flows(*, prompts: tuple[DemoPromptRecord, ...]) -> tuple[Golden
             primary_prompt_id="offline_showcase_walkthrough",
             capstone_cases=("case_5_ai_coding_assistant", "case_6_advanced_llm_tools"),
             operator_steps=(
-                "Use the deterministic dataset and archived screenshots.",
+                "Use the deterministic dataset and current public product screenshots.",
                 "Identify the unavailable live dependency.",
                 "Continue with the same problem, solution, evaluation, and limitations.",
             ),
             evidence_refs=(
                 "demo/golden_demo_dataset.json",
-                "assets/screenshots-archive/preview_current.png",
+                demo_assets.preview_media_paths[0],
             ),
             fallback_trigger="network_unavailable",
         ),
@@ -894,7 +909,7 @@ def _demo_metrics(
             status="ready" if demo_assets.preview_media_paths else "guarded",
             value=str(len(demo_assets.preview_media_paths)),
             source_refs=demo_assets.preview_media_paths,
-            interpretation="Archived screenshots support fallback guidance when live preview is unavailable.",
+            interpretation="Current public screenshots provide static visual context, not live preview evidence.",
         ),
         DemoMetricSummary(
             metric_id="ragas_context_precision_workflow",
@@ -907,20 +922,26 @@ def _demo_metrics(
     )
 
 
-def _fallback_plans() -> tuple[DemoFallbackPlan, ...]:
+def _fallback_plans(
+    *,
+    demo_assets: ProductionDemoAssetPlan,
+) -> tuple[DemoFallbackPlan, ...]:
+    primary_preview_media = demo_assets.preview_media_paths[0]
     return (
         DemoFallbackPlan(
             trigger="provider_failure",
-            fallback_mode="Golden dataset plus prepared screenshots",
+            fallback_mode="Golden dataset plus current product screenshots",
             operator_action=(
-                "Identify the provider failure and continue with the validated prompt, dataset, and preview image."
+                "Identify the provider failure and continue with the validated "
+                "prompt, dataset, and static preview reference."
             ),
             audience_framing=(
-                "The fallback demonstrates product reliability without implying a provider response happened."
+                "The fallback preserves product context without implying that a "
+                "provider response or live preview happened."
             ),
             evidence_refs=(
                 "demo/golden_demo_dataset.json",
-                "assets/screenshots-archive/preview_current.png",
+                primary_preview_media,
             ),
         ),
         DemoFallbackPlan(
@@ -936,16 +957,17 @@ def _fallback_plans() -> tuple[DemoFallbackPlan, ...]:
         ),
         DemoFallbackPlan(
             trigger="preview_unavailable",
-            fallback_mode="Archived preview reference",
+            fallback_mode="Current product preview reference",
             operator_action=(
-                "Load assets/screenshots-archive/preview_current.png and label it "
-                "as an archived fallback rather than a live render."
+                f"Load {primary_preview_media} and label it as a static product "
+                "reference rather than a live render."
             ),
             audience_framing=(
-                "The screenshot is a prepared visual reference, not a claim that the preview just rendered live."
+                "The screenshot documents a current product surface; it is not "
+                "evidence that the preview just rendered live."
             ),
             evidence_refs=(
-                "assets/screenshots-archive/preview_current.png",
+                primary_preview_media,
                 "demo/README.md",
             ),
         ),
@@ -970,7 +992,10 @@ def _fallback_plans() -> tuple[DemoFallbackPlan, ...]:
     )
 
 
-def _checklist_items() -> tuple[DemoChecklistItem, ...]:
+def _checklist_items(
+    *,
+    demo_assets: ProductionDemoAssetPlan,
+) -> tuple[DemoChecklistItem, ...]:
     return (
         DemoChecklistItem(
             item_id="confirm_product_state",
@@ -990,12 +1015,8 @@ def _checklist_items() -> tuple[DemoChecklistItem, ...]:
             item_id="verify_preview_assets",
             category="reliability",
             status="ready",
-            action="Confirm all archived fallback preview images are available.",
-            evidence_refs=(
-                "assets/screenshots-archive/preview_current.png",
-                "assets/screenshots-archive/preview_v1.png",
-                "assets/screenshots-archive/preview_v2.png",
-            ),
+            action="Confirm all current public preview reference images are available.",
+            evidence_refs=demo_assets.preview_media_paths,
         ),
         DemoChecklistItem(
             item_id="verify_prompt_library",

@@ -3032,7 +3032,7 @@ export function getInitialWorkspaceSnapshot(): AssistantWorkspaceSnapshot {
           nodeId: "refinement",
           displayLabel: "Refinement",
           state: "queued",
-          detail: "Run one refinement loop when review asks for changes."
+          detail: "Run up to two refinement attempts when review asks for changes."
         },
         {
           nodeId: "finalization",

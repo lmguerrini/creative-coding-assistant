@@ -2546,6 +2546,34 @@ describe("assistant stream client", () => {
     expect(events).toHaveLength(1);
   });
 
+  it("forwards cancellation to the active fetch request", async () => {
+    const abortController = new AbortController();
+    const fetchImpl = vi.fn(
+      (_url: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener(
+            "abort",
+            () => reject(new DOMException("Request canceled.", "AbortError")),
+            { once: true }
+          );
+        })
+    );
+    const stream = streamAssistantEvents(
+      { query: "Generate particles." },
+      { fetchImpl, signal: abortController.signal }
+    );
+    const pendingEvent = stream.next();
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ signal: abortController.signal })
+    );
+
+    abortController.abort();
+
+    await expect(pendingEvent).rejects.toMatchObject({ name: "AbortError" });
+  });
+
   it("throws a stream error for failed HTTP responses", async () => {
     const events = decodeAssistantStream(new Response("Nope.", { status: 503 }));
 

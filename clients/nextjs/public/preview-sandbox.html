@@ -282,6 +282,23 @@
   <script>
     (function () {
       const messageSource = "cca-preview-runtime";
+      const runtimeKinds = ["p5", "three", "glsl", "hydra", "tone", "gsap", "svg", "canvas"];
+      const challengePattern = /^preview-challenge-[a-f0-9]{32}$/;
+      const hashChallengeId = location.hash.slice(1);
+      const queryChallengeId = new URLSearchParams(location.search).get("challenge");
+      const challengeId = challengePattern.test(hashChallengeId) &&
+        queryChallengeId === hashChallengeId
+        ? hashChallengeId
+        : "";
+      const sandboxOrigin = new URL(window.location.href).origin;
+      const referrerOrigin = document.referrer
+        ? new URL(document.referrer).origin
+        : "";
+      const expectedParentOrigin = referrerOrigin === sandboxOrigin
+        ? sandboxOrigin
+        : "";
+      const isEmbedded = window.parent !== window;
+      const isOpaqueSandbox = window.origin === "null";
       const canvas = document.getElementById("preview-canvas");
       const gsapStage = document.getElementById("gsap-stage");
       const svgStage = document.getElementById("svg-stage");
@@ -291,6 +308,7 @@
       const audioStartButton = document.getElementById("audio-start");
       const audioStopButton = document.getElementById("audio-stop");
       const audioMuteButton = document.getElementById("audio-mute");
+      let handshakeId = null;
       let activeToken = 0;
       let runtime = null;
       let toneProgram = null;
@@ -311,40 +329,77 @@
       let p5InputCleanup = null;
       let threeRuntimeCleanup = null;
 
+      function isRecord(value) {
+        return typeof value === "object" && value !== null && !Array.isArray(value);
+      }
+
+      function isRuntimeSource(value) {
+        return isRecord(value) &&
+          typeof value.title === "string" &&
+          value.title.length > 0 &&
+          typeof value.source === "string" &&
+          Number.isInteger(value.lineCount) &&
+          value.lineCount >= 0 &&
+          typeof value.fingerprint === "string" &&
+          value.fingerprint.length > 0;
+      }
+
+      function isRuntimePayload(value, runtimeId) {
+        return isRecord(value) &&
+          value.runtimeId === runtimeId &&
+          runtimeId.length > 0 &&
+          runtimeKinds.includes(value.kind) &&
+          isRuntimeSource(value.source) &&
+          (value.captureHostKeyboard === undefined || typeof value.captureHostKeyboard === "boolean") &&
+          (value.showStatusOverlay === undefined || typeof value.showStatusOverlay === "boolean");
+      }
+
       function isMountMessage(data) {
-        return data &&
+        return isRecord(data) &&
           data.source === messageSource &&
           data.type === "mount" &&
-          data.runtime &&
-          data.runtime.runtimeId === data.runtimeId;
+          data.handshakeId === handshakeId &&
+          typeof data.runtimeId === "string" &&
+          isRuntimePayload(data.runtime, data.runtimeId);
       }
 
       function isDisposeMessage(data) {
-        return data &&
+        return isRecord(data) &&
           data.source === messageSource &&
           data.type === "dispose" &&
+          data.handshakeId === handshakeId &&
           runtime &&
           data.runtimeId === runtime.runtimeId;
       }
 
       function isControlMessage(data) {
-        return data &&
+        return isRecord(data) &&
           data.source === messageSource &&
           data.type === "control" &&
+          data.handshakeId === handshakeId &&
           runtime &&
           data.runtimeId === runtime.runtimeId &&
           ["start", "stop", "mute", "unmute"].includes(data.action);
       }
 
       function post(message) {
-        if (!runtime) return;
+        if (!runtime || !handshakeId || !expectedParentOrigin) return;
         parent.postMessage(
           Object.assign({
+            handshakeId: handshakeId,
             source: messageSource,
             runtimeId: runtime.runtimeId
           }, message),
-          "*"
+          expectedParentOrigin
         );
+      }
+
+      function createHandshakeId() {
+        const bytes = new Uint8Array(16);
+        crypto.getRandomValues(bytes);
+        return "preview-handshake-" + Array.from(bytes, function (value) {
+          return value.toString(16).padStart(2, "0");
+        }).join("");
       }
 
       function getKeyboardNavigationStops() {
@@ -3474,6 +3529,16 @@
       });
 
       window.addEventListener("message", function (event) {
+        if (
+          !isEmbedded ||
+          !isOpaqueSandbox ||
+          !handshakeId ||
+          !expectedParentOrigin ||
+          event.source !== parent ||
+          event.origin !== expectedParentOrigin
+        ) {
+          return;
+        }
         if (isDisposeMessage(event.data)) {
           disposeActiveRuntime();
           return;
@@ -3490,17 +3555,19 @@
         }
       });
 
-      if (location.hash.length > 1) {
-        try {
-          mountRuntime(JSON.parse(decodeURIComponent(location.hash.slice(1))));
-        } catch (error) {
-          runtime = {
-            kind: "p5",
-            runtimeId: "direct-preview-runtime",
-            source: { title: "Direct runtime payload", source: "" }
-          };
-          fail(error, "Runtime payload failed");
-        }
+      if (
+        challengeId &&
+        isEmbedded &&
+        isOpaqueSandbox &&
+        expectedParentOrigin
+      ) {
+        handshakeId = createHandshakeId();
+        parent.postMessage({
+          challengeId: challengeId,
+          handshakeId: handshakeId,
+          source: messageSource,
+          type: "ready"
+        }, expectedParentOrigin);
       }
     })();
   </script>

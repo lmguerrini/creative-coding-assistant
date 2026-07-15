@@ -1017,7 +1017,7 @@ const multiAgentWorkflowStages = [
     ],
     capabilities: [
       "Renders the complete provider-neutral prompt with selected plans and evidence.",
-      "Calls the configured model, extracts code, and prepares preview metadata."
+      "Calls the configured model once initially and up to twice more when review requests refinement."
     ]
   },
   {
@@ -1035,16 +1035,16 @@ const multiAgentWorkflowStages = [
   {
     id: "multi-reviewer",
     title: "Reviewer",
-    detail: "Gates completion and can send one bounded correction back to generation.",
+    detail: "Gates completion and can send up to two bounded corrections back to generation.",
     icon: ShieldCheck,
     kind: "agent",
     nodes: [
       { id: "review", label: "Review" },
-      { id: "refinement", label: "Refinement", note: "At most once" }
+      { id: "refinement", label: "Refinement", note: "At most twice" }
     ],
     capabilities: [
       "Checks required deliverables and the critic's bounded quality findings.",
-      "May append explicit guidance and request one regeneration pass."
+      "May append explicit guidance and request up to two regeneration passes."
     ]
   },
   {
@@ -1142,12 +1142,12 @@ function ArchitectureWorkflowComparison({
         <div>
           <span>After generation</span>
           <strong>A visible correction path</strong>
-          <p>Critique and review inspect the artifact and may request one bounded regeneration with explicit guidance.</p>
+          <p>Critique and review inspect the artifact and may request up to two bounded regenerations with explicit guidance.</p>
         </div>
         <div>
           <span>Truthful boundary</span>
           <strong>Better coverage, not a guarantee</strong>
-          <p>Only <code>generation</code> invokes the configured provider; extra deterministic gates can improve consistency but cannot guarantee subjective quality.</p>
+          <p>Only <code>generation</code> invokes the configured provider. One initial pass plus up to two refinement passes permits up to three text-generation calls; deterministic gates can improve consistency but cannot guarantee subjective quality.</p>
         </div>
       </aside>
     </section>
@@ -1293,7 +1293,7 @@ function ArchitectureRouteGuide({ model }: { model: ProductIntelligenceModel }) 
           { label: "Requested policy", value: formatRoute(execution?.requestedMode), detail: "Input routing policy" },
           { label: "Resolved route", value: execution?.resolvedMode ? formatRoute(execution.resolvedMode) : "Not published", detail: "Executed orchestration path" },
           { label: "Research", value: execution?.researcherRequired == null ? "Not published" : execution.researcherRequired ? "Required" : "Skipped", detail: execution?.researcherReason ?? "No decision evidence" },
-          { label: "Refinement limit", value: execution?.maxRefinementLoops == null ? "Not published" : execution.maxRefinementLoops, detail: "Published maximum loops" }
+          { label: "Refinement limit", value: execution?.maxRefinementLoops == null ? "Not published" : execution.maxRefinementLoops, detail: execution?.maxRefinementLoops == null ? "No published call budget" : `Up to ${execution.maxRefinementLoops + 1} text-generation calls` }
         ]}
       />
       {execution?.agentRoles.length ? (

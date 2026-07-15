@@ -458,6 +458,7 @@ export type WorkflowExecutionMode =
 export type AssistantStreamOptions = {
   endpoint?: string;
   fetchImpl?: typeof fetch;
+  signal?: AbortSignal;
 };
 
 const defaultStreamEndpoint =
@@ -599,7 +600,8 @@ export async function* streamAssistantEvents(
       "Content-Type": "application/json",
       Accept: "application/x-ndjson"
     },
-    method: "POST"
+    method: "POST",
+    signal: options.signal
   });
 
   yield* decodeAssistantStream(response);

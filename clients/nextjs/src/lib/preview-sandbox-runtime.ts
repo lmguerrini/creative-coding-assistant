@@ -30,24 +30,34 @@ import {
 
 export type PreviewSandboxRuntimeMessage =
   | {
+      handshakeId: string;
       source: "cca-preview-runtime";
       runtimeId: string;
       type: "status";
       status: PreviewSandboxRuntimeStatusPayload;
     }
   | {
+      handshakeId: string;
       source: "cca-preview-runtime";
       runtimeId: string;
       type: "frame";
       renderedAtMs: number;
     }
   | {
+      handshakeId: string;
       source: "cca-preview-runtime";
       runtimeId: string;
       type: "keyboard-boundary";
       key: "Escape" | "Tab";
       shiftKey: boolean;
     };
+
+export type PreviewSandboxReadyMessage = {
+  challengeId: string;
+  handshakeId: string;
+  source: "cca-preview-runtime";
+  type: "ready";
+};
 
 export type PreviewSandboxKeyboardBoundaryEvent = Pick<
   Extract<PreviewSandboxRuntimeMessage, { type: "keyboard-boundary" }>,
@@ -92,6 +102,9 @@ export type PreviewSandboxRuntimeControlAction =
   | "unmute";
 
 const sandboxMessageSource = "cca-preview-runtime";
+const sandboxOpaqueOrigin = "null";
+const sandboxChallengeIdPattern = /^preview-challenge-[a-f0-9]{32}$/;
+const sandboxHandshakeIdPattern = /^preview-handshake-[a-f0-9]{32}$/;
 
 export function createPreviewSandboxRuntimeId() {
   return `preview-runtime-${Math.random().toString(36).slice(2, 10)}`;
@@ -125,7 +138,8 @@ export function mountPreviewSandboxRuntime({
   }
 
   let disposed = false;
-  let retryTimer = 0;
+  let handshakeId: string | null = null;
+  const challengeId = createPreviewSandboxChallengeId();
   const mountMessage = {
     source: sandboxMessageSource,
     runtimeId,
@@ -148,19 +162,36 @@ export function mountPreviewSandboxRuntime({
   };
 
   function handleMessage(event: MessageEvent) {
-    if (disposed) {
-      return;
-    }
-
     if (
-      event.source &&
-      iframe.contentWindow &&
-      event.source !== iframe.contentWindow
+      disposed ||
+      event.source !== iframe.contentWindow ||
+      event.origin !== sandboxOpaqueOrigin
     ) {
       return;
     }
 
-    const message = readPreviewSandboxRuntimeMessage(event.data, runtimeId);
+    const readyMessage = readPreviewSandboxReadyMessage(
+      event.data,
+      challengeId
+    );
+    if (readyMessage) {
+      if (handshakeId && handshakeId !== readyMessage.handshakeId) {
+        return;
+      }
+      handshakeId = readyMessage.handshakeId;
+      postMountMessage();
+      return;
+    }
+
+    if (!handshakeId) {
+      return;
+    }
+
+    const message = readPreviewSandboxRuntimeMessage(
+      event.data,
+      runtimeId,
+      handshakeId
+    );
     if (!message) {
       return;
     }
@@ -179,19 +210,20 @@ export function mountPreviewSandboxRuntime({
   }
 
   function postMountMessage() {
-    if (disposed) {
+    if (disposed || !handshakeId) {
       return;
     }
-    iframe.contentWindow?.postMessage(mountMessage, "*");
+    iframe.contentWindow?.postMessage({ ...mountMessage, handshakeId }, "*");
   }
 
   function postControlMessage(action: PreviewSandboxRuntimeControlAction) {
-    if (disposed) {
+    if (disposed || !handshakeId) {
       return;
     }
     iframe.contentWindow?.postMessage(
       {
         action,
+        handshakeId,
         runtimeId,
         source: sandboxMessageSource,
         type: "control"
@@ -202,19 +234,21 @@ export function mountPreviewSandboxRuntime({
 
   iframe.dataset.runtimeId = runtimeId;
   window.addEventListener("message", handleMessage);
-  iframe.addEventListener("load", postMountMessage);
   onStatus(getSandboxStartingStatus(kind));
-  iframe.src = "/preview-sandbox.html";
-  retryTimer = window.setTimeout(postMountMessage, 150);
+  iframe.src =
+    `/preview-sandbox.html?challenge=${challengeId}#${challengeId}`;
 
   return {
     control: postControlMessage,
     dispose() {
       disposed = true;
-      window.clearTimeout(retryTimer);
       window.removeEventListener("message", handleMessage);
-      iframe.removeEventListener("load", postMountMessage);
-      iframe.contentWindow?.postMessage(disposeMessage, "*");
+      if (handshakeId) {
+        iframe.contentWindow?.postMessage(
+          { ...disposeMessage, handshakeId },
+          "*"
+        );
+      }
       delete iframe.dataset.runtimeId;
       iframe.src = "about:blank";
       iframe.removeAttribute("srcdoc");
@@ -224,13 +258,18 @@ export function mountPreviewSandboxRuntime({
 
 export function readPreviewSandboxRuntimeMessage(
   value: unknown,
-  runtimeId: string
+  runtimeId: string,
+  handshakeId: string
 ): PreviewSandboxRuntimeMessage | null {
   if (!isRecord(value) || value.source !== sandboxMessageSource) {
     return null;
   }
 
-  if (value.runtimeId !== runtimeId) {
+  if (
+    value.runtimeId !== runtimeId ||
+    value.handshakeId !== handshakeId ||
+    !sandboxHandshakeIdPattern.test(handshakeId)
+  ) {
     return null;
   }
 
@@ -238,6 +277,7 @@ export function readPreviewSandboxRuntimeMessage(
     return typeof value.renderedAtMs === "number" &&
       Number.isFinite(value.renderedAtMs)
       ? {
+          handshakeId,
           source: sandboxMessageSource,
           runtimeId,
           type: "frame",
@@ -250,6 +290,7 @@ export function readPreviewSandboxRuntimeMessage(
     return (value.key === "Escape" || value.key === "Tab") &&
       typeof value.shiftKey === "boolean"
       ? {
+          handshakeId,
           source: sandboxMessageSource,
           runtimeId,
           type: "keyboard-boundary",
@@ -278,6 +319,7 @@ export function readPreviewSandboxRuntimeMessage(
   }
 
   return {
+    handshakeId,
     source: sandboxMessageSource,
     runtimeId,
     type: "status",
@@ -295,6 +337,38 @@ export function readPreviewSandboxRuntimeMessage(
         : null
     }
   };
+}
+
+export function readPreviewSandboxReadyMessage(
+  value: unknown,
+  challengeId: string
+): PreviewSandboxReadyMessage | null {
+  if (
+    !isRecord(value) ||
+    value.source !== sandboxMessageSource ||
+    value.type !== "ready" ||
+    value.challengeId !== challengeId ||
+    !sandboxChallengeIdPattern.test(challengeId) ||
+    typeof value.handshakeId !== "string" ||
+    !sandboxHandshakeIdPattern.test(value.handshakeId)
+  ) {
+    return null;
+  }
+
+  return {
+    challengeId,
+    handshakeId: value.handshakeId,
+    source: sandboxMessageSource,
+    type: "ready"
+  };
+}
+
+function createPreviewSandboxChallengeId() {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return `preview-challenge-${Array.from(bytes, (value) =>
+    value.toString(16).padStart(2, "0")
+  ).join("")}`;
 }
 
 export function buildPreviewSandboxDocument({

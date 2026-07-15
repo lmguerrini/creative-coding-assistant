@@ -12,6 +12,9 @@ from creative_coding_assistant.orchestration.routing import (
     RouteDecision,
     RouteName,
 )
+from creative_coding_assistant.orchestration.runtime.workflow_review import (
+    MAX_WORKFLOW_REFINEMENT_COUNT,
+)
 
 
 class WorkflowExecutionPlan(BaseModel):
@@ -25,7 +28,10 @@ class WorkflowExecutionPlan(BaseModel):
     agent_roles: tuple[str, ...] = Field(min_length=1)
     researcher_required: bool
     researcher_reason: str = Field(min_length=1)
-    max_refinement_loops: int = Field(ge=0, le=1)
+    max_refinement_loops: int = Field(
+        ge=0,
+        le=MAX_WORKFLOW_REFINEMENT_COUNT,
+    )
 
     @property
     def is_single_agent(self) -> bool:
@@ -106,7 +112,7 @@ def _multi_agent_plan(
         agent_roles=("planner", "researcher", "generator", "critic", "reviewer"),
         researcher_required=True,
         researcher_reason=researcher_reason,
-        max_refinement_loops=1,
+        max_refinement_loops=MAX_WORKFLOW_REFINEMENT_COUNT,
     )
 
 

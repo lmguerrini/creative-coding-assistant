@@ -369,10 +369,39 @@ async function expectRendererFailureReloadRecovery(page) {
   if (!frame) {
     throw new Error("The p5 preview iframe did not expose a content frame.");
   }
+  const handshakeId = await iframeHandle.evaluate(
+    (element, activeRuntimeId) =>
+      new Promise((resolve, reject) => {
+        const timeout = window.setTimeout(() => {
+          window.removeEventListener("message", handleMessage);
+          reject(new Error("Timed out waiting for the preview handshake nonce."));
+        }, 8_000);
 
-  await frame.evaluate((activeRuntimeId) => {
+        function handleMessage(event) {
+          if (
+            event.source !== element.contentWindow ||
+            event.origin !== "null" ||
+            !event.data ||
+            event.data.runtimeId !== activeRuntimeId ||
+            typeof event.data.handshakeId !== "string"
+          ) {
+            return;
+          }
+
+          window.clearTimeout(timeout);
+          window.removeEventListener("message", handleMessage);
+          resolve(event.data.handshakeId);
+        }
+
+        window.addEventListener("message", handleMessage);
+      }),
+    runtimeId
+  );
+
+  await frame.evaluate(({ activeRuntimeId, activeHandshakeId }) => {
     window.parent.postMessage(
       {
+        handshakeId: activeHandshakeId,
         runtimeId: activeRuntimeId,
         source: "cca-preview-runtime",
         status: {
@@ -390,7 +419,7 @@ async function expectRendererFailureReloadRecovery(page) {
       },
       "*"
     );
-  }, runtimeId);
+  }, { activeHandshakeId: handshakeId, activeRuntimeId: runtimeId });
 
   const error = runtime.getByRole("alert");
   await expect(error).toBeVisible();

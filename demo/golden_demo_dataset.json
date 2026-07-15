@@ -123,9 +123,9 @@
     "time_overrun"
   ],
   "prepared_assets": [
-    "assets/screenshots-archive/preview_current.png",
-    "assets/screenshots-archive/preview_v1.png",
-    "assets/screenshots-archive/preview_v2.png",
+    "assets/screenshots/preview-runtime.jpg",
+    "assets/screenshots/full-screen-p5.jpg",
+    "assets/screenshots/full-screen-glsl.jpg",
     "README.md",
     "docs/CAPSTONE_DEMO_SHOWCASE.md",
     "docs/CAPSTONE_EVALUATION_ETHICS.md",
@@ -143,7 +143,7 @@
   "known_limitations": [
     "Provider calls can fail or be slow; committed prompts and artifacts remain inspectable.",
     "Sanitized synthetic RAGAS fixtures are historical evidence; recorded-session rows remain local-only.",
-    "Prepared screenshots are compatibility assets rather than current-session preview evidence.",
+    "Current product screenshots are static documentation rather than current-session preview evidence.",
     "External creative-tool execution, autonomous delivery, and public deployment are outside this dataset's scope."
   ]
 }

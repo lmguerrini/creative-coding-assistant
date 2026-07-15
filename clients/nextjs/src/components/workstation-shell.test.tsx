@@ -25,11 +25,13 @@ import type {
 } from "@/lib/assistant-stream";
 import {
   createWorkspaceSessionRecord,
+  withWorkspaceIdentity,
   type WorkspacePersistenceClient,
   type WorkspacePersistenceLoadResult,
   type WorkspacePersistenceSaveResult
 } from "@/lib/workspace-persistence";
 import { createWorkstationError } from "@/lib/workstation-errors";
+import { readSessionUsageSummaries } from "@/lib/session-usage-ledger";
 import {
   CURRENT_PRODUCT_RETRIEVAL_CASE_IDS,
   CURRENT_PRODUCT_RETRIEVAL_DATASET_FINGERPRINT,
@@ -818,6 +820,46 @@ type SandboxStatusInput = {
   } | null;
 };
 
+const sandboxTestHandshakeId =
+  "preview-handshake-00000000000000000000000000000000";
+const sandboxTestHandshakeRuntimeIds = new WeakMap<
+  HTMLIFrameElement,
+  string
+>();
+
+function ensureSandboxRuntimeHandshake(frame: HTMLIFrameElement) {
+  const runtimeId = frame.dataset.runtimeId;
+  const sandboxUrl = new URL(
+    frame.getAttribute("src") ?? "",
+    window.location.href
+  );
+  const challengeId = sandboxUrl.hash.slice(1);
+
+  expect(runtimeId).toBeTruthy();
+  expect(challengeId).toMatch(/^preview-challenge-[a-f0-9]{32}$/);
+  expect(sandboxUrl.searchParams.get("challenge")).toBe(challengeId);
+  if (sandboxTestHandshakeRuntimeIds.get(frame) === runtimeId) {
+    return sandboxTestHandshakeId;
+  }
+
+  act(() => {
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: {
+          challengeId,
+          handshakeId: sandboxTestHandshakeId,
+          source: "cca-preview-runtime",
+          type: "ready"
+        },
+        origin: "null",
+        source: frame.contentWindow
+      })
+    );
+  });
+  sandboxTestHandshakeRuntimeIds.set(frame, runtimeId as string);
+  return sandboxTestHandshakeId;
+}
+
 async function waitForSandboxRuntimeFrame(
   surface: HTMLElement,
   label: string
@@ -829,6 +871,7 @@ async function waitForSandboxRuntimeFrame(
   await waitFor(() => {
     expect(frame.dataset.runtimeId).toMatch(/^preview-runtime-/);
   });
+  ensureSandboxRuntimeHandshake(frame);
 
   return frame;
 }
@@ -840,22 +883,31 @@ function dispatchSandboxRuntimeStatus(
   const runtimeId = frame.dataset.runtimeId;
 
   expect(runtimeId).toBeTruthy();
-  dispatchSandboxRuntimeStatusByRuntimeId(runtimeId as string, status);
+  dispatchSandboxRuntimeStatusByRuntimeId(
+    frame,
+    runtimeId as string,
+    status
+  );
 }
 
 function dispatchSandboxRuntimeStatusByRuntimeId(
+  frame: HTMLIFrameElement,
   runtimeId: string,
   status: SandboxStatusInput
 ) {
+  const handshakeId = ensureSandboxRuntimeHandshake(frame);
   act(() => {
     window.dispatchEvent(
       new MessageEvent("message", {
         data: {
+          handshakeId,
           source: "cca-preview-runtime",
           runtimeId,
           type: "status",
           status
-        }
+        },
+        origin: "null",
+        source: frame.contentWindow
       })
     );
   });
@@ -868,15 +920,19 @@ function dispatchSandboxRuntimeFrame(
   const runtimeId = frame.dataset.runtimeId;
 
   expect(runtimeId).toBeTruthy();
+  const handshakeId = ensureSandboxRuntimeHandshake(frame);
   act(() => {
     window.dispatchEvent(
       new MessageEvent("message", {
         data: {
+          handshakeId,
           renderedAtMs,
           runtimeId,
           source: "cca-preview-runtime",
           type: "frame"
-        }
+        },
+        origin: "null",
+        source: frame.contentWindow
       })
     );
   });
@@ -967,12 +1023,32 @@ async function* failingStream(): AsyncGenerator<AssistantStreamEvent> {
 
 function createDeferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;
-  const promise = new Promise<T>((nextResolve) => {
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((nextResolve, nextReject) => {
     resolve = nextResolve;
+    reject = nextReject;
   });
 
-  return { promise, resolve };
+  return { promise, reject, resolve };
 }
+
+function assistantStreamBindingMatcher(
+  sessionId = "local-nextjs-session"
+) {
+  return expect.objectContaining({
+    epoch: expect.any(Number),
+    requestId: expect.any(String),
+    sessionId,
+    signal: expect.any(AbortSignal)
+  });
+}
+
+type TestAssistantStreamBinding = {
+  epoch: number;
+  requestId: string;
+  sessionId: string;
+  signal: AbortSignal;
+};
 
 function runtimeWorkflowEvent({
   answer,
@@ -1067,6 +1143,17 @@ function runtimeWorkflowEvent({
 
 function createNoopPersistenceClient(): WorkspacePersistenceClient {
   return {
+    load: vi.fn(async () => ({
+      error: null,
+      record: null,
+      source: "none" as const
+    })),
+    save: vi.fn(async () => ({ error: null, target: "local" as const }))
+  };
+}
+
+function createPendingPersistenceClient(): WorkspacePersistenceClient {
+  return {
     load: vi.fn(
       () => new Promise<WorkspacePersistenceLoadResult>(() => undefined)
     ),
@@ -1112,6 +1199,12 @@ function renderUserShell(
   }
   closeWorkspaceSettingsPanel();
   return result;
+}
+
+async function waitForSessionHydration() {
+  await waitFor(() => {
+    expect(screen.queryByText("Restoring session")).not.toBeInTheDocument();
+  });
 }
 
 function openDeveloperInspector() {
@@ -1969,6 +2062,7 @@ describe("WorkstationShell", () => {
     renderShell(getInitialWorkspaceSnapshot(), {
       streamAssistantEvents: backendStream
     });
+    await waitForSessionHydration();
 
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     const settingsPanel = screen.getByRole("dialog", { name: "Workspace settings" });
@@ -1996,7 +2090,8 @@ describe("WorkstationShell", () => {
         expect.objectContaining({
           query: expect.stringContaining("multi-agent-orbit-study.p5.js"),
           workflowMode: "multi_agent"
-        })
+        }),
+        assistantStreamBindingMatcher()
       )
     );
     const preview = await screen.findByRole("region", {
@@ -2274,7 +2369,7 @@ describe("WorkstationShell", () => {
 
   it("keeps the first-run Homepage hidden while persistence restoration is pending", () => {
     renderUserShell(getInitialWorkspaceSnapshot(), {
-      persistenceClient: createNoopPersistenceClient()
+      persistenceClient: createPendingPersistenceClient()
     });
 
     expect(
@@ -2284,8 +2379,9 @@ describe("WorkstationShell", () => {
     expect(screen.getByText("Restoring session")).toBeVisible();
   });
 
-  it("keeps the User Mode composer minimal while preserving prompt controls", () => {
+  it("keeps the User Mode composer minimal while preserving prompt controls", async () => {
     renderUserShell(getInitialWorkspaceSnapshot());
+    await waitForSessionHydration();
 
     const promptInput = screen.getByRole("textbox", {
       name: "Assistant prompt"
@@ -3104,6 +3200,7 @@ describe("WorkstationShell", () => {
     renderShell(getLocalWorkspaceSnapshot(), {
       streamAssistantEvents: backendStream
     });
+    await waitForSessionHydration();
 
     const promptInput = screen.getByLabelText("Assistant prompt");
     const sendButton = screen.getByRole("button", { name: "Send prompt" });
@@ -3128,7 +3225,8 @@ describe("WorkstationShell", () => {
         mode: "generate",
         projectId: "local-nextjs-workspace",
         query: "Make the low-frequency motion calmer."
-      })
+      }),
+      assistantStreamBindingMatcher()
     );
     const submittedRequest = (
       backendStream.mock.calls as unknown as Array<[AssistantStreamRequest]>
@@ -3176,6 +3274,813 @@ describe("WorkstationShell", () => {
     expect(
       within(previewPanel).queryByRole("group", { name: "Preview canvas status" })
     ).not.toBeInTheDocument();
+  });
+
+  it("does not hydrate a newly selected session from delayed events in the previous session", async () => {
+    const userId = "stream-boundary-user";
+    const projectId = "stream-boundary-project";
+    const sessionAId = "stream-boundary-session-a";
+    const sessionBId = "stream-boundary-session-b";
+    const sessionASnapshot = withWorkspaceIdentity(
+      getInitialWorkspaceSnapshot(),
+      { projectId, sessionId: sessionAId, userId }
+    );
+    const sessionBBaseSnapshot = withWorkspaceIdentity(
+      getInitialWorkspaceSnapshot(),
+      { projectId, sessionId: sessionBId, userId }
+    );
+    const sessionBSnapshot = {
+      ...sessionBBaseSnapshot,
+      session: {
+        ...sessionBBaseSnapshot.session,
+        title: "Session B"
+      },
+      workspace: {
+        ...getInitialWorkspaceSnapshot().workspace,
+        name: "Session B"
+      }
+    };
+    const sessionBRecord = createWorkspaceSessionRecord({
+      activeArtifactId: "",
+      activeInspectorTab: "Overview",
+      previewArtifactId: "",
+      previewOpen: false,
+      snapshot: sessionBSnapshot
+    });
+    const sessionBKey = `cca.workspace.${userId}.${sessionBId}`;
+    const sessionIndexKey = `cca.workspace.${userId}.session-index.v1`;
+    window.localStorage.setItem(sessionBKey, JSON.stringify(sessionBRecord));
+    window.localStorage.setItem(
+      sessionIndexKey,
+      JSON.stringify([
+        {
+          artifactCount: 0,
+          projectId,
+          sessionId: sessionBId,
+          title: "Session B",
+          updatedAt: sessionBRecord.updatedAt
+        }
+      ])
+    );
+
+    const releaseDelayedEvents = createDeferred<void>();
+    const backendStream = vi.fn(async function* (
+      _request: AssistantStreamRequest,
+      _binding: TestAssistantStreamBinding
+    ) {
+      yield {
+        event_type: "status" as const,
+        sequence: 0,
+        payload: { code: "request_received", message: "Session A started." }
+      };
+      await releaseDelayedEvents.promise;
+      yield {
+        event_type: "artifact_extracted" as const,
+        sequence: 1,
+        payload: {
+          artifacts: [
+            {
+              id: "stale-session-a-artifact",
+              title: "stale-session-a.p5.js",
+              language: "JavaScript + p5.js",
+              content: "function setup() { createCanvas(640, 360); }",
+              preview_eligible: true,
+              runtime: "p5",
+              renderer_id: "surface.p5"
+            }
+          ]
+        }
+      };
+      yield {
+        event_type: "final" as const,
+        sequence: 2,
+        payload: {
+          answer: "Delayed Session A completion.",
+          artifacts: [
+            {
+              id: "stale-session-a-artifact",
+              title: "stale-session-a.p5.js",
+              language: "JavaScript + p5.js",
+              content: "function setup() { createCanvas(640, 360); }",
+              preview_eligible: true,
+              runtime: "p5",
+              renderer_id: "surface.p5"
+            }
+          ],
+          telemetry: {
+            execution: {
+              generation_mode: "streaming",
+              request_duration_ms: 900,
+              retry_count: 0,
+              streaming: true,
+              streaming_status: "completed"
+            },
+            provider: {
+              name: "openai",
+              model: "gpt-5-mini",
+              response_id: "stale-session-a-response"
+            },
+            token_usage: {
+              input_tokens: 800,
+              output_tokens: 200,
+              total_tokens: 1000
+            }
+          },
+          workflow: {
+            current_step: null,
+            phase: "completed",
+            status: "completed"
+          }
+        }
+      };
+    });
+    const persistenceClient: WorkspacePersistenceClient = {
+      ...createEmptyPersistenceClient(),
+      identity: sessionASnapshot.session
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("session not found", { status: 404 })
+    );
+
+    try {
+      renderShell(sessionASnapshot, {
+        persistenceClient,
+        streamAssistantEvents: backendStream
+      });
+      await waitFor(() => expect(persistenceClient.load).toHaveBeenCalled());
+
+      fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+        target: { value: "Start a delayed stream in Session A." }
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+      await waitFor(() => expect(backendStream).toHaveBeenCalledOnce());
+      const streamBinding = backendStream.mock.calls[0]?.[1];
+      expect(streamBinding).toEqual(
+        expect.objectContaining({
+          epoch: expect.any(Number),
+          requestId: expect.stringContaining(sessionAId),
+          sessionId: sessionAId,
+          signal: expect.any(AbortSignal)
+        })
+      );
+      expect(streamBinding?.signal.aborted).toBe(false);
+
+      const sessionBButton = screen
+        .getByText("Session B", { selector: ".dashboardChoiceCardTitle" })
+        .closest("button");
+      expect(sessionBButton).not.toBeNull();
+      fireEvent.click(sessionBButton as HTMLButtonElement);
+      await waitFor(() =>
+        expect(sessionBButton).toHaveAttribute("aria-current", "true")
+      );
+      expect(streamBinding?.signal.aborted).toBe(true);
+      expect(
+        screen.getByRole("group", { name: "Empty creative workspace" })
+      ).toBeVisible();
+
+      await act(async () => {
+        releaseDelayedEvents.resolve();
+        await releaseDelayedEvents.promise;
+        await Promise.resolve();
+      });
+
+      expect(screen.queryByText("Delayed Session A completion.")).not.toBeInTheDocument();
+      expect(screen.queryByText("stale-session-a.p5.js")).not.toBeInTheDocument();
+      expect(screen.getByLabelText("Current session")).toHaveTextContent("Ready");
+      expect(screen.getByLabelText("Current session")).not.toHaveTextContent(
+        "1,000 tokens"
+      );
+      expect(
+        screen.getByRole("group", { name: "Empty creative workspace" })
+      ).toBeVisible();
+      expect(
+        JSON.parse(window.localStorage.getItem(sessionBKey) ?? "{}")
+      ).toEqual(
+        expect.objectContaining({
+          artifacts: [],
+          sessionId: sessionBId,
+          workflow: expect.objectContaining({ status: "Idle" })
+        })
+      );
+      expect(readSessionUsageSummaries(userId)).not.toContainEqual(
+        expect.objectContaining({ sessionId: sessionBId })
+      );
+    } finally {
+      window.localStorage.removeItem(sessionBKey);
+      window.localStorage.removeItem(sessionIndexKey);
+    }
+  });
+
+  it("aborts and ignores delayed stream output when the active session is deleted", async () => {
+    const userId = "stream-delete-boundary-user";
+    const projectId = "stream-delete-boundary-project";
+    const sessionAId = "stream-delete-boundary-session-a";
+    const sessionBId = "stream-delete-boundary-session-b";
+    const sessionABaseSnapshot = withWorkspaceIdentity(
+      getInitialWorkspaceSnapshot(),
+      { projectId, sessionId: sessionAId, userId }
+    );
+    const sessionASnapshot = {
+      ...sessionABaseSnapshot,
+      session: { ...sessionABaseSnapshot.session, title: "Deletion Session A" }
+    };
+    const sessionBBaseSnapshot = withWorkspaceIdentity(
+      getInitialWorkspaceSnapshot(),
+      { projectId, sessionId: sessionBId, userId }
+    );
+    const sessionBSnapshot = {
+      ...sessionBBaseSnapshot,
+      session: { ...sessionBBaseSnapshot.session, title: "Deletion Session B" }
+    };
+    const sessionARecord = createWorkspaceSessionRecord({
+      activeArtifactId: "",
+      activeInspectorTab: "Overview",
+      previewArtifactId: "",
+      previewOpen: false,
+      snapshot: sessionASnapshot
+    });
+    const sessionBRecord = createWorkspaceSessionRecord({
+      activeArtifactId: "",
+      activeInspectorTab: "Overview",
+      previewArtifactId: "",
+      previewOpen: false,
+      snapshot: sessionBSnapshot
+    });
+    const sessionAKey = `cca.workspace.${userId}.${sessionAId}`;
+    const sessionBKey = `cca.workspace.${userId}.${sessionBId}`;
+    const sessionIndexKey = `cca.workspace.${userId}.session-index.v1`;
+    window.localStorage.setItem(sessionAKey, JSON.stringify(sessionARecord));
+    window.localStorage.setItem(sessionBKey, JSON.stringify(sessionBRecord));
+    window.localStorage.setItem(
+      sessionIndexKey,
+      JSON.stringify([
+        {
+          artifactCount: 0,
+          projectId,
+          sessionId: sessionAId,
+          title: "Deletion Session A",
+          updatedAt: sessionARecord.updatedAt
+        },
+        {
+          artifactCount: 0,
+          projectId,
+          sessionId: sessionBId,
+          title: "Deletion Session B",
+          updatedAt: sessionBRecord.updatedAt
+        }
+      ])
+    );
+
+    const releaseDelayedEvents = createDeferred<void>();
+    const backendStream = vi.fn(async function* (
+      _request: AssistantStreamRequest,
+      _binding: TestAssistantStreamBinding
+    ) {
+      yield {
+        event_type: "status" as const,
+        sequence: 0,
+        payload: { code: "request_received", message: "Session A started." }
+      };
+      await releaseDelayedEvents.promise;
+      yield {
+        event_type: "artifact_extracted" as const,
+        sequence: 1,
+        payload: {
+          artifacts: [
+            {
+              id: "stale-deleted-session-artifact",
+              title: "stale-after-delete.p5.js",
+              language: "JavaScript + p5.js",
+              content: "function setup() { createCanvas(320, 180); }",
+              preview_eligible: true,
+              runtime: "p5",
+              renderer_id: "surface.p5"
+            }
+          ]
+        }
+      };
+      yield {
+        event_type: "final" as const,
+        sequence: 2,
+        payload: { answer: "Stale completion after session deletion." }
+      };
+    });
+    const persistenceClient: WorkspacePersistenceClient = {
+      ...createEmptyPersistenceClient(),
+      identity: sessionASnapshot.session
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("session not found", { status: 404 })
+    );
+
+    try {
+      renderShell(sessionASnapshot, {
+        persistenceClient,
+        streamAssistantEvents: backendStream
+      });
+      await waitFor(() => expect(persistenceClient.load).toHaveBeenCalled());
+
+      fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+        target: { value: "Delete this session during its active request." }
+      });
+      await waitFor(() =>
+        expect(screen.getByRole("button", { name: "Send prompt" })).toBeEnabled()
+      );
+      fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+      await waitFor(() => expect(backendStream).toHaveBeenCalledOnce());
+      const streamBinding = backendStream.mock.calls[0]?.[1];
+      expect(streamBinding?.signal.aborted).toBe(false);
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Delete Deletion Session A" })
+      );
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "Delete session" }));
+        await Promise.resolve();
+      });
+
+      const sessionBButton = screen
+        .getByText("Deletion Session B", {
+          selector: ".dashboardChoiceCardTitle"
+        })
+        .closest("button");
+      expect(sessionBButton).not.toBeNull();
+      await waitFor(() =>
+        expect(sessionBButton).toHaveAttribute("aria-current", "true")
+      );
+      expect(streamBinding?.signal.aborted).toBe(true);
+
+      await act(async () => {
+        releaseDelayedEvents.resolve();
+        await releaseDelayedEvents.promise;
+        await Promise.resolve();
+      });
+
+      expect(
+        screen.queryByText("Stale completion after session deletion.")
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText("stale-after-delete.p5.js")).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("group", { name: "Empty creative workspace" })
+      ).toBeVisible();
+      expect(window.localStorage.getItem(sessionAKey)).toBeNull();
+      expect(
+        JSON.parse(window.localStorage.getItem(sessionBKey) ?? "{}")
+      ).toEqual(expect.objectContaining({ artifacts: [], sessionId: sessionBId }));
+    } finally {
+      window.localStorage.removeItem(sessionAKey);
+      window.localStorage.removeItem(sessionBKey);
+      window.localStorage.removeItem(sessionIndexKey);
+    }
+  });
+
+  it("keeps assistant submission closed until initial persistence hydration completes", async () => {
+    const delayedLoad = createDeferred<WorkspacePersistenceLoadResult>();
+    const backendStream = vi.fn((_request: AssistantStreamRequest) =>
+      streamEvents([
+        {
+          event_type: "final",
+          sequence: 0,
+          payload: { answer: "Hydrated session response." }
+        }
+      ])
+    );
+    const persistenceClient: WorkspacePersistenceClient = {
+      load: vi.fn(() => delayedLoad.promise),
+      save: vi.fn(async () => ({ error: null, target: "local" as const }))
+    };
+
+    renderShell(getInitialWorkspaceSnapshot(), {
+      persistenceClient,
+      streamAssistantEvents: backendStream
+    });
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Wait for this session to hydrate." }
+    });
+
+    const sendButton = screen.getByRole("button", { name: "Send prompt" });
+    const composer = screen.getByRole("form", {
+      name: "Creative request composer"
+    });
+    expect(screen.getByText("Restoring session")).toBeVisible();
+    expect(sendButton).toBeDisabled();
+    fireEvent.submit(composer);
+    expect(backendStream).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Assistant prompt")).toHaveValue(
+      "Wait for this session to hydrate."
+    );
+
+    await act(async () => {
+      delayedLoad.resolve({ error: null, record: null, source: "none" });
+      await delayedLoad.promise;
+    });
+    await waitFor(() => expect(sendButton).toBeEnabled());
+
+    fireEvent.click(sendButton);
+    await waitFor(() => expect(backendStream).toHaveBeenCalledOnce());
+    expect(await screen.findByText("Hydrated session response.")).toBeVisible();
+  });
+
+  it.each(["resolve", "reject"] as const)(
+    "ignores a stale persistence save %s after another session hydrates",
+    async (settlement) => {
+      const userId = `stale-save-${settlement}-user`;
+      const projectId = "stale-save-project";
+      const sessionAId = `stale-save-${settlement}-session-a`;
+      const sessionBId = `stale-save-${settlement}-session-b`;
+      const sessionABaseSnapshot = withWorkspaceIdentity(
+        getInitialWorkspaceSnapshot(),
+        { projectId, sessionId: sessionAId, userId }
+      );
+      const sessionA = {
+        ...sessionABaseSnapshot,
+        session: { ...sessionABaseSnapshot.session, title: "Persistence Session A" }
+      };
+      const sessionBBaseSnapshot = withWorkspaceIdentity(
+        getInitialWorkspaceSnapshot(),
+        { projectId, sessionId: sessionBId, userId }
+      );
+      const sessionB = {
+        ...sessionBBaseSnapshot,
+        session: { ...sessionBBaseSnapshot.session, title: "Persistence Session B" }
+      };
+      const sessionARecord = createWorkspaceSessionRecord({
+        activeArtifactId: "",
+        activeInspectorTab: "Overview",
+        previewArtifactId: "",
+        previewOpen: false,
+        snapshot: sessionA
+      });
+      const sessionBRecord = createWorkspaceSessionRecord({
+        activeArtifactId: "",
+        activeInspectorTab: "Overview",
+        previewArtifactId: "",
+        previewOpen: false,
+        snapshot: sessionB
+      });
+      const sessionAKey = `cca.workspace.${userId}.${sessionAId}`;
+      const sessionBKey = `cca.workspace.${userId}.${sessionBId}`;
+      const sessionIndexKey = `cca.workspace.${userId}.session-index.v1`;
+      window.localStorage.setItem(sessionAKey, JSON.stringify(sessionARecord));
+      window.localStorage.setItem(sessionBKey, JSON.stringify(sessionBRecord));
+      window.localStorage.setItem(
+        sessionIndexKey,
+        JSON.stringify([
+          {
+            artifactCount: 0,
+            projectId,
+            sessionId: sessionAId,
+            title: "Persistence Session A",
+            updatedAt: sessionARecord.updatedAt
+          },
+          {
+            artifactCount: 0,
+            projectId,
+            sessionId: sessionBId,
+            title: "Persistence Session B",
+            updatedAt: sessionBRecord.updatedAt
+          }
+        ])
+      );
+
+      const staleSave = createDeferred<WorkspacePersistenceSaveResult>();
+      const persistenceClient: WorkspacePersistenceClient = {
+        identity: sessionA.session,
+        load: vi.fn(async () => ({
+          error: null,
+          record: null,
+          source: "none" as const
+        })),
+        save: vi
+          .fn()
+          .mockResolvedValueOnce({ error: null, target: "local" as const })
+          .mockImplementationOnce(() => staleSave.promise)
+      };
+      vi.spyOn(globalThis, "fetch").mockImplementation((_input, init) =>
+        Promise.resolve(
+          init?.method === "GET"
+            ? new Response(JSON.stringify(sessionBRecord), {
+                headers: { "Content-Type": "application/json" },
+                status: 200
+              })
+            : new Response("{}", {
+                headers: { "Content-Type": "application/json" },
+                status: 200
+              })
+        )
+      );
+
+      try {
+        renderShell(sessionA, { persistenceClient });
+        expect(await screen.findByText("Stored locally")).toBeInTheDocument();
+        await waitFor(() => expect(persistenceClient.save).toHaveBeenCalledOnce());
+        vi.mocked(persistenceClient.save).mockClear();
+
+        const settingsPanel = openWorkspaceSettingsPanel();
+        fireEvent.click(
+          within(settingsPanel).getByRole("button", { name: "Preview auto-open" })
+        );
+        closeWorkspaceSettingsPanel();
+        await waitFor(() => expect(persistenceClient.save).toHaveBeenCalledOnce());
+        expect(screen.getByText("Saving session")).toBeInTheDocument();
+
+        const sessionBButton = screen
+          .getByText("Persistence Session B", {
+            selector: ".dashboardChoiceCardTitle"
+          })
+          .closest("button");
+        expect(sessionBButton).not.toBeNull();
+        fireEvent.click(sessionBButton as HTMLButtonElement);
+        await waitFor(() =>
+          expect(sessionBButton).toHaveAttribute("aria-current", "true")
+        );
+        const persistenceLabel = screen
+          .getByLabelText("Active artifact")
+          .querySelector("small");
+        expect(persistenceLabel).not.toBeNull();
+        await waitFor(() =>
+          expect(persistenceLabel).toHaveTextContent("Session saved")
+        );
+        const sessionBStatus = persistenceLabel?.textContent ?? "";
+
+        await act(async () => {
+          if (settlement === "resolve") {
+            staleSave.resolve({ error: null, target: "local" });
+          } else {
+            staleSave.reject(new Error("late Session A save failure"));
+          }
+          await new Promise((resolve) => window.setTimeout(resolve, 0));
+        });
+
+        expect(persistenceLabel).toHaveTextContent(sessionBStatus);
+        expect(screen.queryByText("Stored locally")).not.toBeInTheDocument();
+        expect(screen.queryByText("Stored for this tab")).not.toBeInTheDocument();
+      } finally {
+        window.localStorage.removeItem(sessionAKey);
+        window.localStorage.removeItem(sessionBKey);
+        window.localStorage.removeItem(sessionIndexKey);
+      }
+    }
+  );
+
+  it("starts only one immutable request binding for rapid repeated submits", async () => {
+    const releaseCompletion = createDeferred<void>();
+    let receivedBinding: TestAssistantStreamBinding | null = null;
+    const backendStream = vi.fn(async function* (
+      _request: AssistantStreamRequest,
+      binding: TestAssistantStreamBinding
+    ) {
+      receivedBinding = binding;
+      await releaseCompletion.promise;
+      yield {
+        event_type: "final" as const,
+        sequence: 0,
+        payload: { answer: "One bounded response." }
+      };
+    });
+
+    renderShell(getInitialWorkspaceSnapshot(), {
+      persistenceClient: createEmptyPersistenceClient(),
+      streamAssistantEvents: backendStream
+    });
+    await screen.findByText("Local session ready");
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Submit this request once." }
+    });
+    const composer = screen.getByRole("form", {
+      name: "Creative request composer"
+    });
+    act(() => {
+      fireEvent.submit(composer);
+      fireEvent.submit(composer);
+    });
+
+    await waitFor(() => expect(backendStream).toHaveBeenCalledOnce());
+    expect(receivedBinding).toEqual(
+      expect.objectContaining({
+        epoch: expect.any(Number),
+        requestId: expect.stringContaining("local-nextjs-session"),
+        sessionId: "local-nextjs-session",
+        signal: expect.any(AbortSignal)
+      })
+    );
+    expect(Object.isFrozen(receivedBinding)).toBe(true);
+
+    await act(async () => {
+      releaseCompletion.resolve();
+      await releaseCompletion.promise;
+    });
+
+    expect(await screen.findByText("One bounded response.")).toBeVisible();
+    expect(
+      within(screen.getByRole("log", { name: "Conversation" })).getAllByText(
+        "Submit this request once."
+      )
+    ).toHaveLength(1);
+  });
+
+  it("aborts and ignores delayed stream output when the workspace session is cleared", async () => {
+    const releaseDelayedEvents = createDeferred<void>();
+    let receivedBinding: TestAssistantStreamBinding | null = null;
+    const backendStream = vi.fn(async function* (
+      _request: AssistantStreamRequest,
+      binding: TestAssistantStreamBinding
+    ) {
+      receivedBinding = binding;
+      yield {
+        event_type: "status" as const,
+        sequence: 0,
+        payload: { code: "request_received", message: "Request started." }
+      };
+      await releaseDelayedEvents.promise;
+      yield {
+        event_type: "artifact_extracted" as const,
+        sequence: 1,
+        payload: {
+          artifacts: [
+            {
+              id: "stale-reset-artifact",
+              title: "stale-after-reset.p5.js",
+              language: "JavaScript + p5.js",
+              content: "function setup() { createCanvas(320, 180); }",
+              preview_eligible: true,
+              runtime: "p5",
+              renderer_id: "surface.p5"
+            }
+          ]
+        }
+      };
+      yield {
+        event_type: "final" as const,
+        sequence: 2,
+        payload: { answer: "Stale completion after reset." }
+      };
+    });
+    const persistenceClient = createEmptyPersistenceClient();
+
+    renderShell(getInitialWorkspaceSnapshot(), {
+      persistenceClient,
+      streamAssistantEvents: backendStream
+    });
+    await screen.findByText("Local session ready");
+    vi.mocked(persistenceClient.save).mockClear();
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Reset this active request." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+    await waitFor(() => expect(backendStream).toHaveBeenCalledOnce());
+
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    fireEvent.click(screen.getByRole("button", { name: "Clear workspace session" }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Clear workspace" }));
+      await Promise.resolve();
+    });
+
+    expect(backendStream.mock.calls[0]?.[1].signal.aborted).toBe(true);
+    expect(
+      screen.getByRole("group", { name: "Empty creative workspace" })
+    ).toBeVisible();
+
+    await act(async () => {
+      releaseDelayedEvents.resolve();
+      await releaseDelayedEvents.promise;
+      await Promise.resolve();
+    });
+
+    expect(screen.queryByText("Stale completion after reset.")).not.toBeInTheDocument();
+    expect(screen.queryByText("stale-after-reset.p5.js")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("group", { name: "Empty creative workspace" })
+    ).toBeVisible();
+    await waitFor(() =>
+      expect(persistenceClient.save).toHaveBeenLastCalledWith(
+        expect.objectContaining({ artifacts: [], messages: [] })
+      )
+    );
+  });
+
+  it("aborts the active stream on unmount without running a stale finalizer", async () => {
+    const releaseCompletion = createDeferred<void>();
+    let receivedBinding: TestAssistantStreamBinding | null = null;
+    const backendStream = vi.fn(async function* (
+      _request: AssistantStreamRequest,
+      binding: TestAssistantStreamBinding
+    ) {
+      receivedBinding = binding;
+      await releaseCompletion.promise;
+      yield {
+        event_type: "final" as const,
+        sequence: 0,
+        payload: { answer: "Unmounted completion." }
+      };
+    });
+    const persistenceClient = createEmptyPersistenceClient();
+    const view = renderShell(getInitialWorkspaceSnapshot(), {
+      persistenceClient,
+      streamAssistantEvents: backendStream
+    });
+    await screen.findByText("Local session ready");
+    vi.mocked(persistenceClient.save).mockClear();
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Unmount during this request." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+    await waitFor(() => expect(backendStream).toHaveBeenCalledOnce());
+
+    view.unmount();
+    expect(backendStream.mock.calls[0]?.[1].signal.aborted).toBe(true);
+    const saveCountAfterUnmount = vi.mocked(persistenceClient.save).mock.calls.length;
+
+    await act(async () => {
+      releaseCompletion.resolve();
+      await releaseCompletion.promise;
+      await Promise.resolve();
+    });
+
+    expect(persistenceClient.save).toHaveBeenCalledTimes(saveCountAfterUnmount);
+  });
+
+  it("ignores a request failure that arrives after activating a new session", async () => {
+    const userId = "stream-failure-switch-user";
+    const sessionId = "stream-failure-session-a";
+    const projectId = "stream-failure-project";
+    const initialSnapshot = withWorkspaceIdentity(getInitialWorkspaceSnapshot(), {
+      projectId,
+      sessionId,
+      userId
+    });
+    const releaseFailure = createDeferred<void>();
+    let receivedBinding: TestAssistantStreamBinding | null = null;
+    const backendStream = vi.fn(async function* (
+      _request: AssistantStreamRequest,
+      binding: TestAssistantStreamBinding
+    ): AsyncGenerator<AssistantStreamEvent> {
+      receivedBinding = binding;
+      yield {
+        event_type: "status",
+        sequence: 0,
+        payload: { code: "request_received", message: "Request started." }
+      };
+      await releaseFailure.promise;
+      throw new Error("late Session A failure");
+    });
+    const persistenceClient: WorkspacePersistenceClient = {
+      ...createEmptyPersistenceClient(),
+      identity: initialSnapshot.session
+    };
+    const sessionIndexKey = `cca.workspace.${userId}.session-index.v1`;
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("{}"));
+
+    try {
+      renderShell(initialSnapshot, {
+        persistenceClient,
+        streamAssistantEvents: backendStream
+      });
+      await waitFor(() => expect(persistenceClient.load).toHaveBeenCalled());
+
+      fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+        target: { value: "Fail only in Session A." }
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+      await waitFor(() => expect(backendStream).toHaveBeenCalledOnce());
+
+      fireEvent.click(screen.getByRole("button", { name: "New session" }));
+      await waitFor(() =>
+        expect(
+          screen.getByRole("group", { name: "Empty creative workspace" })
+        ).toBeVisible()
+      );
+      expect(backendStream.mock.calls[0]?.[1].signal.aborted).toBe(true);
+
+      await act(async () => {
+        releaseFailure.resolve();
+        await releaseFailure.promise;
+        await Promise.resolve();
+      });
+
+      expect(screen.queryByText(/late Session A failure/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Live response unavailable/i)).not.toBeInTheDocument();
+      expect(screen.getByLabelText("Current session")).toHaveTextContent("Ready");
+      expect(
+        screen.getByRole("group", { name: "Empty creative workspace" })
+      ).toBeVisible();
+    } finally {
+      const summaries = JSON.parse(
+        window.localStorage.getItem(sessionIndexKey) ?? "[]"
+      ) as Array<{ sessionId?: string }>;
+      for (const summary of summaries) {
+        if (summary.sessionId) {
+          window.localStorage.removeItem(
+            `cca.workspace.${userId}.${summary.sessionId}`
+          );
+        }
+      }
+      window.localStorage.removeItem(sessionIndexKey);
+    }
   });
 
   it("answers informational questions without creating a visual artifact", async () => {
@@ -3265,6 +4170,7 @@ describe("WorkstationShell", () => {
     renderShell(getInitialWorkspaceSnapshot(), {
       streamAssistantEvents: backendStream
     });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "what's creative coding?" }
@@ -3291,7 +4197,8 @@ describe("WorkstationShell", () => {
         mode: "explain",
         query: "what's creative coding?",
         workflowMode: "auto"
-      })
+      }),
+      assistantStreamBindingMatcher()
     );
     expect(screen.getByText("Auto (Single Agent)")).toBeVisible();
     expect(screen.queryByText("assistant-response.md")).not.toBeInTheDocument();
@@ -3334,6 +4241,7 @@ describe("WorkstationShell", () => {
       persistenceClient,
       streamAssistantEvents: backendStream
     });
+    await waitForSessionHydration();
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Generate a profile-owned sketch." }
     });
@@ -3344,7 +4252,8 @@ describe("WorkstationShell", () => {
       expect.objectContaining({
         conversationId: identity.sessionId,
         projectId: identity.projectId
-      })
+      }),
+      assistantStreamBindingMatcher(identity.sessionId)
     );
   });
 
@@ -3427,6 +4336,7 @@ describe("WorkstationShell", () => {
     renderShell(getLocalWorkspaceSnapshot(), {
       streamAssistantEvents: backendStream
     });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Make something evocative about rain." }
@@ -3459,7 +4369,8 @@ describe("WorkstationShell", () => {
         clarificationResponse: "Visual sketch",
         query:
           "Make something evocative about rain.\n\nClarification answer: Visual sketch"
-      })
+      }),
+      assistantStreamBindingMatcher()
     );
   });
 
@@ -3542,6 +4453,7 @@ describe("WorkstationShell", () => {
     renderShell(getLocalWorkspaceSnapshot(), {
       streamAssistantEvents: backendStream
     });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Make something evocative about rain." }
@@ -3562,7 +4474,8 @@ describe("WorkstationShell", () => {
         clarificationResponse: "Visual sketch",
         query:
           "Make something evocative about rain.\n\nClarification answer: Visual sketch"
-      })
+      }),
+      assistantStreamBindingMatcher()
     );
   });
 
@@ -3598,6 +4511,7 @@ describe("WorkstationShell", () => {
     renderShell(getLocalWorkspaceSnapshot(), {
       streamAssistantEvents: backendStream
     });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Create a small Three.js preview scene." }
@@ -3719,6 +4633,7 @@ describe("WorkstationShell", () => {
     renderShell(getLocalWorkspaceSnapshot(), {
       streamAssistantEvents: backendStream
     });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Generate two candidate artifacts." }
@@ -3805,6 +4720,7 @@ describe("WorkstationShell", () => {
     renderShell(getLocalWorkspaceSnapshot(), {
       streamAssistantEvents: backendStream
     });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Summarize refinements without code." }
@@ -3972,7 +4888,8 @@ describe("WorkstationShell", () => {
           })
         ],
         query: "Use this palette reference."
-      })
+      }),
+      assistantStreamBindingMatcher()
     );
     expect(
       screen.queryByRole("region", { name: "Image references" })
@@ -4000,6 +4917,7 @@ describe("WorkstationShell", () => {
     });
 
     renderShell(getLocalWorkspaceSnapshot());
+    await waitForSessionHydration();
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Use the queued image reference." }
     });
@@ -4207,21 +5125,34 @@ describe("WorkstationShell", () => {
       expect(
         screen.queryByRole("region", { name: "Image references" })
       ).not.toBeInTheDocument();
-      fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+      const sendButton = screen.getByRole("button", { name: "Send prompt" });
+      const composer = screen.getByRole("form", {
+        name: "Creative request composer"
+      });
+      expect(sendButton).toBeDisabled();
+      fireEvent.submit(composer);
+      expect(backendStream).not.toHaveBeenCalled();
+
+      await act(async () => {
+        delayedRestore.resolve(
+          new Response("session not found", { status: 404 })
+        );
+        await delayedRestore.promise;
+      });
+      await waitFor(() => expect(sendButton).toBeEnabled());
+      fireEvent.click(sendButton);
 
       await waitFor(() => expect(backendStream).toHaveBeenCalledOnce());
       expect(backendStream).toHaveBeenCalledWith(
         expect.objectContaining({
           conversationId: nextSessionId,
           query: "Submit only inside the newly selected session."
-        })
+        }),
+        assistantStreamBindingMatcher(nextSessionId)
       );
       expect(backendStream.mock.calls[0]?.[0]).toEqual(
         expect.not.objectContaining({ attachments: expect.anything() })
       );
-
-      delayedRestore.resolve(new Response("session not found", { status: 404 }));
-      await delayedRestore.promise;
     } finally {
       window.localStorage.removeItem(sessionKey);
       window.localStorage.removeItem(sessionIndexKey);
@@ -4373,6 +5304,7 @@ describe("WorkstationShell", () => {
     renderShell(getLocalWorkspaceSnapshot(), {
       streamAssistantEvents: backendStream
     });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Create a p5.js sketch with low-frequency motion." }
@@ -4459,6 +5391,7 @@ describe("WorkstationShell", () => {
     renderShell(getLocalWorkspaceSnapshot(), {
       streamAssistantEvents: backendStream
     });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Find TouchDesigner references for this projection loop." }
@@ -4533,6 +5466,7 @@ describe("WorkstationShell", () => {
     renderUserShell(getLocalWorkspaceSnapshot(), {
       streamAssistantEvents: backendStream
     });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Generate a calmer draft." }
@@ -4603,6 +5537,7 @@ describe("WorkstationShell", () => {
     renderUserShell(getLocalWorkspaceSnapshot(), {
       streamAssistantEvents: backendStream
     });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Generate a p5 sketch." }
@@ -4650,6 +5585,7 @@ describe("WorkstationShell", () => {
     renderUserShell(getLocalWorkspaceSnapshot(), {
       streamAssistantEvents: backendStream
     });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "what's creative coding?" }
@@ -4700,6 +5636,7 @@ describe("WorkstationShell", () => {
     renderUserShell(getLocalWorkspaceSnapshot(), {
       streamAssistantEvents: backendStream
     });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Generate a browser sketch." }
@@ -4773,6 +5710,7 @@ describe("WorkstationShell", () => {
     renderUserShell(getLocalWorkspaceSnapshot(), {
       streamAssistantEvents: backendStream
     });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Generate a GLSL post-processing visual." }
@@ -4903,6 +5841,7 @@ describe("WorkstationShell", () => {
     );
 
     renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
+    await waitForSessionHydration();
 
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     const settingsPanel = screen.getByRole("dialog", { name: "Workspace settings" });
@@ -5007,6 +5946,7 @@ describe("WorkstationShell", () => {
     );
 
     renderUserShell(snapshot, { streamAssistantEvents: backendStream });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Return React Three Fiber source." }
@@ -5027,8 +5967,9 @@ describe("WorkstationShell", () => {
   });
 
   it("falls back to the local draft path when the live response is unavailable", async () => {
-    vi.useFakeTimers();
     renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: failingStream });
+    await waitForSessionHydration();
+    vi.useFakeTimers();
 
     const promptInput = screen.getByLabelText("Assistant prompt");
     const sendButton = screen.getByRole("button", { name: "Send prompt" });
@@ -5094,6 +6035,7 @@ describe("WorkstationShell", () => {
             }
           ])
     });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Generate a reactive sketch." }
@@ -5136,6 +6078,7 @@ describe("WorkstationShell", () => {
           }
         ])
     });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Generate a reactive sketch." }
@@ -6448,7 +7391,7 @@ describe("WorkstationShell", () => {
         within(preview).getByText("Reloading", { selector: "summary small" })
       ).toBeVisible();
 
-      dispatchSandboxRuntimeStatusByRuntimeId(staleRuntimeId as string, {
+      dispatchSandboxRuntimeStatusByRuntimeId(frame, staleRuntimeId as string, {
         detail: "Stale runtime failed.",
         error: {
           message: "Stale runtime failed.",
@@ -6688,6 +7631,7 @@ describe("WorkstationShell", () => {
     renderShell(snapshotWithArtifactComparison(), {
       streamAssistantEvents: backendStream
     });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "make it brighter" }
@@ -6704,7 +7648,8 @@ describe("WorkstationShell", () => {
           instruction: "make it brighter",
           content: expect.stringContaining("function draw()")
         })
-      })
+      }),
+      assistantStreamBindingMatcher()
     );
     expect(screen.getAllByLabelText(/You message at/).at(-1)).toHaveTextContent(
       "make it brighter"
@@ -6731,6 +7676,7 @@ describe("WorkstationShell", () => {
     renderShell(snapshotWithArtifactComparison(), {
       streamAssistantEvents: backendStream
     });
+    await waitForSessionHydration();
 
     const refinement = screen.getByRole("region", {
       name: "Selected artifact refinement"
@@ -6760,7 +7706,8 @@ describe("WorkstationShell", () => {
           artifactId: "source-sketch",
           instruction: expect.stringContaining("Movement complexity: 9")
         })
-      })
+      }),
+      assistantStreamBindingMatcher()
     );
   });
 
@@ -6815,6 +7762,7 @@ describe("WorkstationShell", () => {
     );
 
     renderShell(snapshotWithArtifactComparison(), { streamAssistantEvents: backendStream });
+    await waitForSessionHydration();
 
     const refinement = screen.getByRole("region", {
       name: "Selected artifact refinement"
@@ -6859,7 +7807,8 @@ describe("WorkstationShell", () => {
           refinementPasses: [],
           critiqueRationale: "Stable p5 fallback with a direct preview route."
         })
-      })
+      }),
+      assistantStreamBindingMatcher()
     );
     expect(screen.getByLabelText("Active artifact")).toHaveTextContent(
       "aurora-field.p5.refined.js"
@@ -7985,6 +8934,7 @@ describe("WorkstationShell", () => {
     );
 
     renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Write code for a Three.js scene." }
@@ -8142,6 +9092,7 @@ describe("WorkstationShell", () => {
     );
 
     renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Generate with telemetry." }
@@ -8307,6 +9258,7 @@ describe("WorkstationShell", () => {
     );
 
     renderShell(getLocalWorkspaceSnapshot(), { streamAssistantEvents: backendStream });
+    await waitForSessionHydration();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Generate with telemetry dashboard." }

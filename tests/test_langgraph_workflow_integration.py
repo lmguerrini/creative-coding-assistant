@@ -41,6 +41,9 @@ from creative_coding_assistant.orchestration.routing import (
 from creative_coding_assistant.orchestration.runtime.execution import (
     resolve_workflow_execution_plan,
 )
+from creative_coding_assistant.orchestration.runtime.workflow_review import (
+    MAX_WORKFLOW_REFINEMENT_COUNT,
+)
 
 
 class LangGraphWorkflowIntegrationTests(unittest.TestCase):
@@ -160,7 +163,7 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
                     "Planner requested bounded retrieval so the multi-agent route can ground "
                     "the selected creative domain before generation."
                 ),
-                "max_refinement_loops": 1,
+                "max_refinement_loops": MAX_WORKFLOW_REFINEMENT_COUNT,
             },
         )
         self.assertEqual(review_passed.payload["score"], 1.0)
@@ -332,7 +335,10 @@ class LangGraphWorkflowIntegrationTests(unittest.TestCase):
             ("planner", "researcher", "generator", "critic", "reviewer"),
         )
         self.assertTrue(plan.researcher_required)
-        self.assertEqual(plan.max_refinement_loops, 1)
+        self.assertEqual(
+            plan.max_refinement_loops,
+            MAX_WORKFLOW_REFINEMENT_COUNT,
+        )
 
     def test_auto_uses_single_agent_for_a_generic_explanation(self) -> None:
         request = AssistantRequest(

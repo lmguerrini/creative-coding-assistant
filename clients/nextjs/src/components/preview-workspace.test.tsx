@@ -244,6 +244,46 @@ function createReadyPreviewSnapshot(): AssistantWorkspaceSnapshot {
   };
 }
 
+const sandboxTestHandshakeId =
+  "preview-handshake-00000000000000000000000000000000";
+const sandboxTestHandshakeRuntimeIds = new WeakMap<
+  HTMLIFrameElement,
+  string
+>();
+
+function ensureRuntimeHandshake(frame: HTMLIFrameElement) {
+  const runtimeId = frame.dataset.runtimeId;
+  const sandboxUrl = new URL(
+    frame.getAttribute("src") ?? "",
+    window.location.href
+  );
+  const challengeId = sandboxUrl.hash.slice(1);
+
+  expect(runtimeId).toBeTruthy();
+  expect(challengeId).toMatch(/^preview-challenge-[a-f0-9]{32}$/);
+  expect(sandboxUrl.searchParams.get("challenge")).toBe(challengeId);
+  if (sandboxTestHandshakeRuntimeIds.get(frame) === runtimeId) {
+    return sandboxTestHandshakeId;
+  }
+
+  act(() => {
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        data: {
+          challengeId,
+          handshakeId: sandboxTestHandshakeId,
+          source: "cca-preview-runtime",
+          type: "ready"
+        },
+        origin: "null",
+        source: frame.contentWindow
+      })
+    );
+  });
+  sandboxTestHandshakeRuntimeIds.set(frame, runtimeId as string);
+  return sandboxTestHandshakeId;
+}
+
 function dispatchRuntimeStatus(
   frame: HTMLIFrameElement,
   status: {
@@ -256,15 +296,19 @@ function dispatchRuntimeStatus(
   const runtimeId = frame.dataset.runtimeId;
 
   expect(runtimeId).toBeTruthy();
+  const handshakeId = ensureRuntimeHandshake(frame);
   act(() => {
     window.dispatchEvent(
       new MessageEvent("message", {
         data: {
+          handshakeId,
           runtimeId,
           source: "cca-preview-runtime",
           status,
           type: "status"
-        }
+        },
+        origin: "null",
+        source: frame.contentWindow
       })
     );
   });
@@ -277,15 +321,18 @@ function dispatchRuntimeKeyboardBoundary(
   const runtimeId = frame.dataset.runtimeId;
 
   expect(runtimeId).toBeTruthy();
+  const handshakeId = ensureRuntimeHandshake(frame);
   act(() => {
     window.dispatchEvent(
       new MessageEvent("message", {
         data: {
           ...event,
+          handshakeId,
           runtimeId,
           source: "cca-preview-runtime",
           type: "keyboard-boundary"
         },
+        origin: "null",
         source: frame.contentWindow
       })
     );

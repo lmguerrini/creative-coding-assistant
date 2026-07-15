@@ -317,8 +317,16 @@ type WorkstationShellProps = {
 };
 
 type AssistantStreamClient = (
-  request: AssistantStreamRequest
+  request: AssistantStreamRequest,
+  binding: AssistantStreamInvocationBinding
 ) => AsyncIterable<AssistantStreamEvent>;
+
+type AssistantStreamInvocationBinding = Readonly<{
+  epoch: number;
+  requestId: string;
+  sessionId: string;
+  signal: AbortSignal;
+}>;
 
 type PreviewRuntimeTelemetryBase = {
   kind: PreviewExecutableRuntimeKind;
@@ -395,6 +403,21 @@ type ThemePresetOption = {
 };
 type PendingArtifactRefinement = AssistantArtifactRefinementRequest & {
   requestedAt: string;
+};
+type ActiveAssistantRequest = Readonly<{
+  abortController: AbortController;
+  assistantMessageId: string;
+  epoch: number;
+  forcePreviewOpen: boolean;
+  pendingRefinement: PendingArtifactRefinement | null;
+  projectId: string;
+  prompt: string;
+  requestId: string;
+  requestMode: AssistantRequestMode;
+  sessionId: string;
+}>;
+type AssistantStreamRuntimeState = {
+  hasPreviewRuntimeEvent: boolean;
 };
 
 const localWorkflowIntervalMs = 850;
@@ -517,15 +540,13 @@ export function WorkstationShell({
   const snapshotRef = useRef(snapshot);
   const entryIdCounterRef = useRef(0);
   const approvalIdCounterRef = useRef(0);
+  const assistantRequestCounterRef = useRef(0);
+  const assistantStreamEpochRef = useRef(0);
+  const activeAssistantRequestRef = useRef<ActiveAssistantRequest | null>(null);
+  const workflowTraceSessionIdRef = useRef<string | null>(null);
   const localRuntimeSequenceRef = useRef(1000);
-  const activeRequestPromptRef = useRef("");
   const activeRequestModeRef = useRef<AssistantRequestMode>("generate");
-  const forcePreviewOpenForRequestRef = useRef(false);
   const streamingAssistantIdRef = useRef<string | null>(null);
-  const hasPreviewRuntimeEventRef = useRef(false);
-  const pendingArtifactRefinementRef = useRef<PendingArtifactRefinement | null>(
-    null
-  );
   const previewRuntimeTelemetryKeysRef = useRef<Set<string>>(new Set());
   const previewRuntimeErrorScopesRef = useRef<Set<string>>(new Set());
   const [conversationEntries, setConversationEntries] = useState(() =>
@@ -648,6 +669,7 @@ export function WorkstationShell({
   const isShellMountedRef = useRef(true);
   const evaluationAbortControllerRef = useRef<AbortController | null>(null);
   const hasLoadedPersistenceRef = useRef(false);
+  const persistenceSessionEpochRef = useRef(0);
   const lastPersistedFingerprintRef = useRef<string | null>(null);
   const skipNextPersistenceSaveRef = useRef(false);
   const focusRestoreRef = useRef<FocusRestoreState | null>(null);
@@ -683,6 +705,7 @@ export function WorkstationShell({
 
     return () => {
       isShellMountedRef.current = false;
+      invalidateActiveAssistantRequest({ updateUi: false });
       evaluationAbortControllerRef.current?.abort();
       evaluationAbortControllerRef.current = null;
       clearFeedbackTimers();
@@ -845,7 +868,9 @@ export function WorkstationShell({
           const restoredImageAttachments = normalizeImageAttachments(
             restoredSnapshot.multimodal.imageAttachments
           );
+          invalidateActiveAssistantRequest();
           replaceSnapshot(restoredSnapshot);
+          resetAssistantStreamProjection(restoredSnapshot.debug.events);
           setConversationEntries(
             buildConversationEntries(
               restoredSnapshot.messages,
@@ -864,7 +889,6 @@ export function WorkstationShell({
           setLastRemovedArtifact(null);
           setLastRestoredArtifact(null);
           imageAttachmentCounterRef.current = restoredImageAttachments.length;
-          streamingAssistantIdRef.current = null;
           const restoredActiveArtifactId = resolveRestoredArtifactId(
             restoredSession.record.activeArtifactId,
             restoredSnapshot.artifacts,
@@ -897,7 +921,6 @@ export function WorkstationShell({
               restoredSnapshot.workflow.currentNode
             )
           );
-          setStreamEvents(restoredSnapshot.debug.events);
           lastPersistedFingerprintRef.current =
             fingerprintWorkspaceSessionRecord(restoredSession.record);
           skipNextPersistenceSaveRef.current = !restoredArtifactSelectionWasNormalized;
@@ -908,6 +931,7 @@ export function WorkstationShell({
           return;
         }
 
+        invalidateActiveAssistantRequest();
         replaceSnapshot(withWorkspaceIdentity(initialSnapshot, workspaceIdentity));
         setPersistenceState(restoredSession.error ? "unavailable" : "ready");
       } catch {
@@ -916,7 +940,9 @@ export function WorkstationShell({
           setPersistenceState("unavailable");
         }
       } finally {
-        hasLoadedPersistenceRef.current = true;
+        if (isMounted) {
+          hasLoadedPersistenceRef.current = true;
+        }
       }
     }
 
@@ -1146,7 +1172,12 @@ export function WorkstationShell({
       providerTelemetry,
       traceEvents: workflowTraceEvents
     });
-    if (!completedRun) {
+    const traceSessionId = workflowTraceSessionIdRef.current;
+    if (
+      !completedRun ||
+      !traceSessionId ||
+      traceSessionId !== workspaceIdentity.sessionId
+    ) {
       return;
     }
 
@@ -1158,7 +1189,7 @@ export function WorkstationShell({
     setSessionUsageSummaries(
       recordSessionUsageRun({
         run: completedRun,
-        sessionId: workspaceIdentity.sessionId,
+        sessionId: traceSessionId,
         title: snapshot.session.title || snapshot.workspace.name,
         userId: workspaceIdentity.userId
       })
@@ -1357,7 +1388,10 @@ export function WorkstationShell({
   ).detail;
   const isImageUploadPending = pendingImageUploadCount > 0;
   const isComposerReady =
-    Boolean(composerValue.trim()) && !isStreaming && !isImageUploadPending;
+    hasLoadedPersistenceRef.current &&
+    Boolean(composerValue.trim()) &&
+    !isStreaming &&
+    !isImageUploadPending;
   const approvalSummary = useMemo(
     () => summarizeHitlApprovalRequests(approvalRequests),
     [approvalRequests]
@@ -1522,6 +1556,12 @@ export function WorkstationShell({
 
     lastPersistedFingerprintRef.current = fingerprint;
     setPersistenceState("saving");
+    const persistenceSessionEpoch = persistenceSessionEpochRef.current;
+    const persistenceSessionId = persistenceRecord.sessionId;
+    const canFinalizePersistenceSave = () =>
+      isShellMountedRef.current &&
+      persistenceSessionEpochRef.current === persistenceSessionEpoch &&
+      snapshotRef.current.session.sessionId === persistenceSessionId;
     withPersistenceTimeout(
       activePersistenceClient.save(persistenceRecord),
       {
@@ -1531,7 +1571,7 @@ export function WorkstationShell({
       1500
     )
       .then((result) => {
-        if (!isShellMountedRef.current) {
+        if (!canFinalizePersistenceSave()) {
           return;
         }
 
@@ -1540,10 +1580,12 @@ export function WorkstationShell({
         setWorkspaceSessions(listLocalWorkspaceSessions(workspaceIdentity.userId));
       })
       .catch(() => {
-        if (isShellMountedRef.current) {
-          setPersistenceError(buildPersistenceTimeoutError("save"));
-          setPersistenceState("unavailable");
+        if (!canFinalizePersistenceSave()) {
+          return;
         }
+
+        setPersistenceError(buildPersistenceTimeoutError("save"));
+        setPersistenceState("unavailable");
       });
     return undefined;
   }, [
@@ -1623,6 +1665,93 @@ export function WorkstationShell({
     commitImageAttachments(nextAttachments);
   }
 
+  function createActiveAssistantRequest({
+    assistantMessageId,
+    forcePreviewOpen,
+    pendingRefinement,
+    prompt,
+    requestMode
+  }: {
+    assistantMessageId: string;
+    forcePreviewOpen: boolean;
+    pendingRefinement: PendingArtifactRefinement | null;
+    prompt: string;
+    requestMode: AssistantRequestMode;
+  }): ActiveAssistantRequest {
+    assistantRequestCounterRef.current += 1;
+    assistantStreamEpochRef.current += 1;
+
+    return Object.freeze({
+      abortController: new AbortController(),
+      assistantMessageId,
+      epoch: assistantStreamEpochRef.current,
+      forcePreviewOpen,
+      pendingRefinement,
+      projectId: workspaceIdentity.projectId,
+      prompt,
+      requestId: `${workspaceIdentity.sessionId}:request-${assistantRequestCounterRef.current}`,
+      requestMode,
+      sessionId: workspaceIdentity.sessionId
+    });
+  }
+
+  function isAssistantRequestEpochCurrent(request: ActiveAssistantRequest) {
+    return (
+      isShellMountedRef.current &&
+      !request.abortController.signal.aborted &&
+      assistantStreamEpochRef.current === request.epoch &&
+      snapshotRef.current.session.sessionId === request.sessionId
+    );
+  }
+
+  function isActiveAssistantRequest(request: ActiveAssistantRequest) {
+    const activeRequest = activeAssistantRequestRef.current;
+
+    return (
+      isAssistantRequestEpochCurrent(request) &&
+      activeRequest?.epoch === request.epoch &&
+      activeRequest.requestId === request.requestId &&
+      activeRequest.sessionId === request.sessionId
+    );
+  }
+
+  function invalidateActiveAssistantRequest({
+    updateUi = true
+  }: { updateUi?: boolean } = {}) {
+    const activeRequest = activeAssistantRequestRef.current;
+
+    assistantStreamEpochRef.current += 1;
+    activeAssistantRequestRef.current = null;
+    activeRequest?.abortController.abort();
+    if (
+      !activeRequest ||
+      streamingAssistantIdRef.current === activeRequest.assistantMessageId
+    ) {
+      streamingAssistantIdRef.current = null;
+    }
+    activeRequestModeRef.current = "generate";
+
+    if (updateUi && isShellMountedRef.current) {
+      setIsStreaming(false);
+    }
+  }
+
+  function resetAssistantStreamProjection(
+    nextStreamEvents: AssistantWorkspaceSnapshot["debug"]["events"] = []
+  ) {
+    workflowTraceSessionIdRef.current = null;
+    streamingAssistantIdRef.current = null;
+    activeRequestModeRef.current = "generate";
+    setIsStreaming(false);
+    setStreamError(null);
+    setStreamEvents(nextStreamEvents);
+    setClarification(null);
+    setSessionIntelligenceMetadata(null);
+    setWorkflowTraceEvents([]);
+    setCreativeCostRunHistory([]);
+    setWorkflowRunId(0);
+  }
+
   function sessionPersistenceClient(sessionId: string) {
     return createWorkspacePersistenceClient({
       projectId: workspaceIdentity.projectId,
@@ -1633,6 +1762,7 @@ export function WorkstationShell({
   }
 
   function resetSessionState(nextSnapshot: AssistantWorkspaceSnapshot) {
+    invalidateActiveAssistantRequest();
     const normalizedAttachments = normalizeImageAttachments(
       nextSnapshot.multimodal.imageAttachments
     );
@@ -1652,12 +1782,7 @@ export function WorkstationShell({
     setActiveTab(getInitialActiveTab(nextSnapshot));
     setIsPreviewOpen(false);
     setComposerValue("");
-    setStreamEvents(nextSnapshot.debug.events);
-    setWorkflowTraceEvents([]);
-    setCreativeCostRunHistory([]);
-    setWorkflowRunId(0);
-    setStreamError(null);
-    setClarification(null);
+    resetAssistantStreamProjection(nextSnapshot.debug.events);
     setPreviewSessionOverride(null);
     setPreviewRuntimeLive(null);
   }
@@ -1666,6 +1791,9 @@ export function WorkstationShell({
     if (sessionId === workspaceIdentity.sessionId) {
       return;
     }
+    persistenceSessionEpochRef.current += 1;
+    invalidateActiveAssistantRequest();
+    resetAssistantStreamProjection();
     resetImageUploadBoundary([]);
     setImageUploadError(null);
     setIsAttachmentMenuOpen(false);
@@ -1700,9 +1828,11 @@ export function WorkstationShell({
       ...workspacePreferences,
       showDebugPanels: defaultWorkspacePreferences.showDebugPanels
     });
+    persistenceSessionEpochRef.current += 1;
     hasLoadedPersistenceRef.current = false;
     lastPersistedFingerprintRef.current = null;
     skipNextPersistenceSaveRef.current = true;
+    setPersistenceState("loading");
     resetSessionState(titledSnapshot);
     setActiveTab(userModeDefaultInspectorTab);
     setLayoutState(nextLayout);
@@ -1777,6 +1907,10 @@ export function WorkstationShell({
       eyebrow: "Session deletion",
       id: `delete-session-${summary.sessionId}`,
       onConfirm: async () => {
+        if (sessionId === workspaceIdentity.sessionId) {
+          invalidateActiveAssistantRequest();
+          resetAssistantStreamProjection();
+        }
         await deletePersistedWorkspaceSession({
           identity: {
             projectId: summary.projectId,
@@ -1929,6 +2063,7 @@ export function WorkstationShell({
     const receivedAtMs = Date.now();
     const code = readPayloadText(event, "code") ?? event.event_type;
 
+    workflowTraceSessionIdRef.current = snapshotRef.current.session.sessionId;
     setWorkflowTraceEvents((currentEvents) => [
       ...currentEvents,
       {
@@ -2247,6 +2382,7 @@ export function WorkstationShell({
   }
 
   function clearWorkspaceSession() {
+    invalidateActiveAssistantRequest();
     const clearedSnapshot = withWorkspaceIdentity(
       getInitialWorkspaceSnapshot(),
       workspaceIdentity
@@ -2256,9 +2392,6 @@ export function WorkstationShell({
     setCopyFeedback(null);
     setTransferFeedback(null);
     setArtifactTransferError(null);
-    streamingAssistantIdRef.current = null;
-    hasPreviewRuntimeEventRef.current = false;
-    pendingArtifactRefinementRef.current = null;
     previousPreviewRuntimeSessionKeyRef.current = null;
     previewRuntimeTelemetryKeysRef.current.clear();
     previewRuntimeErrorScopesRef.current.clear();
@@ -2286,13 +2419,8 @@ export function WorkstationShell({
     setPreviewSessionOverride(null);
     setWorkflowProgressIndex(getInitialWorkflowIndex(clearedSnapshot.workflow.steps));
     setWorkflowRunId(0);
-    setIsStreaming(false);
-    setStreamError(null);
-    setStreamEvents(clearedSnapshot.debug.events);
+    resetAssistantStreamProjection(clearedSnapshot.debug.events);
     setClarification(clearedSnapshot.clarification ?? null);
-    setSessionIntelligenceMetadata(null);
-    setWorkflowTraceEvents([]);
-    setCreativeCostRunHistory([]);
     setLastRemovedArtifact(null);
     setLastRestoredArtifact(null);
     setPreviewRuntimeLive(null);
@@ -2726,7 +2854,11 @@ export function WorkstationShell({
   }
 
   function handleDemoScenarioLoad(scenario: DemoModeScenario) {
-    if (isStreaming || isImageUploadPending) {
+    if (
+      activeAssistantRequestRef.current ||
+      isStreaming ||
+      isImageUploadPending
+    ) {
       return;
     }
 
@@ -2773,7 +2905,7 @@ export function WorkstationShell({
 
     const prompt = composerValue.trim();
 
-    if (!prompt || isImageUploadPending) {
+    if (!hasLoadedPersistenceRef.current || !prompt || isImageUploadPending) {
       return;
     }
 
@@ -2863,7 +2995,12 @@ export function WorkstationShell({
     userMessageContent?: string;
     workflowModeOverride?: WorkflowExecutionMode;
   }) {
-    if (isStreaming || isImageUploadPending) {
+    if (
+      activeAssistantRequestRef.current ||
+      !hasLoadedPersistenceRef.current ||
+      isStreaming ||
+      isImageUploadPending
+    ) {
       return;
     }
 
@@ -2898,11 +3035,19 @@ export function WorkstationShell({
       productOutcome: null,
       workflowStatus: "running"
     });
+    const activeRequest = createActiveAssistantRequest({
+      assistantMessageId,
+      forcePreviewOpen,
+      pendingRefinement,
+      prompt,
+      requestMode
+    });
+    const streamRuntime: AssistantStreamRuntimeState = {
+      hasPreviewRuntimeEvent: false
+    };
 
-    pendingArtifactRefinementRef.current = pendingRefinement;
-    activeRequestPromptRef.current = prompt;
+    activeAssistantRequestRef.current = activeRequest;
     activeRequestModeRef.current = requestMode;
-    forcePreviewOpenForRequestRef.current = forcePreviewOpen;
     streamingAssistantIdRef.current = assistantMessageId;
     setConversationEntries((currentMessages) => [
       ...currentMessages,
@@ -2940,7 +3085,7 @@ export function WorkstationShell({
     setClarification(null);
     setSessionIntelligenceMetadata(null);
     setWorkflowTraceEvents([]);
-    hasPreviewRuntimeEventRef.current = false;
+    workflowTraceSessionIdRef.current = activeRequest.sessionId;
     previewRuntimeTelemetryKeysRef.current.clear();
     previewRuntimeErrorScopesRef.current.clear();
     setIsStreaming(true);
@@ -2948,6 +3093,7 @@ export function WorkstationShell({
 
     let streamedAnswer = "";
     let receivedTerminalStreamError = false;
+    let assistantFinalized = false;
     let latestWorkflowActivity = initialWorkflowActivity;
     const requestAttachments = toAssistantRequestImageAttachments(
       imageAttachmentsRef.current
@@ -2973,7 +3119,7 @@ export function WorkstationShell({
 
     try {
       const streamRequest: AssistantStreamRequest = {
-        conversationId: workspaceIdentity.sessionId,
+        conversationId: activeRequest.sessionId,
         generationControls: {
           profile: buildGenerationControls(workspacePreferences.creativity).profile
         },
@@ -2983,7 +3129,7 @@ export function WorkstationShell({
           enabled: personalizationContext.enabled,
           signalCount: personalizationContext.signalCount
         },
-        projectId: workspaceIdentity.projectId,
+        projectId: activeRequest.projectId,
         query: prompt,
         workflowMode: workflowModeOverride ?? workflowMode
       };
@@ -3004,11 +3150,24 @@ export function WorkstationShell({
         streamRequest.attachments = requestAttachments;
       }
 
-      for await (const streamEvent of streamAssistantEvents(streamRequest)) {
+      const streamBinding = Object.freeze({
+        epoch: activeRequest.epoch,
+        requestId: activeRequest.requestId,
+        sessionId: activeRequest.sessionId,
+        signal: activeRequest.abortController.signal
+      });
+
+      for await (const streamEvent of streamAssistantEvents(
+        streamRequest,
+        streamBinding
+      )) {
+        if (!isActiveAssistantRequest(activeRequest)) {
+          return;
+        }
         latestWorkflowActivity = deriveWorkflowRuntimeActivityForStreamEvent(
           streamEvent
         );
-        applyStreamEventToWorkspace(streamEvent);
+        applyStreamEventToWorkspace(streamEvent, activeRequest, streamRuntime);
 
         if (
           streamEvent.event_type === "token_delta" &&
@@ -3018,7 +3177,7 @@ export function WorkstationShell({
           if (delta) {
             streamedAnswer += delta;
             startTransition(() => {
-              updateStreamingAssistantMessage({
+              updateStreamingAssistantMessage(activeRequest, {
                 activity: conversationActivityForRequestMode(
                   latestWorkflowActivity,
                   requestMode
@@ -3049,11 +3208,12 @@ export function WorkstationShell({
           const conversationOutcome = formatConversationOutcome(
             reconciledActivity
           );
-          finalizeStreamingAssistantMessage({
+          finalizeStreamingAssistantMessage(activeRequest, {
             activity: conversationOutcome.activity,
             content: buildAssistantConversationSummary(streamedAnswer, requestMode),
             phase: conversationOutcome.phase
           });
+          assistantFinalized = true;
         }
 
         if (streamEvent.event_type === "error") {
@@ -3074,7 +3234,7 @@ export function WorkstationShell({
               resetLabel: "Clear workspace session"
             });
           setStreamError(error);
-          finalizeStreamingAssistantMessage({
+          finalizeStreamingAssistantMessage(activeRequest, {
             activity: failedActivity.detail,
             content: streamedAnswer
               ? `${buildAssistantConversationSummary(
@@ -3084,10 +3244,15 @@ export function WorkstationShell({
               : `Live response error: ${error.userMessage}`,
             phase: terminalConversationPhaseForWorkflowActivity(failedActivity)
           });
+          assistantFinalized = true;
         }
       }
 
-      if (!receivedTerminalStreamError && streamingAssistantIdRef.current && streamedAnswer) {
+      if (!isActiveAssistantRequest(activeRequest)) {
+        return;
+      }
+
+      if (!receivedTerminalStreamError && !assistantFinalized && streamedAnswer) {
         const completedActivity = latestWorkflowActivity.terminal
           ? latestWorkflowActivity
           : deriveWorkflowRuntimeActivity({
@@ -3095,12 +3260,12 @@ export function WorkstationShell({
               productOutcome: null,
               workflowStatus: "completed"
             });
-        finalizeStreamingAssistantMessage({
+        finalizeStreamingAssistantMessage(activeRequest, {
           activity: completedActivity.detail,
           content: buildAssistantConversationSummary(streamedAnswer, requestMode),
           phase: terminalConversationPhaseForWorkflowActivity(completedActivity)
         });
-      } else if (!receivedTerminalStreamError && streamingAssistantIdRef.current) {
+      } else if (!receivedTerminalStreamError && !assistantFinalized) {
         const error = createWorkstationError({
           type: "stream_ended_before_completion",
           category: "stream",
@@ -3117,13 +3282,16 @@ export function WorkstationShell({
           productOutcome: null,
           workflowStatus: "failed"
         });
-        finalizeStreamingAssistantMessage({
+        finalizeStreamingAssistantMessage(activeRequest, {
           activity: failedActivity.detail,
           content: error.userMessage,
           phase: terminalConversationPhaseForWorkflowActivity(failedActivity)
         });
       }
     } catch (error) {
+      if (!isActiveAssistantRequest(activeRequest)) {
+        return;
+      }
       const streamFailure =
         error instanceof Error && "detail" in error && error.detail
           ? (error.detail as WorkstationError)
@@ -3144,7 +3312,7 @@ export function WorkstationShell({
         artifactRefinement?.title ?? activeArtifact.title
       )}`;
       setStreamError(streamFailure);
-      finalizeStreamingAssistantMessage({
+      finalizeStreamingAssistantMessage(activeRequest, {
         activity: "Switching to a local draft.",
         content: fallbackMessage,
         phase: "fallback"
@@ -3152,23 +3320,32 @@ export function WorkstationShell({
       setWorkflowProgressIndex(0);
       setWorkflowRunId((currentRunId) => currentRunId + 1);
     } finally {
-      if (pendingArtifactRefinementRef.current?.requestedAt === pendingRefinement?.requestedAt) {
-        pendingArtifactRefinementRef.current = null;
+      if (isActiveAssistantRequest(activeRequest)) {
+        activeAssistantRequestRef.current = null;
+        if (streamingAssistantIdRef.current === activeRequest.assistantMessageId) {
+          streamingAssistantIdRef.current = null;
+        }
+        activeRequestModeRef.current = "generate";
+        setIsStreaming(false);
       }
-      activeRequestPromptRef.current = "";
-      activeRequestModeRef.current = "generate";
-      forcePreviewOpenForRequestRef.current = false;
-      setIsStreaming(false);
     }
   }
 
-  function applyStreamEventToWorkspace(streamEvent: AssistantStreamEvent) {
+  function applyStreamEventToWorkspace(
+    streamEvent: AssistantStreamEvent,
+    activeRequest: ActiveAssistantRequest,
+    streamRuntime: AssistantStreamRuntimeState
+  ) {
+    if (!isActiveAssistantRequest(activeRequest)) {
+      return;
+    }
     const receivedAt = new Date().toISOString();
     const receivedAtMs = Date.now();
     const workflowActivity = deriveWorkflowRuntimeActivityForStreamEvent(
       streamEvent
     );
 
+    workflowTraceSessionIdRef.current = activeRequest.sessionId;
     setWorkflowTraceEvents((currentEvents) => [
       ...currentEvents,
       {
@@ -3248,27 +3425,27 @@ export function WorkstationShell({
       streamEvent.event_type !== "final" &&
       streamEvent.event_type !== "error"
     ) {
-      updateStreamingAssistantMessage({
+      updateStreamingAssistantMessage(activeRequest, {
         activity: conversationActivityForRequestMode(
           workflowActivity,
-          activeRequestModeRef.current
+          activeRequest.requestMode
         ),
         phase: conversationPhaseForRequestActivity(
           workflowActivity,
-          activeRequestModeRef.current
+          activeRequest.requestMode
         )
       });
     }
 
     if (
       streamEvent.event_type === "artifact_extracted" &&
-      activeRequestModeRef.current !== "explain"
+      activeRequest.requestMode !== "explain"
     ) {
       const hydration = annotateRefinedHydration(
         hydrateWorkspaceFromArtifactExtractedEvent(currentSnapshot, streamEvent, {
-          prompt: activeRequestPromptRef.current
+          prompt: activeRequest.prompt
         }),
-        pendingArtifactRefinementRef.current,
+        activeRequest.pendingRefinement,
         currentSnapshot
       );
 
@@ -3283,7 +3460,7 @@ export function WorkstationShell({
         setPreviewSessionOverride(null);
         if (
           hydration.previewAvailable &&
-          forcePreviewOpenForRequestRef.current
+          activeRequest.forcePreviewOpen
         ) {
           handlePreviewOpenChange(true);
           setActiveTab("Preview");
@@ -3293,7 +3470,7 @@ export function WorkstationShell({
 
     if (
       streamEvent.event_type === "preview_artifact" &&
-      activeRequestModeRef.current !== "explain"
+      activeRequest.requestMode !== "explain"
     ) {
       const previewUpdate = readPreviewArtifactUpdate(streamEvent);
       const nextPreviewArtifactId =
@@ -3316,7 +3493,7 @@ export function WorkstationShell({
         (!previewArtifact || isArtifactPreviewable(previewArtifact));
 
       if (!previewCanOpen) {
-        hasPreviewRuntimeEventRef.current = false;
+        streamRuntime.hasPreviewRuntimeEvent = false;
         const fallbackArtifact = previewArtifact
           ? resolveRefinedPreviewFallbackArtifact({
               artifacts: currentSnapshot.artifacts,
@@ -3340,7 +3517,7 @@ export function WorkstationShell({
         return;
       }
 
-      hasPreviewRuntimeEventRef.current = true;
+      streamRuntime.hasPreviewRuntimeEvent = true;
 
       if (previewUpdate) {
         setPreviewSessionOverride((currentOverride) => {
@@ -3362,7 +3539,7 @@ export function WorkstationShell({
       }
       if (
         workspacePreferences.autoOpenPreview ||
-        forcePreviewOpenForRequestRef.current
+        activeRequest.forcePreviewOpen
       ) {
         handlePreviewOpenChange(true);
         setActiveTab("Preview");
@@ -3372,13 +3549,13 @@ export function WorkstationShell({
     if (streamEvent.event_type === "final") {
       const hydration = annotateRefinedHydration(
         hydrateWorkspaceFromFinalEvent(currentSnapshot, streamEvent, {
-          prompt: activeRequestPromptRef.current,
-          skipArtifacts: activeRequestModeRef.current === "explain",
+          prompt: activeRequest.prompt,
+          skipArtifacts: activeRequest.requestMode === "explain",
           skipPlainTextArtifact:
-            activeRequestModeRef.current === "explain" ||
-            hasPreviewRuntimeEventRef.current
+            activeRequest.requestMode === "explain" ||
+            streamRuntime.hasPreviewRuntimeEvent
         }),
-        pendingArtifactRefinementRef.current,
+        activeRequest.pendingRefinement,
         currentSnapshot
       );
 
@@ -3390,7 +3567,7 @@ export function WorkstationShell({
         );
         if (
           hydration.previewAvailable &&
-          forcePreviewOpenForRequestRef.current
+          activeRequest.forcePreviewOpen
         ) {
           handlePreviewOpenChange(true);
           setActiveTab("Preview");
@@ -3409,12 +3586,12 @@ export function WorkstationShell({
       handlePreviewOpenChange(
         hydration.previewAvailable &&
           (workspacePreferences.autoOpenPreview ||
-            forcePreviewOpenForRequestRef.current)
+            activeRequest.forcePreviewOpen)
       );
       if (
         hydration.previewAvailable &&
         (workspacePreferences.autoOpenPreview ||
-          forcePreviewOpenForRequestRef.current)
+          activeRequest.forcePreviewOpen)
       ) {
         setActiveTab("Preview");
       }
@@ -3422,19 +3599,25 @@ export function WorkstationShell({
   }
 
   function updateStreamingAssistantMessage(
+    activeRequest: ActiveAssistantRequest,
     nextState: Partial<
       Pick<ConversationEntry, "activity" | "content" | "pending" | "phase">
     >
   ) {
-    const streamingAssistantId = streamingAssistantIdRef.current;
-    if (!streamingAssistantId) {
+    if (
+      !isActiveAssistantRequest(activeRequest) ||
+      streamingAssistantIdRef.current !== activeRequest.assistantMessageId
+    ) {
       return;
     }
 
     setConversationEntries((currentMessages) => {
+      if (!isAssistantRequestEpochCurrent(activeRequest)) {
+        return currentMessages;
+      }
       const nextMessages = [...currentMessages];
       const assistantIndex = nextMessages.findIndex(
-        (message) => message.id === streamingAssistantId
+        (message) => message.id === activeRequest.assistantMessageId
       );
 
       if (assistantIndex < 0) {
@@ -3454,25 +3637,33 @@ export function WorkstationShell({
     setSnapshot(nextSnapshot);
   }
 
-  function finalizeStreamingAssistantMessage({
-    activity,
-    content,
-    phase
-  }: {
-    activity: string;
-    content: string;
-    phase: Extract<
-      ConversationEntryPhase,
-      "complete" | "completed" | "partial" | "failed" | "error" | "fallback"
-    >;
-  }) {
-    updateStreamingAssistantMessage({
+  function finalizeStreamingAssistantMessage(
+    activeRequest: ActiveAssistantRequest,
+    {
+      activity,
+      content,
+      phase
+    }: {
+      activity: string;
+      content: string;
+      phase: Extract<
+        ConversationEntryPhase,
+        "complete" | "completed" | "partial" | "failed" | "error" | "fallback"
+      >;
+    }
+  ) {
+    if (!isActiveAssistantRequest(activeRequest)) {
+      return;
+    }
+    updateStreamingAssistantMessage(activeRequest, {
       activity,
       content,
       pending: false,
       phase
     });
-    streamingAssistantIdRef.current = null;
+    if (streamingAssistantIdRef.current === activeRequest.assistantMessageId) {
+      streamingAssistantIdRef.current = null;
+    }
   }
 
   async function handleArtifactCopy(artifact: ArtifactSummary) {

@@ -7,10 +7,222 @@ import {
   getPreviewRuntimeSourceMismatch,
   mountPreviewSandboxRuntime,
   preparePreviewExecutableSource,
+  readPreviewSandboxReadyMessage,
   readPreviewSandboxRuntimeMessage
 } from "./preview-sandbox-runtime";
 
+const sandboxHandshakeId =
+  "preview-handshake-00000000000000000000000000000000";
+const sandboxChallengeId =
+  "preview-challenge-00000000000000000000000000000000";
+
+function dispatchSandboxMessage(
+  iframe: HTMLIFrameElement,
+  data: unknown,
+  {
+    origin = "null",
+    source = iframe.contentWindow
+  }: { origin?: string; source?: MessageEventSource | null } = {}
+) {
+  window.dispatchEvent(
+    new MessageEvent("message", {
+      data,
+      origin,
+      source
+    })
+  );
+}
+
+function completeSandboxHandshake(iframe: HTMLIFrameElement) {
+  const challengeId = readSandboxChallengeId(iframe);
+  dispatchSandboxMessage(iframe, {
+    challengeId,
+    handshakeId: sandboxHandshakeId,
+    source: "cca-preview-runtime",
+    type: "ready"
+  });
+}
+
+function readSandboxChallengeId(iframe: HTMLIFrameElement) {
+  const sandboxUrl = new URL(
+    iframe.getAttribute("src") ?? "",
+    window.location.href
+  );
+  const challengeId = sandboxUrl.hash.slice(1);
+  expect(challengeId).toMatch(/^preview-challenge-[a-f0-9]{32}$/);
+  expect(sandboxUrl.searchParams.get("challenge")).toBe(challengeId);
+  return challengeId;
+}
+
 describe("preview sandbox runtime", () => {
+  it("keeps direct navigation inert and requires the framed origin handshake", () => {
+    const sandboxDocument = readFileSync(
+      resolve(process.cwd(), "public/preview-sandbox.html"),
+      "utf8"
+    );
+
+    expect(sandboxDocument).not.toContain(
+      "JSON.parse(decodeURIComponent(location.hash.slice(1)))"
+    );
+    expect(sandboxDocument).toContain(
+      "const challengePattern = /^preview-challenge-[a-f0-9]{32}$/;"
+    );
+    expect(sandboxDocument).toContain("const isEmbedded = window.parent !== window;");
+    expect(sandboxDocument).toContain(
+      'const isOpaqueSandbox = window.origin === "null";'
+    );
+    expect(sandboxDocument).toContain("event.source !== parent");
+    expect(sandboxDocument).toContain("event.origin !== expectedParentOrigin");
+    expect(sandboxDocument).toContain("data.handshakeId === handshakeId");
+    expect(sandboxDocument).toContain(
+      "default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+    );
+  });
+
+  it("accepts only well-formed sandbox readiness nonces", () => {
+    expect(
+      readPreviewSandboxReadyMessage(
+        {
+          challengeId: sandboxChallengeId,
+          handshakeId: sandboxHandshakeId,
+          source: "cca-preview-runtime",
+          type: "ready"
+        },
+        sandboxChallengeId
+      )
+    ).toEqual({
+      challengeId: sandboxChallengeId,
+      handshakeId: sandboxHandshakeId,
+      source: "cca-preview-runtime",
+      type: "ready"
+    });
+
+    for (const message of [
+      null,
+      {
+        challengeId: sandboxChallengeId,
+        handshakeId: sandboxHandshakeId,
+        type: "ready"
+      },
+      {
+        challengeId: sandboxChallengeId,
+        handshakeId: "predictable",
+        source: "cca-preview-runtime",
+        type: "ready"
+      },
+      {
+        challengeId: sandboxChallengeId,
+        handshakeId: sandboxHandshakeId,
+        source: "cca-preview-runtime",
+        type: "mount"
+      }
+    ]) {
+      expect(
+        readPreviewSandboxReadyMessage(message, sandboxChallengeId)
+      ).toBeNull();
+    }
+  });
+
+  it("rejects malformed or unsolicited parent-side handshakes", () => {
+    const iframe = document.createElement("iframe");
+    const foreignIframe = document.createElement("iframe");
+    document.body.append(iframe, foreignIframe);
+    const runtime = mountPreviewSandboxRuntime({
+      iframe,
+      kind: "p5",
+      onStatus: () => undefined,
+      runtimeId: "runtime-handshake",
+      source: {
+        fingerprint: "handshake123",
+        lineCount: 1,
+        source: "function draw() { circle(20, 20, 10); }",
+        title: "handshake.p5.js"
+      }
+    });
+    const postMessage = vi.spyOn(iframe.contentWindow as Window, "postMessage");
+    const readyMessage = {
+      challengeId: readSandboxChallengeId(iframe),
+      handshakeId: sandboxHandshakeId,
+      source: "cca-preview-runtime",
+      type: "ready"
+    };
+
+    dispatchSandboxMessage(iframe, readyMessage, {
+      origin: "https://foreign.example"
+    });
+    dispatchSandboxMessage(iframe, readyMessage, {
+      source: foreignIframe.contentWindow
+    });
+    dispatchSandboxMessage(iframe, {
+      ...readyMessage,
+      handshakeId: "malformed"
+    });
+
+    expect(postMessage).not.toHaveBeenCalled();
+    completeSandboxHandshake(iframe);
+    expect(postMessage).toHaveBeenCalledTimes(1);
+
+    runtime.dispose();
+    iframe.remove();
+    foreignIframe.remove();
+  });
+
+  it("rejects a stale ready nonce from the same iframe WindowProxy after remount", () => {
+    const iframe = document.createElement("iframe");
+    document.body.appendChild(iframe);
+    const firstRuntime = mountPreviewSandboxRuntime({
+      iframe,
+      kind: "p5",
+      onStatus: () => undefined,
+      runtimeId: "runtime-generation-1",
+      source: {
+        fingerprint: "generation-one",
+        lineCount: 1,
+        source: "function draw() { circle(20, 20, 10); }",
+        title: "generation-one.p5.js"
+      }
+    });
+    const staleChallengeId = readSandboxChallengeId(iframe);
+    completeSandboxHandshake(iframe);
+    firstRuntime.dispose();
+
+    const secondRuntime = mountPreviewSandboxRuntime({
+      iframe,
+      kind: "p5",
+      onStatus: () => undefined,
+      runtimeId: "runtime-generation-2",
+      source: {
+        fingerprint: "generation-two",
+        lineCount: 1,
+        source: "function draw() { circle(40, 40, 20); }",
+        title: "generation-two.p5.js"
+      }
+    });
+    const activeChallengeId = readSandboxChallengeId(iframe);
+    const postMessage = vi.spyOn(iframe.contentWindow as Window, "postMessage");
+
+    expect(activeChallengeId).not.toBe(staleChallengeId);
+    dispatchSandboxMessage(iframe, {
+      challengeId: staleChallengeId,
+      handshakeId: "preview-handshake-11111111111111111111111111111111",
+      source: "cca-preview-runtime",
+      type: "ready"
+    });
+    expect(postMessage).not.toHaveBeenCalled();
+
+    completeSandboxHandshake(iframe);
+    expect(postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        runtimeId: "runtime-generation-2",
+        type: "mount"
+      }),
+      "*"
+    );
+
+    secondRuntime.dispose();
+    iframe.remove();
+  });
+
   it("keeps standard p5 angle constants aligned with the sandbox globals", () => {
     const sandboxDocument = readFileSync(
       resolve(process.cwd(), "public/preview-sandbox.html"),
@@ -427,6 +639,7 @@ describe("preview sandbox runtime", () => {
     expect(
       readPreviewSandboxRuntimeMessage(
         {
+          handshakeId: sandboxHandshakeId,
           source: "cca-preview-runtime",
           runtimeId: "runtime-1",
           type: "status",
@@ -436,7 +649,8 @@ describe("preview sandbox runtime", () => {
             state: "running"
           }
         },
-        "runtime-1"
+        "runtime-1",
+        sandboxHandshakeId
       )
     ).toMatchObject({
       type: "status",
@@ -450,12 +664,14 @@ describe("preview sandbox runtime", () => {
     expect(
       readPreviewSandboxRuntimeMessage(
         {
+          handshakeId: sandboxHandshakeId,
           renderedAtMs: 16,
           runtimeId: "runtime-1",
           source: "cca-preview-runtime",
           type: "frame"
         },
-        "runtime-1"
+        "runtime-1",
+        sandboxHandshakeId
       )
     ).toMatchObject({
       renderedAtMs: 16,
@@ -465,12 +681,14 @@ describe("preview sandbox runtime", () => {
     expect(
       readPreviewSandboxRuntimeMessage(
         {
+          handshakeId: sandboxHandshakeId,
           source: "cca-preview-runtime",
           runtimeId: "runtime-2",
           type: "frame",
           renderedAtMs: 16
         },
-        "runtime-1"
+        "runtime-1",
+        sandboxHandshakeId
       )
     ).toBeNull();
   });
@@ -479,15 +697,18 @@ describe("preview sandbox runtime", () => {
     expect(
       readPreviewSandboxRuntimeMessage(
         {
+          handshakeId: sandboxHandshakeId,
           key: "Escape",
           runtimeId: "runtime-1",
           shiftKey: false,
           source: "cca-preview-runtime",
           type: "keyboard-boundary"
         },
-        "runtime-1"
+        "runtime-1",
+        sandboxHandshakeId
       )
     ).toEqual({
+      handshakeId: sandboxHandshakeId,
       key: "Escape",
       runtimeId: "runtime-1",
       shiftKey: false,
@@ -497,18 +718,21 @@ describe("preview sandbox runtime", () => {
     expect(
       readPreviewSandboxRuntimeMessage(
         {
+          handshakeId: sandboxHandshakeId,
           key: "Tab",
           runtimeId: "runtime-1",
           shiftKey: true,
           source: "cca-preview-runtime",
           type: "keyboard-boundary"
         },
-        "runtime-1"
+        "runtime-1",
+        sandboxHandshakeId
       )
     ).toMatchObject({ key: "Tab", shiftKey: true });
 
     for (const message of [
       {
+        handshakeId: sandboxHandshakeId,
         key: "Enter",
         runtimeId: "runtime-1",
         shiftKey: false,
@@ -516,6 +740,7 @@ describe("preview sandbox runtime", () => {
         type: "keyboard-boundary"
       },
       {
+        handshakeId: sandboxHandshakeId,
         key: "Tab",
         runtimeId: "runtime-1",
         shiftKey: "false",
@@ -523,6 +748,7 @@ describe("preview sandbox runtime", () => {
         type: "keyboard-boundary"
       },
       {
+        handshakeId: sandboxHandshakeId,
         key: "Escape",
         runtimeId: "runtime-2",
         shiftKey: false,
@@ -530,7 +756,13 @@ describe("preview sandbox runtime", () => {
         type: "keyboard-boundary"
       }
     ]) {
-      expect(readPreviewSandboxRuntimeMessage(message, "runtime-1")).toBeNull();
+      expect(
+        readPreviewSandboxRuntimeMessage(
+          message,
+          "runtime-1",
+          sandboxHandshakeId
+        )
+      ).toBeNull();
     }
   });
 
@@ -553,22 +785,46 @@ describe("preview sandbox runtime", () => {
     });
 
     expect(iframe.dataset.runtimeId).toBe("runtime-1");
-    expect(iframe.getAttribute("src")).toBe("/preview-sandbox.html");
-
-    window.dispatchEvent(
-      new MessageEvent("message", {
-        data: {
-          source: "cca-preview-runtime",
-          runtimeId: "runtime-1",
-          type: "status",
-          status: {
-            detail: "Executing sketch.",
-            label: "p5 runtime running",
-            state: "running"
-          }
-        }
-      })
+    expect(iframe.getAttribute("src")).toMatch(
+      /^\/preview-sandbox\.html\?challenge=(preview-challenge-[a-f0-9]{32})#\1$/
     );
+    const postMessage = vi.spyOn(iframe.contentWindow as Window, "postMessage");
+
+    dispatchSandboxMessage(iframe, {
+      handshakeId: sandboxHandshakeId,
+      source: "cca-preview-runtime",
+      runtimeId: "runtime-1",
+      type: "status",
+      status: {
+        detail: "Unsolicited status.",
+        label: "p5 runtime running",
+        state: "running"
+      }
+    });
+    expect(statuses).toEqual(["Preview runtime starting"]);
+
+    completeSandboxHandshake(iframe);
+    expect(postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        handshakeId: sandboxHandshakeId,
+        runtime: expect.objectContaining({ kind: "p5" }),
+        runtimeId: "runtime-1",
+        type: "mount"
+      }),
+      "*"
+    );
+
+    dispatchSandboxMessage(iframe, {
+      handshakeId: sandboxHandshakeId,
+      source: "cca-preview-runtime",
+      runtimeId: "runtime-1",
+      type: "status",
+      status: {
+        detail: "Executing sketch.",
+        label: "p5 runtime running",
+        state: "running"
+      }
+    });
 
     expect(statuses).toEqual([
       "Preview runtime starting",
@@ -579,6 +835,65 @@ describe("preview sandbox runtime", () => {
     expect(iframe.dataset.runtimeId).toBeUndefined();
     expect(iframe.getAttribute("src")).toBe("about:blank");
     iframe.remove();
+  });
+
+  it("routes supported p5, Three.js, GLSL, and Tone runtimes through the handshake", () => {
+    const cases = [
+      {
+        kind: "p5",
+        source: "function draw() { circle(20, 20, 10); }"
+      },
+      {
+        kind: "three",
+        source: "const scene = new THREE.Scene();"
+      },
+      {
+        kind: "glsl",
+        source: "void main() { gl_FragColor = vec4(1.0); }"
+      },
+      {
+        kind: "tone",
+        source: "const synth = new Tone.Synth().toDestination();"
+      }
+    ] as const;
+
+    for (const runtimeCase of cases) {
+      const iframe = document.createElement("iframe");
+      document.body.appendChild(iframe);
+      const runtimeId = `runtime-${runtimeCase.kind}`;
+      const runtime = mountPreviewSandboxRuntime({
+        iframe,
+        kind: runtimeCase.kind,
+        onStatus: () => undefined,
+        runtimeId,
+        source: {
+          fingerprint: `${runtimeCase.kind}123`,
+          lineCount: 1,
+          source: runtimeCase.source,
+          title: `${runtimeCase.kind}.runtime.js`
+        }
+      });
+      const postMessage = vi.spyOn(iframe.contentWindow as Window, "postMessage");
+
+      completeSandboxHandshake(iframe);
+
+      expect(postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          handshakeId: sandboxHandshakeId,
+          runtime: expect.objectContaining({
+            kind: runtimeCase.kind,
+            runtimeId,
+            source: expect.objectContaining({ source: expect.any(String) })
+          }),
+          runtimeId,
+          type: "mount"
+        }),
+        "*"
+      );
+
+      runtime.dispose();
+      iframe.remove();
+    }
   });
 
   it("publishes host-keyboard capture and routes only matching boundaries", () => {
@@ -602,9 +917,10 @@ describe("preview sandbox runtime", () => {
     });
     const postMessage = vi.spyOn(iframe.contentWindow as Window, "postMessage");
 
-    iframe.dispatchEvent(new Event("load"));
+    completeSandboxHandshake(iframe);
     expect(postMessage).toHaveBeenCalledWith(
       expect.objectContaining({
+        handshakeId: sandboxHandshakeId,
         runtime: expect.objectContaining({ captureHostKeyboard: true }),
         runtimeId: "runtime-keyboard",
         type: "mount"
@@ -612,42 +928,34 @@ describe("preview sandbox runtime", () => {
       "*"
     );
 
-    window.dispatchEvent(
-      new MessageEvent("message", {
-        data: {
-          key: "Escape",
-          runtimeId: "runtime-stale",
-          shiftKey: false,
-          source: "cca-preview-runtime",
-          type: "keyboard-boundary"
-        },
-        source: iframe.contentWindow
-      })
+    dispatchSandboxMessage(iframe, {
+      handshakeId: sandboxHandshakeId,
+      key: "Escape",
+      runtimeId: "runtime-stale",
+      shiftKey: false,
+      source: "cca-preview-runtime",
+      type: "keyboard-boundary"
+    });
+    dispatchSandboxMessage(
+      iframe,
+      {
+        handshakeId: sandboxHandshakeId,
+        key: "Tab",
+        runtimeId: "runtime-keyboard",
+        shiftKey: false,
+        source: "cca-preview-runtime",
+        type: "keyboard-boundary"
+      },
+      { source: foreignIframe.contentWindow }
     );
-    window.dispatchEvent(
-      new MessageEvent("message", {
-        data: {
-          key: "Tab",
-          runtimeId: "runtime-keyboard",
-          shiftKey: false,
-          source: "cca-preview-runtime",
-          type: "keyboard-boundary"
-        },
-        source: foreignIframe.contentWindow
-      })
-    );
-    window.dispatchEvent(
-      new MessageEvent("message", {
-        data: {
-          key: "Tab",
-          runtimeId: "runtime-keyboard",
-          shiftKey: true,
-          source: "cca-preview-runtime",
-          type: "keyboard-boundary"
-        },
-        source: iframe.contentWindow
-      })
-    );
+    dispatchSandboxMessage(iframe, {
+      handshakeId: sandboxHandshakeId,
+      key: "Tab",
+      runtimeId: "runtime-keyboard",
+      shiftKey: true,
+      source: "cca-preview-runtime",
+      type: "keyboard-boundary"
+    });
 
     expect(onKeyboardBoundary).toHaveBeenCalledTimes(1);
     expect(onKeyboardBoundary).toHaveBeenCalledWith({ key: "Tab", shiftKey: true });
@@ -716,7 +1024,9 @@ describe("preview sandbox runtime", () => {
       }
     });
 
-    expect(iframe.getAttribute("src")).toBe("/preview-sandbox.html");
+    expect(iframe.getAttribute("src")).toMatch(
+      /^\/preview-sandbox\.html\?challenge=(preview-challenge-[a-f0-9]{32})#\1$/
+    );
     expect(statuses).toEqual(["Preview runtime starting"]);
 
     runtime.dispose();
@@ -757,8 +1067,12 @@ describe("preview sandbox runtime", () => {
       }
     });
 
-    expect(svgIframe.getAttribute("src")).toBe("/preview-sandbox.html");
-    expect(canvasIframe.getAttribute("src")).toBe("/preview-sandbox.html");
+    expect(svgIframe.getAttribute("src")).toMatch(
+      /^\/preview-sandbox\.html\?challenge=(preview-challenge-[a-f0-9]{32})#\1$/
+    );
+    expect(canvasIframe.getAttribute("src")).toMatch(
+      /^\/preview-sandbox\.html\?challenge=(preview-challenge-[a-f0-9]{32})#\1$/
+    );
     expect(statuses).toEqual([
       "Preview runtime starting",
       "Preview runtime starting"
@@ -787,6 +1101,7 @@ describe("preview sandbox runtime", () => {
     });
     const postMessage = vi.spyOn(iframe.contentWindow as Window, "postMessage");
 
+    completeSandboxHandshake(iframe);
     runtime.control("start");
     runtime.control("mute");
     runtime.control("unmute");
@@ -812,6 +1127,7 @@ describe("preview sandbox runtime", () => {
     expect(
       readPreviewSandboxRuntimeMessage(
         {
+          handshakeId: sandboxHandshakeId,
           source: "cca-preview-runtime",
           runtimeId: "tone-runtime-1",
           type: "status",
@@ -821,7 +1137,8 @@ describe("preview sandbox runtime", () => {
             state: "ready"
           }
         },
-        "tone-runtime-1"
+        "tone-runtime-1",
+        sandboxHandshakeId
       )
     ).toMatchObject({
       status: { state: "ready" }
@@ -829,6 +1146,7 @@ describe("preview sandbox runtime", () => {
     expect(
       readPreviewSandboxRuntimeMessage(
         {
+          handshakeId: sandboxHandshakeId,
           source: "cca-preview-runtime",
           runtimeId: "tone-runtime-1",
           type: "status",
@@ -838,7 +1156,8 @@ describe("preview sandbox runtime", () => {
             state: "stopped"
           }
         },
-        "tone-runtime-1"
+        "tone-runtime-1",
+        sandboxHandshakeId
       )
     ).toMatchObject({
       status: { state: "stopped" }
@@ -877,38 +1196,33 @@ describe("preview sandbox runtime", () => {
       }
     });
 
-    window.dispatchEvent(
-      new MessageEvent("message", {
-        data: {
-          source: "cca-preview-runtime",
-          runtimeId: "runtime-1",
-          type: "status",
-          status: {
-            detail: "Stale runtime failed.",
-            error: {
-              message: "Stale runtime failed.",
-              type: "preview_sandbox_runtime_failed"
-            },
-            label: "p5 runtime failed",
-            state: "error"
-          }
-        }
-      })
-    );
-    window.dispatchEvent(
-      new MessageEvent("message", {
-        data: {
-          source: "cca-preview-runtime",
-          runtimeId: "runtime-2",
-          type: "status",
-          status: {
-            detail: "Executing the remounted sketch.",
-            label: "p5 runtime running",
-            state: "running"
-          }
-        }
-      })
-    );
+    completeSandboxHandshake(iframe);
+    dispatchSandboxMessage(iframe, {
+      handshakeId: sandboxHandshakeId,
+      source: "cca-preview-runtime",
+      runtimeId: "runtime-1",
+      type: "status",
+      status: {
+        detail: "Stale runtime failed.",
+        error: {
+          message: "Stale runtime failed.",
+          type: "preview_sandbox_runtime_failed"
+        },
+        label: "p5 runtime failed",
+        state: "error"
+      }
+    });
+    dispatchSandboxMessage(iframe, {
+      handshakeId: sandboxHandshakeId,
+      source: "cca-preview-runtime",
+      runtimeId: "runtime-2",
+      type: "status",
+      status: {
+        detail: "Executing the remounted sketch.",
+        label: "p5 runtime running",
+        state: "running"
+      }
+    });
 
     expect(statuses).toEqual([
       "Preview runtime starting",

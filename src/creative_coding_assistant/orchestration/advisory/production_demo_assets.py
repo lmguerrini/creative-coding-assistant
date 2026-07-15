@@ -44,9 +44,9 @@ _REQUIRED_ASSET_KINDS: tuple[DemoAssetKind, ...] = (
     "explanation_talking_points",
 )
 _PREVIEW_MEDIA_PATHS = (
-    "assets/screenshots-archive/preview_current.png",
-    "assets/screenshots-archive/preview_v1.png",
-    "assets/screenshots-archive/preview_v2.png",
+    "assets/screenshots/preview-runtime.jpg",
+    "assets/screenshots/full-screen-p5.jpg",
+    "assets/screenshots/full-screen-glsl.jpg",
 )
 _DEMO_PROMPT = (
     "Create a luminous audio-reactive Three.js scene for a product demo: "

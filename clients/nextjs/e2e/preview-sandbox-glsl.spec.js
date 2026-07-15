@@ -1,4 +1,5 @@
 const { test, expect } = require("@playwright/test");
+const { mountSandboxRuntime } = require("./support/preview-sandbox");
 
 test("executes a bounded GLSL fragment shader without compile errors", async ({ page }) => {
   const pageErrors = [];
@@ -15,22 +16,18 @@ test("executes a bounded GLSL fragment shader without compile errors", async ({ 
     "}"
   ].join("\n");
 
-  await page.goto(
-    `/preview-sandbox.html#${encodeURIComponent(
-      JSON.stringify({
-        kind: "glsl",
-        runtimeId: "glsl-fragment-contract",
-        source: {
-          fingerprint: "glsl-fragment-contract",
-          lineCount: source.split("\n").length,
-          source,
-          title: "concentric-glow.frag"
-        }
-      })
-    )}`
-  );
+  const sandbox = await mountSandboxRuntime(page, {
+    kind: "glsl",
+    runtimeId: "glsl-fragment-contract",
+    source: {
+      fingerprint: "glsl-fragment-contract",
+      lineCount: source.split("\n").length,
+      source,
+      title: "concentric-glow.frag"
+    }
+  });
 
-  await expect(page.locator("body")).toHaveAttribute("data-runtime-state", "running");
-  await expect(page.locator("#preview-canvas")).toBeVisible();
+  await expect(sandbox.locator("body")).toHaveAttribute("data-runtime-state", "running");
+  await expect(sandbox.locator("#preview-canvas")).toBeVisible();
   expect(pageErrors).toEqual([]);
 });

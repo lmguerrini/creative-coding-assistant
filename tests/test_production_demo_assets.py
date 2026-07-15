@@ -83,9 +83,9 @@ class ProductionDemoAssetsTests(unittest.TestCase):
         self.assertEqual(
             plan.preview_media_paths,
             (
-                "assets/screenshots-archive/preview_current.png",
-                "assets/screenshots-archive/preview_v1.png",
-                "assets/screenshots-archive/preview_v2.png",
+                "assets/screenshots/preview-runtime.jpg",
+                "assets/screenshots/full-screen-p5.jpg",
+                "assets/screenshots/full-screen-glsl.jpg",
             ),
         )
         for relative_path in plan.preview_media_paths:
@@ -133,7 +133,7 @@ class ProductionDemoAssetsTests(unittest.TestCase):
         assert prompt is not None
         self.assertEqual(len(ready_assets), 5)
         self.assertIn(
-            "assets/screenshots-archive/preview_current.png",
+            "assets/screenshots/preview-runtime.jpg",
             preview.present_items,
         )
         self.assertIn("shader_post_fx_pipeline", retrieval.present_items)
@@ -182,6 +182,32 @@ class ProductionDemoAssetsTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "demo_workflow_steps"):
             ProductionDemoAssetPlan(**payload)
+
+    def test_public_demo_contract_has_no_removed_preview_archive_references(
+        self,
+    ) -> None:
+        public_roots = (
+            PROJECT_ROOT / "README.md",
+            PROJECT_ROOT / "architecture",
+            PROJECT_ROOT / "clients" / "nextjs" / "src",
+            PROJECT_ROOT / "demo",
+            PROJECT_ROOT / "docs",
+            PROJECT_ROOT / "src",
+        )
+        source_suffixes = {".json", ".md", ".py", ".ts", ".tsx"}
+        references: list[str] = []
+
+        for root in public_roots:
+            paths = (root,) if root.is_file() else root.rglob("*")
+            for path in paths:
+                if path.is_file() and path.suffix in source_suffixes:
+                    if "screenshots-archive" in path.read_text(
+                        encoding="utf-8",
+                        errors="ignore",
+                    ):
+                        references.append(str(path.relative_to(PROJECT_ROOT)))
+
+        self.assertEqual(references, [])
 
 
 if __name__ == "__main__":

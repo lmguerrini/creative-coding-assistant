@@ -12,7 +12,7 @@ describe("workflow execution observability", () => {
         agent_roles: ["planner", "researcher", "generator", "critic", "reviewer"],
         researcher_required: true,
         researcher_reason: "Planner requested bounded retrieval.",
-        max_refinement_loops: 1
+        max_refinement_loops: 2
       })
     ]);
 
@@ -21,7 +21,7 @@ describe("workflow execution observability", () => {
       requestedMode: "auto",
       resolvedMode: "multi_agent",
       researcherRequired: true,
-      maxRefinementLoops: 1,
+      maxRefinementLoops: 2,
       source: "stream"
     });
     expect(model.agentRoles).toEqual([

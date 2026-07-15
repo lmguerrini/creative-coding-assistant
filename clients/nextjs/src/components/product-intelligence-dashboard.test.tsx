@@ -225,7 +225,7 @@ describe("Product Intelligence surfaces", () => {
         agentRoles: ["planner", "researcher", "generator", "critic", "reviewer"],
         researcherRequired: true,
         researcherReason: "Official documentation is relevant.",
-        maxRefinementLoops: 1,
+        maxRefinementLoops: 2,
         source: "stream"
       },
       workflowRuntime: { steps: [] }
@@ -262,6 +262,8 @@ describe("Product Intelligence surfaces", () => {
       expect(within(multi).getByRole("heading", { name: role })).toBeVisible();
     }
     expect(within(multi).getAllByText("Bounded agent role")).toHaveLength(5);
+    expect(within(multi).getByText("At most twice")).toBeVisible();
+    expect(multi).toHaveTextContent(/up to two regeneration passes/i);
     expect(
       within(multi).getByRole("list", { name: "Planner LangGraph nodes" })
     ).toHaveTextContent(/planning.*director.*reasoning/);
@@ -271,7 +273,8 @@ describe("Product Intelligence surfaces", () => {
       within(comparison).getByRole("complementary", {
         name: "Why Multi Agent can improve output"
       })
-    ).toHaveTextContent(/Only generation invokes the configured provider/i);
+    ).toHaveTextContent(/up to two bounded regenerations/i);
+    expect(comparison).toHaveTextContent(/up to three text-generation calls/i);
     expect(comparison).toHaveTextContent(/cannot guarantee subjective quality/i);
   });
 

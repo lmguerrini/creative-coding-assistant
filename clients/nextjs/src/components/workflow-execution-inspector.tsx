@@ -11,6 +11,9 @@ export function WorkflowExecutionInspector({
   const resolvedLabel = execution.resolvedMode
     ? formatMode(execution.resolvedMode)
     : "Awaiting run";
+  const textGenerationCallBudget = execution.maxRefinementLoops === null
+    ? null
+    : execution.maxRefinementLoops + 1;
 
   return (
     <article
@@ -41,8 +44,10 @@ export function WorkflowExecutionInspector({
         </p>
       ) : null}
       {execution.maxRefinementLoops !== null ? (
-        <small>{`Refinement budget: ${execution.maxRefinementLoops} bounded loop${
+        <small>{`Refinement budget: ${execution.maxRefinementLoops} bounded attempt${
           execution.maxRefinementLoops === 1 ? "" : "s"
+        }. Text-generation budget: up to ${textGenerationCallBudget} provider call${
+          textGenerationCallBudget === 1 ? "" : "s"
         }.`}</small>
       ) : null}
     </article>
