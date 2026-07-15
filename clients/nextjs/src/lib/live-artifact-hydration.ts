@@ -66,6 +66,7 @@ type GeneratedArtifactSource = {
   creativeTranslation?: ArtifactSummary["creativeTranslation"];
   critique?: ArtifactCritique;
   domain?: string | null;
+  extractionIssue?: string | null;
   id?: string;
   isDefault?: boolean;
   language?: string;
@@ -177,9 +178,20 @@ export function hydrateWorkspaceFromFinalEvent(
   }
 
   const answer = readString(event.payload.answer);
+  const singleP5ArtifactRequested = isSingleP5ArtifactRequest(
+    event.payload,
+    options.prompt
+  );
   const structuredSources = readStructuredArtifactSources(event.payload);
   const sources =
-    structuredSources.length > 0 ? structuredSources : sourcesFromAnswer(answer);
+    structuredSources.length > 0
+      ? markConflictingP5CodeBlocks(
+          structuredSources,
+          singleP5ArtifactRequested
+        )
+      : sourcesFromAnswer(answer, {
+          singleP5ArtifactRequested
+        });
   if (
     options.skipPlainTextArtifact &&
     sources.length > 0 &&
@@ -352,7 +364,10 @@ export function hydrateWorkspaceFromArtifactExtractedEvent(
     };
   }
 
-  const sources = readStructuredArtifactSources(event.payload);
+  const sources = markConflictingP5CodeBlocks(
+    readStructuredArtifactSources(event.payload),
+    isSingleP5ArtifactRequest(event.payload, options.prompt)
+  );
   return hydrateWorkspaceFromSources(snapshot, sources, {
     artifactHydrationSource: "graph-owned artifact extraction",
     prompt: options.prompt,
@@ -622,9 +637,16 @@ function readStructuredArtifactSources(
       type: readArtifactType(artifact.type)
     };
 
-    const nestedCodeBlocks = isMarkdownResponseSource(source)
+    const markdownResponseSource = isMarkdownResponseSource(source);
+    const nestedCodeBlocks = markdownResponseSource
       ? parseMarkdownCodeBlocks(content)
       : [];
+    const nestedUnclosedCodeBlock = markdownResponseSource
+      ? parseUnclosedMarkdownCodeBlock(content)
+      : null;
+    if (nestedUnclosedCodeBlock) {
+      nestedCodeBlocks.push(nestedUnclosedCodeBlock);
+    }
     if (nestedCodeBlocks.length > 0) {
       sources.push(
         ...nestedCodeBlocks.map((block) => ({
@@ -657,18 +679,34 @@ function readStructuredArtifactSources(
   return sources;
 }
 
-function sourcesFromAnswer(answer: string | null): GeneratedArtifactSource[] {
+function sourcesFromAnswer(
+  answer: string | null,
+  {
+    singleP5ArtifactRequested = false
+  }: { singleP5ArtifactRequested?: boolean } = {}
+): GeneratedArtifactSource[] {
   if (!answer?.trim()) {
     return [];
   }
 
   const codeBlocks = parseMarkdownCodeBlocks(answer);
-  if (codeBlocks.length > 0) {
-    return codeBlocks;
+  const unclosedCodeBlock = parseUnclosedMarkdownCodeBlock(answer);
+  const fencedCodeBlocks = unclosedCodeBlock
+    ? [...codeBlocks, unclosedCodeBlock]
+    : codeBlocks;
+  if (fencedCodeBlocks.length > 0) {
+    return markConflictingP5CodeBlocks(
+      fencedCodeBlocks,
+      singleP5ArtifactRequested
+    );
   }
 
   const bareRuntimeKind = inferRuntimeKind(answer, "", "");
-  if (bareRuntimeKind && appearsToBeBareRuntimeSource(answer)) {
+  if (
+    bareRuntimeKind &&
+    bareRuntimeKind !== "p5" &&
+    appearsToBeBareRuntimeSource(answer)
+  ) {
     return [
       {
         content: answer,
@@ -690,10 +728,44 @@ function sourcesFromAnswer(answer: string | null): GeneratedArtifactSource[] {
   ];
 }
 
-function appearsToBeBareRuntimeSource(source: string) {
-  return /(?:^|\n)\s*(?:\/\/|const\s+|let\s+|var\s+|function\s+|class\s+|import\s+|export\s+|#version\b|precision\b|void\s+main\b|<svg\b|(?:osc|noise|voronoi|shape|gradient|solid|src)\s*\()/m.test(
-    source
+function isSingleP5ArtifactRequest(
+  payload: Record<string, unknown>,
+  prompt: string | undefined
+) {
+  const route = isRecord(payload.route) ? payload.route : null;
+  const workflow = isRecord(payload.workflow) ? payload.workflow : null;
+  const routedDomains = [
+    readString(route?.domain),
+    ...readStringList(route?.domains),
+    readString(workflow?.domain),
+    ...readStringList(workflow?.domains)
+  ].filter((domain): domain is string => Boolean(domain));
+  const p5Requested =
+    /\bp5(?:\.?js)?\b/i.test(prompt ?? "") || routedDomains.includes("p5_js");
+  const multiArtifactRequested =
+    /\b(?:multiple|several|two|three|four|five|six|seven|eight|[2-9])\b(?:\s+(?:distinct|different|separate|complete|alternative|candidate|p5(?:\.js)?|creative|visual|code)){0,3}\s+(?:artifacts?|sketches?|implementations?|versions?|variants?|candidates?|outputs?|code\s+blocks?)\b/i.test(
+      prompt ?? ""
+    );
+  return (
+    p5Requested &&
+    !multiArtifactRequested &&
+    new Set(routedDomains).size <= 1
   );
+}
+
+function appearsToBeBareRuntimeSource(source: string) {
+  const trimmedSource = source.trim();
+  const lines = trimmedSource.split(/\r?\n/);
+  const firstLine = lines[0] ?? "";
+  const lastLine = lines.at(-1) ?? "";
+  const startsAsCode =
+    /^\s*(?:\/\/|\/\*|const\s+|let\s+|var\s+|function\s+|class\s+|import\s+|export\s+|#version\b|precision\b|void\s+main\b|<svg\b|(?:osc|noise|voronoi|shape|gradient|solid|src)\s*\()/.test(
+      firstLine
+    );
+  const endsAsCode =
+    /(?:;|\{|\}|\[|\]|\(|\)|>)\s*$/.test(lastLine) ||
+    /^\s*(?:\/\/|\/\*|\*|\*\/)/.test(lastLine);
+  return startsAsCode && endsAsCode;
 }
 
 function languageForRuntimeKind(runtimeKind: CreativeRuntimeKind) {
@@ -732,6 +804,133 @@ function parseMarkdownCodeBlocks(answer: string): GeneratedArtifactSource[] {
   }
 
   return blocks;
+}
+
+function parseUnclosedMarkdownCodeBlock(
+  answer: string
+): GeneratedArtifactSource | null {
+  const closedFencePattern = /```([^\n`]*)\n([\s\S]*?)```/g;
+  let residualStart = 0;
+  while (closedFencePattern.exec(answer) !== null) {
+    residualStart = closedFencePattern.lastIndex;
+  }
+  const match = /```([^\n`]*)\n([\s\S]+)$/.exec(answer.slice(residualStart));
+  if (!match) {
+    return null;
+  }
+
+  const info = parseFenceInfo(match[1] ?? "");
+  const content = stripLeadingArtifactFileName(
+    trimCodeBlock(match[2] ?? ""),
+    info.title
+  );
+  if (!content.trim()) {
+    return null;
+  }
+
+  return {
+    content,
+    extractionIssue:
+      "The generated code fence was not closed, so the attempted source cannot be prepared for preview.",
+    language: info.language,
+    origin: "code_fence",
+    previewEligible: false,
+    status: "Runnable artifact extraction failed",
+    title: info.title,
+    type: info.language === "markdown" ? "export" : "code"
+  };
+}
+
+function markConflictingP5CodeBlocks(
+  blocks: GeneratedArtifactSource[],
+  singleP5ArtifactRequested: boolean
+) {
+  if (!singleP5ArtifactRequested || blocks.length < 2) {
+    return blocks;
+  }
+
+  const authoritativeExtractionIssue = blocks
+    .map((block) => extractionIssueForSource(block))
+    .find((issue): issue is string => Boolean(issue));
+  if (authoritativeExtractionIssue) {
+    return blocks.map((block) => ({
+      ...block,
+      extractionIssue:
+        extractionIssueForSource(block) ?? authoritativeExtractionIssue,
+      previewEligible: false,
+      status: "Runnable artifact extraction failed"
+    }));
+  }
+
+  const identities = new Set(
+    blocks
+      .filter((block) => block.type !== "export")
+      .map((block) => codeBlockIdentityForP5Request(block))
+      .filter((identity): identity is string => Boolean(identity))
+  );
+  const completeP5Sources = new Set(
+    blocks
+      .map((block) => completeP5BlockSource(block))
+      .filter((source): source is string => Boolean(source))
+  );
+  if (identities.size < 2 && completeP5Sources.size < 2) {
+    return blocks;
+  }
+
+  const extractionIssue =
+    "The answer contains multiple distinct or incompatible code blocks for a single p5.js artifact request. Return one unambiguous p5.js source block.";
+  return blocks.map((block) => ({
+    ...block,
+    extractionIssue,
+    previewEligible: false,
+    status: "Runnable artifact extraction failed"
+  }));
+}
+
+function codeBlockIdentityForP5Request(source: GeneratedArtifactSource) {
+  const runtime = normalizeRuntimeKind(source.runtime ?? source.rendererId ?? "");
+  if (runtime) {
+    return runtime;
+  }
+  const language = normalizeLanguageToken(source.language ?? "");
+  const inferredRuntime = inferRuntimeKind(
+    source.content,
+    language,
+    source.title
+  );
+  if (inferredRuntime) {
+    return inferredRuntime;
+  }
+  if (["javascript", "p5", "p5.js", "typescript"].includes(language)) {
+    return "p5";
+  }
+  return language || null;
+}
+
+function extractionIssueForSource(source: GeneratedArtifactSource) {
+  return (
+    source.extractionIssue ??
+    (source.origin === "structured" &&
+    source.status === "Runnable artifact extraction failed"
+      ? source.summary ??
+        "Artifact extraction did not produce a runnable browser source."
+      : null)
+  );
+}
+
+function completeP5BlockSource(source: GeneratedArtifactSource) {
+  if (
+    source.type === "export" ||
+    extractionIssueForSource(source) ||
+    codeBlockIdentityForP5Request(source) !== "p5"
+  ) {
+    return null;
+  }
+  const preparedSource = prepareP5JavaScriptSource(source.content);
+  return /\bfunction\s+setup\s*\(/.test(preparedSource) &&
+    /\bfunction\s+draw\s*\(/.test(preparedSource)
+    ? preparedSource.trim()
+    : null;
 }
 
 function parseFenceInfo(info: string) {
@@ -835,8 +1034,10 @@ function inferGeneratedArtifact(
   const reactThreeFiberSource =
     type === "code" &&
     (source.domain === "react_three_fiber" || isReactThreeFiberSource(rawContent));
+  const authoritativeExtractionIssue = extractionIssueForSource(source);
   const previewSupportIssue =
-    reactThreeFiberSource
+    authoritativeExtractionIssue ??
+    (reactThreeFiberSource
       ? reactThreeFiberBundleRuntimeMessage
       : inferredPreviewKind === "glsl"
         ? getGlslRuntimeSourceSupportIssue(rawContent)
@@ -846,7 +1047,7 @@ function inferGeneratedArtifact(
       ? getP5RuntimeSourceSupportIssue(rawContent)
       : inferredPreviewKind === "three"
         ? getThreeRuntimeSourceSupportIssue(rawContent)
-        : null;
+        : null);
   const previewKind = previewSupportIssue ? null : inferredPreviewKind;
   const content =
     previewKind === "p5"

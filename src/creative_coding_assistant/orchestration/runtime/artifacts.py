@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from hashlib import sha256
 from typing import Literal
@@ -252,9 +252,27 @@ class _CodeBlock:
     content: str
     language: str
     title: str | None
+    extraction_issue: str | None = None
 
 
 _FENCE_PATTERN = re.compile(r"```([^\n`]*)\n([\s\S]*?)```")
+_UNCLOSED_FENCE_PATTERN = re.compile(r"```([^\n`]*)\n([\s\S]+)$")
+_UNCLOSED_FENCE_ISSUE = (
+    "The generated code fence was not closed, so the attempted source was kept "
+    "for inspection but cannot be prepared for preview."
+)
+_AMBIGUOUS_P5_FENCES_ISSUE = (
+    "The answer contains multiple distinct or incompatible code blocks for a single p5.js "
+    "artifact request. Return one unambiguous p5.js source block."
+)
+_MULTI_ARTIFACT_REQUEST_PATTERN = re.compile(
+    r"\b(?:multiple|several|two|three|four|five|six|seven|eight|[2-9])\b"
+    r"(?:\s+(?:distinct|different|separate|complete|alternative|candidate|"
+    r"p5(?:\.js)?|creative|visual|code)){0,3}\s+"
+    r"(?:artifacts?|sketches?|implementations?|versions?|variants?|candidates?|"
+    r"outputs?|code\s+blocks?)\b",
+    flags=re.I,
+)
 _RUNTIME_LABELS = {
     "glsl": "GLSL",
     "p5": "p5.js",
@@ -325,6 +343,14 @@ def extract_workflow_artifacts(
                 ),
             )
     p5_requested = _is_p5_generation_request(request, route_decision)
+    blocks = _mark_conflicting_p5_blocks(
+        blocks,
+        single_p5_artifact_requested=_is_single_p5_artifact_request(
+            request,
+            route_decision,
+            p5_requested=p5_requested,
+        ),
+    )
     artifacts: list[WorkflowArtifact] = []
     for index, block in enumerate(blocks, start=1):
         artifact = _build_workflow_artifact(
@@ -400,7 +426,9 @@ def prepare_workflow_preview_results(
 
 def _parse_markdown_code_blocks(answer: str) -> tuple[_CodeBlock, ...]:
     blocks: list[_CodeBlock] = []
+    last_closed_fence_end = 0
     for match in _FENCE_PATTERN.finditer(answer):
+        last_closed_fence_end = match.end()
         info = _parse_fence_info(match.group(1) or "")
         content = _trim_code_block(match.group(2) or "")
         if not content.strip():
@@ -412,25 +440,87 @@ def _parse_markdown_code_blocks(answer: str) -> tuple[_CodeBlock, ...]:
                 title=info["title"],
             )
         )
-    if blocks:
-        return tuple(blocks)
-
-    # A provider can terminate after opening an otherwise valid code fence. Keep
-    # that source inspectable and let the runtime validator decide readiness,
-    # rather than silently discarding the attempted artifact.
-    unclosed = re.match(r"^\s*```([^\n`]*)\n([\s\S]+)$", answer)
+    # A provider can terminate after prose or after an earlier complete block.
+    # Keep only the residual attempted source inspectable and mark it incomplete.
+    unclosed = _UNCLOSED_FENCE_PATTERN.search(answer[last_closed_fence_end:])
     if unclosed is not None:
         info = _parse_fence_info(unclosed.group(1) or "")
         content = _trim_code_block(unclosed.group(2) or "")
         if content:
-            return (
+            blocks.append(
                 _CodeBlock(
                     content=content,
                     language=info["language"],
                     title=info["title"],
-                ),
+                    extraction_issue=_UNCLOSED_FENCE_ISSUE,
+                )
             )
     return tuple(blocks)
+
+
+def _mark_conflicting_p5_blocks(
+    blocks: tuple[_CodeBlock, ...],
+    *,
+    single_p5_artifact_requested: bool,
+) -> tuple[_CodeBlock, ...]:
+    if not single_p5_artifact_requested or len(blocks) < 2:
+        return blocks
+
+    extraction_issue = next(
+        (block.extraction_issue for block in blocks if block.extraction_issue),
+        None,
+    )
+    if extraction_issue:
+        return tuple(
+            replace(
+                block,
+                extraction_issue=block.extraction_issue or extraction_issue,
+            )
+            for block in blocks
+        )
+
+    identities = {
+        identity
+        for block in blocks
+        if (identity := _code_block_identity(block)) is not None
+    }
+    complete_p5_sources = {
+        source
+        for block in blocks
+        if (source := _complete_p5_block_source(block)) is not None
+    }
+    if len(identities) < 2 and len(complete_p5_sources) < 2:
+        return blocks
+
+    return tuple(
+        replace(
+            block,
+            extraction_issue=block.extraction_issue or _AMBIGUOUS_P5_FENCES_ISSUE,
+        )
+        for block in blocks
+    )
+
+
+def _code_block_identity(block: _CodeBlock) -> str | None:
+    language = block.language or _infer_language(block.content, block.title)
+    if language == "markdown":
+        return None
+    if _is_p5_javascript_block(block, language):
+        return "p5"
+    return _infer_runtime(block.content, language, block.title) or language
+
+
+def _complete_p5_block_source(block: _CodeBlock) -> str | None:
+    language = block.language or _infer_language(block.content, block.title)
+    if block.extraction_issue or not _is_p5_javascript_block(block, language):
+        return None
+    content = _prepare_p5_javascript_source(block.content)
+    if not re.search(r"\bfunction\s+setup\s*\(", content) or not re.search(
+        r"\bfunction\s+draw\s*\(",
+        content,
+    ):
+        return None
+    return content.strip()
 
 
 def _requested_markdown_artifact_title(request: AssistantRequest) -> str | None:
@@ -482,7 +572,10 @@ def _build_workflow_artifact(
     p5_candidate = p5_requested and _is_p5_javascript_block(block, language)
     runtime = "p5" if p5_candidate else _infer_runtime(block.content, language, block.title)
     content = _prepare_p5_javascript_source(block.content) if runtime == "p5" else block.content
-    preview_issue = _runtime_source_preview_issue(runtime, content)
+    preview_issue = block.extraction_issue or _runtime_source_preview_issue(
+        runtime,
+        content,
+    )
     preview_safe = preview_issue is None
     artifact_domain = _infer_artifact_domain(
         runtime=runtime,
@@ -574,11 +667,25 @@ def _is_p5_generation_request(
     request: AssistantRequest,
     route_decision: RouteDecision,
 ) -> bool:
-    del route_decision
-    return CreativeCodingDomain.P5_JS in {
+    explicitly_requested = CreativeCodingDomain.P5_JS in {
         *request.domains,
         *detect_explicit_query_domains(request.query),
     }
+    return explicitly_requested or set(route_decision.domains) == {
+        CreativeCodingDomain.P5_JS
+    }
+
+
+def _is_single_p5_artifact_request(
+    request: AssistantRequest,
+    route_decision: RouteDecision,
+    *,
+    p5_requested: bool,
+) -> bool:
+    if not p5_requested or _MULTI_ARTIFACT_REQUEST_PATTERN.search(request.query):
+        return False
+    routed_domains = route_decision.domains or request.domains
+    return len(set(routed_domains)) <= 1
 
 
 def _is_p5_javascript_block(block: _CodeBlock, language: str) -> bool:

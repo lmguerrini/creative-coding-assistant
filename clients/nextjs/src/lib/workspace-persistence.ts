@@ -103,7 +103,7 @@ export type WorkspacePreferences = {
 export const defaultWorkspaceLayoutState: WorkspaceLayoutState = {
   density: "cozy",
   sidebarCollapsed: false,
-  inspectorCollapsed: true,
+  inspectorCollapsed: false,
   inspectorWidth: workspaceLayoutBounds.defaultInspectorWidth,
   previewHeight: workspaceLayoutBounds.defaultPreviewHeight
 };
@@ -111,7 +111,7 @@ export const defaultWorkspaceLayoutState: WorkspaceLayoutState = {
 export const defaultWorkspacePreferences: WorkspacePreferences = {
   theme: "codex",
   autoOpenPreview: true,
-  showDebugPanels: false,
+  showDebugPanels: true,
   workflowMode: "auto",
   creativity: "balanced",
   personalizationEnabled: true,

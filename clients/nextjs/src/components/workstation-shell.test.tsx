@@ -1334,31 +1334,289 @@ describe("WorkstationShell", () => {
     expect(screen.queryByText("Type a prompt to begin")).not.toBeInTheDocument();
   });
 
-  it("starts new workspaces in User Mode while keeping Developer Mode available", async () => {
-    renderShell(getInitialWorkspaceSnapshot(), {}, { mode: "user" });
+  it("starts fresh and new sessions in Developer Mode on Overview", async () => {
+    renderShell(
+      getInitialWorkspaceSnapshot(),
+      { persistenceClient: createEmptyPersistenceClient() },
+      { mode: "user" }
+    );
+    await waitForSessionHydration();
 
     const displayMode = getWorkspaceSettingsControl("Display mode");
-    expect(displayMode).toHaveTextContent("User");
+    expect(displayMode).toHaveTextContent("Developer");
     expect(
       screen.getByRole("complementary", { name: "Right inspector" })
-    ).toHaveAttribute("data-state", "collapsed");
-    expect(screen.queryByRole("tab", { name: "Workflow" })).not.toBeInTheDocument();
+    ).toHaveAttribute("data-state", "open");
+    expect(screen.getByRole("tab", { name: "Overview" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
 
     fireEvent.click(displayMode);
-
-    expect(displayMode).toHaveTextContent("Developer");
-    expect(screen.getByRole("tab", { name: "Workflow" })).toBeVisible();
+    expect(displayMode).toHaveTextContent("User");
 
     closeWorkspaceSettingsPanel();
     fireEvent.click(screen.getByRole("button", { name: "New session" }));
 
+    await waitFor(() => {
+      expect(
+        screen.getByRole("form", { name: "Creative request composer" })
+      ).toHaveAttribute("data-mode", "developer");
+      expect(
+        screen.getByRole("complementary", { name: "Right inspector" })
+      ).toHaveAttribute("data-state", "open");
+      expect(screen.getByRole("tab", { name: "Overview" })).toHaveAttribute(
+        "aria-selected",
+        "true"
+      );
+    });
+    expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent(
+      "Developer"
+    );
+    closeWorkspaceSettingsPanel();
+  });
+
+  it("preserves explicit mode and inspector choices across successful starter and Demo generations", async () => {
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "final",
+          sequence: 0,
+          payload: {
+            answer: [
+              "A browser-safe p5 study is ready.",
+              "",
+              "```javascript filename=preserved-inspector.p5.js",
+              "function setup() { createCanvas(640, 360); }",
+              "function draw() { background(8); circle(width / 2, height / 2, 96); }",
+              "```",
+              "The preview keeps the requested motion visible."
+            ].join("\n")
+          }
+        }
+      ])
+    );
+    const { container } = renderShell(
+      getInitialWorkspaceSnapshot(),
+      {
+        persistenceClient: createEmptyPersistenceClient(),
+        streamAssistantEvents: backendStream
+      },
+      { mode: "user" }
+    );
+    await waitForSessionHydration();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Code" }));
+    const displayMode = getWorkspaceSettingsControl("Display mode");
+    fireEvent.click(displayMode);
+    expect(displayMode).toHaveTextContent("User");
+    closeWorkspaceSettingsPanel();
     await waitFor(() =>
       expect(
         screen.getByRole("complementary", { name: "Right inspector" })
       ).toHaveAttribute("data-state", "collapsed")
     );
-    expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent("User");
-    expect(screen.queryByRole("tab", { name: "Workflow" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Expand inspector" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "Physarum drift" }));
+
+    expect(container.querySelector(".workstation")).toHaveAttribute(
+      "data-active-tab",
+      "code"
+    );
+    expect(screen.getByRole("tab", { name: "Code" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(
+      screen.getByRole("form", { name: "Creative request composer" })
+    ).toHaveAttribute("data-mode", "user");
+
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+    await waitFor(() => {
+      expect(backendStream).toHaveBeenCalledTimes(1);
+      expect(container.querySelector(".workstation")).toHaveAttribute(
+        "data-stream-state",
+        "idle"
+      );
+      expect(
+        screen.getByRole("region", { name: "Preview workspace" })
+      ).toBeVisible();
+    });
+    expect(container.querySelector(".workstation")).toHaveAttribute(
+      "data-active-tab",
+      "code"
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Demo Mode" }));
+    const demoMode = screen.getByRole("region", { name: "Demo Mode" });
+    const demoScenarioList = within(demoMode).getByRole("list", {
+      name: "Demo Mode scenarios"
+    });
+    fireEvent.click(
+      within(demoScenarioList).getByRole("button", {
+        name: /Recursive aurora garden/
+      })
+    );
+    fireEvent.click(
+      within(demoMode).getByRole("button", { name: "Load prompt & run" })
+    );
+
+    await waitFor(() => {
+      expect(backendStream).toHaveBeenCalledTimes(2);
+      expect(container.querySelector(".workstation")).toHaveAttribute(
+        "data-stream-state",
+        "idle"
+      );
+      expect(
+        screen.getByRole("region", { name: "Preview workspace" })
+      ).toBeVisible();
+    });
+    expect(container.querySelector(".workstation")).toHaveAttribute(
+      "data-active-tab",
+      "code"
+    );
+    expect(
+      screen.getByRole("form", { name: "Creative request composer" })
+    ).toHaveAttribute("data-mode", "user");
+  });
+
+  it("restores each session's explicit mode and inspector choice when switching", async () => {
+    const userId = "workspace-defaults-user";
+    const projectId = "workspace-defaults-project";
+    const sessionAId = "workspace-defaults-session-a";
+    const sessionBId = "workspace-defaults-session-b";
+    const sessionABase = withWorkspaceIdentity(getInitialWorkspaceSnapshot(), {
+      projectId,
+      sessionId: sessionAId,
+      userId
+    });
+    const sessionA = {
+      ...sessionABase,
+      session: { ...sessionABase.session, title: "Quiet code session" }
+    };
+    const sessionBBase = withWorkspaceIdentity(getInitialWorkspaceSnapshot(), {
+      projectId,
+      sessionId: sessionBId,
+      userId
+    });
+    const sessionB = {
+      ...sessionBBase,
+      session: { ...sessionBBase.session, title: "Developer workflow session" }
+    };
+    const sessionARecord = createWorkspaceSessionRecord({
+      activeArtifactId: "",
+      activeInspectorTab: "Code",
+      layout: { inspectorCollapsed: true },
+      preferences: { showDebugPanels: false },
+      previewArtifactId: "",
+      previewOpen: false,
+      snapshot: sessionA
+    });
+    const sessionBRecord = createWorkspaceSessionRecord({
+      activeArtifactId: "",
+      activeInspectorTab: "Workflow",
+      layout: { inspectorCollapsed: false },
+      preferences: { showDebugPanels: true },
+      previewArtifactId: "",
+      previewOpen: false,
+      snapshot: sessionB
+    });
+    const sessionAKey = `cca.workspace.${userId}.${sessionAId}`;
+    const sessionBKey = `cca.workspace.${userId}.${sessionBId}`;
+    const sessionIndexKey = `cca.workspace.${userId}.session-index.v1`;
+    window.localStorage.setItem(sessionAKey, JSON.stringify(sessionARecord));
+    window.localStorage.setItem(sessionBKey, JSON.stringify(sessionBRecord));
+    window.localStorage.setItem(
+      sessionIndexKey,
+      JSON.stringify([
+        {
+          artifactCount: 0,
+          projectId,
+          sessionId: sessionAId,
+          title: sessionA.session.title,
+          updatedAt: sessionARecord.updatedAt
+        },
+        {
+          artifactCount: 0,
+          projectId,
+          sessionId: sessionBId,
+          title: sessionB.session.title,
+          updatedAt: sessionBRecord.updatedAt
+        }
+      ])
+    );
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("session not found", { status: 404 })
+    );
+    const persistenceClient: WorkspacePersistenceClient = {
+      identity: sessionA.session,
+      load: vi.fn(async () => ({
+        error: null,
+        record: sessionARecord,
+        source: "local" as const
+      })),
+      save: vi.fn(async () => ({ error: null, target: "local" as const }))
+    };
+
+    try {
+      const { container } = renderShell(
+        sessionA,
+        { persistenceClient },
+        { mode: "user" }
+      );
+      await waitFor(() =>
+        expect(
+          screen.getByRole("form", { name: "Creative request composer" })
+        ).toHaveAttribute("data-mode", "user")
+      );
+      expect(container.querySelector(".workstation")).toHaveAttribute(
+        "data-active-tab",
+        "code"
+      );
+
+      const sessionBButton = screen
+        .getByText("Developer workflow session", {
+          selector: ".dashboardChoiceCardTitle"
+        })
+        .closest("button");
+      expect(sessionBButton).not.toBeNull();
+      fireEvent.click(sessionBButton as HTMLButtonElement);
+
+      await waitFor(() => {
+        expect(sessionBButton).toHaveAttribute("aria-current", "true");
+        expect(
+          screen.getByRole("form", { name: "Creative request composer" })
+        ).toHaveAttribute("data-mode", "developer");
+        expect(container.querySelector(".workstation")).toHaveAttribute(
+          "data-active-tab",
+          "workflow"
+        );
+      });
+
+      const sessionAButton = screen
+        .getByText("Quiet code session", {
+          selector: ".dashboardChoiceCardTitle"
+        })
+        .closest("button");
+      expect(sessionAButton).not.toBeNull();
+      fireEvent.click(sessionAButton as HTMLButtonElement);
+
+      await waitFor(() => {
+        expect(sessionAButton).toHaveAttribute("aria-current", "true");
+        expect(
+          screen.getByRole("form", { name: "Creative request composer" })
+        ).toHaveAttribute("data-mode", "user");
+        expect(container.querySelector(".workstation")).toHaveAttribute(
+          "data-active-tab",
+          "code"
+        );
+      });
+    } finally {
+      window.localStorage.removeItem(sessionAKey);
+      window.localStorage.removeItem(sessionBKey);
+      window.localStorage.removeItem(sessionIndexKey);
+    }
   });
 
   it("opens the full Product Intelligence Dashboard from the workspace", () => {
@@ -2749,10 +3007,12 @@ describe("WorkstationShell", () => {
       await Promise.resolve();
     });
 
-    expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent("User");
+    expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent(
+      "Developer"
+    );
     expect(screen.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
       "data-state",
-      "collapsed"
+      "open"
     );
     expect(
       await screen.findByRole("group", { name: "Empty creative workspace" })
@@ -2806,16 +3066,21 @@ describe("WorkstationShell", () => {
     expect(screen.queryByRole("region", { name: "Demo Mode" })).not.toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Assistant prompt" })).toHaveValue("");
     expect(screen.getByRole("button", { name: "Demo Mode" })).toBeVisible();
-    expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent("User");
+    expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent(
+      "Developer"
+    );
     expect(screen.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
       "data-state",
-      "collapsed"
+      "open"
     );
     expect(
       await screen.findByRole("group", { name: "Empty creative workspace" })
     ).toBeVisible();
     await waitFor(() => {
-      expect(screen.queryByRole("tab", { name: "Workflow" })).not.toBeInTheDocument();
+      expect(screen.getByRole("tab", { name: "Overview" })).toHaveAttribute(
+        "aria-selected",
+        "true"
+      );
       expect(
         screen.queryByRole("region", { name: "Preview workspace" })
       ).not.toBeInTheDocument();
@@ -3681,6 +3946,67 @@ describe("WorkstationShell", () => {
     expect(await screen.findByText("Hydrated session response.")).toBeVisible();
   });
 
+  it("preserves and persists explicit mode and inspector choices made during hydration", async () => {
+    const delayedLoad = createDeferred<WorkspacePersistenceLoadResult>();
+    const snapshot = getInitialWorkspaceSnapshot();
+    const restoredRecord = createWorkspaceSessionRecord({
+      activeArtifactId: "",
+      activeInspectorTab: "Overview",
+      layout: { inspectorCollapsed: false },
+      preferences: { showDebugPanels: true },
+      previewArtifactId: "",
+      previewOpen: false,
+      snapshot
+    });
+    const persistenceClient: WorkspacePersistenceClient = {
+      load: vi.fn(() => delayedLoad.promise),
+      save: vi.fn(async () => ({ error: null, target: "local" as const }))
+    };
+    const { container } = renderShell(snapshot, { persistenceClient });
+
+    expect(screen.getByText("Restoring session")).toBeVisible();
+    fireEvent.click(screen.getByRole("tab", { name: "Code" }));
+    const displayMode = getWorkspaceSettingsControl("Display mode");
+    fireEvent.click(displayMode);
+    expect(displayMode).toHaveTextContent("User");
+    closeWorkspaceSettingsPanel();
+    expect(container.querySelector(".workstation")).toHaveAttribute(
+      "data-active-tab",
+      "code"
+    );
+
+    await act(async () => {
+      delayedLoad.resolve({
+        error: null,
+        record: restoredRecord,
+        source: "local"
+      });
+      await delayedLoad.promise;
+    });
+
+    await waitForSessionHydration();
+    expect(container.querySelector(".workstation")).toHaveAttribute(
+      "data-active-tab",
+      "code"
+    );
+    expect(getWorkspaceSettingsControl("Display mode")).toHaveTextContent(
+      "User"
+    );
+    closeWorkspaceSettingsPanel();
+    expect(
+      screen.getByRole("complementary", { name: "Right inspector" })
+    ).toHaveAttribute("data-state", "collapsed");
+    await waitFor(() =>
+      expect(persistenceClient.save).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          activeInspectorTab: "Code",
+          layout: expect.objectContaining({ inspectorCollapsed: true }),
+          preferences: expect.objectContaining({ showDebugPanels: false })
+        })
+      )
+    );
+  });
+
   it.each(["resolve", "reject"] as const)(
     "ignores a stale persistence save %s after another session hydrates",
     async (settlement) => {
@@ -3799,7 +4125,7 @@ describe("WorkstationShell", () => {
           .querySelector("small");
         expect(persistenceLabel).not.toBeNull();
         await waitFor(() =>
-          expect(persistenceLabel).toHaveTextContent("Session saved")
+          expect(persistenceLabel).toHaveTextContent("Session restored")
         );
         const sessionBStatus = persistenceLabel?.textContent ?? "";
 
@@ -4374,6 +4700,59 @@ describe("WorkstationShell", () => {
     );
   });
 
+  it("does not replace an explicit inspector choice when clarification arrives", async () => {
+    const clarification = {
+      reason: "ambiguous_modality",
+      confidence: 0.44,
+      summary: "The request has creative intent but no explicit output modality.",
+      original_query: "Make something evocative about rain.",
+      suggested_options: ["Visual sketch", "Audio piece"],
+      default_recommendation: "Visual sketch",
+      signal_summary: ["route=generate", "modality=unspecified"],
+      questions: [
+        {
+          id: "output_modality",
+          prompt: "What should the assistant generate first?",
+          kind: "single_choice",
+          suggested_options: ["Visual sketch", "Audio piece"],
+          default_recommendation: "Visual sketch"
+        }
+      ]
+    };
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "final",
+          sequence: 0,
+          payload: {
+            answer: "I need one quick clarification before generating.",
+            clarification
+          }
+        }
+      ])
+    );
+    const { container } = renderShell(getLocalWorkspaceSnapshot(), {
+      streamAssistantEvents: backendStream
+    });
+    await waitForSessionHydration();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Code" }));
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Make something evocative about rain." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    expect(
+      await within(screen.getByRole("log", { name: "Conversation" })).findByText(
+        "I need one quick clarification before generating."
+      )
+    ).toBeVisible();
+    expect(container.querySelector(".workstation")).toHaveAttribute(
+      "data-active-tab",
+      "code"
+    );
+  });
+
   it("maps numeric clarification replies to the matching option", async () => {
     const clarification = {
       reason: "ambiguous_modality",
@@ -4825,12 +5204,25 @@ describe("WorkstationShell", () => {
   });
 
   it("sends genuine image pixels once with a request-scoped privacy boundary", async () => {
+    const p5Source = [
+      "function setup() { createCanvas(640, 360); }",
+      "function draw() { background(12); circle(80, 80, 24); }"
+    ].join("\n");
     const backendStream = vi.fn((_request: AssistantStreamRequest) =>
       streamEvents([
         {
           event_type: "final",
           sequence: 0,
-          payload: { answer: "Image-aware response." }
+          payload: {
+            answer: [
+              "Gold and olive circles preserve the image's radial repetition.",
+              "",
+              "```javascript filename=image-study.p5.js",
+              p5Source,
+              "```",
+              "The pointer-ready sketch keeps the dark ground and concentric rhythm."
+            ].join("\n")
+          }
         }
       ])
     );
@@ -4874,7 +5266,13 @@ describe("WorkstationShell", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
 
-    expect(await screen.findByText("Image-aware response.")).toBeVisible();
+    expect(
+      await screen.findByText(/Gold and olive circles preserve/)
+    ).toBeVisible();
+    expect(
+      screen.getByText(/pointer-ready sketch keeps the dark ground/)
+    ).toBeVisible();
+    expect(screen.queryByText(/function setup/)).not.toBeInTheDocument();
     expect(backendStream).toHaveBeenCalledWith(
       expect.objectContaining({
         attachments: [
@@ -4894,6 +5292,21 @@ describe("WorkstationShell", () => {
     expect(
       screen.queryByRole("region", { name: "Image references" })
     ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Code" }));
+    const codePanel = screen.getByRole("tabpanel", { name: "Code" });
+    const codeSource = within(codePanel).getByRole("region", {
+      name: "image-study.p5.js content"
+    });
+    expect(codeSource).toHaveTextContent(
+      /function setup\(\).*createCanvas\(640, 360\)/
+    );
+    expect(codeSource).toHaveTextContent(
+      /function draw\(\).*background\(12\).*circle\(80, 80, 24\)/
+    );
+    expect(codePanel).not.toHaveTextContent("Gold and olive circles");
+    expect(codePanel).not.toHaveTextContent("```");
+    expect(screen.getByRole("tab", { name: "Preview" })).toBeEnabled();
 
     fireEvent.change(screen.getByLabelText("Assistant prompt"), {
       target: { value: "Continue without the reference." }
@@ -5492,7 +5905,7 @@ describe("WorkstationShell", () => {
 
     expect(
       screen.getByText(
-        "Generating the requested artifact. Code and long-form output will appear in the Code panel, artifacts, and preview surfaces when the run completes."
+        "Generating the requested artifact. Narrative will remain in the conversation; executable source will appear in Code, Artifacts, and Preview when the run completes."
       )
     ).toBeVisible();
     expect(screen.getByLabelText("Current session")).toHaveTextContent("Generating");
@@ -5547,7 +5960,46 @@ describe("WorkstationShell", () => {
     const conversation = screen.getByRole("log", { name: "Conversation" });
 
     expect(
-      await within(conversation).findByText(/Code and long-form output are available/)
+      await within(conversation).findByText(/Executable code is available/)
+    ).toBeVisible();
+    expect(within(conversation).queryByText(/function draw/)).not.toBeInTheDocument();
+  });
+
+  it("preserves angle-bracket comparisons in narrative beside generated code", async () => {
+    const backendStream = vi.fn(() =>
+      streamEvents([
+        {
+          event_type: "final",
+          sequence: 0,
+          payload: {
+            answer: [
+              "Keep x < width && y > 0 so the motion remains inside the canvas.",
+              "",
+              "```javascript filename=bounded-motion.p5.js",
+              "function setup() { createCanvas(640, 360); }",
+              "function draw() { background(12); circle(80, 80, 24); }",
+              "```"
+            ].join("\n")
+          }
+        }
+      ])
+    );
+
+    renderShell(getLocalWorkspaceSnapshot(), {
+      streamAssistantEvents: backendStream
+    });
+    await waitForSessionHydration();
+
+    fireEvent.change(screen.getByLabelText("Assistant prompt"), {
+      target: { value: "Generate a bounded p5 sketch." }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
+
+    const conversation = screen.getByRole("log", { name: "Conversation" });
+    expect(
+      await within(conversation).findByText(
+        "Keep x < width && y > 0 so the motion remains inside the canvas."
+      )
     ).toBeVisible();
     expect(within(conversation).queryByText(/function draw/)).not.toBeInTheDocument();
   });
@@ -5646,11 +6098,11 @@ describe("WorkstationShell", () => {
     const conversation = screen.getByRole("log", { name: "Conversation" });
 
     expect(
-      await within(conversation).findByText(/Code and long-form output are available/)
+      await within(conversation).findByText(/Generated code is ready in Code/)
     ).toBeVisible();
     expect(within(conversation).queryByText(/```html|<!doctype|function setup/i)).not.toBeInTheDocument();
     expect(conversation).toHaveTextContent(
-      "Your requested creative-coding output is ready."
+      "Generated code is ready in Code, Artifacts, and Preview."
     );
   });
 
@@ -5720,7 +6172,7 @@ describe("WorkstationShell", () => {
     const conversation = screen.getByRole("log", { name: "Conversation" });
 
     expect(
-      await within(conversation).findByText(/Code and long-form output are available/)
+      await within(conversation).findByText(/Executable code is available/)
     ).toBeVisible();
     expect(within(conversation).queryByText(/<!doctype/i)).not.toBeInTheDocument();
     expect(within(conversation).queryByText(/function setup/i)).not.toBeInTheDocument();
@@ -8942,7 +9394,7 @@ describe("WorkstationShell", () => {
     fireEvent.click(screen.getByRole("button", { name: "Send prompt" }));
 
     expect(
-      await screen.findByText(/Code and long-form output are available/)
+      await screen.findByText(/Generated code is ready in Code/)
     ).toBeVisible();
 
     fireEvent.click(screen.getByRole("tab", { name: "Workflow" }));

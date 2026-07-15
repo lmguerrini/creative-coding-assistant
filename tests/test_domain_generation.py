@@ -492,11 +492,15 @@ class DomainGenerationTests(unittest.TestCase):
 
                 self.assertEqual(len(artifacts), 1)
                 self.assertTrue(artifacts[0].title.endswith(".p5.js"))
+                self.assertEqual(artifacts[0].type, "code")
+                self.assertEqual(artifacts[0].source_language, "javascript")
                 self.assertTrue(artifacts[0].preview_eligible)
                 self.assertEqual(artifacts[0].runtime, "p5")
+                self.assertEqual(artifacts[0].renderer_id, "surface.p5")
                 self.assertNotIn("```", artifacts[0].content)
-                self.assertIn("function setup()", artifacts[0].content)
-                self.assertIn("function draw()", artifacts[0].content)
+                self.assertEqual(artifacts[0].content, source)
+                self.assertNotIn("Intro prose", artifacts[0].content)
+                self.assertNotIn("Closing prose", artifacts[0].content)
                 self.assertEqual(len(preview_results), 1)
 
     def test_p5_fence_filename_metadata_is_preserved_without_the_prefix(self) -> None:
@@ -533,9 +537,10 @@ class DomainGenerationTests(unittest.TestCase):
         artifacts = extract_workflow_artifacts(
             "\n".join(
                 [
+                    "The attached image uses gold, olive, and a radial rhythm.",
                     "```javascript filename=interrupted-field.p5.js",
                     "function setup() { createCanvas(640, 360); }",
-                    "function draw() { background(12); circle(80, 80, 24);",
+                    "function draw() { background(12); circle(80, 80, 24); }",
                 ]
             ),
             request=request,
@@ -548,7 +553,284 @@ class DomainGenerationTests(unittest.TestCase):
         self.assertEqual(artifact.status, "Runnable artifact extraction failed")
         self.assertFalse(artifact.preview_eligible)
         self.assertIsNone(artifact.runtime)
-        self.assertIn("appears incomplete", artifact.summary)
+        self.assertIn("code fence was not closed", artifact.summary)
+        self.assertNotIn("attached image", artifact.content)
+        self.assertNotIn("```", artifact.content)
+        self.assertEqual(
+            artifact.content,
+            "function setup() { createCanvas(640, 360); }\n"
+            "function draw() { background(12); circle(80, 80, 24); }",
+        )
+
+    def test_p5_closed_fence_cannot_hide_a_trailing_unclosed_attempt(self) -> None:
+        request = AssistantRequest(
+            query="Create one p5.js artwork.",
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+        closed_source = (
+            "function setup() { createCanvas(640, 360); }\n"
+            "function draw() { background(12); circle(80, 80, 24); }"
+        )
+        interrupted_source = (
+            "function setup() { createCanvas(640, 360); }\n"
+            "function draw() { background(24); rect(60, 60, 48, 32); }"
+        )
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "A complete attempt follows.",
+                    "```javascript filename=first-study.p5.js",
+                    closed_source,
+                    "```",
+                    "The provider then started a replacement.",
+                    "```p5.js filename=interrupted-study.p5.js",
+                    interrupted_source,
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        artifact = artifacts[0]
+        self.assertEqual(artifact.content, closed_source)
+        self.assertEqual(artifact.status, "Runnable artifact extraction failed")
+        self.assertFalse(artifact.preview_eligible)
+        self.assertIsNone(artifact.runtime)
+        self.assertIn("code fence was not closed", artifact.summary)
+        self.assertNotIn("```", artifact.content)
+        self.assertNotIn("complete attempt", artifact.content)
+        self.assertEqual(
+            prepare_workflow_preview_results(
+                artifacts,
+                request=request,
+                route_decision=decision,
+            ),
+            (),
+        )
+
+    def test_explicit_multi_p5_request_keeps_valid_candidate_when_second_is_unclosed(self) -> None:
+        request = AssistantRequest(
+            query="Create two p5.js candidate sketches.",
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```javascript filename=first-study.p5.js",
+                    "function setup() { createCanvas(640, 360); }",
+                    "function draw() { background(12); circle(80, 80, 24); }",
+                    "```",
+                    "```p5.js filename=interrupted-study.p5.js",
+                    "function setup() { createCanvas(640, 360); }",
+                    "function draw() { background(24); rect(60, 60, 48, 32); }",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        self.assertEqual(artifacts[0].title, "first-study.p5.js")
+        self.assertTrue(artifacts[0].preview_eligible)
+        self.assertEqual(artifacts[0].runtime, "p5")
+        self.assertEqual(
+            len(
+                prepare_workflow_preview_results(
+                    artifacts,
+                    request=request,
+                    route_decision=decision,
+                )
+            ),
+            1,
+        )
+
+    def test_p5_multiple_incompatible_fences_fail_without_selecting_a_preview(self) -> None:
+        request = AssistantRequest(
+            query="Create one p5.js artwork from the attached image.",
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+        p5_source = (
+            "function setup() { createCanvas(640, 360); }\n"
+            "function draw() { background(12); circle(80, 80, 24); }"
+        )
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "Two incompatible implementations follow.",
+                    "```javascript filename=image-study.p5.js",
+                    p5_source,
+                    "```",
+                    "```glsl filename=image-study.frag",
+                    "void main() { gl_FragColor = vec4(1.0); }",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        artifact = artifacts[0]
+        self.assertEqual(artifact.content, p5_source)
+        self.assertEqual(artifact.status, "Runnable artifact extraction failed")
+        self.assertFalse(artifact.preview_eligible)
+        self.assertIsNone(artifact.runtime)
+        self.assertIn("multiple distinct or incompatible code blocks", artifact.summary)
+        self.assertEqual(
+            prepare_workflow_preview_results(
+                artifacts,
+                request=request,
+                route_decision=decision,
+            ),
+            (),
+        )
+
+    def test_inferred_p5_route_rejects_incompatible_fences(self) -> None:
+        request = AssistantRequest(
+            query="Create an animated particle field.",
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+        self.assertEqual(decision.domains, (CreativeCodingDomain.P5_JS,))
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```javascript filename=particle-field.p5.js",
+                    "function setup() { createCanvas(640, 360); }",
+                    "function draw() { background(12); circle(80, 80, 24); }",
+                    "```",
+                    "```glsl filename=particle-field.frag",
+                    "void main() { gl_FragColor = vec4(1.0); }",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        self.assertEqual(artifacts[0].status, "Runnable artifact extraction failed")
+        self.assertFalse(artifacts[0].preview_eligible)
+        self.assertIsNone(artifacts[0].runtime)
+        self.assertIn(
+            "multiple distinct or incompatible code blocks",
+            artifacts[0].summary,
+        )
+
+    def test_p5_two_distinct_complete_fences_fail_single_artifact_contract(self) -> None:
+        request = AssistantRequest(
+            query="Create a p5.js artwork that draws two spirals.",
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+        first_source = (
+            "function setup() { createCanvas(640, 360); }\n"
+            "function draw() { background(12); circle(80, 80, 24); }"
+        )
+        second_source = (
+            "function setup() { createCanvas(640, 360); }\n"
+            "function draw() { background(24); rect(60, 60, 48, 32); }"
+        )
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```javascript filename=first-study.p5.js",
+                    first_source,
+                    "```",
+                    "```p5.js filename=second-study.p5.js",
+                    second_source,
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        self.assertEqual(artifacts[0].content, first_source)
+        self.assertEqual(
+            artifacts[0].status,
+            "Runnable artifact extraction failed",
+        )
+        self.assertFalse(artifacts[0].preview_eligible)
+        self.assertIsNone(artifacts[0].runtime)
+        self.assertIn(
+            "multiple distinct or incompatible code blocks",
+            artifacts[0].summary,
+        )
+
+    def test_single_p5_artwork_with_two_color_options_stays_single_artifact(self) -> None:
+        request = AssistantRequest(
+            query="Create one p5.js artwork with two color options.",
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```javascript filename=gold-study.p5.js",
+                    "function setup() { createCanvas(640, 360); }",
+                    "function draw() { background(12); circle(80, 80, 24); }",
+                    "```",
+                    "```p5.js filename=olive-study.p5.js",
+                    "function setup() { createCanvas(640, 360); }",
+                    "function draw() { background(24); rect(60, 60, 48, 32); }",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 1)
+        self.assertEqual(artifacts[0].status, "Runnable artifact extraction failed")
+        self.assertFalse(artifacts[0].preview_eligible)
+        self.assertIsNone(artifacts[0].runtime)
+        self.assertIn(
+            "multiple distinct or incompatible code blocks",
+            artifacts[0].summary,
+        )
+
+    def test_p5_explicit_multi_candidate_request_keeps_distinct_previews(self) -> None:
+        request = AssistantRequest(
+            query="Create two p5.js candidate sketches.",
+            domains=(CreativeCodingDomain.P5_JS,),
+            mode=AssistantMode.GENERATE,
+        )
+        decision = route_request(request)
+        artifacts = extract_workflow_artifacts(
+            "\n".join(
+                [
+                    "```javascript filename=first-study.p5.js",
+                    "function setup() { createCanvas(640, 360); }",
+                    "function draw() { background(12); circle(80, 80, 24); }",
+                    "```",
+                    "```p5.js filename=second-study.p5.js",
+                    "function setup() { createCanvas(640, 360); }",
+                    "function draw() { background(24); rect(60, 60, 48, 32); }",
+                    "```",
+                ]
+            ),
+            request=request,
+            route_decision=decision,
+        )
+
+        self.assertEqual(len(artifacts), 2)
+        self.assertEqual(
+            [artifact.title for artifact in artifacts],
+            ["first-study.p5.js", "second-study.p5.js"],
+        )
+        self.assertTrue(all(artifact.preview_eligible for artifact in artifacts))
+        self.assertTrue(all(artifact.runtime == "p5" for artifact in artifacts))
 
     def test_p5_extraction_prefers_lifecycle_source_and_marks_invalid_source_honestly(self) -> None:
         request = AssistantRequest(

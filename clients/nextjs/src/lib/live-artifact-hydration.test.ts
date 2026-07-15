@@ -485,7 +485,8 @@ describe("live artifact hydration", () => {
             ].join("\n")
           }
         ]
-      })
+      }),
+      { prompt: "Create one p5.js artwork." }
     );
 
     expect(result.artifact).toMatchObject({
@@ -521,10 +522,418 @@ describe("live artifact hydration", () => {
         finalEvent({ answer: `Intro\n\`\`\`${label}\n${source}\n\`\`\`\nOutro` })
       );
 
-      expect(result.artifact?.title).toMatch(/\.p5\.js$/);
+      expect(result.artifact).toMatchObject({
+        language: "JavaScript + p5.js",
+        previewEligible: true,
+        rendererId: "surface.p5",
+        runtime: "p5",
+        title: expect.stringMatching(/\.p5\.js$/),
+        type: "code"
+      });
       expect(result.previewAvailable).toBe(true);
-      expect(result.artifact?.content).not.toContain("```");
+      expect(result.artifact?.content).toBe(source);
+      expect(result.artifact?.content).not.toContain("Intro");
+      expect(result.artifact?.content).not.toContain("Outro");
     }
+  });
+
+  it("keeps an unclosed fenced p5 attempt code-only without surrounding prose", () => {
+    const source = [
+      "function setup() { createCanvas(640, 360); }",
+      "function draw() { background(12); circle(80, 80, 24); }"
+    ].join("\n");
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        answer: [
+          "The attached image uses gold, olive, and concentric repetition.",
+          "",
+          "```javascript filename=image-study.p5.js",
+          source
+        ].join("\n")
+      }),
+      { prompt: "Create one p5.js artwork from the attached image." }
+    );
+
+    expect(result.artifact).toMatchObject({
+      content: source,
+      previewEligible: false,
+      runtime: null,
+      status: "Runnable artifact extraction failed",
+      title: "image-study.p5.js",
+      type: "code"
+    });
+    expect(result.artifact?.content).not.toContain("attached image");
+    expect(result.artifact?.content).not.toContain("```");
+    expect(result.artifact?.summary).toContain("code fence was not closed");
+    expect(result.previewArtifactId).toBe("");
+    expect(result.previewAvailable).toBe(false);
+    expect(result.snapshot.preview).toMatchObject({
+      available: false,
+      state: "unavailable",
+      status: "Completed without runnable artifact"
+    });
+  });
+
+  it("does not let a closed p5 fence hide a trailing unclosed attempt", () => {
+    const firstSource = [
+      "function setup() { createCanvas(640, 360); }",
+      "function draw() { background(12); circle(80, 80, 24); }"
+    ].join("\n");
+    const interruptedSource = [
+      "function setup() { createCanvas(640, 360); }",
+      "function draw() { background(24); rect(60, 60, 48, 32); }"
+    ].join("\n");
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        answer: [
+          "A complete attempt follows.",
+          "```javascript filename=first-study.p5.js",
+          firstSource,
+          "```",
+          "The provider then started a replacement.",
+          "```p5.js filename=interrupted-study.p5.js",
+          interruptedSource
+        ].join("\n")
+      }),
+      { prompt: "Create one p5.js artwork." }
+    );
+
+    const failedArtifacts = result.snapshot.artifacts.filter(
+      (artifact) => artifact.status === "Runnable artifact extraction failed"
+    );
+    expect(failedArtifacts).toHaveLength(2);
+    expect(failedArtifacts.map((artifact) => artifact.content)).toEqual([
+      firstSource,
+      interruptedSource
+    ]);
+    expect(failedArtifacts.every((artifact) => artifact.previewEligible === false)).toBe(
+      true
+    );
+    expect(
+      failedArtifacts.every(
+        (artifact) => !(artifact.content ?? "").includes("```")
+      )
+    ).toBe(true);
+    expect(result.artifact?.summary).toContain("code fence was not closed");
+    expect(result.previewArtifactId).toBe("");
+    expect(result.previewAvailable).toBe(false);
+  });
+
+  it("keeps a valid candidate previewable when a requested second candidate is unclosed", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        answer: [
+          "```javascript filename=first-study.p5.js",
+          "function setup() { createCanvas(640, 360); }",
+          "function draw() { background(12); circle(80, 80, 24); }",
+          "```",
+          "```p5.js filename=interrupted-study.p5.js",
+          "function setup() { createCanvas(640, 360); }",
+          "function draw() { background(24); rect(60, 60, 48, 32); }"
+        ].join("\n")
+      }),
+      { prompt: "Create two p5.js candidate sketches." }
+    );
+
+    expect(result.snapshot.artifacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          previewEligible: true,
+          runtime: "p5",
+          title: "first-study.p5.js"
+        }),
+        expect.objectContaining({
+          previewEligible: false,
+          runtime: null,
+          status: "Runnable artifact extraction failed",
+          title: "interrupted-study.p5.js"
+        })
+      ])
+    );
+    expect(result.previewAvailable).toBe(true);
+  });
+
+  it("rejects multiple incompatible fenced runtimes for one p5 artifact request", () => {
+    const p5Source = [
+      "function setup() { createCanvas(640, 360); }",
+      "function draw() { background(12); circle(80, 80, 24); }"
+    ].join("\n");
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        answer: [
+          "```javascript filename=image-study.p5.js",
+          p5Source,
+          "```",
+          "```glsl filename=image-study.frag",
+          "void main() { gl_FragColor = vec4(1.0); }",
+          "```"
+        ].join("\n")
+      }),
+      { prompt: "Create a p5.js artwork that draws two spirals." }
+    );
+
+    const failedArtifacts = result.snapshot.artifacts.filter(
+      (artifact) => artifact.status === "Runnable artifact extraction failed"
+    );
+    expect(failedArtifacts).toHaveLength(2);
+    expect(failedArtifacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ content: p5Source, previewEligible: false })
+      ])
+    );
+    expect(failedArtifacts.every((artifact) => artifact.runtime === null)).toBe(true);
+    expect(result.artifact?.summary).toContain(
+      "multiple distinct or incompatible code blocks"
+    );
+    expect(result.previewArtifactId).toBe("");
+    expect(result.previewAvailable).toBe(false);
+  });
+
+  it("rejects two distinct complete p5 fences for one artifact request", () => {
+    const firstSource = [
+      "function setup() { createCanvas(640, 360); }",
+      "function draw() { background(12); circle(80, 80, 24); }"
+    ].join("\n");
+    const secondSource = [
+      "function setup() { createCanvas(640, 360); }",
+      "function draw() { background(24); rect(60, 60, 48, 32); }"
+    ].join("\n");
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        answer: [
+          "```javascript filename=first-study.p5.js",
+          firstSource,
+          "```",
+          "```p5.js filename=second-study.p5.js",
+          secondSource,
+          "```"
+        ].join("\n")
+      }),
+      { prompt: "Create a p5.js artwork that draws two spirals." }
+    );
+
+    const failedArtifacts = result.snapshot.artifacts.filter(
+      (artifact) => artifact.status === "Runnable artifact extraction failed"
+    );
+    expect(failedArtifacts).toHaveLength(2);
+    expect(failedArtifacts.map((artifact) => artifact.content)).toEqual([
+      firstSource,
+      secondSource
+    ]);
+    expect(result.artifact?.summary).toContain(
+      "multiple distinct or incompatible code blocks"
+    );
+    expect(result.previewArtifactId).toBe("");
+    expect(result.previewAvailable).toBe(false);
+  });
+
+  it("keeps two color options inside the single p5 artifact contract", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        answer: [
+          "```javascript filename=gold-study.p5.js",
+          "function setup() { createCanvas(640, 360); }",
+          "function draw() { background(12); circle(80, 80, 24); }",
+          "```",
+          "```p5.js filename=olive-study.p5.js",
+          "function setup() { createCanvas(640, 360); }",
+          "function draw() { background(24); rect(60, 60, 48, 32); }",
+          "```"
+        ].join("\n")
+      }),
+      { prompt: "Create one p5.js artwork with two color options." }
+    );
+
+    const optionArtifacts = result.snapshot.artifacts.filter((artifact) =>
+      ["gold-study.p5.js", "olive-study.p5.js"].includes(artifact.title)
+    );
+    expect(optionArtifacts).toHaveLength(2);
+    expect(
+      optionArtifacts.every(
+        (artifact) =>
+          artifact.status === "Runnable artifact extraction failed" &&
+          artifact.previewEligible === false
+      )
+    ).toBe(true);
+    expect(result.previewArtifactId).toBe("");
+    expect(result.previewAvailable).toBe(false);
+  });
+
+  it("preserves two p5 previews for an explicit multi-candidate request", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        answer: [
+          "```javascript filename=first-study.p5.js",
+          "function setup() { createCanvas(640, 360); }",
+          "function draw() { background(12); circle(80, 80, 24); }",
+          "```",
+          "```p5.js filename=second-study.p5.js",
+          "function setup() { createCanvas(640, 360); }",
+          "function draw() { background(24); rect(60, 60, 48, 32); }",
+          "```"
+        ].join("\n")
+      }),
+      { prompt: "Create two p5.js candidate sketches." }
+    );
+
+    const candidates = result.snapshot.artifacts.filter((artifact) =>
+      ["first-study.p5.js", "second-study.p5.js"].includes(artifact.title)
+    );
+    expect(candidates).toHaveLength(2);
+    expect(candidates.every((artifact) => artifact.previewEligible)).toBe(true);
+    expect(candidates.every((artifact) => artifact.runtime === "p5")).toBe(true);
+    expect(result.previewAvailable).toBe(true);
+  });
+
+  it("does not re-enable preview after graph-owned p5 extraction explicitly failed", () => {
+    const source = [
+      "function setup() { createCanvas(640, 360); }",
+      "function draw() { background(12); circle(80, 80, 24); }"
+    ].join("\n");
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        route: { domain: "p5_js", domains: ["p5_js"] },
+        artifacts: [
+          {
+            id: "failed-image-study",
+            title: "image-study.p5.js",
+            type: "code",
+            language: "javascript",
+            content: source,
+            preview_eligible: false,
+            status: "Runnable artifact extraction failed",
+            summary:
+              "Runnable artifact extraction failed; the generated code fence was not closed."
+          },
+          {
+            id: "replacement-image-study",
+            title: "replacement-image-study.p5.js",
+            type: "code",
+            source_language: "javascript",
+            runtime: "p5",
+            content:
+              "function setup() { createCanvas(640, 360); }\nfunction draw() { background(24); }"
+          }
+        ]
+      }),
+      { prompt: "Create one p5.js artwork." }
+    );
+
+    expect(result.artifact).toMatchObject({
+      content: source,
+      id: "failed-image-study",
+      previewEligible: false,
+      runtime: null,
+      status: "Runnable artifact extraction failed"
+    });
+    expect(result.artifact?.summary).toContain("code fence was not closed");
+    expect(
+      result.snapshot.artifacts
+        .filter((artifact) =>
+          ["failed-image-study", "replacement-image-study"].includes(artifact.id)
+        )
+        .every(
+          (artifact) =>
+            artifact.status === "Runnable artifact extraction failed" &&
+            artifact.previewEligible === false
+        )
+    ).toBe(true);
+    expect(result.previewAvailable).toBe(false);
+    expect(result.snapshot.preview.status).toBe(
+      "Completed without runnable artifact"
+    );
+  });
+
+  it("rejects incompatible structured artifacts for an inferred single p5 route", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        route: { domain: "p5_js", domains: ["p5_js"] },
+        artifacts: [
+          {
+            id: "particle-field",
+            title: "particle-field.p5.js",
+            type: "code",
+            source_language: "javascript",
+            runtime: "p5",
+            content: [
+              "function setup() { createCanvas(640, 360); }",
+              "function draw() { background(12); circle(80, 80, 24); }"
+            ].join("\n")
+          },
+          {
+            id: "particle-fragment",
+            title: "particle-field.frag",
+            type: "code",
+            source_language: "glsl",
+            runtime: "glsl",
+            content: "void main() { gl_FragColor = vec4(1.0); }"
+          }
+        ]
+      }),
+      { prompt: "Create an animated particle field with two spirals." }
+    );
+
+    const artifacts = result.snapshot.artifacts.filter((artifact) =>
+      ["particle-field", "particle-fragment"].includes(artifact.id)
+    );
+    expect(artifacts).toHaveLength(2);
+    expect(
+      artifacts.every(
+        (artifact) =>
+          artifact.status === "Runnable artifact extraction failed" &&
+          artifact.previewEligible === false &&
+          artifact.runtime === null
+      )
+    ).toBe(true);
+    expect(result.previewArtifactId).toBe("");
+    expect(result.previewAvailable).toBe(false);
+  });
+
+  it("preserves explicit multi-artifact intent for structured p5 candidates", () => {
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({
+        route: { domain: "p5_js", domains: ["p5_js"] },
+        artifacts: [
+          {
+            id: "first-candidate",
+            title: "first-candidate.p5.js",
+            type: "code",
+            source_language: "javascript",
+            runtime: "p5",
+            content:
+              "function setup() { createCanvas(640, 360); }\nfunction draw() { background(12); }"
+          },
+          {
+            id: "second-candidate",
+            title: "second-candidate.p5.js",
+            type: "code",
+            source_language: "javascript",
+            runtime: "p5",
+            content:
+              "function setup() { createCanvas(640, 360); }\nfunction draw() { background(24); }"
+          }
+        ]
+      }),
+      { prompt: "Create two p5.js candidate sketches." }
+    );
+
+    const candidates = result.snapshot.artifacts.filter((artifact) =>
+      ["first-candidate", "second-candidate"].includes(artifact.id)
+    );
+    expect(candidates).toHaveLength(2);
+    expect(candidates.every((artifact) => artifact.previewEligible)).toBe(true);
+    expect(candidates.every((artifact) => artifact.runtime === "p5")).toBe(true);
+    expect(result.previewAvailable).toBe(true);
   });
 
   it("uses filename fence metadata without retaining the metadata prefix", () => {
@@ -889,6 +1298,55 @@ describe("live artifact hydration", () => {
     expect(result.snapshot.preview.summary).toContain(
       "outside the current bounded runtime subset"
     );
+  });
+
+  it("rejects conflicting graph-owned artifacts before finalization", () => {
+    const result = hydrateWorkspaceFromArtifactExtractedEvent(
+      getLocalWorkspaceSnapshot(),
+      {
+        event_type: "artifact_extracted",
+        payload: {
+          route: { domain: "p5_js", domains: ["p5_js"] },
+          artifacts: [
+            {
+              id: "first-graph-sketch",
+              title: "first-graph-sketch.p5.js",
+              type: "code",
+              source_language: "javascript",
+              runtime: "p5",
+              content:
+                "function setup() { createCanvas(640, 360); }\nfunction draw() { background(12); }"
+            },
+            {
+              id: "second-graph-sketch",
+              title: "second-graph-sketch.p5.js",
+              type: "code",
+              source_language: "javascript",
+              runtime: "p5",
+              content:
+                "function setup() { createCanvas(640, 360); }\nfunction draw() { background(24); }"
+            }
+          ]
+        },
+        sequence: 5
+      },
+      { prompt: "Create one p5.js artwork." }
+    );
+
+    const graphArtifacts = result.snapshot.artifacts.filter((artifact) =>
+      ["first-graph-sketch", "second-graph-sketch"].includes(artifact.id)
+    );
+    expect(graphArtifacts).toHaveLength(2);
+    expect(
+      graphArtifacts.every(
+        (artifact) =>
+          artifact.status === "Runnable artifact extraction failed" &&
+          artifact.previewEligible === false &&
+          artifact.runtime === null
+      )
+    ).toBe(true);
+    expect(result.previewArtifactId).toBe("");
+    expect(result.previewAvailable).toBe(false);
   });
 
   it("hydrates graph-owned artifact extraction events before finalization", () => {
@@ -1319,6 +1777,75 @@ describe("live artifact hydration", () => {
       title: "Preview unavailable",
       targetId: ""
     });
+  });
+
+  it("keeps prose plus unfenced p5 source out of the runnable code path", () => {
+    const answer = [
+      "Here is the sketch:",
+      "function setup() { createCanvas(640, 360); }",
+      "function draw() { background(12); circle(80, 80, 24); }"
+    ].join("\n");
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({ answer }),
+      { prompt: "Create one p5.js artwork." }
+    );
+
+    expect(result.artifact).toMatchObject({
+      content: answer,
+      previewEligible: false,
+      runtime: null,
+      title: "assistant-response.md",
+      type: "export"
+    });
+    expect(result.previewArtifactId).toBe("");
+    expect(result.previewAvailable).toBe(false);
+  });
+
+  it("keeps unfenced p5 source with trailing prose out of the runnable code path", () => {
+    const answer = [
+      "function setup() { createCanvas(640, 360); }",
+      "function draw() { background(12); circle(80, 80, 24); }",
+      "Adjust colors to taste."
+    ].join("\n");
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({ answer }),
+      { prompt: "Create one p5.js artwork." }
+    );
+
+    expect(result.artifact).toMatchObject({
+      content: answer,
+      previewEligible: false,
+      runtime: null,
+      title: "assistant-response.md",
+      type: "export"
+    });
+    expect(result.previewArtifactId).toBe("");
+    expect(result.previewAvailable).toBe(false);
+  });
+
+  it("keeps interior prose inside unfenced p5 source out of the runnable code path", () => {
+    const answer = [
+      "function setup() { createCanvas(640, 360); }",
+      "This is explanatory prose.",
+      "function draw() { background(12); circle(80, 80, 24); }"
+    ].join("\n");
+    const result = hydrateWorkspaceFromFinalEvent(
+      getLocalWorkspaceSnapshot(),
+      finalEvent({ answer }),
+      { prompt: "Create one p5.js artwork." }
+    );
+
+    expect(result.artifact).toMatchObject({
+      content: answer,
+      previewEligible: false,
+      runtime: null,
+      title: "assistant-response.md",
+      type: "export"
+    });
+    expect(result.previewArtifactId).toBe("");
+    expect(result.previewAvailable).toBe(false);
   });
 
   it("hydrates Hydra code into a previewable sandbox artifact", () => {

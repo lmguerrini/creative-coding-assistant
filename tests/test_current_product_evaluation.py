@@ -160,6 +160,12 @@ class _ExecutorService:
 
 class CurrentProductEvaluationTests(unittest.TestCase):
     def setUp(self) -> None:
+        ragas_version = mock.patch(
+            "creative_coding_assistant.eval.current_product._package_version",
+            return_value="0.4.3",
+        )
+        ragas_version.start()
+        self.addCleanup(ragas_version.stop)
         self.settings = Settings(
             _env_file=None,
             openai_api_key="test-key",
@@ -210,7 +216,7 @@ class CurrentProductEvaluationTests(unittest.TestCase):
 
         self.assertEqual(result.status, "completed")
         self.assertEqual(result.score_origin, "current_product")
-        self.assertEqual(result.retrieval_score, 0.8)
+        self.assertAlmostEqual(result.retrieval_score, 0.8, places=12)
         self.assertEqual(result.evaluated_at, completed_at)
         self.assertEqual(len(result.case_results), 7)
         self.assertEqual(evaluator.metrics, CURRENT_PRODUCT_RETRIEVAL_METRICS)

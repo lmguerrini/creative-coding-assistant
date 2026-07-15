@@ -543,6 +543,8 @@ export function WorkstationShell({
   const assistantRequestCounterRef = useRef(0);
   const assistantStreamEpochRef = useRef(0);
   const activeAssistantRequestRef = useRef<ActiveAssistantRequest | null>(null);
+  const hasExplicitInspectorSelectionRef = useRef(false);
+  const explicitDisplayModeRef = useRef<boolean | null>(null);
   const workflowTraceSessionIdRef = useRef<string | null>(null);
   const localRuntimeSequenceRef = useRef(1000);
   const activeRequestModeRef = useRef<AssistantRequestMode>("generate");
@@ -902,14 +904,38 @@ export function WorkstationShell({
           const restoredArtifactSelectionWasNormalized =
             restoredActiveArtifactId !== restoredSession.record.activeArtifactId ||
             restoredPreviewArtifactId !== restoredSession.record.previewArtifactId;
-          setActiveTab(restoredSession.record.activeInspectorTab);
+          const preserveExplicitInspectorSelection =
+            hasExplicitInspectorSelectionRef.current;
+          const explicitDisplayMode = explicitDisplayModeRef.current;
+          const preserveExplicitDisplayMode = explicitDisplayMode !== null;
+          const restoredLayout = normalizeWorkspaceLayoutState(
+            restoredSession.record.layout
+          );
+          const restoredPreferences = normalizeWorkspacePreferences(
+            restoredSession.record.preferences
+          );
+          if (!preserveExplicitInspectorSelection) {
+            hasExplicitInspectorSelectionRef.current = true;
+            setActiveTab(restoredSession.record.activeInspectorTab);
+          }
           setActiveArtifactId(restoredActiveArtifactId);
           setPreviewArtifactId(restoredPreviewArtifactId);
           setIsPreviewOpen(restoredSession.record.previewOpen);
-          setLayoutState(normalizeWorkspaceLayoutState(restoredSession.record.layout));
-          setWorkspacePreferences(
-            normalizeWorkspacePreferences(restoredSession.record.preferences)
-          );
+          setLayoutState({
+            ...restoredLayout,
+            inspectorCollapsed:
+              explicitDisplayMode === null
+                ? restoredLayout.inspectorCollapsed
+                : !explicitDisplayMode
+          });
+          setWorkspacePreferences({
+            ...restoredPreferences,
+            showDebugPanels:
+              explicitDisplayMode ?? restoredPreferences.showDebugPanels
+          });
+          if (!preserveExplicitDisplayMode) {
+            explicitDisplayModeRef.current = restoredPreferences.showDebugPanels;
+          }
           setIsFocusMode(false);
           setIsPreviewFullscreen(false);
           setPreviewSessionOverride(null);
@@ -923,7 +949,10 @@ export function WorkstationShell({
           );
           lastPersistedFingerprintRef.current =
             fingerprintWorkspaceSessionRecord(restoredSession.record);
-          skipNextPersistenceSaveRef.current = !restoredArtifactSelectionWasNormalized;
+          skipNextPersistenceSaveRef.current =
+            !restoredArtifactSelectionWasNormalized &&
+            !preserveExplicitInspectorSelection &&
+            !preserveExplicitDisplayMode;
           setPersistenceState(
             restoredSession.source === "local" ? "local" : "restored"
           );
@@ -1653,6 +1682,26 @@ export function WorkstationShell({
     );
   }
 
+  function updateExplicitWorkspacePreferences(
+    partialState: Partial<WorkspacePreferences>
+  ) {
+    if (typeof partialState.showDebugPanels === "boolean") {
+      explicitDisplayModeRef.current = partialState.showDebugPanels;
+    }
+    updateWorkspacePreferences(partialState);
+  }
+
+  function selectExplicitInspectorTab(nextTab: ProductIntelligenceCategory) {
+    hasExplicitInspectorSelectionRef.current = true;
+    setActiveTab(nextTab);
+  }
+
+  function selectGeneratedPreviewTab() {
+    if (!hasExplicitInspectorSelectionRef.current) {
+      setActiveTab("Preview");
+    }
+  }
+
   function commitImageAttachments(nextAttachments: ImageAttachmentSummary[]) {
     imageAttachmentsRef.current = nextAttachments;
     setImageAttachments(nextAttachments);
@@ -1763,6 +1812,8 @@ export function WorkstationShell({
 
   function resetSessionState(nextSnapshot: AssistantWorkspaceSnapshot) {
     invalidateActiveAssistantRequest();
+    hasExplicitInspectorSelectionRef.current = false;
+    explicitDisplayModeRef.current = null;
     const normalizedAttachments = normalizeImageAttachments(
       nextSnapshot.multimodal.imageAttachments
     );
@@ -1793,6 +1844,8 @@ export function WorkstationShell({
     }
     persistenceSessionEpochRef.current += 1;
     invalidateActiveAssistantRequest();
+    hasExplicitInspectorSelectionRef.current = false;
+    explicitDisplayModeRef.current = null;
     resetAssistantStreamProjection();
     resetImageUploadBoundary([]);
     setImageUploadError(null);
@@ -1822,7 +1875,9 @@ export function WorkstationShell({
     };
     const nextLayout = normalizeWorkspaceLayoutState({
       ...layoutState,
-      inspectorCollapsed: defaultWorkspaceLayoutState.inspectorCollapsed
+      inspectorCollapsed: defaultWorkspacePreferences.showDebugPanels
+        ? false
+        : defaultWorkspaceLayoutState.inspectorCollapsed
     });
     const nextPreferences = normalizeWorkspacePreferences({
       ...workspacePreferences,
@@ -1834,14 +1889,13 @@ export function WorkstationShell({
     skipNextPersistenceSaveRef.current = true;
     setPersistenceState("loading");
     resetSessionState(titledSnapshot);
-    setActiveTab(userModeDefaultInspectorTab);
     setLayoutState(nextLayout);
     setWorkspacePreferences(nextPreferences);
     setActivePersistenceClient(nextClient);
     await nextClient.save(
       createWorkspaceSessionRecord({
         activeArtifactId: "",
-        activeInspectorTab: userModeDefaultInspectorTab,
+        activeInspectorTab: "Overview",
         layout: nextLayout,
         preferences: nextPreferences,
         previewArtifactId: "",
@@ -2011,7 +2065,7 @@ export function WorkstationShell({
       handleInspectorCollapsedChange(false, { preserveFocusMode: true });
     }
 
-    setActiveTab(nextTab);
+    selectExplicitInspectorTab(nextTab);
     setInspectorTabs((currentTabs) =>
       currentTabs.includes(nextTab) ? currentTabs : [...currentTabs, nextTab]
     );
@@ -2383,6 +2437,8 @@ export function WorkstationShell({
 
   function clearWorkspaceSession() {
     invalidateActiveAssistantRequest();
+    hasExplicitInspectorSelectionRef.current = false;
+    explicitDisplayModeRef.current = null;
     const clearedSnapshot = withWorkspaceIdentity(
       getInitialWorkspaceSnapshot(),
       workspaceIdentity
@@ -2888,7 +2944,7 @@ export function WorkstationShell({
     );
     setInspectorTabs((currentTabs) => currentTabs.filter((item) => item !== tab));
     if (activeTab === tab) {
-      setActiveTab(
+      selectExplicitInspectorTab(
         remainingVisibleTabs[
           Math.min(Math.max(closingIndex, 0), remainingVisibleTabs.length - 1)
         ] ??
@@ -3089,7 +3145,6 @@ export function WorkstationShell({
     previewRuntimeTelemetryKeysRef.current.clear();
     previewRuntimeErrorScopesRef.current.clear();
     setIsStreaming(true);
-    setActiveTab("Overview");
 
     let streamedAnswer = "";
     let receivedTerminalStreamError = false;
@@ -3379,7 +3434,9 @@ export function WorkstationShell({
     );
     if (clarificationUpdate) {
       setClarification(clarificationUpdate);
-      setActiveTab("Overview");
+      if (!hasExplicitInspectorSelectionRef.current) {
+        setActiveTab("Overview");
+      }
     }
 
     const workflowMetadata =
@@ -3463,7 +3520,7 @@ export function WorkstationShell({
           activeRequest.forcePreviewOpen
         ) {
           handlePreviewOpenChange(true);
-          setActiveTab("Preview");
+          selectGeneratedPreviewTab();
         }
       }
     }
@@ -3542,7 +3599,7 @@ export function WorkstationShell({
         activeRequest.forcePreviewOpen
       ) {
         handlePreviewOpenChange(true);
-        setActiveTab("Preview");
+        selectGeneratedPreviewTab();
       }
     }
 
@@ -3570,7 +3627,7 @@ export function WorkstationShell({
           activeRequest.forcePreviewOpen
         ) {
           handlePreviewOpenChange(true);
-          setActiveTab("Preview");
+          selectGeneratedPreviewTab();
         }
         return;
       }
@@ -3593,7 +3650,7 @@ export function WorkstationShell({
         (workspacePreferences.autoOpenPreview ||
           activeRequest.forcePreviewOpen)
       ) {
-        setActiveTab("Preview");
+        selectGeneratedPreviewTab();
       }
     }
   }
@@ -3749,14 +3806,14 @@ export function WorkstationShell({
     }
 
     if (action === "Open") {
-      setActiveTab("Code");
+      selectExplicitInspectorTab("Code");
       return;
     }
 
     if (action === "Preview") {
       setPreviewContextArtifactId(artifact.id);
       handlePreviewOpenChange(true);
-      setActiveTab("Preview");
+      selectExplicitInspectorTab("Preview");
       return;
     }
 
@@ -3770,7 +3827,7 @@ export function WorkstationShell({
       return;
     }
 
-    setActiveTab("Artifacts");
+    selectExplicitInspectorTab("Artifacts");
   }
 
   function handleArtifactRename(artifact: ArtifactSummary, requestedTitle: string) {
@@ -4210,7 +4267,7 @@ export function WorkstationShell({
   function handleArtifactSelect(artifact: ArtifactSummary) {
     setActiveArtifactId(artifact.id);
     setPreviewContextArtifactId(artifact.id);
-    setActiveTab("Artifacts");
+    selectExplicitInspectorTab("Artifacts");
   }
 
   return (
@@ -4335,7 +4392,7 @@ export function WorkstationShell({
                 onFocusModeToggle={toggleFocusModeFromUtility}
                 onOpenDashboardSettings={() => openDashboard("Settings")}
                 onOpenTab={openInspectorTabFromUtility}
-                onPreferencesChange={updateWorkspacePreferences}
+                onPreferencesChange={updateExplicitWorkspacePreferences}
                 onPreviewToggle={togglePreviewFromUtility}
                 onRequestClose={() => closeUtilityPanel("settings")}
                 onWorkspaceClear={() =>
@@ -4385,7 +4442,7 @@ export function WorkstationShell({
             onFocusModeToggle: handleFocusModeToggle,
             onInspectorToggle: () =>
               handleInspectorCollapsedChange(!layoutState.inspectorCollapsed),
-            onPreferencesChange: updateWorkspacePreferences,
+            onPreferencesChange: updateExplicitWorkspacePreferences,
             onPreviewToggle: handlePreviewShelfFromControl,
             onSidebarToggle: () =>
               updateLayout({ sidebarCollapsed: !layoutState.sidebarCollapsed }),
@@ -4683,7 +4740,7 @@ export function WorkstationShell({
               onAddTab={revealInspectorTab}
               onCloseTab={handleInspectorTabClose}
               onOpenDashboard={openDashboard}
-              onSelectTab={setActiveTab}
+              onSelectTab={selectExplicitInspectorTab}
               onToggle={() => handleInspectorCollapsedChange(!isInspectorCollapsed)}
               tabs={visibleInspectorTabs.map((tab) => ({
                 closeable: tab !== "Overview" && visibleInspectorTabs.length > 1,
@@ -8418,11 +8475,13 @@ function formatMessageTime() {
 function streamingConversationSummaryForMode(mode: AssistantRequestMode) {
   return mode === "explain"
     ? "Answering your question. The complete response will appear here when it is ready."
-    : "Generating the requested artifact. Code and long-form output will appear in the Code panel, artifacts, and preview surfaces when the run completes.";
+    : "Generating the requested artifact. Narrative will remain in the conversation; executable source will appear in Code, Artifacts, and Preview when the run completes.";
 }
 
 const generatedCodePattern =
   /```|<!doctype|<html|<script|function\s+(setup|draw)\s*\(|import\s+\*\s+as\s+THREE|gl_FragColor|void\s+main\s*\(/i;
+const generatedHtmlMarkupPattern =
+  /<!doctype\s+html[^>]*>|<!--[\s\S]*?-->|<\/?(?:html|head|body|title|meta|link|script|style|main|section|article|aside|header|footer|nav|div|span|p|a|button|canvas|svg|g|path|circle|rect|line|form|input|label|textarea|select|option|ul|ol|li|h[1-6]|pre|code|table|thead|tbody|tfoot|tr|th|td|img|video|audio|source|template)\b[^>]*>/gi;
 
 function getConversationDisplayContent(
   message: ConversationEntry,
@@ -8452,7 +8511,7 @@ function buildUserModeAssistantSummary(content: string) {
 
   const containsGeneratedCode = generatedCodePattern.test(trimmedContent);
   const strippedContent = stripGeneratedCodeFromConversation(trimmedContent)
-    .replace(/<[^>]+>/g, " ")
+    .replace(generatedHtmlMarkupPattern, " ")
     .replace(/\s+/g, " ")
     .trim();
 
@@ -8461,7 +8520,7 @@ function buildUserModeAssistantSummary(content: string) {
       ? truncateConversationSummary(strippedContent, 220)
       : "Generated code is ready.";
 
-    return `${summary}\n\nCode and long-form output are in Code, Artifacts, and Preview.`;
+    return `${summary}\n\nExecutable code is available in Code, Artifacts, and Preview.`;
   }
 
   return strippedContent;
@@ -8494,21 +8553,17 @@ function buildAssistantConversationSummary(
   }
 
   const textOnly = stripGeneratedCodeFromConversation(trimmedAnswer);
-  const summary =
-    textOnly
-      .split(/\r?\n+/)
-      .map((line) => line.replace(/\s+/g, " ").trim())
-      .find(
-        (line) =>
-          line.length > 0 &&
-          !/^file(name)?:/i.test(line) &&
-          !/^```/.test(line)
-      ) ?? "Your requested creative-coding output is ready.";
-
-  return `${truncateConversationSummary(
-    summary,
-    240
-  )}\n\nCode and long-form output are available in the Code panel, artifacts, and preview surfaces. Next: inspect Preview, Code, and Retrieval evidence.`;
+  const narrative = textOnly
+    .replace(generatedHtmlMarkupPattern, " ")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  if (generatedCodePattern.test(trimmedAnswer)) {
+    return narrative
+      ? `${narrative}\n\nExecutable code is available in Code, Artifacts, and Preview.`
+      : "Generated code is ready in Code, Artifacts, and Preview.";
+  }
+  return narrative;
 }
 
 function stripGeneratedCodeFromConversation(value: string) {

@@ -197,7 +197,11 @@ test.describe("Workstation E2E smoke", () => {
     await expect(demoMode).toBeVisible();
     await expect(page.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
       "data-state",
-      "collapsed"
+      "open"
+    );
+    await expect(page.getByRole("tab", { name: "Overview" })).toHaveAttribute(
+      "aria-selected",
+      "true"
     );
 
     await expect(demoMode).toContainText("10 flows");
@@ -232,8 +236,10 @@ test.describe("Workstation E2E smoke", () => {
     await page.getByRole("button", { exact: true, name: "Settings" }).click();
     const displayMode = page.getByRole("button", { name: "Display mode" });
     await expect(displayMode).toContainText(
-      "User"
+      "Developer"
     );
+    await displayMode.click();
+    await expect(displayMode).toContainText("User");
     await page.getByRole("button", { exact: true, name: "Settings" }).click();
     await expect(page.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
       "data-state",
@@ -269,11 +275,15 @@ test.describe("Workstation E2E smoke", () => {
     await expect(page.getByRole("group", { name: "Empty creative workspace" })).toBeVisible();
     await page.getByRole("button", { exact: true, name: "Settings" }).click();
     await expect(page.getByRole("button", { name: "Display mode" })).toContainText(
-      "User"
+      "Developer"
     );
     await expect(page.getByRole("complementary", { name: "Right inspector" })).toHaveAttribute(
       "data-state",
-      "collapsed"
+      "open"
+    );
+    await expect(page.getByRole("tab", { name: "Overview" })).toHaveAttribute(
+      "aria-selected",
+      "true"
     );
     consoleGate.assertClean();
   });

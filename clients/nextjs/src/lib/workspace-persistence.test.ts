@@ -444,6 +444,7 @@ describe("workspace persistence client", () => {
   });
 
   it("normalizes layout preferences into safe persisted values", () => {
+    expect(defaultWorkspaceLayoutState.inspectorCollapsed).toBe(false);
     expect(
       normalizeWorkspaceLayoutState({
         density: "compact",
@@ -462,7 +463,7 @@ describe("workspace persistence client", () => {
   });
 
   it("normalizes workspace preferences into safe persisted values", () => {
-    expect(defaultWorkspacePreferences.showDebugPanels).toBe(false);
+    expect(defaultWorkspacePreferences.showDebugPanels).toBe(true);
     expect(
       normalizeWorkspacePreferences({
         theme: "matrix",
