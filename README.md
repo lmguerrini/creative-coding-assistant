@@ -70,6 +70,40 @@ not claim a hosted multi-user service, direct execution in external creative
 tools, a separate LangChain chain layer, arbitrary tool execution, audio input,
 or a completed human creativity study.
 
+## Repository Layout
+
+```text
+.
+├── architecture/                         # Current architecture guides and Mermaid sources.
+├── assets/                               # Public visual assets.
+│   └── screenshots/                      # Current product screenshots used in documentation.
+├── clients/                              # User-facing client applications.
+│   ├── nextjs/                           # Primary browser workstation.
+│   │   ├── src/                          # UI, stream hydration, state, and browser runtimes.
+│   │   ├── public/                       # Preview sandbox host and vendored Three.js runtime.
+│   │   └── e2e/                          # Playwright product, preview, and responsive checks.
+│   └── streamlit/                        # Lightweight local reference client.
+├── demo/                                 # Curated scenarios, prompts, and demo assets.
+│   ├── evaluation/                       # Public evaluation schemas and retained evidence.
+│   └── golden_artifacts/                 # Browser-ready reference artifacts and QA results.
+├── docs/                                 # Installation, product, evaluation, and safety guides.
+├── scripts/                              # KB sync, evaluation, reporting, and quality-gate CLIs.
+├── src/                                  # Installable Python source tree.
+│   └── creative_coding_assistant/        # Backend application package.
+│       ├── api/                          # HTTP, streaming, session, KB, and evaluation endpoints.
+│       ├── contracts/                    # Typed request and event contracts.
+│       ├── orchestration/                # LangGraph workflow, routing, review, and metadata.
+│       ├── llm/                          # Generation service and provider adapter.
+│       ├── knowledge/                    # Curated domain knowledge contracts and catalogs.
+│       ├── memory/                       # Conversation-memory records and repositories.
+│       ├── rag/                          # Approved-source registry and health contracts.
+│       ├── vectorstore/                  # Chroma collection and repository layer.
+│       ├── preview/                      # Backend artifact-preview contracts.
+│       ├── eval/                         # Retrieval and RAGAS evaluation runners.
+│       └── security/                     # Input and generation guardrails.
+└── tests/                                # Python backend and contract regression suite.
+```
+
 ## Quick start
 
 ### Prerequisites

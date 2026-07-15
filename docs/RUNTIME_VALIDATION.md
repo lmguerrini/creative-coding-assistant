@@ -31,7 +31,7 @@ documentation and Mermaid validation, browser smoke tests, and CI.
 - `tests/test_current_product_evaluation.py`
 - `tests/test_multimodal_provider_inputs.py`
 - `clients/nextjs/src/lib/assistant-stream.test.ts`
-- `clients/nextjs/tests/e2e/workstation-smoke.spec.ts`
+- `clients/nextjs/e2e/workstation-smoke.spec.js`
 
 Together these cover graph construction, route-specific node order, prompt and
 context assembly, controlled provider success/failure, WSGI streaming,
