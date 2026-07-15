@@ -3,6 +3,14 @@
 Creative Coding Assistant separates retrieval selection, current-product RAGAS,
 local product snapshots, and historical fixtures. These lanes answer different
 questions and are never combined into a universal project or creativity score.
+For how the RAGAS result sits beside the product's other evaluation evidence —
+fast CI versus full release-branch verification, 4/4 committed-artifact runtime
+QA, automated UX checks, privacy controls, and creative evaluation — see the
+[Multi-Lens Product Evaluation](MULTI_LENS_EVALUATION.md). Runtime QA establishes
+execution, not artistic quality, and automated end-to-end checks are not formal
+usability testing. Creator self-assessment is pending final scoring and remains
+first-party evidence; independent human creative evaluation is planned as a
+multi-rater study.
 
 ## Current-product benchmark
 
@@ -27,15 +35,21 @@ to Retrieval Quality.
 
 ## Metrics
 
-The current-product macro is the equal-weight mean of five component metrics:
+The published retained result is **68.03%** (macro `0.6803191571804`) across the
+seven frozen cases, reported raw and unadjusted. No complementary lens adjusts
+or replaces it. The macro is the equal-weight mean of five component metrics:
 
-| Metric | What it measures | Uses the authored reference |
-|---|---|---:|
-| Context precision | Whether useful contexts are ranked ahead of less useful contexts | Yes |
-| Faithfulness | Whether answer claims are supported by retrieved context | No |
-| Answer relevancy | Whether the answer addresses the question | No |
-| Context relevancy | Whether the retrieved material is useful for the question | No |
-| Context recall | Whether retrieval covers the authored reference answer | Yes |
+| Metric | What it measures | Uses the authored reference | Retained mean |
+|---|---|---:|---:|
+| Context precision | Whether useful contexts are ranked ahead of less useful contexts | Yes | 0.5196 |
+| Faithfulness | Whether answer claims are supported by retrieved context | No | 0.6490 |
+| Answer relevancy | Whether the answer addresses the question | No | 0.5663 |
+| Context relevancy | Whether the retrieved material is useful for the question | No | 0.8571 |
+| Context recall | Whether retrieval covers the authored reference answer | Yes | 0.8095 |
+
+These rounded display values come from the
+[canonical evidence](../demo/evaluation/current_product_ragas_evidence.json);
+the evidence file retains full precision.
 
 An ineligible case, skipped case, provider failure, or metric failure remains
 explicit. Missing evidence is not converted to zero, and a partial metric set is

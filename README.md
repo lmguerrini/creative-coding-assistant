@@ -435,19 +435,19 @@ current prompt renderer, configured generation, and RAGAS evaluation. A frozen,
 versioned seven-case public benchmark prevents test selection from drifting
 with each run. Full evaluation also records separate local Creative, Workflow,
 and Reliability snapshots; those are not additional generated answers and are
-not combined into a universal product score. The Dashboard always reports the 
-latest current-product evaluation produced by the versioned benchmark, 
+not combined into a universal product score. The Dashboard always reports the
+latest current-product evaluation produced by the versioned benchmark,
 rather than historical fixtures or synthetic regression datasets.
 
 The five metrics are:
 
-| Metric | Question answered |
-|---|---|
-| Context precision | Were useful contexts ranked ahead of less useful ones? |
-| Faithfulness | Is the answer supported by the retrieved context? |
-| Answer relevancy | Does the answer address the question? |
-| Context relevancy | Is the retrieved material useful for the question? |
-| Context recall | Does retrieval cover the authored reference answer? |
+| Metric | Question answered | Retained mean |
+|---|---|---:|
+| Context precision | Were useful contexts ranked ahead of less useful ones? | 0.5196 |
+| Faithfulness | Is the answer supported by the retrieved context? | 0.6490 |
+| Answer relevancy | Does the answer address the question? | 0.5663 |
+| Context relevancy | Is the retrieved material useful for the question? | 0.8571 |
+| Context recall | Does retrieval cover the authored reference answer? | 0.8095 |
 
 Every retained current-product result carries benchmark version, dataset and pipeline
 fingerprints, model and embedding configuration, timestamps, eligibility,
@@ -461,6 +461,27 @@ generation path and therefore are not the current score. Seven cases are a
 small sample; evaluator models are stochastic, metric behavior can vary across
 versions, code-heavy answers can be difficult to judge, and no automated RAG
 metric measures artistic quality. See [Evaluation Methodology](docs/eval.md).
+
+### Evaluation through multiple lenses
+
+The retained five-metric RAGAS macro is **68.03%**, raw and unadjusted. It comes
+from one run over seven frozen cases and measures retrieval and grounding, not
+overall product quality. Each complementary lens keeps its own method and
+scale; none is adjusted, substituted, or averaged into a universal score.
+
+| Lens | Published result or status | Evidence | Scope boundary |
+|---|---|---|---|
+| Retrieval and grounding | 68.03% raw RAGAS macro | [Canonical evidence](demo/evaluation/current_product_ragas_evidence.json) | Seven frozen cases; single retained evaluator run; no variance estimate |
+| Engineering and release readiness | Fast CI configured for pull requests and selected pushes; full backend verification on `version-review/**` and `version-freeze/**` pushes | [CI](.github/workflows/ci.yml) and [release verification](.github/workflows/backend-release-verification.yml) | Configuration and automated checks, not an engineering or answer-quality score |
+| Runtime and artifact validation | 4/4 committed golden artifacts passed browser runtime QA | [QA manifest](demo/golden_artifacts/qa_manifest.json) | Fixed sample; execution correctness, not artistic quality |
+| UX and workflow evidence | Automated Playwright behavior coverage | [E2E specs](clients/nextjs/e2e) | No formal usability study or accessibility audit |
+| Privacy, safety, and provenance | Documented boundaries, guardrails, and dependency audits | [Ethics and Privacy Assessment](docs/ETHICS_PRIVACY_ASSESSMENT.md) | No privacy score or independent security review |
+| Creative quality | Creator self-assessment pending final scoring; independent human creative evaluation planned as a multi-rater study | [Multi-Lens Product Evaluation](docs/MULTI_LENS_EVALUATION.md) | No creative-quality result is assigned or implied |
+
+The pending creator self-assessment is first-party evidence; independent human
+creative evaluation remains planned as a multi-rater study. The
+[Multi-Lens Product Evaluation](docs/MULTI_LENS_EVALUATION.md) details sources,
+coverage, evidence confidence, and limitations.
 
 ## Data and knowledge sources
 
@@ -586,6 +607,7 @@ controls if the application becomes hosted. See [Future Work](docs/FUTURE_WORK.m
 | Product workflows | [User Manual](docs/USER_MANUAL.md) |
 | Retrieval and data | [Data and Knowledge Base](docs/DATA_AND_KB.md) |
 | Evaluation | [Evaluation Methodology](docs/eval.md) |
+| Multi-lens evaluation | [Multi-Lens Product Evaluation](docs/MULTI_LENS_EVALUATION.md) |
 | Privacy and safety | [Ethics and Privacy Assessment](docs/ETHICS_PRIVACY_ASSESSMENT.md) |
 | Domain/runtime boundaries | [Domain Experience](docs/DOMAIN_EXPERIENCE.md) |
 | Troubleshooting | [Troubleshooting](docs/TROUBLESHOOTING.md) |
