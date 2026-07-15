@@ -2,10 +2,11 @@
 
 ## Purpose
 
-This is the primary reviewer-facing map of the current V9 product. It shows the
-browser workspace, Python boundary, compiled request workflow, local stores,
-provider calls, preview runtime, evaluation path, and evidence surfaces without
-expanding every internal node.
+This is the primary map of the current product. It shows the browser workspace,
+Python boundary, compiled request workflow, local stores, provider calls,
+preview runtime, evaluation path, and evidence surfaces without expanding every
+internal node. The [standalone Mermaid source](system_architecture_overview.mmd)
+contains the same diagram for full-size rendering.
 
 ```mermaid
 flowchart TB
@@ -15,7 +16,7 @@ flowchart TB
     classDef external fill:#FFF7ED,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px
     classDef evidence fill:#EDE9FE,stroke:#6D28D9,color:#4C1D95,stroke-width:1.5px
 
-    user["Creative coder / reviewer"]:::client
+    user["Creative coder / user"]:::client
 
     subgraph request["Next.js workspace — request"]
         direction LR
@@ -88,7 +89,7 @@ flowchart TB
     eval_files ~~~ openai
 ```
 
-## What the reviewer should notice
+## Key properties
 
 - The browser uses the local HTTP API; it never calls a model or embedding
   provider directly.
@@ -108,12 +109,15 @@ The backend prepares artifact and preview contracts, but executable preview
 source runs later inside the controlled browser surface. Evaluation uses a
 separate API pipeline and is not a hidden LangGraph node. OpenAI is the only
 configured generation-provider route; model/provider matrices elsewhere in the
-repository remain advisory unless runtime evidence says otherwise.
+repository remain advisory unless runtime evidence says otherwise. The file
+output shown in the diagram represents user-mediated browser downloads and
+exports; the configured backend artifact directory is not an automatic artifact
+writer. Conversation turns are the automatically recorded memory type; other
+memory collections are not automatically populated.
 
 ## Deeper documentation
 
 - [End-to-End Product Workflow](end_to_end_product_workflow.md)
-- [Exact Runtime Routes](workflow_graph.md)
+- [Multi-Agent Role Flows](multi_agent_roles.md)
 - [Artifact and Preview Runtime](artifact_preview_runtime.md)
 - [Evaluation / RAGAS Workflow](evaluation_workflow.md)
-- [System Overview](../docs/SYSTEM_OVERVIEW.md)

@@ -4,7 +4,7 @@ This walkthrough follows one submitted request through the current product. It
 distinguishes executable runtime behavior from typed planning metadata, browser
 presentation, and separate offline evaluation evidence.
 
-For the reviewer-first diagram path, start with the
+For a diagram-led reading path, start with the
 [Architecture Diagram Guide](../architecture/README.md).
 
 ## 1. The browser creates a bounded request
@@ -94,11 +94,9 @@ zero refinement loops.
 ### Explicit Multi Agent
 
 The plan publishes `planner`, `researcher`, `generator`, `critic`, and
-`reviewer`, requires bounded retrieval, and currently publishes
-`execution.max_refinement_loops=1`. The executable review path is separately
-bounded at two refinement attempts, so one Multi request can make the initial
-generation call plus up to two refinement calls. This published-field/runtime
-drift is documented rather than hidden. Those roles are application
+`reviewer` and requires bounded retrieval. The executable review path permits
+up to two refinement attempts, so one Multi request can make the initial
+generation call plus up to two refinement calls. Those roles are application
 responsibilities, not five independent provider clients.
 
 ### Auto
@@ -263,9 +261,7 @@ The loop then repeats generation, extraction, preview preparation, critique,
 and review for up to two refinement attempts. That permits at most three
 generation calls in one Multi request: the initial call plus two refinements.
 If the required deliverable is still absent, the workflow publishes a terminal
-failure instead of looping indefinitely. The public
-`execution.max_refinement_loops` field still reports `1`; it is a known
-contract/runtime drift, not the executable limit.
+failure instead of looping indefinitely.
 
 Source: [artifact critique](../src/creative_coding_assistant/orchestration/runtime/nodes/artifacts.py),
 [review](../src/creative_coding_assistant/orchestration/runtime/nodes/review.py),
@@ -287,7 +283,7 @@ containing:
 
 These in-workflow self-evaluation structures are application diagnostics. They
 are not RAGAS, human artistic assessment, browser execution proof, or an
-official Capstone grade.
+external assessment result.
 
 Any node exception can branch to `failure`. The failure node emits a typed
 error and a final failure answer so the stream remains terminal and reviewable.
@@ -336,7 +332,7 @@ those lanes separate when presenting results.
 |---|---|
 | Does Single Agent retrieve official docs? | No; the researcher/retrieval node is explicitly skipped |
 | Does Multi Agent make five parallel LLM calls? | No; it exposes five sequential responsibilities around one generation adapter |
-| How many times can Multi Agent call generation? | Up to three: one initial call plus at most two review-requested refinements; the published maximum still reports one |
+| How many times can Multi Agent call generation? | Up to three: one initial call plus at most two review-requested refinements |
 | When does Auto choose Single? | Only for an Explain or Debug route with no attachments and no resolved domains; every other Auto request resolves Multi |
 | Does Explain enter the artifact and review path? | No; successful Explain generation branches directly to finalization |
 | Does the Python backend run the creative preview? | No; it prepares contracts and the Next.js browser runs accepted source |
@@ -346,6 +342,6 @@ those lanes separate when presenting results.
 | Are images persisted as session attachments? | No; they are request-scoped, though an explicit pre-submit export needs separate review |
 
 Continue with the [Architecture Diagram Guide](../architecture/README.md),
-[System Overview](SYSTEM_OVERVIEW.md), [Capability Matrix](CAPABILITY_MATRIX.md),
+[System Architecture Overview](../architecture/system_architecture_overview.md),
 [standalone runtime graph](../architecture/workflow_graph.md), and
 [evaluation workflow](../architecture/evaluation_workflow.md).

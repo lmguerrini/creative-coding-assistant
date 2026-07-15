@@ -7,7 +7,7 @@ they are not a forward delivery schedule. Engines are catalog groupings, not a
 claim that every named layer executes as an independent runtime subsystem.
 
 > **Reference notice:** Treat this matrix as a deep implementation inventory,
-> not the reviewer-facing architecture entry point. Start with
+> not the primary architecture entry point. Start with
 > [System Architecture Overview](system_architecture_overview.md),
 > [End-to-End Product Workflow](end_to_end_product_workflow.md), and
 > [Single and Multi Runtime Routes](workflow_graph.md). The executable graph,
@@ -17,7 +17,7 @@ claim that every named layer executes as an independent runtime subsystem.
 Use this matrix together with:
 
 - [system_architecture_overview.md](system_architecture_overview.md) for the
-  reviewer-facing system boundary
+  public system boundary
 - [end_to_end_product_workflow.md](end_to_end_product_workflow.md) for the
   complete backend-to-browser request lifecycle
 - [workflow_graph.md](workflow_graph.md) for the real LangGraph runtime graph
@@ -100,15 +100,15 @@ Use this matrix together with:
 | V8.5 | Core Engine gains bounded mythopoetic narrative contracts for archetypal transformation, journey arcs, ritual/processional structures, emotional arcs, scene sequences, creative briefs, project storytelling, presentation narrative, demo story, and audience communication without authoritative religious, esoteric, or psychological claims | Knowledge Engine composes V8.1 provenance/confidence, V8.2 symbolic motifs, V8.3 geometry guidance, and V8.4 spatial/installation guidance into narrative-specific typed reports instead of duplicating those systems | Execution behavior is unchanged; V8.5 does not mutate preview runtime, route providers/models, write storage, control workflows, generate audiovisual scene graphs, integrate external DCC tools, activate composer/OS/showcase runtime behavior, HoloMind, or HOLOiVERSE | Reports remain backend audit evidence unless a product-scoped surface explicitly consumes them |
 | V8.6 | Core Engine gains bounded immersive audiovisual composition contracts for scene graphs, visual language, sacred lighting, symbolic color, geometry animation, particles, spatial audio, ritual timing, transitions, installation flow, audience journey, dramaturgy, emotional resonance, and explainable artistic decisions | Knowledge Engine composes V8.1 provenance/confidence, V8.2 symbolic motifs, V8.3 geometry/light/audio mappings, V8.4 spatial/installation guidance, V8.5 narrative dramaturgy, existing V3 audio-visual scene metadata, and V6.2 advisory style profiles instead of duplicating those systems | Execution behavior is unchanged; V8.6 audits browser preview foundations without mutating preview runtimes, adding frontend execution, routing providers/models, writing storage, controlling workflows, exporting previews, integrating external DCC/MCP tools, activating OS/showcase runtime behavior, HoloMind, or HOLOiVERSE | Reports remain backend audit evidence unless a product-scoped surface explicitly consumes them |
 | V8.7 | Core Engine gains a bounded HoloGenesis report/planning layer for unified graphs, creative blackboard entries, symbolic scheduling, creative planning, advisory creative routing, artistic decisions, curatorial reasoning, readiness scoring, and project bundle outlines | Knowledge Engine composes V8.1-V8.6 outputs into Unified Symbolic, Sacred Knowledge, Geometry, Narrative, and Installation graph projections instead of duplicating the source engines | Execution behavior is unchanged; V8.7 does not execute external DCC or MCP tools, route providers/models, mutate workflow graphs, write storage, mutate preview runtimes, implement HoloMind, implement HOLOiVERSE, or activate demo-showcase runtime behavior | Reports remain backend audit evidence unless a product-scoped surface explicitly consumes them |
-| V8.8 | Core Engine behavior is unchanged while demo/showcase readiness becomes inspectable through typed metadata, golden flows, prompt records, fallback plans, and presentation timing | Knowledge Engine is represented through the existing capstone retrieval demo pack and evaluation docs without adding sources, writing Chroma, or claiming generic document search | Execution behavior is unchanged; V8.8 does not execute providers, run retrieval, render previews, route models, control workflows, mutate artifacts, write storage, execute external DCC/MCP tools, implement HoloMind or HOLOiVERSE, merge, push, tag, freeze, or start Grand Review | Experience surfaces gain public demo docs, prompt library, golden dataset, checklist, evaluation/ethics summary, and showcase-upload preparation for HITL review |
+| V8.8 | Core Engine behavior is unchanged while demo readiness becomes inspectable through typed metadata, golden flows, prompt records, and fallback plans | Knowledge Engine is represented through the existing retrieval demo pack and evaluation docs without adding sources, writing Chroma, or claiming generic document search | Execution behavior is unchanged; V8.8 metadata does not execute providers, run retrieval, render previews, route models, control workflows, mutate artifacts, write storage, or execute external creative tools | Experience surfaces catalog public demo docs, prompt libraries, scenario datasets, evaluation/ethics summaries, and explicit asset boundaries |
 
 ## Reading The Matrix
 
 - Versions answer "when did this capability family land?"
 - Engines answer "which architectural layer owns this responsibility?"
 - A single version can strengthen several engines at once.
-- A single engine can span many versions without requiring a rename of the
-  roadmap.
+- A single engine can span many versions without changing its architectural
+  ownership.
 
 ## Implemented Contract Registries
 

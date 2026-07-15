@@ -113,7 +113,7 @@ class GoldenArtifactEvidenceTests(unittest.TestCase):
         by_artifact = {entry["artifact_id"]: entry for entry in result["results"]}
         harness = Path("demo/golden_artifacts/browser_render_qa.html").read_text(encoding="utf-8")
 
-        self.assertEqual(result["browser"], "Codex in-app browser")
+        self.assertEqual(result["browser"], "Chromium browser")
         self.assertEqual(by_artifact["p5_generative_morphogenesis_sketch"]["status"], "rendered_nonblank")
         self.assertEqual(by_artifact["glsl_kaleidoscope_field"]["status"], "rendered_nonblank")
         self.assertEqual(
@@ -165,7 +165,7 @@ class GoldenArtifactEvidenceTests(unittest.TestCase):
     def test_final_demo_launcher_loads_suite_and_evidence_links(self) -> None:
         launcher = Path("demo/final_demo_launcher.html").read_text(encoding="utf-8")
 
-        self.assertIn("V8 Capstone Demo Launcher", launcher)
+        self.assertIn("Creative Coding Assistant Demo Launcher", launcher)
         self.assertIn("./final_demo_suite.json", launcher)
         self.assertIn("./golden_artifacts/browser_full_runtime_qa.html", launcher)
         self.assertIn("./evaluation/redacted_live_session_ragas_latest4_results.jsonl", launcher)
@@ -178,7 +178,7 @@ class GoldenArtifactEvidenceTests(unittest.TestCase):
         self.assertEqual(len(suite["demos"]), 8)
         self.assertEqual(
             suite["ui_start_to_finish_status"],
-            "integrated_in_app_demo_mode_available; external local launcher retained as fallback/reviewer evidence",
+            "integrated_in_app_demo_mode_available; static local launcher retained for compatibility",
         )
         self.assertIn("in_app_demo_mode", suite["demo_start_path"])
         self.assertIn("launcher_fallback", suite["demo_start_path"])
@@ -188,7 +188,7 @@ class GoldenArtifactEvidenceTests(unittest.TestCase):
             "fallback_path",
             "success_criteria",
             "validation_path",
-            "reviewer_talking_point",
+            "evidence_note",
             "classification",
         }
         for demo in suite["demos"]:

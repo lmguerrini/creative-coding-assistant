@@ -29,7 +29,7 @@ flowchart TB
         preview["Sandboxed iframe →<br/>live preview"]:::client
         telemetry["Status +<br/>frame telemetry"]:::evidence
         fallback["Visible source /<br/>fallback"]:::evidence
-        inspect["Reviewer inspection"]:::evidence
+        inspect["User inspection"]:::evidence
 
         hydrate --> preflight
         preflight -->|"runnable"| preview --> telemetry --> inspect

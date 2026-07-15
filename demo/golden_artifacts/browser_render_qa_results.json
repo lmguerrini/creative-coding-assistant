@@ -1,11 +1,10 @@
 {
   "schema_version": "v8.browser_render_qa_result.v1",
   "checked_at": "2026-07-08T15:00:35Z",
-  "branch": "version-review/v8",
   "harness": "demo/golden_artifacts/browser_render_qa.html",
   "local_url": "http://127.0.0.1:8124/demo/golden_artifacts/browser_render_qa.html",
   "server_command": ".venv/bin/python -m http.server 8124 --bind 127.0.0.1",
-  "browser": "Codex in-app browser",
+  "browser": "Chromium browser",
   "console_warnings_or_errors": [],
   "results": [
     {

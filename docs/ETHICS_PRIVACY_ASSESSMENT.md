@@ -16,8 +16,8 @@ conformance report, or completed human-subject study.
 | Generation | Prompt, workflow context, selected retrieval, optional image | Request is orchestrated by the local API | Configured provider can receive the request payload |
 | Conversation memory | Successful prompt/answer, conversation identity, embeddings | Vectors are stored in local Chroma when configured | Prompt and answer are sent to the embedding provider before local storage |
 | Workspace/session | Session, artifact, workflow, and UI state | Configured local SQLite plus compact browser localStorage fallback | No implicit cloud sync; browser profile or workstation backup/software may create a separate boundary |
-| Knowledge refresh | Registered URLs, downloaded text, embeddings | Local registry/index mutation with explicit confirmation | Source download and provider embeddings use network services |
-| Evaluation | Approved fixture or private local session records | Dry run and local manifests can remain local | `--allow-provider-calls` sends the selected approved evaluation payload to evaluator services |
+| Knowledge refresh | Registered URLs, downloaded text, embeddings | In-product update/rebuild uses confirmation; the CLI is an explicit direct command | Source download and provider embeddings use network services |
+| Evaluation | Versioned public benchmark or private local session records | Dry run and local manifests can remain local | `--allow-provider-calls` sends the selected approved evaluation payload to evaluator services |
 | Optional tracing | Prompts, events, metadata depending on integration | Off by default in application settings | Enabling LangSmith creates an additional external telemetry boundary |
 | Export | Code, metadata, attribution, and possible queued image | User-created local bundle | User decides where it is shared or executed |
 
@@ -32,26 +32,27 @@ conformance report, or completed human-subject study.
   does not rehydrate it.
 - Provider-backed evaluation requires the explicit `--allow-provider-calls`
   flag.
-- Knowledge update/rebuild requires confirmation and selected source IDs.
+- In-product knowledge update/rebuild requires confirmation and selected source
+  IDs; the sync CLI is a direct operator command without a confirmation dialog.
 - Optional external tracing is off by default in application settings and
-  should remain off unless separately authorized.
+  becomes an external boundary only when configured and enabled.
 
 ### Evidence honesty
 
 - Provider failure, missing evidence, and blocked measurement remain distinct
   from success and zero.
-- The 68.03% RAGAS macro is labeled as seven-case current-product RAG evidence,
-  not a project grade or artistic-quality score; 61.44% remains historical.
+- Current-product RAGAS is labeled as seven-case retrieval evidence, not a
+  universal product or artistic-quality score; older fixtures remain historical.
 - Current local retrieval coverage is reported separately from RAGAS.
 - No completed human evaluation, external DCC execution, public deployment, or
   autonomous agent swarm is claimed.
 
 ### Secret and private-data handling
 
-- API keys are loaded as secret settings and must not be printed, committed, or
-  included in support bundles.
-- Raw `data/eval/live_sessions.jsonl` is private by default and must not be sent
-  to an evaluator without a new, documented privacy approval.
+- API keys are loaded as secret settings; the public repository and diagnostic
+  formats exclude their values.
+- Raw `data/eval/live_sessions.jsonl` is classified as private local data and is
+  excluded from approved public evaluation paths.
 - Arbitrary local Chroma excerpts and raw session rows are not covered by the
   public current-product benchmark approval.
 - Public evaluation evidence uses the reviewed current-product benchmark or an
@@ -69,20 +70,20 @@ conformance report, or completed human-subject study.
 
 ## Risk and control register
 
-| Risk | Current mitigation | Residual risk / required human action |
+| Risk | Current control | Residual boundary |
 |---|---|---|
-| Hallucinated or weakly grounded code/advice | Retrieval lineage, visible evidence states, artifact inspection, tests | A model can still misread sources or produce unsafe/incorrect code; review and test output |
-| Cultural, spiritual, or geometric overclaim | Product language frames geometry, symbolism, and narrative as creative inspiration | Users and models can reproduce stereotypes or assign false authority; use culturally informed human review |
-| Bias in sources and evaluator models | Named source registry, bounded fixture, explicit metric scope | Registry and evaluator coverage are incomplete and can privilege dominant ecosystems/languages |
-| Creative ownership and imitation | User-directed ideation, attribution/provenance surfaces, export review | Generated work can resemble existing styles or code; check licenses, attribution, and originality before publication |
-| Malicious or unsafe generated code | Bounded in-app runtimes, code inspection, tests | Generated code can still consume resources, make network requests, or behave differently externally; sandbox and review it |
-| Image privacy or rights | Explicit request submission, validation, nonrestoration | Potential provider processing and a pre-submit export remain boundaries; submit only images the user may lawfully process |
-| Prompt/session disclosure | Local persistence and private evaluation classification | Local files, logs, backups, screenshots, or enabled tracing can disclose data; control access and redact diagnostics |
-| Knowledge-source copyright/licensing | Registered official sources and source-level provenance | Indexing does not grant redistribution rights; do not publish the Chroma store or long excerpts by default |
-| Provider cost and availability | Explicit provider operations, timeouts, visible failure state | Retries and evaluator metrics can incur unpredictable cost; authorize and bound each run |
-| External-tool overclaim | Clear code/export-only and handoff labels | Compatibility must be verified in the target tool by a human |
-| Agent autonomy misconception | Published route/graph and Inspector | A workflow label can be mistaken for independent agency or parallelism; describe observed orchestration only |
-| Accessibility/usability gaps | Accessibility surface and automated checks where present | No complete human accessibility or usability study is claimed; manual assistive-technology review remains necessary |
+| Hallucinated or weakly grounded output | Retrieval lineage, visible evidence states, artifact inspection, tests | Incorrect or unsafe output remains possible; external use depends on human inspection and testing |
+| Cultural or symbolic overclaim | Product language frames geometry, symbolism, and narrative as creative material | Stereotypes and false authority remain possible; culturally informed assessment is outside automation |
+| Source and evaluator bias | Named source registry, bounded fixtures, explicit metric scope | Coverage can privilege dominant ecosystems, languages, and evaluator assumptions |
+| Creative ownership and imitation | Attribution, provenance, and user-mediated export surfaces | Similarity, licensing, attribution, and originality still require human or legal judgment |
+| Unsafe generated code | Bounded preview runtimes, source inspection, tests | Code can consume resources, use networks, or behave differently outside the preview boundary |
+| Image privacy and rights | Explicit submission, signature validation, request-scoped handling, no session restoration | Provider processing and pre-submit exports remain possible; CCA does not verify rights or consent |
+| Prompt or session disclosure | Local persistence and private evaluation classification | Files, logs, backups, screenshots, exports, and tracing can expose content; access control and redaction are not automatic |
+| Knowledge-source licensing | Approved-source registry and source-level provenance | Indexing grants no redistribution rights; the Chroma store is not a public dataset |
+| Provider cost and availability | Explicit provider operations, timeouts, visible failure states | Generation, embeddings, retries, and evaluator metrics can fail or incur variable cost |
+| External-tool compatibility | Clear code/export and handoff labels | Compatibility remains unverified until the package is inspected in the target tool |
+| Agent autonomy misconception | Published route graph and Inspector | Role labels can still be mistaken for independent agency or parallel workers |
+| Accessibility and usability gaps | ARIA semantics and limited automated interaction checks | No complete human accessibility, assistive-technology, or usability study is claimed |
 
 ## Reference-image lifecycle
 
@@ -103,48 +104,37 @@ Normal lifecycle:
 6. the UI clears the attachment and session restoration omits it.
 
 A project bundle exported between steps 1 and 3 can include the queued image.
-That exception must be disclosed because “not persisted in the session” does
-not mean “cannot appear in an export.”
+This is a distinct boundary: “not persisted in the session” does not mean
+“cannot appear in an export.”
 
 ## Evaluation privacy decision
 
 The canonical seven-case current-product benchmark is reviewed public material
-and is the basis of the current 68.03% RAGAS macro. The older four-row
-synthetic/public fixture remains historical at 61.44%. The local retrieval
-report contains non-text lineage, ratios, fingerprints, and counts; arbitrary
-local excerpt text does not need to be published or externally evaluated.
+and is the basis of the current RAGAS result shown in the Dashboard. Older
+synthetic or redacted fixtures remain historical. The local retrieval report
+contains non-text lineage, ratios, fingerprints, and counts; arbitrary local
+excerpt text does not need to be published or externally evaluated.
 
-Do not treat approval of the public benchmark as consent to evaluate arbitrary
-local content, upload raw live-session rows, or copy private excerpts into a new
-“sanitized” file without content review. Data minimization and purpose
-limitation apply independently to generation, embeddings, evaluation, tracing,
-and public evidence.
+Approval of the public benchmark does not extend to arbitrary local content,
+raw live-session rows, or unreviewed copies of private excerpts. Generation,
+embeddings, evaluation, tracing, and public evidence remain separate data-use
+boundaries.
 
 ## Retention and deletion
 
-CCA's local paths do not by themselves supply encryption, deletion deadlines,
-backup retention, or multi-user access control. Before processing personal or
-confidential work, define:
+CCA's local paths do not supply encryption, deletion deadlines, backup
+retention, or multi-user access control. The product does not currently enforce
+who can access workstation backups, how long sessions and vector data remain,
+whether provider-side retention applies, or how exported media is governed.
 
-- who can access the workstation and backups;
-- which session, artifact, Chroma, log, and evaluation paths are retained;
-- when and how those paths are deleted;
-- whether an external provider or tracing service retains submitted data;
-- how exports and screenshots are reviewed before sharing.
+## Human responsibility boundary
 
-## Human review gate
-
-Before a public demo, showcase upload, or real-world handoff, a human should:
-
-- inspect prompts, images, outputs, citations, and exports for private data;
-- run generated work in the intended environment;
-- verify source licenses and attribution;
-- review cultural framing, harmful content, and imitation risk;
-- test keyboard, contrast, motion, audio activation, and assistive-technology
-  behavior appropriate to the audience;
-- describe unmeasured or blocked evidence plainly.
+CCA exposes provenance, failure states, and bounded preview evidence, but it
+does not certify privacy, licensing, cultural context, accessibility, security,
+or target-tool compatibility. Public sharing and execution outside the bounded
+preview remain user-controlled decisions.
 
 Related operational detail: [CONFIGURATION_GUIDE.md](CONFIGURATION_GUIDE.md),
 [DATA_AND_KB.md](DATA_AND_KB.md),
-[EVALUATION_METRICS_SUMMARY.md](EVALUATION_METRICS_SUMMARY.md), and
+[eval.md](eval.md), and
 [DOMAIN_EXPERIENCE.md](DOMAIN_EXPERIENCE.md).

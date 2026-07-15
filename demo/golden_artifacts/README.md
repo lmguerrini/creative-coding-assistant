@@ -1,8 +1,8 @@
 # Golden Runtime Artifacts
 
-These artifacts are public V8 release-candidate examples generated for static
-QA and reviewer inspection. They are not a claim that every runtime named in
-the roadmap is executable in V8.
+These artifacts are public creative-code examples generated for static browser
+QA and user inspection. They demonstrate only the runtime paths and boundaries
+recorded below.
 
 Included:
 

@@ -2,7 +2,7 @@
 
 The V8.1 catalog defines a bounded creative knowledge distillation surface. It
 converts existing repository contracts, approved source registry
-entries, capstone retrieval demo scenarios, and read-only local Chroma inventory
+entries, committed retrieval demo scenarios, and read-only local Chroma inventory
 into typed creative knowledge records.
 
 > **Reference notice:** This is a deterministic knowledge-contract reference,

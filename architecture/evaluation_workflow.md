@@ -2,11 +2,11 @@
 
 ## Purpose
 
-This reviewer-facing map shows how evaluation evidence is produced, validated,
-stored, and displayed. It separates a Dashboard runtime run from the explicit
-CLI publication path so neither can be mistaken for the other. Blue is client
-work, green is application runtime, yellow is storage, orange is an external
-provider boundary, purple is evidence, and red is a blocked or rejected path.
+This map shows how evaluation evidence is produced, validated, stored, and
+displayed. It separates a Dashboard runtime run from the explicit CLI
+publication path so neither can be mistaken for the other. Blue is client work,
+green is application runtime, yellow is storage, orange is an external provider
+boundary, purple is evidence, and red is a blocked or rejected path.
 The [standalone Mermaid source](evaluation_workflow.mmd) contains the same
 diagram for slide and README reuse.
 
@@ -91,7 +91,7 @@ flowchart TB
     style current_b fill:none,stroke:none
 ```
 
-## What to notice
+## Key properties
 
 - The Dashboard live lane uses the current `AssistantService`, real official-doc
   retrieval, local Chroma, the current Jinja prompt renderer, and OpenAI
@@ -128,7 +128,7 @@ flowchart TB
 ## Deeper links
 
 - [Evaluation API and async job registry](../src/creative_coding_assistant/api/evaluation.py)
-- [Current-product runner, privacy gates, and canonical writer](../src/creative_coding_assistant/eval/current_product.py)
+- [Current-product runner](../src/creative_coding_assistant/eval/current_product.py)
 - [Explicit publication and private-diagnostic CLI](../src/creative_coding_assistant/eval/current_product_cli.py)
 - [RAGAS metric wiring](../src/creative_coding_assistant/eval/ragas_runner.py)
 - [Dashboard run and polling client](../clients/nextjs/src/components/workstation-shell.tsx)
@@ -136,4 +136,4 @@ flowchart TB
 - [Static canonical evidence import](../clients/nextjs/src/lib/current-ragas-evidence.ts)
 - [Committed canonical evidence](../demo/evaluation/current_product_ragas_evidence.json)
 - [Canonical public-safe schema](../demo/evaluation/current_product_ragas_evidence.schema.json)
-- [Complete request workflow graph](workflow_graph.md)
+- [End-to-End Product Workflow](end_to_end_product_workflow.md)

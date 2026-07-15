@@ -20,15 +20,15 @@ critique, and refinement context.
 The public repository contains runnable product code, tests, CI, deployment
 guidance, architecture diagrams, assets, and user/developer documentation.
 
-Private engineering records are intentionally excluded from public tracking and
-live in the local ignored `.runtime_pack/` directory.
+Private engineering records, raw runtime data, local credentials, and generated
+workstation state are intentionally excluded from public tracking.
 
 ## Runtime Boundary
 
 The runtime is a bounded LangGraph workflow exposed through the backend service
 and browser-facing API bridge. Product documentation should describe observable
 behavior, deployment expectations, validation surfaces, and operational
-boundaries without depending on private engineering ledgers.
+boundaries without depending on private planning or audit records.
 
 ## Local Data Boundary
 

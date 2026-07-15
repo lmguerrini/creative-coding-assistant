@@ -40,12 +40,8 @@ provider. A refinement appends guidance to the existing rendered prompt and
 re-enters `generation`; it does not rerun retrieval, planning, Director,
 reasoning, or prompt rendering.
 
-The executable review limit is two attempts. The published
-`execution.max_refinement_loops` field still reports one for Multi, and the
-Inspector displays that published value. That field is not consulted by the
-review transition, so this is a current contract drift rather than a runtime
-limit. This documentation task records the mismatch without changing product
-behavior or public APIs.
+The executable review path permits up to two refinement attempts and can stop
+earlier when the artifact stop rules pass.
 
 ## Single-Agent workflow
 
@@ -229,8 +225,10 @@ failure arrows; every pending normalized node failure goes to `failure`.
 Current transition rules:
 
 - Registry order is not a claim that every node runs for every request. The
-  full ordered spine is
-  `start --> intake --> routing --> memory --> retrieval --> context_assembly --> prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation`.
+  full ordered spine begins
+  `start --> intake --> routing --> memory --> retrieval --> context_assembly`
+  and continues
+  `prompt_input --> planning --> director --> reasoning --> prompt_rendering --> generation`.
 - After `prompt_input`, a clarification response goes to `finalization`, Single
   goes to `prompt_rendering`, and Multi goes to `planning`.
 - `planning --> director --> reasoning --> prompt_rendering --> generation` is
@@ -430,7 +428,7 @@ Exact source labels: `Adaptive Hybrid Workflow Optimizer`; `Agent Activation Opt
 
 </details>
 
-## Reviewer verification
+## Runtime verification
 
 Run the focused alignment test and inspect the Mermaid source:
 
@@ -439,7 +437,8 @@ Run the focused alignment test and inspect the Mermaid source:
 .venv/bin/python scripts/v7_quality_gates.py docs-mermaid
 ```
 
-Then submit one Single and one Multi request and compare the streamed node lists.
-For Auto, verify the published resolved mode rather than predicting it in the
-client. See the [Architecture Walkthrough](../docs/ARCHITECTURE_WALKTHROUGH.md)
-for the full UI-to-provider request path.
+One Single and one Multi request expose their streamed node lists for
+comparison. Auto publishes the resolved mode rather than relying on a client
+prediction. See the
+[Architecture Walkthrough](../docs/ARCHITECTURE_WALKTHROUGH.md) for the full
+UI-to-provider request path.

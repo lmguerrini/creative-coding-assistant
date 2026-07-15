@@ -325,7 +325,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "creative coding platform",
             "Creative Workstation",
             "Next.js workstation",
-            "Capability Scope",
+            "Product boundaries",
             "bounded LangGraph workflow",
             "browser-focused preview paths",
         ):
@@ -370,11 +370,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
             "Product documentation should describe observable behavior",
             normalized_combined,
         )
-        self.assertIn(
-            "Future capabilities should be described in public docs only "
-            "after they are approved for product work",
-            normalized_combined,
-        )
+        self.assertIn("public product directions are maintained", normalized_combined)
 
     def test_project_docs_cover_runtime_deployment_validation_boundaries(
         self,
@@ -421,7 +417,7 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         ):
             self.assertIn(local_path, combined)
 
-    def test_project_docs_preserve_private_runtime_pack_boundary(self) -> None:
+    def test_project_docs_preserve_public_private_boundary(self) -> None:
         project_context = (REPO_ROOT / "docs" / "PROJECT_CONTEXT.md").read_text(
             encoding="utf-8"
         )
@@ -434,13 +430,13 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         combined = "\n".join((project_context, roadmap, decisions))
         normalized_combined = re.sub(r"\s+", " ", combined)
 
-        self.assertIn(".runtime_pack/", combined)
-        self.assertIn("local ignored `.runtime_pack/` directory", project_context)
-        self.assertIn("must remain ignored by Git", decisions)
-        self.assertIn("private engineering records", normalized_combined)
-        self.assertIn("Private planning, audits, prompts", normalized_combined)
+        self.assertNotIn(".runtime_pack/", combined)
+        self.assertIn("excluded from public tracking", project_context)
+        self.assertIn("excluded from the tracked public tree", decisions)
+        self.assertIn("no delivery sequence or private engineering plan", roadmap)
+        self.assertIn("Private planning, audit, prompt", normalized_combined)
         self.assertIn(
-            "without depending on private engineering ledgers",
+            "without depending on private planning or audit records",
             normalized_combined,
         )
 
@@ -480,14 +476,15 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
         )
         normalized_deployment = re.sub(r"\s+", " ", deployment)
 
-        self.assertIn("ten current scenarios", normalized_deployment)
-        self.assertIn("deterministic browser path", deployment)
-        self.assertIn("retired V8 static launcher", deployment)
+        self.assertIn("Demo Mode loads committed scenarios", normalized_deployment)
+        self.assertIn("normal assistant composer", normalized_deployment)
+        self.assertIn("deterministic browser validation path", deployment)
         self.assertNotIn(
             "select one of the 8 curated scenarios",
             normalized_deployment,
         )
         self.assertNotIn("final_demo_launcher.html", deployment)
+        self.assertNotIn("retired V8 static launcher", deployment)
 
     def test_architecture_doc_node_order_matches_backend_node_order(self) -> None:
         architecture_doc = (REPO_ROOT / "architecture" / "workflow_graph.md").read_text(
@@ -507,9 +504,12 @@ class WorkflowDocumentationAlignmentTests(unittest.TestCase):
 
         self.assertEqual(listed_nodes, ASSISTANT_WORKFLOW_NODE_ORDER)
         self.assertIn(
-            "start --> intake --> routing --> memory --> retrieval --> "
-            "context_assembly --> prompt_input --> planning --> "
-            "director --> reasoning --> prompt_rendering --> generation",
+            "start --> intake --> routing --> memory --> retrieval --> context_assembly",
+            architecture_doc,
+        )
+        self.assertIn(
+            "prompt_input --> planning --> director --> reasoning --> "
+            "prompt_rendering --> generation",
             architecture_doc,
         )
 

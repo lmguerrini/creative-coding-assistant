@@ -3,7 +3,7 @@
 Start with the visible error and the smallest relevant check. Preserve failure,
 missing, and blocked states instead of forcing a green result. Do not paste API
 keys, raw prompts, local retrieved excerpts, private session rows, or full
-environment dumps into an issue or public demo.
+environment dumps into an issue or public diagnostic report.
 
 ## Backend does not start
 
@@ -68,7 +68,7 @@ public environment variables.
 ## Browser reports CORS or network errors
 
 Confirm that the UI origin and API host/port match the configured environment.
-For local review, avoid mixing `localhost` and another host unless both origins
+For local development, avoid mixing `localhost` and another host unless both origins
 are deliberately allowed. Production requires an explicit origin policy; do
 not “fix” it with a credentialed wildcard.
 
@@ -166,9 +166,9 @@ boundaries, target one source:
 ```
 
 Exit code 1 means at least one source failed; exit code 2 identifies a
-configuration/usage failure. The known Shadertoy source gap returned HTTP 403
-and remains blocked/unindexed. Do not inject the expected source into results or
-delete the active index to conceal it. See [DATA_AND_KB.md](DATA_AND_KB.md).
+configuration/usage failure. Preserve source-level failures instead of
+injecting an expected source into results or deleting the active index to
+conceal a gap. See [DATA_AND_KB.md](DATA_AND_KB.md).
 
 ## Evaluation will not run
 
@@ -178,25 +178,35 @@ Install the optional evaluation dependencies:
 .venv/bin/python -m pip install -e ".[dev,evaluation]"
 ```
 
-Before installing or using this optional stack, review its current no-fix
-dependency advisories in the
+Before installing or using this optional stack, review its dependency-risk
+guidance and local audit command in the
 [Installation Guide](INSTALLATION_GUIDE.md#optional-evaluation-dependencies).
 
-Then inspect selection without provider scoring:
+Verify the current-product evaluation path without provider calls:
+
+```bash
+.venv/bin/python -m creative_coding_assistant.eval.current_product_cli \
+  --scope rag \
+  --dry-run
+```
+
+Live scoring requires `--allow-provider-calls`, credentials, network access,
+and an approved external-transfer decision. It can incur cost. The Dashboard
+is authoritative for the current dynamic result; see [eval.md](eval.md) for
+the current diagnostic command and evidence boundaries.
+
+For the separate historical recorded-session fixture, inspect selection
+without provider scoring:
 
 ```bash
 LANGSMITH_TRACING=false .venv/bin/python scripts/eval_live_sessions.py \
   --input-path demo/evaluation/sanitized_ragas_live_sessions.jsonl \
-  --output-path /tmp/cca-approved-ragas-results.jsonl \
+  --output-path data/eval/approved-ragas-results.jsonl \
   --dry-run
 ```
 
-Real scoring requires `--allow-provider-calls`, credentials, network access,
-and an approved external-transfer decision. It can incur cost. Do not point it
-at raw `data/eval/live_sessions.jsonl` or arbitrary local Chroma excerpts. The
-canonical public current-product benchmark has completed separately and is
-published at 68.03%; the committed 61.44% approved-fixture macro is historical,
-not evidence for a raw local-session run.
+Do not point the historical runner at raw `data/eval/live_sessions.jsonl` or
+arbitrary local Chroma excerpts.
 
 The explicit tracing override is important: `--dry-run` blocks RAGAS provider
 scoring, but an independently enabled telemetry integration is a separate
@@ -205,8 +215,7 @@ external boundary.
 A `null` metric with `metric_errors` is a metric failure, not zero. Context
 recall is missing for the historical fixture because it lacks independently
 justified reference answers; it is present for the canonical seven-case
-benchmark. See
-[EVALUATION_METRICS_SUMMARY.md](EVALUATION_METRICS_SUMMARY.md).
+benchmark. See [eval.md](eval.md).
 
 ## Playwright cannot launch Chromium
 

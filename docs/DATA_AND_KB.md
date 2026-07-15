@@ -17,7 +17,7 @@ data, and exports.
 | Raw evaluation sessions | configured local JSONL path, including `data/eval/live_sessions.jsonl` | Captures eligible evaluation structure | Private by default; not approved for external evaluation or commit |
 | Approved evaluation fixtures | `demo/evaluation/` | Reproducible synthetic/public evaluation evidence | Only the explicitly approved fixture may cross the documented evaluator boundary |
 | Evaluation results | configured results path and approved committed reports | Records metric output and status | Share only sanitized, scope-labeled evidence |
-| Artifacts and exports | configured artifact path or user-selected bundle | Generated code and handoff metadata | Inspect before sharing; may contain prompt-derived or queued image data |
+| Artifacts and exports | workspace snapshots or user-selected browser download | Generated code and handoff metadata | Inspect before sharing; may contain prompt-derived or queued image data |
 
 Provider credentials are configuration secrets, not application data. Never
 store them in a source registry, fixture, artifact, export, session record, or
@@ -96,10 +96,6 @@ new normalized source legitimately yields zero chunks, the prior snapshot is
 cleared instead of leaving stale retrieval evidence behind. A failed higher-
 level rebuild continues to use the documented backup/restore path.
 
-The current report's remaining Shadertoy gap is an honest example: its source
-could not be indexed because retrieval encountered HTTP 403. It remains a gap,
-not a zero-scored source and not a successful refresh.
-
 ## In-product update and rebuild
 
 `GET /api/knowledge-base` exposes the current knowledge-base review state. The
@@ -130,23 +126,15 @@ PYTHONPATH=src .venv/bin/python scripts/report_canonical_retrieval.py --limit 5
 The command prints a JSON report. It reads the index and does not overwrite the
 committed report, benchmark, or KB data.
 
-The current checked-in evidence uses the same fixed seven queries and top-five
-limit throughout its comparison. It improved:
-
-- substantive expected-source overlap from 9/23 (39.13%) to 16/23 (69.57%);
-- requested-domain coverage from 7/19 (36.84%) to 18/19 (94.74%);
-- result availability to five returned results for each of seven queries.
-
-The final report is `demo/evaluation/canonical_retrieval_report.json`. It binds
-the result to the active collection's 1,445 chunks and fingerprint. An apparent
-19/23 intermediate peak was rejected after lineage review found title-only or
-index-only matches that were not substantive evidence. The truthful 16/23
-result is the canonical current claim.
+The checked-in `demo/evaluation/canonical_retrieval_report.json` is the
+authoritative snapshot. It binds the fixed seven-query, top-five protocol to
+the active collection fingerprint and records non-text result lineage. Exact
+counts remain in that machine-readable artifact rather than duplicated in
+prose, where they can drift after a new run.
 
 These are deterministic local coverage indicators, not RAGAS scores and not a
-human assessment of answer quality. The fixed benchmark was not reweighted or
-changed to manufacture the gain. See [eval.md](eval.md) and
-[EVALUATION_METRICS_SUMMARY.md](EVALUATION_METRICS_SUMMARY.md).
+human assessment of answer quality. The benchmark must not be reweighted or
+changed after observing results. See [eval.md](eval.md).
 
 ## Freshness and provenance
 
@@ -173,10 +161,10 @@ prompt. Provider-scored evaluation can send its selected evaluation rows and
 contexts. These are separate external transfers and require separate review.
 
 The canonical current-product evaluation uses the reviewed committed public
-benchmark and reports 68.03% across five RAGAS means. That approval does not
-extend to arbitrary local Chroma excerpts or raw session JSONL. Do not broaden
-the result by uploading the index or private rows; use only an explicitly
-reviewed public, synthetic, or redacted dataset for an external evaluation path.
+benchmark. That approval does not extend to arbitrary local Chroma excerpts or
+raw session JSONL. Do not broaden the result by uploading the index or private
+rows; use only an explicitly reviewed public, synthetic, or redacted dataset
+for an external evaluation path.
 
 ## Retention, export, and deletion
 
@@ -192,5 +180,4 @@ or unnecessary material. Export is not proof of execution or validation in an
 external tool.
 
 Ethical and privacy risks are assessed in
-[ETHICS_PRIVACY_ASSESSMENT.md](ETHICS_PRIVACY_ASSESSMENT.md). Operational sync
-details also appear in [sync.md](sync.md).
+[ETHICS_PRIVACY_ASSESSMENT.md](ETHICS_PRIVACY_ASSESSMENT.md).

@@ -6,7 +6,7 @@ provenance, and session metadata into inspectable product views without
 changing backend generation behavior.
 
 > **Reference notice:** This is a passive surface-contract reference, not the
-> current reviewer workspace or backend runtime graph. Start with
+> current product workflow or backend runtime graph. Start with
 > [System Architecture Overview](system_architecture_overview.md),
 > [Artifact and Preview Runtime](artifact_preview_runtime.md), and
 > [Single and Multi Runtime Routes](workflow_graph.md) for executable behavior.

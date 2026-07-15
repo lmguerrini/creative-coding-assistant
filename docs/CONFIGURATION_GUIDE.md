@@ -41,7 +41,7 @@ may resolve relative to the repository.
 | `CCA_CORS_ALLOWED_ORIGINS` | `http://127.0.0.1:3000,http://localhost:3000` | Comma-separated browser origins. Local settings are loopback-only by default; production requires explicit deployed origins and rejects the wildcard. Aliases: `CCA_CORS_ALLOW_ORIGINS`, `CCA_ALLOWED_ORIGINS`. |
 | `CCA_CHROMA_PERSIST_DIR` | `data/chroma` | Stores the local vector index. It may contain source and conversation excerpts and must be handled as local application data. |
 | `CCA_WORKSPACE_SESSION_DB_PATH` | `data/workspace_sessions.sqlite3` | Stores compacted workspace/session snapshots; image attachments are not restored into the composer. Alias: `CCA_WORKSPACE_DB_PATH`. |
-| `CCA_ARTIFACT_DIR` | `data/artifacts` | Stores generated/exportable artifacts. Review contents before sharing. |
+| `CCA_ARTIFACT_DIR` | `data/artifacts` | Reserved backend artifact path. The current product persists artifacts in workspace snapshots and creates browser-mediated downloads; it does not automatically write generated artifacts here. |
 | `CCA_EVAL_DATA_PATH` | `data/eval/live_sessions.jsonl` | Raw live evaluation rows; can contain private prompt/context data and are not public fixtures. |
 | `CCA_EVAL_RAGAS_RESULTS_PATH` | `data/eval/ragas_results.jsonl` | Default local RAGAS result path. Do not treat it as approved public evidence. |
 | `CCA_EVAL_RAGAS_MODEL` | `gpt-4o-mini` | Evaluator model for RAGAS, not the default generation model. |
@@ -97,13 +97,15 @@ real user data.
 
 ## Storage and export
 
-CCA uses local paths for Chroma, SQLite workspace/session snapshots, artifacts,
-and evaluation records. The browser also keeps a compact localStorage fallback
-and workspace identity so it can recover bounded state when the session API is
-unavailable. “Local” is a placement claim, not automatic encryption, retention,
-backup, or deletion. Apply workstation access controls and inspect ignored
-runtime directories and browser storage before archiving or handing off a
-workstation.
+CCA uses local paths for Chroma, SQLite workspace/session snapshots, a reserved
+artifact directory, and evaluation records. Current artifact persistence is in
+workspace snapshots and explicit browser downloads; the backend does not
+automatically write generated artifacts to `CCA_ARTIFACT_DIR`. The browser also
+keeps a compact localStorage fallback and workspace identity so it can recover
+bounded state when the session API is unavailable. “Local” is a placement
+claim, not automatic encryption, retention, backup, or deletion. Apply
+workstation access controls and inspect ignored runtime directories and browser
+storage before archiving or handing off a workstation.
 
 Exports are user-mediated handoff packages. They can contain prompt-derived
 code, metadata, source attribution, and—in the pre-submit queued-image
@@ -125,26 +127,24 @@ model is in [DATA_AND_KB.md](DATA_AND_KB.md).
 
 ## Evaluation configuration
 
-Use a dry run before any external scoring:
+Prepare the current seven-case benchmark without provider calls:
 
 ```bash
-LANGSMITH_TRACING=false .venv/bin/python scripts/eval_live_sessions.py \
-  --input-path demo/evaluation/sanitized_ragas_live_sessions.jsonl \
-  --output-path /tmp/cca-approved-ragas-results.jsonl \
+.venv/bin/python -m creative_coding_assistant.eval.current_product_cli \
+  --scope rag \
   --dry-run
 ```
 
-Provider scoring must include the script's explicit `--allow-provider-calls`
-flag. First inspect the selected fixture, model, output path, expected cost, and
-privacy approval. The current evaluation record and commands are in
-[EVALUATION_METRICS_SUMMARY.md](EVALUATION_METRICS_SUMMARY.md).
-
-`--dry-run` prevents RAGAS scoring calls, while the explicit tracing override
-also prevents an independently configured LangSmith telemetry event.
+A live run requires the optional evaluation dependencies and the CLI's explicit
+`--allow-provider-calls` flag. First inspect the benchmark, model, output path,
+expected cost, knowledge-base state, and privacy boundary. The separate
+`eval_live_sessions.py` runner is retained for historical or independently
+approved recorded-session fixtures. Current commands and evidence boundaries
+are in [eval.md](eval.md).
 
 ## Production warning
 
-The local Python development server is for workstation review. A production
+The local Python development server is for local development. A production
 deployment needs explicit CORS origins, secret injection, TLS at the serving
 edge, durable storage/backup policy, dependency and vulnerability review,
 logging/redaction controls, and a supported process server. A successful local

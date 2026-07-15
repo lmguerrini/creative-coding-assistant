@@ -1,170 +1,176 @@
-# Recorded-Session RAGAS Evaluation
+# Evaluation Methodology
 
-Prepare a local evaluation over recorded assistant sessions without making
-provider calls:
+Creative Coding Assistant separates retrieval selection, current-product RAGAS,
+local product snapshots, and historical fixtures. These lanes answer different
+questions and are never combined into a universal project or creativity score.
 
-```bash
-.venv/bin/python scripts/eval_live_sessions.py --limit 1 --dry-run
-```
+## Current-product benchmark
 
-The command reads `data/eval/live_sessions.jsonl` by default and writes result
-metadata to `data/eval/ragas_results.jsonl`. A real RAGAS run requires the
-separate `--allow-provider-calls` flag.
+The primary evaluation runs the current application path rather than scoring a
+detached answer fixture:
 
-## Requirements
+1. select the immutable seven-case public benchmark;
+2. retrieve from the active official-document Chroma collection;
+3. assemble context with the current ranking and filtering rules;
+4. render the current Jinja prompt;
+5. generate through the configured OpenAI adapter; and
+6. evaluate the resulting answer and contexts with RAGAS.
 
-Install the version-bounded evaluation extra before running:
+The benchmark is versioned and fingerprinted. Case selection, authored
+references, source expectations, and top-k settings must not be changed after
+observing a run simply to improve a metric.
+
+Full scope uses the same seven RAG cases and also records current local
+Creative, Workflow, and Reliability snapshots. Those three lanes make no model
+or evaluator calls, are not additional generated answers, and do not contribute
+to Retrieval Quality.
+
+## Metrics
+
+The current-product macro is the equal-weight mean of five component metrics:
+
+| Metric | What it measures | Uses the authored reference |
+|---|---|---:|
+| Context precision | Whether useful contexts are ranked ahead of less useful contexts | Yes |
+| Faithfulness | Whether answer claims are supported by retrieved context | No |
+| Answer relevancy | Whether the answer addresses the question | No |
+| Context relevancy | Whether the retrieved material is useful for the question | No |
+| Context recall | Whether retrieval covers the authored reference answer | Yes |
+
+An ineligible case, skipped case, provider failure, or metric failure remains
+explicit. Missing evidence is not converted to zero, and a partial metric set is
+not promoted as the current five-metric score.
+
+## Run the current-product path
+
+Install the optional evaluator only with trusted local inputs:
 
 ```bash
 .venv/bin/python -m pip install -e ".[evaluation]"
 ```
 
-The optional evaluation stack has two no-fix advisories in the dated local
-dependency audit. Use it only with trusted local inputs and protected cache
-directories; review the
-[Installation Guide](INSTALLATION_GUIDE.md#optional-evaluation-dependencies)
-before installing or scoring.
-
-Running RAGAs may call evaluator LLM APIs and can incur provider cost. Keep
-`OPENAI_API_KEY` or the evaluator provider configuration available when the
-selected RAGAs metrics require it.
-
-Recorded live-session rows under `data/eval/` are private local runtime
-artifacts. Do not send them to an external evaluator without privacy
-approval.
-
-## Examples
-
-After reviewing the selected local row, provider boundary, model, cost, and
-output path, run a low-volume provider-scored evaluation over the first
-eligible sample:
+Prepare and fingerprint the seven-case selection without constructing or
+calling the provider-bound stack:
 
 ```bash
-.venv/bin/python scripts/eval_live_sessions.py --limit 1 --allow-provider-calls
+.venv/bin/python -m creative_coding_assistant.eval.current_product_cli \
+  --scope rag \
+  --dry-run
 ```
 
-Run selected metrics explicitly:
+A live diagnostic requires a populated compatible knowledge base, provider
+credentials, network access, reviewed cost and privacy boundaries, and explicit
+authorization:
 
 ```bash
-.venv/bin/python scripts/eval_live_sessions.py \
-  --limit 2 \
-  --metric context_precision \
-  --metric faithfulness \
-  --allow-provider-calls
+.venv/bin/python -m creative_coding_assistant.eval.current_product_cli \
+  --scope rag \
+  --allow-provider-calls \
+  --diagnostic-output data/eval/current-product-safe.json
 ```
 
-Run the approved synthetic/public fixture without overwriting committed
-evidence:
+This diagnostic path does not replace committed canonical evidence. Canonical
+publication is a separate maintainer operation with stricter completeness,
+schema, privacy, and provenance gates.
 
-```bash
-.venv/bin/python scripts/eval_live_sessions.py \
-  --input-path demo/evaluation/sanitized_ragas_live_sessions.jsonl \
-  --output-path /tmp/cca-ragas-context-precision-results.jsonl \
-  --metric context_precision \
-  --allow-provider-calls
-```
+Provider-backed evaluation can call generation, query-embedding, evaluator-LLM,
+and evaluator-embedding services and may incur cost. The CLI disables secondary
+observability for an authorized live run so evaluation data is not duplicated
+to an independently configured tracing service.
 
-That fixture is synthetic and public/reviewer-safe. The 2026-07-08 run scored
-4 of 4 eligible rows with zero skips, zero metric failures, and average context
-precision `0.999999999925`.
+## Retrieval selection report
 
-## Behavior
-
-The runner evaluates only recorded live samples that include:
-
-- question
-- answer
-- retrieved contexts
-
-Samples without retrieved contexts are skipped. The runner does not generate
-synthetic samples or automatic ground truth; any sanitized fixture must be
-created and reviewed separately before use.
-
-By default, the CLI runs only the safer smoke metric:
-
-- context precision without reference
-
-Additional supported opt-in metrics are:
-
-- faithfulness
-- answer relevancy
-- context relevancy
-
-`faithfulness` can be slow and brittle for long code-heavy answers because
-RAGAs asks an evaluator model to extract many statements. `answer_relevancy`
-uses evaluator embeddings and may increase cost. `context_relevancy` measures
-whether the retrieved excerpts contain information useful for the query.
-Context recall is not supported for the approved fixtures because they do not
-contain independently justified reference answers.
-
-Failed metric scores are written as `null` with `metric_errors` metadata in the
-local result rows. Detailed evaluator exceptions come from RAGAs logs.
-
-## Configuration
-
-Optional environment variables:
-
-- `CCA_EVAL_DATA_PATH`
-- `CCA_EVAL_RAGAS_RESULTS_PATH`
-- `CCA_EVAL_RAGAS_MODEL`
-- `CCA_EVAL_RAGAS_TIMEOUT_SECONDS`
-- `CCA_EVAL_RAGAS_MAX_RETRIES`
-- `CCA_EVAL_RAGAS_MAX_WORKERS`
-
-Runtime result files under `data/eval/` remain local and ignored by git.
-Public sanitized result files under `demo/evaluation/` may be tracked when they
-contain no private session text, workspace paths, secrets, or local Chroma
-content.
-
-## Canonical retrieval engineering loop
-
-Use the fixed seven-query, read-only retrieval report:
+The separate retrieval report measures selection coverage without generating
+answers or invoking RAGAS:
 
 ```bash
 PYTHONPATH=src .venv/bin/python scripts/report_canonical_retrieval.py --limit 5
 ```
 
-It sends only
-the committed public query strings to the configured embedding provider; local
-retrieved excerpts remain local. Each selected result includes non-text lineage
-(record id, document title, chunk index, character count, distance, and score)
-so source-diversity choices can be audited without publishing excerpt text. The
-2026-07-13 loop improved expected-source overlap from 9/23 to a final 16/23 and
-requested-domain coverage from 7/19 to 18/19. All seven queries returned five
-results. These coverage ratios measure retrieval selection, not RAGAS quality
-or overall product quality.
+The command sends the committed public query strings to the configured embedding
+provider, searches the local index, and prints a read-only report. Retrieved
+excerpt text remains local. The report retains non-text lineage such as source
+ID, document title, chunk index, distance, rank, and selection reason.
 
-The complete verified progression was 9/23 + 7/19, 12/23 + 11/19 after intent
-and result diversity, 15/23 + 17/19 after balanced per-domain candidate search,
-15/23 + 18/19 after bounded requested-domain fallback, 17/23 + 18/19 after a
-two-chunk source cap, and 19/23 + 18/19 after chunk-level Three.js manual
-filtering plus unseen-source priority. Lineage inspection proved that the
-19/23 peak included three title-only `p5_reference` chunks and a
-`tone_js_docs` API-name index. Structural heading removal reduced the report to
-16/23 + 18/19; excluding the verified index-only Tone.js source reduced it to
-15/23 + 18/19; bounded post-filter candidate headroom then recovered substantive
-Three.js manual evidence for the final 16/23 + 18/19 result.
+The committed `demo/evaluation/canonical_retrieval_report.json` is the
+authoritative snapshot for exact counts and fingerprints. Retrieval coverage is
+not answer quality, RAGAS quality, runtime correctness, or artistic quality.
 
-The final result deliberately prefers lower truthful coverage to inflated raw
-anchor overlap. It keeps substantive `three_manual` chunks, prefers unseen
-sources before repeated chunks, and returns no evidence instead of
-reintroducing filtered navigation/index material. No query, expected source,
-fixture, score rule, top-k value, or source weight was changed to raise the
-report. The remaining requested-domain gap is Shadertoy: the approved source has
-no local chunks and returned HTTP 403 during focused sync, so that gap is
-`BLOCKED_BY_EXECUTION_ENVIRONMENT` rather than scored as product failure.
+## Evidence, provenance, and history
 
-`demo/evaluation/canonical_retrieval_report.json` records every selected
-non-text lineage row for the final run. Its full-index metadata fingerprint
-binds the report to the exact 1,445-chunk KB snapshot, while a separate selection
-fingerprint binds the fixed benchmark, model, top-k, summary, and ranked result
-lineage. Re-running against a changed index therefore produces visibly different
-evidence rather than silently replacing history.
+Every retained current-product result records:
 
-Do not run arbitrary current local knowledge-base excerpts through an external
-generation or evaluator provider. The reviewed committed seven-case public
-benchmark now represents the current-product path and publishes a 68.03%
-five-metric macro with complete provenance. Raw scored diagnostics and local
-session rows remain private. The historical four-row fixture remains available
-at 61.44%, and `MISSING_EVIDENCE` or blocked dimensions are never converted to
-zero.
+- benchmark version and case IDs;
+- dataset, retrieval-pipeline, prompt-pipeline, and result fingerprints;
+- generation, evaluator, and embedding configuration;
+- timestamps, run ID, eligibility, skips, and metric failures;
+- component means and macro arithmetic; and
+- source IDs and retrieval lineage without public question, answer, reference,
+  or excerpt text.
+
+The Dashboard owns the current dynamic score and rolling session history. The
+committed `demo/evaluation/current_product_ragas_evidence.json` is a validated,
+public-safe canonical projection loaded at build or reload. A Dashboard run does
+not overwrite that file.
+
+Historical synthetic and redacted fixtures remain useful for schema, evaluator,
+and migration checks. They score recorded rows, often use fewer metrics, and do
+not execute the current retrieval, prompt, or generation stack. For those
+reasons, a historical fixture is never substituted for the current-product
+score.
+
+## Public and private data boundaries
+
+The seven benchmark cases are committed public material approved for the
+documented evaluator path. That decision does not authorize external evaluation
+of arbitrary local content.
+
+Public-safe evidence may include case IDs, status, aggregate metrics, model and
+embedding identifiers, source IDs, timestamps, and fingerprints. It excludes:
+
+- raw local questions and answers;
+- authored references;
+- retrieved Chroma excerpts;
+- workspace/session records;
+- image data, prompts, and generated private artifacts;
+- API keys, environment contents, and personal paths; and
+- exact private evaluator diagnostics.
+
+Runtime result files under `data/eval/` remain local and ignored by git. Raw
+live-session rows and arbitrary local Chroma excerpts must not be sent to an
+external evaluator without a new, explicit content and privacy review.
+
+## Historical recorded-session runner
+
+The recorded-session CLI is retained for approved synthetic or independently
+reviewed local fixtures. A dry run makes no evaluator calls:
+
+```bash
+LANGSMITH_TRACING=false .venv/bin/python scripts/eval_live_sessions.py \
+  --input-path demo/evaluation/sanitized_ragas_live_sessions.jsonl \
+  --output-path data/eval/historical-ragas-results.jsonl \
+  --dry-run
+```
+
+Its historical fixture does not contain an independently justified reference
+answer, so context recall is unavailable there. Do not compare a four-metric
+historical macro directly with the five-metric current-product macro.
+
+## Limitations
+
+- Seven cases provide reproducibility, not broad statistical coverage.
+- RAGAS metrics inherit evaluator-model variance, version behavior, and prompt
+  sensitivity.
+- Code-heavy answers can make statement extraction and faithfulness scoring
+  brittle or slow.
+- A single retained run does not provide confidence intervals; repeated runs
+  are needed to estimate evaluator variance.
+- Retrieval metrics do not measure browser execution, usability, accessibility,
+  safety, performance, originality, or artistic quality.
+- The public-safe projection deliberately omits the text needed for deep error
+  analysis; exact diagnostics must remain local and separately protected.
+
+See the [Evaluation Workflow](../architecture/evaluation_workflow.md) for the
+Dashboard, local snapshot, canonical publication, and historical lanes, and the
+[Ethics and Privacy Assessment](ETHICS_PRIVACY_ASSESSMENT.md) for external-data
+boundaries.

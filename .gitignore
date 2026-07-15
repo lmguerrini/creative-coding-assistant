@@ -13,6 +13,9 @@ __pycache__/
 htmlcov/
 test-results/
 .local/
+build/
+outputs/
+assets/archive/
 
 # Private engineering Runtime Pack, ChatGPT/Codex context, and historical review material stay local.
 .runtime_pack/
@@ -35,11 +38,12 @@ data/artifacts/
 !data/artifacts/
 data/artifacts/*
 !data/artifacts/.gitkeep
+data/artifacts.bak/
 data/eval/
 !data/eval/
 data/eval/*
 !data/eval/.gitkeep
-data/workspace_sessions.sqlite3
+data/workspace_sessions.sqlite3*
 
 # Local environment files.
 .env

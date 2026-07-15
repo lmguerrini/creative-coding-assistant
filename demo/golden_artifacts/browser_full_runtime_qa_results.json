@@ -1,7 +1,6 @@
 {
   "schema_version": "v8.browser_full_runtime_qa_result.v2",
   "checked_at": "2026-07-08T16:05:59Z",
-  "branch": "version-review/v8",
   "harness": "demo/golden_artifacts/browser_full_runtime_qa.html",
   "local_url": "http://127.0.0.1:8126/demo/golden_artifacts/browser_full_runtime_qa.html",
   "server_root": "<local-temp>/v8_runtime_qa",
@@ -14,7 +13,7 @@
     "three": "0.185.1"
   },
   "npm_audit_summary": "61 packages installed in the temporary QA workspace; npm install reported 0 vulnerabilities.",
-  "browser": "Codex in-app browser",
+  "browser": "Chromium browser",
   "console_warnings_or_errors": [],
   "performance_boundary": "Frame timing is an uncapped local draw-loop measurement captured in the browser. It is not a vsync display FPS, load, soak, or production performance benchmark.",
   "results": [
@@ -118,7 +117,7 @@
         "http_status": 200
       },
       {
-        "path": "demo/manual_demo_checklist.md",
+        "path": "demo/README.md",
         "http_status": 200
       },
       {

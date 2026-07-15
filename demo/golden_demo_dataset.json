@@ -1,14 +1,14 @@
 {
   "schema_version": "v8.8-demo-dataset.v1",
   "source_plan_serialization_version": "demo_showcase_plan.v1",
-  "purpose": "Deterministic operator dataset for the Turing College AI Capstone demo fallback and rehearsal flow.",
-  "claim_boundary": "This dataset supports manual demo rehearsal and offline fallback. It is not a live provider response, live retrieval result, generated artifact, or evaluation run.",
-  "capstone_cases": [
-    "case_1_rag_knowledge_assistant",
-    "case_2_bounded_agent_automation",
-    "case_3_source_grounded_search",
-    "case_5_ai_coding_assistant",
-    "case_6_advanced_llm_tools"
+  "purpose": "Deterministic compatibility dataset for the static local demo launcher.",
+  "claim_boundary": "This dataset prepares prompts and fallback references. It is not a live provider response, retrieval result, generated artifact, or evaluation run.",
+  "product_use_cases": [
+    "rag_knowledge_assistant",
+    "bounded_agent_automation",
+    "source_grounded_search",
+    "creative_code_generation",
+    "advanced_llm_workflows"
   ],
   "golden_flows": [
     {
@@ -20,7 +20,7 @@
     },
     {
       "flow_id": "case_alignment_flow",
-      "title": "Capstone case alignment walkthrough",
+      "title": "Product boundary walkthrough",
       "duration_seconds": 90,
       "primary_prompt_id": "offline_showcase_walkthrough",
       "fallback_trigger": "time_overrun"
@@ -71,8 +71,8 @@
   "prompt_library": [
     {
       "prompt_id": "luminous_audio_reactive_three_scene",
-      "title": "Luminous audio-reactive Three.js capstone scene",
-      "prompt_text": "Create a luminous audio-reactive Three.js scene for a capstone demo: concentric geometry, subtle bloom, FFT-driven motion accents, and a clear explanation of provider choice, execution mode, estimates, fallback, and escalation boundaries."
+      "title": "Luminous audio-reactive Three.js scene",
+      "prompt_text": "Create a luminous audio-reactive Three.js scene with concentric geometry, subtle bloom, FFT-driven motion accents, and a clear explanation of provider choice, execution mode, estimates, fallback, and escalation boundaries."
     },
     {
       "prompt_id": "concept_to_visual_translation",
@@ -141,9 +141,9 @@
     "demo/showcase_upload_preparation.md"
   ],
   "known_limitations": [
-    "Provider calls can fail or be slow; use the offline prompt and preview dataset if needed.",
-    "Sanitized and redacted latest-live RAGAs evaluations have been run for release-candidate evidence; raw private recorded-session rows remain local-only.",
-    "Internal preview fallback uses prepared screenshots when live preview is unavailable.",
-    "External DCC/MCP execution, autonomous delivery, public deployment, merge, push, tag, and freeze are out of scope without maintainer approval. Grand Review uses this dataset as release-candidate evidence."
+    "Provider calls can fail or be slow; committed prompts and artifacts remain inspectable.",
+    "Sanitized and redacted RAGAS fixtures are historical evidence; raw private recorded-session rows remain local-only.",
+    "Prepared screenshots are compatibility assets rather than current-session preview evidence.",
+    "External creative-tool execution, autonomous delivery, and public deployment are outside this dataset's scope."
   ]
 }

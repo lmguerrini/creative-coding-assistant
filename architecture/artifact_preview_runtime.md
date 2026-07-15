@@ -5,7 +5,8 @@
 This diagram separates artifact handling inside the backend request from actual
 preview execution in the browser. That split is essential for interpreting
 “preview prepared,” runtime telemetry, critique, persistence, and export
-truthfully.
+truthfully. The [standalone Mermaid source](artifact_preview_runtime.mmd)
+contains the same diagram for full-size rendering.
 
 ```mermaid
 flowchart TB
@@ -39,7 +40,7 @@ flowchart TB
         preview["Sandboxed iframe →<br/>live preview"]:::client
         telemetry["Status +<br/>frame telemetry"]:::evidence
         fallback["Visible source /<br/>fallback"]:::evidence
-        inspect["Reviewer inspection"]:::evidence
+        inspect["User inspection"]:::evidence
 
         hydrate --> preflight
         preflight -->|"runnable"| preview --> telemetry --> inspect
@@ -61,7 +62,7 @@ flowchart TB
     inspect --> export
 ```
 
-## What the reviewer should notice
+## Key properties
 
 - Explain finalizes without entering artifact handling. Other routes extract
   code, infer artifact/runtime metadata, and prepare a `PreviewResult` or an
@@ -71,7 +72,7 @@ flowchart TB
 - The client rechecks the renderer route and source contract before mounting an
   iframe with `sandbox="allow-scripts"`. Runtime status and frame samples then
   become local evidence for Runtime, Preview, Dashboard, and Inspector views.
-- A reviewer can preserve the workspace or export the source whether preview
+- The user can preserve the workspace or export the source whether preview
   runs or falls back.
 
 ## Truth boundary
@@ -90,7 +91,5 @@ rewrite the already-finalized backend result.
 
 ## Deeper documentation
 
-- [Error and Recovery Paths](error_and_recovery_paths.md)
 - [Domain Experience](../docs/DOMAIN_EXPERIENCE.md)
-- [Runtime Validation](../docs/RUNTIME_VALIDATION.md)
-- [Exact Runtime Routes](workflow_graph.md)
+- [End-to-End Product Workflow](end_to_end_product_workflow.md)

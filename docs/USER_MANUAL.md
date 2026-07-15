@@ -78,7 +78,7 @@ create a separate session.
 
 ## Demo Mode
 
-Demo Mode offers ten review scenarios. Choose a card, review its requirements,
+Demo Mode offers ten curated scenarios. Choose a card, inspect its requirements,
 then select **Load prompt & run**. Some paths need a configured provider; the
 reference-guided scenario also requires an image.
 
@@ -116,7 +116,7 @@ unless an external tracing integration is deliberately enabled.
 
 ## Dashboard
 
-The Dashboard organizes product and review information into these current
+The Dashboard organizes product and diagnostic information into these current
 destinations:
 
 - Overview, Architecture, Workflow, Workspace, Runtime, and Preview
@@ -163,15 +163,15 @@ confirmation and use backup/restore behavior on failure. See
 
 ## Evaluation
 
-The Evaluation surface reports evidence by scope and status. The primary
-68.03% Retrieval Quality is the equal-weight five-metric macro from seven
-current-product public RAG cases, all eligible and scored with no failures or
-skips. The 61.44% four-row synthetic fixture remains historical. Current local
-retrieval coverage uses a different report and must not be blended with either
-RAGAS macro. The 35-case catalog represents contract coverage; Full executes
-seven RAG cases and records local Creative, Workflow, and Reliability snapshots
-rather than generating 35 answers. No human evaluation is claimed. Full interpretation is in
-[EVALUATION_METRICS_SUMMARY.md](EVALUATION_METRICS_SUMMARY.md).
+The Evaluation surface reports evidence by scope and status. Its current
+Retrieval Quality is an equal-weight five-metric RAGAS macro over the versioned
+seven-case current-product benchmark. The Dashboard is authoritative for the
+current dynamic value and history. Historical synthetic fixtures remain
+comparison-only, while the local retrieval report measures selection coverage
+rather than generated-answer quality. The 35-case catalog represents contract
+coverage; Full executes seven RAG cases and records separate local Creative,
+Workflow, and Reliability snapshots rather than generating 35 answers. No
+completed human evaluation is claimed. See [eval.md](eval.md).
 
 ## Export and handoff
 
@@ -194,4 +194,4 @@ When a request fails, keep its failure state visible and retry only after
 identifying the boundary: backend readiness, provider credentials, provider
 timeout, retrieval/index state, preview runtime, image validation, or browser
 state. Avoid repeated paid calls and do not publish private diagnostics. Use
-[TROUBLESHOOTING.md](TROUBLESHOOTING.md) and [FAQ.md](FAQ.md).
+[TROUBLESHOOTING.md](TROUBLESHOOTING.md).

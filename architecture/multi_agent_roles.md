@@ -85,7 +85,7 @@ flowchart TB
     retrieval["retrieval<br/>bounded KB search"]:::stage
     embeddings["Query embeddings<br/>OpenAI adapter"]:::external
     chroma["Local Chroma<br/>official-doc chunks"]:::evidence
-    no_web["No live web fetch"]:::boundary
+    local_policy["Approved local corpus<br/>sync-controlled freshness"]:::boundary
     result["RetrievalContext<br/>ranked official evidence"]:::output
     empty["Recoverable empty context"]:::boundary
     skip["Explicit skip<br/>Single or unavailable"]:::boundary
@@ -96,7 +96,7 @@ flowchart TB
     inputs --> retrieval
     embeddings -. "query vector" .-> retrieval
     retrieval <--> chroma
-    no_web -. "hard boundary" .-> retrieval
+    local_policy -. "request-time boundary" .-> retrieval
     retrieval --> result --> assembly
     retrieval -. "gateway error" .-> empty --> assembly
     skip --> assembly
@@ -105,8 +105,11 @@ flowchart TB
 
 What to notice:
 
-- The default researcher uses query embeddings and the local official-document
-  Chroma collection. It does not browse or fetch live web pages.
+- The default researcher uses query embeddings and schema-versioned records in
+  the local official-document Chroma collection. Excluding request-time
+  open-web fetches is intended to improve reproducibility, provenance, latency,
+  evaluation stability, and resistance to changing or untrusted content. Index
+  freshness is bounded by explicit per-source synchronization.
 - A retrieval-gateway error is normalized to an empty, recoverable context and
   generation continues. Missing retrieval infrastructure and Single Agent are
   explicit skips.
@@ -260,7 +263,6 @@ flowchart TB
     outcome{"Review outcome"}:::boundary
     retry_gate{"Retry allowed?<br/>count under 2<br/>artifact gate permits"}:::boundary
     runtime_limit["Executable runtime<br/>up to 2 attempts"]:::evidence
-    published_limit["Published plan<br/>currently reports 1"]:::boundary
     refinement["refinement<br/>append guidance"]:::stage
     generation["generation<br/>direct re-entry"]:::stage
     finalization["finalization<br/>pass or stop"]:::output
@@ -273,7 +275,6 @@ flowchart TB
     outcome -->|"pass"| finalization
     outcome -->|"needs refinement"| retry_gate
     runtime_limit --> retry_gate
-    published_limit -. "not the runtime gate" .-> retry_gate
     retry_gate -->|"yes"| refinement --> generation
     retry_gate -->|"no, other quality stop"| finalization
     retry_gate -->|"no, required output absent after 2"| failure
@@ -286,9 +287,6 @@ What to notice:
 - The executable gate permits up to two refinement attempts. Artifact-backed
   passes can stop earlier after sufficient improvement, preview-safety failure,
   or no useful opportunity.
-- The published Multi Agent execution plan currently reports one refinement
-  loop. That field is not consulted by the Reviewer, so it does not prevent the
-  second executable attempt.
 - `refinement` appends guidance to the existing rendered prompt and returns
   directly to `generation`. Successful retry then repeats extraction, preview
   preparation, critique, and review.
@@ -301,12 +299,12 @@ Single Agent and Explain do not execute this Reviewer path.
 Deeper links: [review node](../src/creative_coding_assistant/orchestration/runtime/nodes/review.py),
 [review transition logic](../src/creative_coding_assistant/orchestration/runtime/nodes/review_logic.py),
 [refinement node](../src/creative_coding_assistant/orchestration/runtime/nodes/refinement.py),
-[runtime refinement limit](../src/creative_coding_assistant/orchestration/runtime/workflow_review.py), and
-[published execution plan](../src/creative_coding_assistant/orchestration/runtime/execution.py).
+and [runtime refinement limit](../src/creative_coding_assistant/orchestration/runtime/workflow_review.py).
 
 ## Shared execution boundary
 
 These five views are slices of the same sequential graph. They should be read
-with the [runtime workflow graph](workflow_graph.md), not connected into a
-parallel-agent topology. Routing publishes the selected responsibilities;
-LangGraph node events and final payloads are the execution evidence.
+with the [end-to-end product workflow](end_to_end_product_workflow.md), not
+connected into a parallel-agent topology. Routing publishes the selected
+responsibilities; LangGraph node events and final payloads are the execution
+evidence.

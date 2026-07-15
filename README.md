@@ -1,51 +1,98 @@
 # Creative Coding Assistant
 
-Creative Coding Assistant is an AI-native creative translation system and creative coding platform: a Creative Workstation that helps creative coders and technical artists turn ideas, constraints, or image references into inspectable creative-code artifacts. It closes the gap between plausible chatbot code and reviewable results through a Next.js workstation, a bounded LangGraph workflow, official-source Chroma retrieval, OpenAI generation, persistent artifacts and sessions, and browser-focused preview paths that keep evidence and limitations visible.
+Creative Coding Assistant is an AI-native creative translation system and
+creative coding platform, delivered as a Creative Workstation. It combines a
+Next.js workstation, a Python API, a bounded LangGraph workflow, official-source
+retrieval, OpenAI generation and embeddings, local persistence, and
+browser-focused preview paths.
 
-![Creative Coding Assistant workstation](assets/preview_current.png)
+![Creative Workspace with sessions, starter briefs, composer, and workflow inspector][screenshot-workspace]
 
-## Installation and run
+*The Creative Workspace keeps composing, session history, and inspectable workflow state in one view.*
+
+## Purpose
+
+Creative Coding Assistant bridges artistic vision and technical implementation,
+using AI and creative coding as tools for artistic and visionary expression. It
+helps artists, creative technologists, and developers translate ideas,
+references, and creative intent into inspectable, grounded, browser-native
+creative systems while preserving transparency, reproducibility, and
+engineering rigor. A request is validated and routed through a visible workflow,
+enriched with local memory and official documentation when appropriate, rendered
+into a structured prompt, sent to the configured model, converted into
+artifacts, and checked against a bounded preview contract before the result is
+presented.
+
+## Problem
+
+Creative-code requests mix artistic intent with technical constraints: runtime,
+dependencies, interaction, performance, source quality, and safe execution.
+Unstructured model output can obscure where information came from, which path
+ran, whether code is executable, and what failed.
+
+## Solution
+
+Creative Coding Assistant keeps those boundaries explicit:
+
+- a browser workspace captures prompts, modes, creativity controls, and optional
+  image references;
+- a local API validates requests and streams typed workflow events;
+- LangGraph selects and executes a Single Agent or Multi Agent route;
+- local ChromaDB collections provide official-source retrieval and conversation
+  memory through separate data boundaries;
+- Jinja templates isolate policy, user input, memory, and retrieved context;
+- OpenAI adapters own text generation and embedding calls;
+- extracted or previously saved artifacts remain inspectable when preview is
+  unavailable; a provider failure remains explicit and does not fabricate a new
+  artifact; and
+- the Dashboard and Inspector expose route, retrieval, runtime, session, and
+  evaluation state without presenting telemetry as model reasoning.
+
+## Key capabilities
+
+| Area | Implemented capability | Boundary |
+|---|---|---|
+| Creative assistance | Generate, explain, debug, design, review, and preview creative code | Output still requires human inspection |
+| Retrieval-Augmented Generation | Local retrieval over schema-versioned, content-addressed records from an approved official-source corpus, using OpenAI embeddings, Chroma similarity search, ranking, and provenance | Request-time open-web browsing is excluded by design; index contents reflect the latest successful per-source sync, not guaranteed upstream completeness |
+| Workflow orchestration | Compiled LangGraph with Single Agent, Multi Agent, and Auto selection | Roles are sequential responsibilities, not an autonomous parallel swarm |
+| Multimodal input | Text plus up to four validated image references in one provider request | No audio upload or image-understanding quality claim |
+| Creative runtimes | Browser previews for bounded p5.js, Three.js, GLSL, and Tone.js artifacts | Other domains remain code/export or external-tool handoffs |
+| Memory and sessions | Chroma conversation memory plus SQLite workspace snapshots and browser fallback state | Local storage is not encrypted or automatically deleted |
+| Evaluation | Current-product seven-case benchmark, five RAGAS metrics, history, provenance, and public-safe evidence projection | Small samples and evaluator variance limit generalization |
+| Observability | NDJSON workflow events, provider usage metadata, runtime telemetry, and optional LangSmith tracing | Tracing is off by default; events are not private chain-of-thought |
+
+## Product boundaries
+
+Implemented paths are distinguished from bounded, optional, and unsupported
+paths throughout the UI and documentation. In particular, this repository does
+not claim a hosted multi-user service, direct execution in external creative
+tools, a separate LangChain chain layer, arbitrary tool execution, audio input,
+or a completed human creativity study.
+
+## Quick start
 
 ### Prerequisites
 
-- Python 3.11 or newer.
-- Node.js 22.13+ (22.x) or 24+ with npm, compatible with the pinned Next.js 15
-  backport and current development-tool engines.
-- An OpenAI API key for live generation, image-guided generation, query
-  embeddings, memory embeddings, or a knowledge-base sync.
-- Network access only for the provider-backed or official-source operations you
-  explicitly choose to run.
+- Python 3.11 or newer
+- Node.js 22.13+ on the 22.x line, or Node.js 24+
+- npm
+- An OpenAI API key for live generation, embeddings, knowledge-base sync, or
+  provider-scored evaluation
 
 From the repository root:
 
 ```bash
 python3 -m venv .venv
 .venv/bin/python -m pip install --upgrade pip
-.venv/bin/python -m pip install -e ".[dev,server]"
+.venv/bin/python -m pip install -e ".[dev]"
 npm ci --prefix clients/nextjs
 cp .env.example .env
 ```
 
-The optional RAGAS evaluation extra has a separate dependency-risk boundary;
-install it only for trusted local evaluation work after reading the
-[Installation Guide](docs/INSTALLATION_GUIDE.md#optional-evaluation-dependencies).
+Set `OPENAI_API_KEY` in the uncommitted `.env` file and keep
+`LANGSMITH_TRACING=false` unless external tracing is intentionally configured.
 
-Edit `.env`, replace the placeholder `OPENAI_API_KEY`, and set
-`LANGSMITH_TRACING=false` unless you intentionally want optional external
-trace metadata. Never commit `.env`.
-
-If this is a fresh workspace, populate Chroma only when you are ready to fetch
-and embed the approved official sources:
-
-```bash
-.venv/bin/python scripts/sync_official_kb.py --all --continue-on-error
-```
-
-That command makes network and embedding-provider calls and can incur cost.
-The application still starts without a populated index, but retrieval evidence
-will correctly appear empty or unavailable.
-
-Start the exact-path WSGI development API:
+Start the API:
 
 ```bash
 .venv/bin/python -m creative_coding_assistant.api.dev_server --host 127.0.0.1 --port 8000
@@ -54,51 +101,56 @@ Start the exact-path WSGI development API:
 In a second terminal, start the workstation:
 
 ```bash
-cd clients/nextjs
-npm run dev
+npm run dev --prefix clients/nextjs
 ```
 
-Open [http://127.0.0.1:3000](http://127.0.0.1:3000). Confirm that the API is
-live and ready:
+Open [http://127.0.0.1:3000](http://127.0.0.1:3000) and verify the API:
 
 ```bash
 curl --fail http://127.0.0.1:8000/api/health
 curl --fail http://127.0.0.1:8000/api/health/ready
 ```
 
-Readiness can be guarded when provider credentials or production-safe settings
-are missing even though liveness succeeds. See the
-[Reviewer Guide](docs/REVIEWER_GUIDE.md) for the shortest inspection path.
+The application starts without a populated knowledge base, but retrieval will
+be empty or unavailable. Populate Chroma only after reviewing the source,
+network, privacy, and provider-cost boundaries:
 
-## Product tour
+```bash
+.venv/bin/python scripts/sync_official_kb.py --all --continue-on-error
+```
 
-The canonical product is the Next.js workstation. A normal session follows
-this visible path:
+See the [Installation Guide](docs/INSTALLATION_GUIDE.md) for optional RAGAS and
+browser-test dependencies.
 
-1. Choose a creative domain, task mode, and **Single Agent**, **Multi Agent**,
-   or **Auto** workflow.
-2. Write a prompt or load a curated Demo Mode scenario. Optionally attach up to
-   four PNG, JPEG, WebP, or GIF references of at most 1 MiB each.
-3. Submit once. The workstation streams route, workflow, retrieval, generation,
-   artifact, preview, review, and terminal events from the local API.
-4. Inspect the answer, extracted source, runtime route, preview, provenance,
-   and diagnostics instead of treating generated prose as execution evidence.
-5. Refine the selected artifact, compare outputs, save the creative session,
-   enter Session Fullscreen, or export an inspectable handoff package.
+![Advanced Dashboard user guide showing the five-step first-run workflow][screenshot-user-guide]
 
-The Dashboard explains the same published product state at reviewer depth:
-Overview, Architecture, Workflow, Workspace, Runtime, Preview, Artifacts,
-Domains, Knowledge Base, AI & agents, Memory, Sessions, Telemetry, Evaluation,
-User Guide, and Settings. The compact Inspector remains tied to the active run;
-the Dashboard is the deeper evidence surface.
+*The in-product User Guide carries the same path from brief and route selection to inspection and handoff.*
 
-Demo Mode currently defines ten curated scenarios. Four are the canonical live
-browser showcase sequence—Tone.js, p5.js, Three.js, and GLSL—while the remaining
-scenarios exercise retrieval, workflow choice, multimodal input, export
-boundaries, or failure recovery. Loading a scenario does not bypass the normal
-assistant path or turn a prepared artifact into a new provider result.
+## How the product works
 
-## Architecture
+1. The user selects a task, domain, creativity profile, and workflow, then
+   submits a prompt with optional image references.
+2. The Python API validates size, media, safety, and request contracts before
+   starting the graph.
+3. Routing publishes the resolved Single or Multi path. Auto is a selector, not
+   a third execution graph.
+4. Memory and retrieval add bounded context when available. Missing retrieval
+   remains explicit and recoverable.
+5. Jinja renders provider-neutral system, user, memory, and retrieval messages.
+   The OpenAI adapter performs the generation call and streams typed events.
+6. Non-Explain results pass through artifact extraction and preview preparation.
+   Multi Agent can critique, review, and request bounded refinement.
+7. The browser hydrates the final response, revalidates the preview contract,
+   runs supported code in an isolated surface, and records workspace state.
+
+![Advanced Dashboard overview of outcome, route, artifact, preview, runtime, and retrieval][screenshot-overview]
+
+*The Dashboard overview keeps the current result and its strongest published evidence together.*
+
+## Architecture overview
+
+Open the [dedicated system architecture page](architecture/system_architecture_overview.md)
+for a larger view and its standalone Mermaid source.
 
 ```mermaid
 flowchart TB
@@ -108,7 +160,7 @@ flowchart TB
     classDef external fill:#FFF7ED,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px
     classDef evidence fill:#EDE9FE,stroke:#6D28D9,color:#4C1D95,stroke-width:1.5px
 
-    user["Creative coder / reviewer"]:::client
+    user["Creative coder / user"]:::client
 
     subgraph request["Next.js workspace — request"]
         direction LR
@@ -154,7 +206,7 @@ flowchart TB
         direction LR
         openai["OpenAI<br/>Responses + embeddings"]:::external
         official["Approved official URLs"]:::external
-        langsmith["LangSmith<br/>optional trace metadata"]:::external
+        langsmith["LangSmith<br/>optional trace data"]:::external
 
         openai ~~~ official ~~~ langsmith
     end
@@ -181,378 +233,352 @@ flowchart TB
     eval_files ~~~ openai
 ```
 
-The browser never calls the model directly. The Python backend validates the
-request, resolves a workflow, assembles local memory and retrieval context,
-renders provider-neutral messages, and crosses the OpenAI boundary only inside
-the generation or embedding adapters. The backend prepares preview contracts;
-the Next.js client executes accepted artifacts in controlled browser runtime
-surfaces. Workspace snapshots use SQLite, while official knowledge and
-conversation memory use separate Chroma collections.
+The browser never calls a model directly. The API owns validation,
+orchestration, provider access, retrieval, session services, and evaluation;
+the browser owns final hydration and supported preview execution. The diagram's
+file output represents explicit user downloads and exports. The configured
+backend artifact directory is not an automatic artifact writer.
 
-The runtime node registry order is shown below for auditability. It is a
-registry order, not a claim that every node executes on every route:
+The local HTTP surface includes assistant streaming, health/readiness, workspace
+sessions, knowledge-base operations, domain inventory, and evaluation jobs. The
+assistant route streams newline-delimited JSON rather than WebSockets.
+
+A central engineering challenge is keeping generation, preview, and persistence
+evidence distinct across the backend and browser runtimes. Typed workflow
+events, browser-side preflight, explicit runtime telemetry, and separate storage
+contracts keep provider, artifact, preview, and session states distinguishable.
+
+### End-to-end workflow
+
+`request → validation → routing → memory → retrieval → context → prompt → generation → artifact → preview preparation → review/refinement → finalization → stream → browser preview`
+
+Single Agent and Explain skip the stages that do not apply. The completed
+[End-to-End Product Workflow](architecture/end_to_end_product_workflow.md)
+preserves every route and evidence boundary in the full diagram; it is linked
+instead of duplicated here so its labels remain readable at normal GitHub
+width. See the [Architecture Diagram Guide](architecture/README.md) for the
+system, role, preview, and evaluation views.
+
+![Advanced Dashboard architecture comparing Single Agent and Multi Agent workflow roles][screenshot-architecture]
+
+*The architecture view distinguishes the direct route from the sequential five-role quality pipeline.*
+
+## Main workflows
+
+| Choice | Behavior | Retrieval | Generation calls |
+|---|---|---|---|
+| **Single Agent** | Direct prompt-rendering and generation path; skips planning, critique, review, and refinement | Explicitly skipped | One when the provider is configured |
+| **Multi Agent** | Sequential Planner, Researcher, Generator, Critic, and Reviewer responsibilities | Requested; failure can recover with empty context | One initial call plus up to two review-requested refinements |
+| **Auto** | Resolves to Single or Multi, publishes the decision, then follows that route | Follows the resolved route | Follows the resolved route |
+
+Auto selects Single only when the resolved task is Explain or Debug, there is
+no image attachment, and routing resolved no domains. Other Auto requests use
+Multi. Role names describe responsibility inside one compiled graph; only the
+Generator owns a text-generation provider call.
+
+A typical creative session is:
+
+1. describe the artifact, runtime, interaction, and constraints;
+2. optionally attach a non-sensitive image reference;
+3. run Single, Multi, or Auto and follow streamed workflow state;
+4. inspect the answer, source, retrieved evidence, preview, and diagnostics;
+5. refine the artifact, compare outputs, save the workspace, or export it.
+
+Demo Mode provides curated starting scenarios for p5.js, Three.js, GLSL,
+Tone.js, retrieval, workflow selection, image input, exports, and failure
+recovery. Loading a scenario still uses the normal request path and is not
+evidence that a provider or runtime succeeded.
+
+![Demo Mode selector for Tone.js, p5.js, Three.js, and GLSL workflows][screenshot-demo-mode]
+
+*Demo Mode prepares bounded creative-coding scenarios without bypassing the normal request path.*
+
+## Retrieval and knowledge system
+
+The knowledge pipeline is explicit and reproducible:
+
+1. a committed registry limits ingestion to approved official HTTPS sources;
+2. sync fetches, normalizes, chunks, and attaches source metadata;
+3. OpenAI embeddings are stored as schema-versioned, content-addressed records
+   in the dedicated local ChromaDB collection;
+4. a query embedding drives bounded vector search, filtering, and source/domain
+   diversity;
+5. ranked excerpts and lineage enter the Multi Agent context; and
+6. selected source IDs, titles, URLs, ranks, and reasons remain inspectable.
+
+The application distinguishes four states:
+
+| State | Meaning |
+|---|---|
+| Registered | A source exists in the approved registry |
+| Indexed | Compatible chunks exist in the active Chroma collection |
+| Retrieved | Chunks were returned for this request |
+| Cited | The response or UI attributes material to the source |
+
+None of those states proves the next one, and retrieval does not prove that a
+generated claim is correct. Query text crosses the embedding-provider boundary;
+retrieved excerpts remain local until they are selected for a generation or
+approved evaluation request. See [Data and Knowledge Base](docs/DATA_AND_KB.md).
+
+![Advanced Dashboard knowledge base with official-source index and creative guidance][screenshot-knowledge-base]
+
+*The Knowledge Base separates registered sources, indexed content, and inspectable creative guidance.*
+
+## Agents and orchestration
+
+The active orchestration library is LangGraph, used directly through a compiled
+`StateGraph`. The repository does not add a separate LangChain chain layer.
+This distinction keeps the architecture accurate while using LangGraph's typed
+graph contracts directly.
+
+The runtime registry order is:
 
 `intake -> routing -> memory -> retrieval -> context_assembly -> prompt_input -> planning -> director -> reasoning -> prompt_rendering -> generation -> artifact_extraction -> preview_preparation -> artifact_critique -> review -> refinement -> finalization -> failure`
 
-### Workflow selection
+Not every node runs on every route. Planning, direction, reasoning, critique,
+and review are deterministic application stages. The Multi Agent workflow is a
+bounded multi-step automation path, not five independent model processes.
 
-| Choice | Actual route | Retrieval | Planning and review | Provider calls |
-|---|---|---:|---|---|
-| **Single Agent** | Direct generator path | Skipped | Skips planning, Director, reasoning, critique, review, and refinement | One generation pass when configured |
-| **Multi Agent** | Sequential planner → researcher → generator → critic → reviewer responsibilities | Requested, with recoverable empty context on failure | Typed planning plus deterministic critique/review; up to two executable refinement attempts | One initial generation pass, plus up to two more when refinement is requested |
-| **Auto** | Resolves to one of the two routes after routing | Follows the resolved route | Follows the resolved route | Follows the resolved route |
+Prompt engineering is implemented with strict Jinja templates that separate
+system policy, task input, memory, and retrieved evidence. Retrieved material is
+treated as context rather than system instruction. The provider adapter then
+maps these neutral messages to the OpenAI Responses API.
 
-Auto selects Single exactly when the resolved route is Explain or Debug, the
-request has no attachment, and routing resolved no domains. Every other Auto
-request selects Multi. The UI publishes that resolved route instead of
-guessing it, so Auto is a selector rather than a third hidden graph.
+### Model and generation controls
 
-The role labels do not mean five parallel LLM workers. Planning, creative
-direction, reasoning, artifact critique, and review are typed deterministic
-application stages around the generation adapter. OpenAI is the only configured
-generation provider in this repository, and generation is the only graph stage
-that invokes its text API. The executable review loop currently allows two
-refinement attempts, while the published `execution.max_refinement_loops` field
-still reports one; that known contract drift is documented rather than hidden.
-
-### End-to-end product workflow
-
-This second overview shows where route-specific work joins the shared request
-path and where browser-only preview behavior begins.
-
-```mermaid
-flowchart TB
-    classDef client fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:1.5px
-    classDef runtime fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20,stroke-width:1.5px
-    classDef decision fill:#F4F4F5,stroke:#52525B,color:#18181B,stroke-width:1.5px
-    classDef external fill:#FFF7ED,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px
-    classDef evidence fill:#EDE9FE,stroke:#6D28D9,color:#4C1D95,stroke-width:1.5px
-    classDef failure fill:#FEE2E2,stroke:#B91C1C,color:#7F1D1D,stroke-width:1.5px
-
-    subgraph request_row["1 · Request and shared stages"]
-        direction LR
-        request["User request"]:::client --> validation["HTTP validation<br/>+ safety"]:::runtime
-        validation --> intake["intake"]:::runtime --> routing["routing<br/>publish mode"]:::runtime
-        routing --> memory["memory"]:::runtime --> retrieval["retrieval"]:::runtime
-    end
-
-    subgraph route_row["2 · Context and route branch"]
-        direction LR
-        context["context_assembly"]:::runtime --> prompt_input["prompt_input"]:::runtime
-        prompt_input --> clarify{"clarification?"}:::decision -->|"no"| mode{"Resolved mode"}:::decision
-    end
-
-    subgraph generation_row["3 · Plan and generation"]
-        direction LR
-        planning["planning"]:::runtime --> director["director"]:::runtime --> reasoning["reasoning"]:::runtime
-        reasoning --> render["prompt_rendering"]:::runtime --> generate["generation"]:::runtime
-        generate -. "provider call" .-> openai["OpenAI Responses"]:::external
-    end
-
-    subgraph artifact_row["4 · Artifact path"]
-        direction LR
-        explain{"Explain route?"}:::decision -->|"no"| artifact_extraction["artifact_extraction"]:::runtime
-        artifact_extraction --> preview_preparation["preview_preparation"]:::runtime --> post{"Resolved mode"}:::decision
-    end
-
-    subgraph review_row["5 · Review, refine, or finish"]
-        direction LR
-        artifact_critique["artifact_critique"]:::runtime --> review["review"]:::runtime --> gate{"Review outcome"}:::decision
-        gate -->|"refine"| refinement["refinement"]:::runtime
-        finalization["finalization"]:::runtime
-        failure["failure<br/>shared terminal path"]:::failure
-    end
-
-    subgraph client_row["6 · Final publication and product evidence"]
-        direction LR
-        stream["NDJSON final event"]:::runtime --> hydrate["Hydrate workspace"]:::client
-        hydrate --> preview["Browser preflight<br/>+ preview"]:::client --> evidence["Dashboard<br/>+ Inspector"]:::evidence
-        memory_record["Conversation memory<br/>success + conversation ID"]:::evidence
-        eval_record["Local eval JSONL<br/>if recorder enabled"]:::evidence
-        workspace["SQLite session<br/>+ localStorage fallback"]:::evidence
-    end
-
-    retrieval --> context
-    clarify -->|"yes"| finalization
-    mode -->|"Single"| render
-    mode -->|"Multi"| planning
-    generate --> explain
-    explain -->|"yes"| finalization
-    post -->|"Single"| finalization
-    post -->|"Multi"| artifact_critique
-    gate -->|"pass / stop"| finalization
-    refinement --> generate
-    finalization --> stream
-    failure --> stream
-    finalization -. "after stream" .-> memory_record
-    stream --> eval_record
-    hydrate --> workspace
-    hydrate --> evidence
-
-    %% Auto publishes Single or Multi and then follows that route; it is not a third graph.
-    %% Executable review logic currently permits up to two refinement attempts.
-    %% Browser runtime telemetry is post-final evidence and does not feed this backend review loop.
-```
-
-Explain bypasses artifact extraction, preview preparation, critique, and
-review. Browser preview preflight and runtime telemetry happen only after the
-final event has hydrated the workspace; that local telemetry does not feed the
-backend critique or review loop.
-
-For the complete source-aligned view, use:
-
-- [Architecture Diagram Guide](architecture/README.md)
-- [System Overview](docs/SYSTEM_OVERVIEW.md)
-- [Architecture Walkthrough](docs/ARCHITECTURE_WALKTHROUGH.md)
-- [Runtime workflow graph](architecture/workflow_graph.md)
-- [Artifact and Preview Runtime](architecture/artifact_preview_runtime.md)
-- [Evaluation / RAGAS Workflow](architecture/evaluation_workflow.md)
-
-## Capability Scope, evidence, and limitations
-
-| Capability | Current product evidence | Boundary |
-|---|---|---|
-| Streaming text generation | OpenAI Responses adapter and NDJSON stream events | Requires credentials and network; no offline model is bundled |
-| Image-bearing request construction | Validated image bytes become `input_image` beside user text in the configured-provider payload | Request-scoped; current evidence does not prove live provider receipt, use, or image influence, and attachments are not restored with a session |
-| Official-source RAG | Explicit source registry, sync pipeline, embeddings, Chroma search, ranked lineage | Retrieval runs only on the Multi Agent route; an indexed or registered source is not automatically a cited source |
-| Workflow automation | Compiled LangGraph with Single, Multi, and Auto route evidence | Sequential and bounded; no hidden parallel agent swarm or arbitrary tool execution |
-| Creative artifacts | Source extraction, preview preparation, critique, up to two executable refinement attempts, export | The published execution-plan maximum still says one; a generated artifact is not a successful preview until its runtime surface validates it |
-| Live browser preview | Validated contracts for p5.js, Three.js, GLSL, and Tone.js | Runtime telemetry is local and post-final; it does not feed backend review. React Three Fiber and Hydra remain code/export; external creative tools are handoffs |
-| Sessions and memory | SQLite workspace snapshots plus local Chroma conversation/project memory | Local single-user posture; memory embeddings send successful prompt/answer text to OpenAI when configured |
-| Evaluation | Dashboard current-product runner, seven-case public RAG benchmark, five reference-aware RAGAS metrics, history, and machine-readable evidence | The 35-case catalog is contract coverage; Full executes seven RAG cases and records three local snapshot lanes rather than generating 35 answers |
-| Observability | Published workflow events, provider usage metadata, optional LangSmith adapter | LangSmith is off unless explicitly configured; telemetry is not model reasoning |
-
-The [Capability Matrix](docs/CAPABILITY_MATRIX.md) gives a fuller implemented,
-bounded, optional, and unsupported inventory. Domain delivery contracts live in
-[Domain Experience](docs/DOMAIN_EXPERIENCE.md).
-
-Important limitations:
-
-- This repository does not prove a hosted public deployment, multi-user
-  authorization, rate limiting, load/soak performance, managed backup, or
-  enterprise isolation.
-- It does not execute TouchDesigner, Blender, Houdini, Unreal, Unity, or other
-  external creative tools. It can generate inspectable source and handoff
-  packages for compatible runtimes.
-- Generated code and creative quality still require human judgment. A browser
-  smoke test proves the asserted interaction, not artistic merit.
-- Retrieval can return weak or incomplete evidence. The UI must preserve empty,
-  failed, blocked, and missing-evidence states rather than manufacture a pass.
-- The current provider factory supports OpenAI only; provider/model matrices
-  elsewhere in the codebase are advisory metadata unless the active adapter
-  publishes execution evidence.
-
-## Evaluation
-
-Evaluation is split into lanes so unrelated measurements are not collapsed
-into a single product score.
-
-### Current local retrieval report
-
-The committed report at
-[`demo/evaluation/canonical_retrieval_report.json`](demo/evaluation/canonical_retrieval_report.json)
-is bound to a 1,445-record local KB metadata snapshot and a fixed seven-query,
-top-five benchmark. At `2026-07-13T05:05:33.306298+00:00` it reported:
-
-- 7/7 cases with results;
-- 16/23 substantive expected-source anchors covered (69.57%);
-- 18/19 requested domains covered (94.74%).
-
-Expected source IDs are coverage anchors, not forced top-k results. Heading-only
-and verified index-only chunks were removed even when that lowered the headline
-ratio. The remaining domain gap is documented rather than converted into a
-false pass. Reproduce the read-only selection report with:
-
-```bash
-PYTHONPATH=src .venv/bin/python scripts/report_canonical_retrieval.py --limit 5
-```
-
-This still sends the public benchmark queries to the configured embedding
-provider. Retrieved excerpt text remains local.
-
-### Current-product RAGAS evidence
-
-The canonical public evidence at
-[`demo/evaluation/current_product_ragas_evidence.json`](demo/evaluation/current_product_ragas_evidence.json)
-binds the current repository's retrieval, prompt, generation, and evaluator
-pipelines to benchmark `current-product-retrieval.v1`. The retained run
-`v9-current-product-final-retained`, evaluated on 2026-07-14 with RAGAS 0.4.3,
-evaluator `gpt-4o-mini`, generator `gpt-5-mini-2025-08-07`, and embedding model
-`text-embedding-3-small`, completed all seven eligible cases with zero skips
-and zero metric failures:
-
-| Metric | Mean |
-|---|---:|
-| Context precision | 51.96428571169692% |
-| Faithfulness | 64.8989898989899% |
-| Answer relevancy | 56.62963631284655% |
-| Context relevancy | 85.71428571428571% |
-| Context recall | 80.95238095238094% |
-| Equal-weight Retrieval Quality macro | **68.03191571804%** |
-
-The dataset fingerprint is
-`sha256:b5fbc0e7cc9a523658eee8b0fc5cd7c417aa10540f8919e10bc2c4e10a40705f`.
-The score is current-product RAG evidence, not a project grade, aesthetic score,
-or universal quality claim.
-
-The former 61.44% display came from a four-row synthetic approved fixture with
-only four measured dimensions and no context-recall denominator. It remains in
-Evaluation History as historical evaluator evidence; it is no longer the
-primary Retrieval Quality. The root cause was
-`EVALUATION_PIPELINE_DEFECT`: the Dashboard's primary score was disconnected
-from current retrieval, prompt, generation, and benchmark state.
-
-The frozen 35-case catalog describes product-authored evaluation contracts, not
-35 provider executions. **Full evaluation** runs the seven canonical RAG cases
-and records current local Creative, Workflow, and Reliability snapshots. Those
-three snapshot lanes remain separate from RAGAS and are not additional generated
-answers.
-
-See [`demo/evaluation/README.md`](demo/evaluation/README.md) and
-[`docs/eval.md`](docs/eval.md) for the fixtures, privacy decision, commands, and
-weak-row analysis. The [Evaluation Criteria Mapping](docs/EVALUATION_CRITERIA_MAPPING.md)
-maps this evidence to the official rubric without treating one metric as proof
-of the whole product.
-
-## Ethics and privacy
-
-The default product posture is local, but local does not mean no data leaves
-the machine.
-
-| Operation | External data boundary |
+| Control | Current behavior |
 |---|---|
-| Generation | The configured OpenAI request can contain rendered system/user/context messages and explicitly submitted image pixels | Tests prove payload construction, not live provider receipt, use, or image influence for the current review |
-| Retrieval | The query text goes to OpenAI embeddings; ranked knowledge excerpts are read from local Chroma and may enter the generation prompt |
-| KB sync | Approved official-source text goes to OpenAI embeddings before local Chroma storage |
-| Conversation memory | Successful user and assistant text goes to OpenAI embeddings, then the text and vectors are stored locally |
-| RAGAS | Only the committed public current-product benchmark or another explicitly reviewed sanitized/redacted dataset may cross the evaluator boundary; raw local sessions and arbitrary Chroma excerpts remain excluded, and live calls require opt-in |
-| LangSmith | Optional trace metadata is sent only when tracing and credentials are deliberately enabled |
+| Model | Selected through backend configuration; OpenAI is the only active generation provider |
+| Creativity profile | Controlled, Balanced, and Exploratory request temperatures; sent only to known compatible model families |
+| Output length | Configurable maximum output tokens, validated from 64 to 8,000 |
+| Timeout | Configurable provider timeout with bounded validation |
+| Refinement | Multi Agent can make up to two additional generation attempts |
 
-Raw local evaluation rows, workspace snapshots, local Chroma excerpts, `.env`,
-and secrets are not public evidence. Image MIME type, decoded size, and file
-signature are validated at both browser and backend boundaries; image values
-use secret-bearing contracts so ordinary serialization and logs do not expose
-the data URL. Session persistence strips queued image references after the
-request boundary.
+These controls expose relevant model parameters, but they are not evidence of a
+completed comparative performance-tuning experiment. Unsupported sampling
+parameters are omitted instead of being reported as applied.
 
-The application isolates untrusted context in prompts, applies bounded request
-safety checks, validates supported preview source shapes, and uses explicit
-failure states. These reduce risk; they do not eliminate model hallucination,
-bias, unsafe generated code, or privacy mistakes. Review prompts, outputs,
-exports, and provider settings before using private or sensitive material.
+![Advanced Dashboard settings for theme, typography, layout, workflow, and creativity][screenshot-settings]
 
-## Demos
+*Session-scoped settings expose presentation and prompt defaults without changing retained artifacts.*
 
-For a reliable live review:
+## Multimodal and creative coding capabilities
 
-1. Start both services and verify health/readiness.
-2. Open Demo Mode and choose one canonical live scenario:
-   **Polyrhythmic constellation** (Tone.js), **Recursive aurora garden**
-   (p5.js), **Kinetic orbit sculpture** (Three.js), or **Fractal solar bloom**
-   (GLSL).
-3. Use the scenario's **Load prompt & run** action; do not present its fallback
-   as a fresh provider result.
-4. Inspect the route, streamed events, artifact source, live preview, fullscreen,
-   and a small follow-up refinement.
-5. If configured generation is unavailable, show a preflight-approved product
-   artifact or the separately labelled deterministic browser fixture, and say
-   explicitly that it is renderer/product-path evidence, not a fresh provider
-   result. Demo Mode recovery instructions are not themselves artifact fixtures.
+The input path supports text plus up to four PNG, JPEG, WebP, or GIF references
+of at most 1 MiB each. The browser and backend validate declared type, decoded
+size, and file signature. Accepted pixels are added as `input_image` content
+beside user text in the configured-provider payload. Images are request-scoped:
+they are cleared after submission and not restored with a session.
 
-The image-guided **Reference-guided palette study** demonstrates the real
-multimodal request boundary. Use only a public, non-sensitive reference and
-show that the resulting p5.js artifact is self-contained rather than fetching
-the original image at runtime.
+The tested boundary covers payload construction; it does not establish live
+provider receipt, image influence, or visual quality. The product has no audio
+upload, transcription, or audio analysis. Tone.js is a generated browser-audio
+runtime with an explicit user start gesture, not an audio-input modality.
 
-## Reviewer path
+![Creative session preview runtime with a generated p5.js artifact and workflow trace][screenshot-preview-runtime]
 
-If time is limited:
+*The session view keeps the generated artifact, preview health, and executed workflow visible together.*
 
-1. Read the [Reviewer Guide](docs/REVIEWER_GUIDE.md).
-2. Run one flagship creative artifact and inspect its route, source, preview,
-   and session persistence.
-3. Compare Single Agent with Multi Agent, then let Auto publish its resolved
-   route.
-4. Open Dashboard → Knowledge Base and Dashboard → Evaluation; distinguish
-   inventory, request retrieval, current retrieval coverage, and synthetic
-   RAGAS evidence.
-5. Review the [Capability Matrix](docs/CAPABILITY_MATRIX.md),
-   [Evaluation Criteria Mapping](docs/EVALUATION_CRITERIA_MAPPING.md), and
-   [Architecture Walkthrough](docs/ARCHITECTURE_WALKTHROUGH.md).
+| Delivery kind | Current scope |
+|---|---|
+| Live browser preview | Bounded p5.js, Three.js, GLSL, and Tone.js artifact contracts |
+| Code/export | Inspectable source for domains such as Hydra and React Three Fiber |
+| External-tool handoff | Source and supporting files for tools such as TouchDesigner, Blender, Houdini, Unreal, or Unity; CCA does not run those tools |
 
-Minimum deterministic checks from the repository root:
+![Advanced Dashboard domains with browser runtimes, source exports, and external handoffs][screenshot-domains]
+
+*Domain contracts distinguish four live browser runtimes from export-only and external-tool delivery paths.*
+
+Generated code can be copied, downloaded, refined, and saved inside workspace
+snapshots. A prepared preview contract is not proof of a rendered frame; the
+browser performs its own preflight and reports runtime state after backend
+finalization. See [Domain Experience](docs/DOMAIN_EXPERIENCE.md).
+
+![Fullscreen p5.js Physarum trail-field preview][screenshot-fullscreen-p5]
+
+*Fullscreen p5.js presents the interactive trail field without hiding that it remains a browser runtime.*
+
+![Fullscreen GLSL Chladni light-field preview][screenshot-fullscreen-glsl]
+
+*Fullscreen GLSL isolates the validated fragment-shader result as a focused visual surface.*
+
+## Evaluation methodology
+
+Evaluation runs the current product path: official-source retrieval, the
+current prompt renderer, configured generation, and RAGAS evaluation. A frozen,
+versioned seven-case public benchmark prevents test selection from drifting
+with each run. Full evaluation also records separate local Creative, Workflow,
+and Reliability snapshots; those are not additional generated answers and are
+not combined into a universal product score.
+
+The five metrics are:
+
+| Metric | Question answered |
+|---|---|
+| Context precision | Were useful contexts ranked ahead of less useful ones? |
+| Faithfulness | Is the answer supported by the retrieved context? |
+| Answer relevancy | Does the answer address the question? |
+| Context relevancy | Is the retrieved material useful for the question? |
+| Context recall | Does retrieval cover the authored reference answer? |
+
+Every retained current-product result carries benchmark version, dataset and pipeline
+fingerprints, model and embedding configuration, timestamps, eligibility,
+skips, metric failures, and run identity. The Dashboard owns the current dynamic
+score and session history. Canonical committed JSON is a public-safe projection;
+raw prompts, answers, references, and local excerpts are excluded.
+
+Historical synthetic or redacted fixtures remain useful for evaluator and
+schema regression, but they do not exercise the current retrieval, prompt, and
+generation path and therefore are not the current score. Seven cases are a
+small sample; evaluator models are stochastic, metric behavior can vary across
+versions, code-heavy answers can be difficult to judge, and no automated RAG
+metric measures artistic quality. See [Evaluation Methodology](docs/eval.md).
+
+## Data and knowledge sources
+
+| Source class | Provenance | Handling |
+|---|---|---|
+| Official technical documentation | Committed source registry with URL/domain metadata and schema-versioned index records | Fetched explicitly, normalized, chunked, embedded, and stored in local Chroma |
+| User prompts and images | Submitted by the user for one request | Sent to configured providers only for the selected operation; images are not restored in sessions |
+| Conversation memory | Successful prompt/answer pairs with a conversation ID | Embedded through OpenAI when configured, then stored in a separate local Chroma collection |
+| Workspace state | Session, artifact, workflow, preview, and UI data | Stored in local SQLite with a compact browser fallback |
+| Evaluation benchmark | Committed, versioned public cases | Used only through explicit dry-run or provider-authorized evaluation paths |
+
+![Advanced Dashboard artifacts with a retained GLSL deliverable and live preview][screenshot-artifacts]
+
+*The Artifacts surface keeps retained source, preview eligibility, runtime state,
+and session provenance attached to the deliverable.*
+
+Conversation turns are the automatically recorded memory type. Other summary
+and project-memory collections are available to runtime readers but are not
+automatically populated by the current product. Source registration does not
+grant redistribution rights, and the local vector store should not be
+published as a dataset.
+
+## Privacy, ethics, and safety
+
+Local-first storage does not mean that no data leaves the machine.
+
+| Operation | External boundary |
+|---|---|
+| Generation | Rendered prompts, selected context, and submitted image pixels can be sent to OpenAI |
+| Retrieval and memory | Query text, successful prompt/answer pairs, and source chunks can be sent for embeddings |
+| Knowledge sync | Approved official-source text is downloaded and embedded before local storage |
+| RAGAS | Only an explicitly reviewed public, synthetic, or redacted dataset should cross the evaluator boundary |
+| LangSmith | Optional trace data is sent only when tracing and credentials are enabled; exposure can include workflow inputs or state depending on tracing configuration |
+
+Current safeguards include request-size and image-signature validation, bounded
+safety checks, context isolation in prompts, explicit provider-call gates for
+evaluation, supported-preview source validation, request-scoped image payloads
+that redact values during standard model serialization, separate local stores,
+and visible failure states.
+
+Residual risks remain: models can hallucinate, reflect source or evaluator
+bias, generate unsafe or resource-heavy code, imitate protected work, or mishandle
+cultural material. Local files, browser storage, logs, backups, exports, and
+screenshots can disclose user data. Human responsibility remains necessary for
+generated work, licenses, attribution, provider settings, and sensitive inputs
+shared or run outside the bounded preview. See
+[Ethics and Privacy Assessment](docs/ETHICS_PRIVACY_ASSESSMENT.md).
+
+## Testing and validation
+
+The repository includes Python unit and integration tests, compiled-workflow
+tests, multimodal payload tests, API contract tests, frontend type checks and
+Vitest suites, documentation/Mermaid gates, and Playwright browser smoke tests.
+
+![Advanced Dashboard telemetry with run events, runtime, usage, cost, and retrieval evidence][screenshot-telemetry]
+
+*Telemetry reports published run facts and retained usage without presenting provider reasoning.*
+
+Core deterministic checks from the repository root:
 
 ```bash
-.venv/bin/python -m pytest -q tests/test_langgraph_workflow_integration.py tests/test_multimodal_provider_inputs.py tests/test_nextjs_streaming_bridge.py
+.venv/bin/python -m pytest -q
+.venv/bin/ruff check src tests scripts
+.venv/bin/python -m compileall -q src tests scripts
 .venv/bin/python scripts/v7_quality_gates.py docs-mermaid
+npm run lint --prefix clients/nextjs
 npm run typecheck --prefix clients/nextjs
-npm run test --prefix clients/nextjs -- src/lib/demo-mode.test.ts src/lib/workflow-graph.test.ts
+npm run test --prefix clients/nextjs
 ```
 
-The browser smoke requires a running local stack and an installed Playwright
-browser:
+With the local stack running and Chromium installed:
 
 ```bash
 npm run test:e2e:smoke --prefix clients/nextjs
 ```
 
+Provider-backed generation, embedding refresh, and RAGAS scoring are separate
+opt-in checks because they require credentials, network access, privacy review,
+and may incur cost.
+
+## Limitations
+
+- OpenAI is the only active generation and embedding provider; no offline model
+  is bundled.
+- The workstation has a local single-user posture. It does not implement hosted
+  identity, multi-user authorization, rate limiting, managed backup, or
+  enterprise isolation.
+- A versioned local index is intentional: CCA searches an approved, locally
+  indexed official-source corpus instead of arbitrary live pages during a
+  request. The design is intended to improve reproducibility, provenance,
+  latency, evaluation stability, and resistance to untrusted or changing web
+  content. Freshness is bounded by the content captured in each source's latest
+  successful sync; newer or missed upstream material waits for a later
+  successful refresh.
+- Multi Agent roles are sequential, bounded application responsibilities. They
+  do not execute arbitrary tools or operate as an autonomous swarm.
+- Browser runtimes cover only validated source shapes. Generated code can still
+  fail, consume excessive resources, or behave differently elsewhere.
+- Image transport is implemented, but controlled evidence of image influence is
+  not yet complete. Audio input is unsupported.
+- External creative tools are handoff targets, not integrated execution
+  environments.
+- The current evaluation benchmark is intentionally small, has evaluator
+  variance, and does not replace human usability, accessibility, security, or
+  aesthetic evaluation.
+- No public hosted deployment or repository license is claimed.
+
+## Future work
+
+Priorities are broader versioned evaluation with repeated runs, stronger
+image-influence evidence, deeper professional-tool continuation packages and
+eventual round-trip workflows, preview expansion only under equivalent safety
+contracts, and production identity, privacy, deployment, and observability
+controls if the application becomes hosted. See [Future Work](docs/FUTURE_WORK.md).
+
 ## Documentation index
 
-### Start, operate, and review
-
-| Document | Reviewer use |
+| Topic | Document |
 |---|---|
-| [Reviewer Guide](docs/REVIEWER_GUIDE.md) | Fast, evidence-prioritized product inspection |
-| [Installation Guide](docs/INSTALLATION_GUIDE.md) | Clean setup, services, and first health checks |
-| [Configuration Guide](docs/CONFIGURATION_GUIDE.md) | Environment variables, provider settings, storage, and tracing |
-| [User Manual](docs/USER_MANUAL.md) | Creative Session, Dashboard, Inspector, artifacts, previews, and sessions |
-| [FAQ](docs/FAQ.md) | Short answers to likely product and evidence questions |
-| [Troubleshooting](docs/TROUBLESHOOTING.md) | Startup, provider, retrieval, preview, session, and evaluation failures |
+| Architecture and diagrams | [Architecture Diagram Guide](architecture/README.md) |
+| Installation | [Installation Guide](docs/INSTALLATION_GUIDE.md) |
+| Configuration | [Configuration Guide](docs/CONFIGURATION_GUIDE.md) |
+| Product workflows | [User Manual](docs/USER_MANUAL.md) |
+| Retrieval and data | [Data and Knowledge Base](docs/DATA_AND_KB.md) |
+| Evaluation | [Evaluation Methodology](docs/eval.md) |
+| Privacy and safety | [Ethics and Privacy Assessment](docs/ETHICS_PRIVACY_ASSESSMENT.md) |
+| Domain/runtime boundaries | [Domain Experience](docs/DOMAIN_EXPERIENCE.md) |
+| Troubleshooting | [Troubleshooting](docs/TROUBLESHOOTING.md) |
+| Planned improvements | [Future Work](docs/FUTURE_WORK.md) |
 
-### Architecture, data, and capability boundaries
+## License and usage boundary
 
-| Document | Reviewer use |
-|---|---|
-| [Architecture Diagram Guide](architecture/README.md) | Reviewer path through the system, workflow, role, recovery, preview, and evaluation diagrams |
-| [System Overview](docs/SYSTEM_OVERVIEW.md) | Components, data stores, APIs, and external boundaries |
-| [Architecture Walkthrough](docs/ARCHITECTURE_WALKTHROUGH.md) | One request from browser input to final event |
-| [Capability Matrix](docs/CAPABILITY_MATRIX.md) | Implemented, bounded, optional, and unsupported claims |
-| [Runtime Workflow Graph](architecture/workflow_graph.md) | Exact Single/Multi/Auto topology and transitions |
-| [Domain Experience](docs/DOMAIN_EXPERIENCE.md) | Canonical live-preview, code/export, and handoff boundaries |
-| [Data & Knowledge Base](docs/DATA_AND_KB.md) | Source governance, Chroma collections, retrieval lineage, and memory |
-| [KB Sync](docs/sync.md) | Approved-source ingestion operations |
-| [Production Deployment](docs/PRODUCTION_DEPLOYMENT.md) | Gunicorn/container foundation and production responsibilities |
+No repository license is currently declared. Do not assume permission to
+redistribute, sublicense, or use the project in production until the owner adds
+an explicit license.
 
-### Evaluation, ethics, and public evidence
-
-| Document | Reviewer use |
-|---|---|
-| [Evaluation Criteria Mapping](docs/EVALUATION_CRITERIA_MAPPING.md) | Official Capstone criteria mapped to inspectable evidence |
-| [Evaluation Metrics Summary](docs/EVALUATION_METRICS_SUMMARY.md) | Retrieval and RAGAS values with comparison limits |
-| [Evaluation Runner](docs/eval.md) | RAGAS and retrieval-report commands and privacy rules |
-| [Ethics & Privacy Assessment](docs/ETHICS_PRIVACY_ASSESSMENT.md) | Data flows, external services, risks, mitigations, and reviewer controls |
-| [Capstone Evaluation & Ethics](docs/CAPSTONE_EVALUATION_ETHICS.md) | Compact evaluation/ethics evidence card |
-| [Challenges & Lessons](docs/CHALLENGES_AND_LESSONS.md) | Hard engineering problems, decisions, and learning |
-| [Future Work](docs/FUTURE_WORK.md) | Prioritized next steps without presenting them as shipped |
-| [Public Documentation Boundary Audit](docs/PUBLIC_DOCUMENTATION_BOUNDARY_AUDIT.md) | Claim, privacy, and public-safe evidence checks |
-| [Repository Hygiene Audit](docs/REPOSITORY_HYGIENE_AUDIT.md) | Tracked-file, secret, generated-output, and release-boundary review |
-| [Commit History Audit](docs/COMMIT_HISTORY_AUDIT.md) | Public commit-lineage and history hygiene evidence |
-| [Portfolio Case Study](docs/PORTFOLIO_CASE_STUDY.md) | Problem, decisions, evidence, limitations, and outcomes in portfolio form |
-
-### Presentation and showcase
-
-| Document | Reviewer use |
-|---|---|
-| [SCR Presentation](docs/SCR_PRESENTATION.md) | Situation–Complication–Resolution reviewer narrative |
-| [SMART Presentation](docs/SMART_PRESENTATION.md) | Specific and measurable presentation framing |
-| [Demo Narrative](docs/DEMO_NARRATIVE.md) | Spoken product story and demo cues |
-| [Capstone Demo Showcase](docs/CAPSTONE_DEMO_SHOWCASE.md) | Flagship scenarios, proof points, and fallback boundaries |
-| [Ten-Minute Presentation](docs/TEN_MINUTE_PRESENTATION.md) | Time-boxed presentation script |
-| [Five-Minute Q&A](docs/FIVE_MINUTE_QA.md) | Likely reviewer questions and evidence-backed answers |
-| [Manual Demo Checklist](demo/manual_demo_checklist.md) | Preflight and per-scenario human validation |
-| [Showcase Upload Preparation](demo/showcase_upload_preparation.md) | Public upload, capture, and evidence checklist |
-
-## License
-
-No repository license is currently declared. Do not assume redistribution or
-production-use rights until the owner adds one.
+[screenshot-workspace]: assets/screenshots/creative-workspace.jpg
+[screenshot-user-guide]: assets/screenshots/user-guide.jpg
+[screenshot-overview]: assets/screenshots/dashboard-overview.jpg
+[screenshot-architecture]: assets/screenshots/dashboard-architecture.jpg
+[screenshot-demo-mode]: assets/screenshots/demo-mode.jpg
+[screenshot-knowledge-base]: assets/screenshots/dashboard-kb.jpg
+[screenshot-settings]: assets/screenshots/dashboard-settings.jpg
+[screenshot-preview-runtime]: assets/screenshots/preview-runtime.jpg
+[screenshot-domains]: assets/screenshots/dashboard-domains.jpg
+[screenshot-fullscreen-p5]: assets/screenshots/full-screen-p5.jpg
+[screenshot-fullscreen-glsl]: assets/screenshots/full-screen-glsl.jpg
+[screenshot-artifacts]: assets/screenshots/dashboard-artifacts.jpg
+[screenshot-telemetry]: assets/screenshots/dashboard-telemetry.jpg

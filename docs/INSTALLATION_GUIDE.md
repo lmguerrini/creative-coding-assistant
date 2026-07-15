@@ -1,8 +1,8 @@
 # Installation Guide
 
-This is the supported local reviewer installation for Creative Coding
-Assistant (CCA). It runs the Python API and Next.js interface as separate local
-processes. It does not describe a hosted production deployment.
+This is the supported local installation for Creative Coding Assistant (CCA).
+It runs the Python API and Next.js interface as separate local processes. It
+does not describe a hosted production deployment.
 
 ## Prerequisites
 
@@ -14,8 +14,8 @@ processes. It does not describe a hosted production deployment.
   refresh, or provider-scored evaluation
 
 The committed lockfile is authoritative for frontend packages. A provider key
-is not required to inspect documentation, run most local tests, browse the UI's
-bounded local/fallback paths, or review committed evaluation evidence.
+is not required to read the documentation, run most local tests, or browse the
+UI's bounded local and fallback paths.
 
 ## 1. Create the Python environment
 
@@ -38,19 +38,14 @@ trusted local inputs:
 .venv/bin/python -m pip install -e ".[dev,evaluation]"
 ```
 
-A dated 2026-07-13 isolated dependency audit found no known vulnerabilities in
-the `server` extra, but found two no-fix advisories in the optional evaluation
-environment: `diskcache` 5.6.3
-([CVE-2025-69872 / GHSA-w8v5-vhqr-4h9v](https://github.com/advisories/GHSA-w8v5-vhqr-4h9v))
-and `ragas` 0.4.3
-([CVE-2026-6587 / GHSA-95ww-475f-pr4f](https://github.com/advisories/GHSA-95ww-475f-pr4f)).
-CCA's current evaluator
-uses text metrics and approved local datasets rather than the affected RAGAS
-multimodal URL/file processing path, but the packages remain installed and
-should be treated as a residual dependency risk. Do not give untrusted users
-write access to evaluation cache directories or pass attacker-controlled URL
-or file contexts into RAGAS. Re-audit before evaluation or release; see the
-[Repository Hygiene Audit](REPOSITORY_HYGIENE_AUDIT.md#current-v9-reviewer-checkpoint).
+Optional evaluator dependencies expand the dependency and external-service
+boundary. Use only trusted local inputs, protect evaluation cache directories,
+and do not pass attacker-controlled URL or file contexts to RAGAS. Check the
+installed environment before use:
+
+```bash
+.venv/bin/python -m pip_audit
+```
 
 The optional `server` extra contains the production-process dependency; it is
 not needed for the local development server used in this guide.
@@ -129,23 +124,21 @@ curl --fail http://127.0.0.1:8000/api/health/live
 curl --fail http://127.0.0.1:8000/api/health/ready
 ```
 
-Then run the deterministic checks most useful for a reviewer:
+Then run the core deterministic checks:
 
 ```bash
 .venv/bin/python -m pytest -q
 .venv/bin/python scripts/v7_quality_gates.py docs-mermaid
 .venv/bin/python scripts/v7_quality_gates.py dashboard
-cd clients/nextjs
-npm run typecheck
-npm run test
-npm run test:e2e:smoke
+npm run typecheck --prefix clients/nextjs
+npm run test --prefix clients/nextjs
+npm run test:e2e:smoke --prefix clients/nextjs
 ```
 
 The canonical four-showcase browser path is:
 
 ```bash
-cd clients/nextjs
-npm run test:e2e -- e2e/demo-showcase-smoke.spec.js
+npm --prefix clients/nextjs run test:e2e -- e2e/demo-showcase-smoke.spec.js
 ```
 
 Tests that use a real provider, refresh embeddings, or score RAGAS evidence are
@@ -175,7 +168,6 @@ necessarily indexed, retrieved, or cited. Full data guidance is in
 
 ## Next steps
 
-- Reviewer tour: [REVIEWER_GUIDE.md](REVIEWER_GUIDE.md)
 - Product workflows: [USER_MANUAL.md](USER_MANUAL.md)
 - Common failures: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-- Evaluation reproduction: [EVALUATION_METRICS_SUMMARY.md](EVALUATION_METRICS_SUMMARY.md)
+- Evaluation methodology: [eval.md](eval.md)

@@ -1,211 +1,36 @@
-# Retrieval Evaluation Pipeline
+# Historical Recorded-Session Evaluation
 
-> **Historical V8 workflow note.** This file preserves the Streamlit-era
-> latest-session evaluation loop and its dated baselines. It is not the current
-> reviewer runbook, and its example result paths must not be used to overwrite
-> committed evidence. Use [Evaluation Metrics Summary](EVALUATION_METRICS_SUMMARY.md),
-> [the current evaluation runner](eval.md), and [Data and Knowledge Base](DATA_AND_KB.md)
-> for current commands, evidence, and privacy boundaries.
+The authoritative current-product process is documented in
+[Evaluation Methodology](eval.md). This page covers the separate historical
+fixture runner retained for schema and evaluator compatibility.
 
-## Overview
+## Scope
 
-This pipeline evaluates retrieval quality, not final answer quality.
+`scripts/eval_live_sessions.py` reads explicitly selected JSONL fixtures using
+the historical live-session schema. It does not run current retrieval, prompt
+rendering, or product generation, so its output is not the current Dashboard
+result.
 
-The main metric in this workflow is `context_precision`. In this project we use
-the no-reference RAGAs variant, which checks whether the retrieved chunks are
-ranked so that the chunks most relevant to the generated answer appear first.
-That makes it a retrieval-ranking metric, not a direct measure of generation
-quality or UX quality. See the official RAGAs context precision docs:
-[RAGAs Context Precision](https://docs.ragas.io/en/latest/concepts/metrics/available_metrics/context_precision/).
+Committed fixtures under `demo/evaluation/` are synthetic or redacted. Raw
+records under `data/eval/`, local Chroma excerpts, and workspace sessions remain
+private local data.
 
-We use `--latest` instead of `--limit` because `data/eval/live_sessions.jsonl`
-is append-only. `--limit` walks oldest-first and can easily evaluate stale
-samples from before a KB sync, source change, or retrieval fix. `--latest`
-keeps the evaluation focused on the most recent live app behavior.
-
-For release-candidate evidence that can be sent to an external evaluator
-without exposing private sessions, use sanitized or redacted fixtures in
-`demo/evaluation/`. The redacted latest-live fixture preserves selected
-live-session structure and retrieval metadata while replacing private text with
-reviewer-safe content. These paths are separate from raw private live-session
-evaluation and should not be treated as proof that every private recorded
-session has the same score.
-
-## Standard Workflow
-
-1. Add or refine KB sources when retrieval is weak for a domain.
-2. Sync only the affected source IDs.
-3. Run fresh manual queries in the Streamlit app to create new live samples.
-4. Run RAGAs over the latest samples with `--latest N`.
-5. Inspect both:
-   - `context_precision` scores
-   - `source_ids`
-
-### Step 1: Add New KB Sources
-
-Only add sources when the current KB cannot support the target query style.
-Typical examples:
-
-- specs are strong for explanation queries but weak for generation queries
-- examples index pages are too noisy
-- domain leakage is gone, but the correct domain still lacks practical chunks
-
-### Step 2: Sync Specific Sources
-
-Sync only the affected source IDs so the local Chroma state stays easy to
-reason about.
-
-Example:
+## Dry-run inspection
 
 ```bash
-SSL_CERT_FILE="$(.venv/bin/python -c 'import certifi; print(certifi.where())')" \
-.venv/bin/python -m dotenv run -- \
-.venv/bin/python scripts/sync_official_kb.py \
-  --source-id glsl_language_spec_460 \
-  --source-id glsl_es_language_spec_320 \
-  --source-id glsl_mdn_webgl_examples
-```
-
-### Step 3: Run Manual App Queries
-
-After sync, open the Streamlit app and run fresh manual queries in the target
-domain. This is important because the eval pipeline measures recorded live
-samples, not the current KB in the abstract.
-
-Examples:
-
-- `Write a basic GLSL fragment shader`
-- `GLSL fragment shader example with color`
-- `Create a simple p5.js sketch with a moving circle`
-
-### Step 4: Run RAGAs on the Latest Samples
-
-Use `--latest N`, not `--limit N`.
-
-Example:
-
-```bash
-.venv/bin/python -m dotenv run -- \
-.venv/bin/python scripts/eval_live_sessions.py \
-  --input-path data/eval/live_sessions.jsonl \
-  --output-path data/eval/ragas_latest4_context_precision.jsonl \
-  --latest 4 \
-  --metric context_precision
-```
-
-Privacy-approved sanitized fixture example:
-
-```bash
-.venv/bin/python scripts/eval_live_sessions.py \
+LANGSMITH_TRACING=false .venv/bin/python scripts/eval_live_sessions.py \
   --input-path demo/evaluation/sanitized_ragas_live_sessions.jsonl \
-  --output-path demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl \
-  --metric context_precision \
-  --allow-provider-calls
+  --output-path data/eval/historical-fixture-results.jsonl \
+  --dry-run
 ```
 
-The 2026-07-08 sanitized release-candidate run produced 4 result rows, 0
-skipped rows, 0 metric failures, and average context precision
-`0.999999999925`.
+Dry run validates selection and manifests without evaluator scoring. Provider
+scoring requires the explicit `--allow-provider-calls` flag, configured
+credentials, network access, and an approved public or redacted payload.
 
-Redacted latest-live fixture example:
+## Interpretation
 
-```bash
-.venv/bin/python scripts/eval_live_sessions.py \
-  --input-path demo/evaluation/redacted_live_session_ragas_latest4.jsonl \
-  --output-path demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl \
-  --metric context_precision \
-  --metric faithfulness \
-  --metric answer_relevancy \
-  --allow-provider-calls
-```
-
-The 2026-07-08 redacted latest-live run produced 4 result rows, 0 skipped
-rows, 0 metric failures, average context precision `0.7006944444230672`,
-average faithfulness `0.6875`, and average answer relevancy
-`0.4419141765019863` after the public-safe wording refresh.
-
-### Step 5: Inspect Scores and Sources
-
-Always inspect the scores together with the retrieved sources:
-
-```bash
-jq '{cp: .metrics.context_precision, sources: .source_ids, domains: .domains}' \
-  data/eval/ragas_latest4_context_precision.jsonl
-```
-
-The score tells you how clean the ranking was. The `source_ids` tell you why.
-
-## Interpretation Guidelines
-
-- `cp ≈ 1.0`
-  Very clean retrieval. The most relevant chunks are consistently surfaced
-  first.
-- `cp ~ 0.7–0.9`
-  Good retrieval. Usually production-usable, though still worth checking for
-  repeated chunks or mild source noise.
-- `cp < 0.5`
-  Poor retrieval. Ranking is weak, or the underlying chunks are not suitable
-  for the query style.
-
-Important note:
-`context_precision` measures how well relevant chunks are ranked in the
-retrieved context. It does not directly measure answer quality, code quality, or
-overall assistant usefulness. See:
-[RAGAs Context Precision](https://docs.ragas.io/en/latest/concepts/metrics/available_metrics/context_precision/).
-
-## Known Pitfalls
-
-- stale `live_sessions.jsonl`
-  Old samples can hide recent KB or retrieval improvements
-- spec-heavy sources
-  Good for explanation queries, weak for generation-oriented queries
-- domain leakage
-  Mixed-domain `source_ids` usually indicate wrong retrieval scope
-- page noise
-  MDN or similar pages can still surface navigation-heavy or page-chrome chunks
-
-## Debug Checklist
-
-- Is the domain correct?
-- Are the top results example-oriented?
-- Is source diversity reasonable, or is one weak source repeating?
-- Is the eval using the latest samples?
-- Do the `source_ids` match the domains you expected to test?
-
-## Baseline
-
-### Verified latest-eval snapshot
-
-Latest verified `--latest 4` `context_precision` snapshot:
-
-- `react_three_fiber`: `0.9167` to `1.0`
-- `p5_js`: `0.0`
-- `glsl`: `0.4778`
-
-This snapshot is still influenced by stale recorded samples for `p5_js` and
-`glsl`. In particular, the latest GLSL eval sample did not yet include the new
-MDN GLSL examples source.
-
-### Post-refresh target baseline
-
-After syncing the corrected KB sources and recording fresh live samples, the
-working target baseline is:
-
-- `p5_js ≈ 0.80`
-- `glsl ≈ 0.91`
-- `react_three_fiber ≈ 0.9–1.0`
-
-### Status
-
-Retrieval pipeline: `PRODUCTION-READY`
-
-That status refers to the workflow and operational pipeline:
-
-- source sync works
-- live sample recording works
-- latest-sample eval works
-- per-domain retrieval issues can be isolated and measured
-
-It does not mean every domain is already at target score in the latest recorded
-snapshot. Fresh post-sync live samples are still required before treating a
-domain-specific score as current.
+Historical fixture results validate runner behavior, metric schemas, and
+failure handling. They do not measure the current retrieval index or establish
+artistic quality, usability, accessibility, security, or broad statistical
+performance.

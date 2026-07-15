@@ -5,7 +5,9 @@
 This diagram follows one normal request from the browser through route
 selection, context, generation, artifact handling, final publication, preview,
 and evidence persistence. It shows the shared failure terminal once; detailed
-error and recovery behavior remains in a dedicated view.
+error and recovery behavior is summarized by the terminal path. The
+[standalone Mermaid source](end_to_end_product_workflow.mmd) contains the same
+diagram for full-size rendering.
 
 ```mermaid
 flowchart TB
@@ -81,7 +83,7 @@ flowchart TB
     %% Browser runtime telemetry is post-final evidence and does not feed this backend review loop.
 ```
 
-## What the reviewer should notice
+## Key properties
 
 - Auto publishes either Single or Multi and then follows that route; it is a
   selector, not a third execution graph.
@@ -97,15 +99,11 @@ Memory can be unavailable, Single runs the retrieval node as an explicit skip,
 and an Explain route goes from generation directly to finalization. A generated
 answer with no extractable artifact also follows explicit skip/review rules.
 The executable review logic currently permits up to two refinement attempts
-and may stop earlier; the published Multi execution-plan field still reports
-one, which is a known contract drift documented in the
-[exact runtime routes](workflow_graph.md). The compact `failure` endpoint avoids
-repeating an arrow from every node; use
-[Error and Recovery Paths](error_and_recovery_paths.md) for those states.
+and may stop earlier. The compact `failure` endpoint avoids repeating an arrow
+from every node; terminal failures preserve typed evidence.
 
 ## Deeper documentation
 
-- [Single and Multi Runtime Routes](workflow_graph.md)
 - [Multi-Agent Role Zooms](multi_agent_roles.md)
 - [Artifact and Preview Runtime](artifact_preview_runtime.md)
-- [Architecture Walkthrough](../docs/ARCHITECTURE_WALKTHROUGH.md)
+- [Evaluation Workflow](evaluation_workflow.md)

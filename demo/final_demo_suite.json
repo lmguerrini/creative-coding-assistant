@@ -1,171 +1,94 @@
 {
   "schema_version": "v8.final_demo_suite.v1",
-  "date": "2026-07-08",
-  "branch": "version-review/v8",
-  "ui_start_to_finish_status": "integrated_in_app_demo_mode_available; external local launcher retained as fallback/reviewer evidence",
+  "ui_start_to_finish_status": "integrated_in_app_demo_mode_available; static local launcher retained for compatibility",
   "demo_start_path": {
     "backend": ".venv/bin/python -m creative_coding_assistant.api.dev_server --host 127.0.0.1 --port 8000",
-    "frontend": "cd clients/nextjs && npm run dev",
-    "in_app_demo_mode": "open http://127.0.0.1:3000 and use the Demo Mode button inside Creative Coding Assistant",
-    "launcher_fallback": "serve a local temporary QA workspace after npm install p5 three hydra-synth and open /demo/final_demo_launcher.html",
-    "artifact_qa": "serve a local temporary QA workspace after npm install p5 three hydra-synth and open /demo/golden_artifacts/browser_full_runtime_qa.html"
+    "frontend": "npm run dev --prefix clients/nextjs",
+    "in_app_demo_mode": "open http://127.0.0.1:3000 and choose Demo Mode",
+    "launcher_fallback": "serve the repository locally and open /demo/final_demo_launcher.html",
+    "artifact_qa": "serve a temporary dependency workspace and open /demo/golden_artifacts/browser_full_runtime_qa.html"
   },
-  "global_fallback": "Use the integrated Demo Mode prompt list, demo/final_demo_launcher.html, demo/golden_demo_dataset.json, demo/demo_prompt_library.md, assets/preview_current.png, redacted/sanitized RAGAs evidence, and golden artifact QA without implying unavailable live components succeeded.",
-  "full_app_smoke_metadata": {
-    "source_boundary": "Summarized from completed local full-app smoke evidence; raw private live-session rows are not tracked or exported.",
-    "optimized_run_id": "v8-speed-live-smoke-1783543600",
-    "provider_when_measured": "openai / gpt-5-mini-2025-08-07",
-    "workflow_coverage": {
-      "single_domain": "Three.js, p5.js, GLSL, concept-to-visual, and installation planning completed optimized live smoke.",
-      "hybrid_rag": "Retrieval-grounded creative-coding answer completed optimized live smoke with 5 retrieved contexts.",
-      "multi_agent": "No live multi-agent execution path is validated or claimed; geometry/morphogenesis is multi-domain, not multi-agent."
-    },
-    "measured_scenarios": {
-      "primary_three_creative_coding_demo": {
-        "generation_time": "68.8s",
-        "token_usage": "41,518 total / 2,817 output",
-        "workflow_type": "single-domain generation with retrieval",
-        "retrieval_usage": "4 contexts",
-        "preview_artifact_status": "4 artifact/preview events in optimized smoke"
-      },
-      "p5_generative_sketch_demo": {
-        "generation_time": "33.9s",
-        "token_usage": "39,645 total / 2,839 output",
-        "workflow_type": "single-domain generation with retrieval",
-        "retrieval_usage": "5 contexts",
-        "preview_artifact_status": "2 artifact/preview events in optimized smoke"
-      },
-      "glsl_shader_post_processing_demo": {
-        "generation_time": "32.8s",
-        "token_usage": "39,400 total / 2,343 output",
-        "workflow_type": "single-domain generation with retrieval",
-        "retrieval_usage": "5 contexts",
-        "preview_artifact_status": "2 artifact/preview events in optimized smoke"
-      },
-      "retrieval_rag_grounded_answer_demo": {
-        "generation_time": "19.2s",
-        "token_usage": "38,778 total / 1,286 output",
-        "workflow_type": "hybrid retrieval-grounded generation",
-        "retrieval_usage": "5 contexts",
-        "preview_artifact_status": "Answer/evidence workflow; no preview required"
-      },
-      "concept_to_visual_translation_demo": {
-        "generation_time": "26.3s",
-        "token_usage": "38,919 total / 2,109 output",
-        "workflow_type": "single-domain creative translation with retrieval",
-        "retrieval_usage": "5 contexts",
-        "preview_artifact_status": "2 artifact/preview events in optimized smoke"
-      },
-      "geometry_morphogenesis_visual_system_demo": {
-        "generation_time": "21.5s",
-        "token_usage": "38,556 total / 1,639 output",
-        "workflow_type": "multi-domain generation with retrieval",
-        "retrieval_usage": "5 contexts",
-        "preview_artifact_status": "Planning/artifact direction answer; golden p5/GLSL QA remains fallback"
-      },
-      "hydra_feedback_pattern_demo": {
-        "generation_time": "0.4s",
-        "token_usage": "N/A; no provider token usage captured",
-        "workflow_type": "bounded multi-domain route; artifact QA support only",
-        "retrieval_usage": "5 contexts",
-        "preview_artifact_status": "Validated through golden hydra-synth artifact QA only"
-      },
-      "installation_immersive_scene_planning_demo": {
-        "generation_time": "52.2s",
-        "token_usage": "37,699 total / 1,370 output",
-        "workflow_type": "planning workflow with retrieval",
-        "retrieval_usage": "5 contexts",
-        "preview_artifact_status": "Planning answer; preview depends on generated artifact choice"
-      }
-    },
-    "recommended_live_sequence": {
-      "source_grounding": "Retrieval-grounded answer: 19.2s optimized live smoke.",
-      "3d_audiovisual": "Three.js audio-reactive visual: 68.8s optimized live smoke with artifact events.",
-      "shader_preview": "GLSL shader visual: 32.8s optimized live smoke plus WebGL golden QA.",
-      "retrieval_evidence": "Retrieval-grounded answer with 5 retrieved contexts and RAGAs evidence.",
-      "installation_scope": "Installation planning: 52.2s optimized live smoke."
-    }
-  },
+  "global_boundary": "Fixtures prepare inputs and evidence references; they do not prove that a provider, retriever, or runtime succeeded in the current session.",
   "demos": [
     {
       "demo_id": "primary_three_creative_coding_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Create a demo-ready Three.js visual: concentric audio-reactive geometry, glow, camera motion, browser-safe audio controls, compact code/artifact direction, validation notes, and fallback. Keep it under 90 code lines or 450 words.",
-      "expected_behavior": "Presenter shows a Three.js creative-coding answer path and the generated Three.js artifact evidence.",
-      "fallback_path": "Use the generated Three.js artifact and browser full-runtime QA result if live generation or provider access fails.",
-      "success_criteria": "Real Three.js package renders the artifact nonblank in browser QA; no unsupported DCC/MCP or autonomous execution claims.",
+      "prompt": "Create a Three.js visual with concentric audio-reactive geometry, glow, camera motion, browser-safe audio controls, compact artifact direction, and validation notes.",
+      "expected_behavior": "A Three.js creative-code answer and inspectable artifact with an explicit audio-start and runtime boundary.",
+      "fallback_path": "Use the committed Three.js artifact and browser full-runtime QA result if live generation is unavailable.",
+      "success_criteria": "The recorded Three.js harness renders the artifact nonblank without implying external-tool execution.",
       "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json -> three_audio_reactive_scene",
-      "reviewer_talking_point": "Three.js browser rendering passed through a temporary QA runtime; the app dependency graph was not changed."
+      "evidence_note": "The recorded run used a temporary QA dependency workspace rather than changing the application dependency graph."
     },
     {
       "demo_id": "p5_generative_sketch_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Create a demo-ready p5.js generative morphogenesis sketch using reaction diffusion, flow fields, particles, branching, and emergent form. Include controls, browser-safe notes, source boundaries, compact artifact direction, and fallback. Keep it under 90 code lines or 450 words.",
-      "expected_behavior": "Presenter shows a p5.js generative visual with practical morphogenesis technique guidance and a clear visual growth story.",
-      "fallback_path": "Use the p5 golden artifact and browser full-runtime QA result if live generation fails.",
-      "success_criteria": "Real p5 package renders the artifact nonblank in browser QA; no metaphysical, medical, religious, or historical authority claim.",
-      "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json -> p5 golden artifact",
-      "reviewer_talking_point": "The p5 artifact now uses real p5 runtime validation, not shim-only evidence."
+      "prompt": "Create a p5.js generative morphogenesis sketch using flow fields, particles, branching, and emergent form with browser-safe controls.",
+      "expected_behavior": "A p5.js source artifact with visible structure, motion, controls, and bounded runtime guidance.",
+      "fallback_path": "Use the committed p5.js artifact and browser full-runtime QA result.",
+      "success_criteria": "The recorded p5.js harness renders a nonblank canvas without unsupported authority claims.",
+      "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json -> p5_generative_morphogenesis_sketch",
+      "evidence_note": "The full-runtime record supersedes the older shim-only compatibility result."
     },
     {
       "demo_id": "glsl_shader_post_processing_demo",
       "classification": "FULLY VALIDATED",
-      "prompt": "Design a demo-ready GLSL fragment shader or post-processing visual. Include uniforms, resolution/time handling, glow, texture movement, WebGL risks, compact artifact direction, and static fallback. Keep it under 80 shader lines or 400 words.",
-      "expected_behavior": "Presenter shows shader/post-processing guidance and the generated GLSL artifact.",
-      "fallback_path": "Use glsl_kaleidoscope_field.frag and WebGL QA evidence if live preview is unavailable.",
-      "success_criteria": "GLSL compiles, links, draws, and pixel-checks nonblank in local WebGL.",
+      "prompt": "Design a GLSL fragment shader with time and resolution uniforms, glow, texture movement, WebGL constraints, and a static fallback.",
+      "expected_behavior": "An inspectable fragment shader and explicit WebGL compile/runtime assumptions.",
+      "fallback_path": "Use the committed GLSL artifact and WebGL QA evidence.",
+      "success_criteria": "The recorded harness compiles, links, draws, and observes a nonblank result.",
       "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json -> glsl_kaleidoscope_field",
-      "reviewer_talking_point": "GLSL compiles directly in WebGL; display-FPS benchmarking is not claimed."
+      "evidence_note": "The result is a local WebGL render check, not a display-FPS or production performance benchmark."
     },
     {
       "demo_id": "hydra_feedback_pattern_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Create a bounded Hydra feedback-pattern demo for the validated local hydra-synth browser artifact path. Use oscillator layers, modulation, feedback, output routing, runtime assumptions, and GLSL/static fallback. Keep it under 60 Hydra lines or 350 words.",
-      "expected_behavior": "Presenter shows a bounded Hydra-compatible pattern chain and the exact runtime support boundary.",
-      "fallback_path": "Use hydra_feedback_lattice.js and browser full-runtime QA result if live generation or preview fails.",
-      "success_criteria": "Hydra synth artifact renders nonblank through real local hydra-synth QA with no microphone or full editor claim.",
+      "prompt": "Create a bounded Hydra feedback pattern with oscillator layers, modulation, feedback, output routing, and explicit runtime assumptions.",
+      "expected_behavior": "Hydra-compatible source with a code/export boundary and a recorded hydra-synth harness result.",
+      "fallback_path": "Use the committed Hydra artifact and browser full-runtime QA result.",
+      "success_criteria": "The recorded hydra-synth harness renders nonblank without microphone or full-editor claims.",
       "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json -> hydra_feedback_lattice",
-      "reviewer_talking_point": "Hydra is bounded to a validated local hydra-synth browser artifact path."
+      "evidence_note": "Hydra support is limited to the named local browser harness and source artifact."
     },
     {
       "demo_id": "retrieval_rag_grounded_answer_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Answer a creative-coding runtime question with registered source grounding. In under 350 words, name the retrieved sources, source boundaries, browser validation steps, and retrieval fallback.",
-      "expected_behavior": "Presenter shows retrieval-grounded guidance and explains source boundaries.",
-      "fallback_path": "Use redacted latest-live RAGAs, sanitized RAGAs result rows, and retrieval smoke evidence if live retrieval is unavailable.",
-      "success_criteria": "Local Chroma retrieval returns results for 7/7 capstone scenarios; redacted latest-live RAGAs has 4 rows, 0 skipped, 0 metric failures across context_precision, faithfulness, and answer_relevancy.",
-      "validation_path": "demo/evaluation/redacted_live_session_ragas_latest4_results.jsonl, demo/evaluation/sanitized_ragas_context_precision_results_external.jsonl, and docs/V8_GRAND_ENGINEERING_REVIEW.md",
-      "reviewer_talking_point": "Raw private live-session text stays local, while the redacted latest-live fixture now has provider-backed RAGAs metrics."
+      "prompt": "Answer a creative-coding runtime question using registered official-source grounding, visible provenance, and an explicit retrieval fallback.",
+      "expected_behavior": "A grounded answer whose retrieved source lineage is visible separately from generated claims.",
+      "fallback_path": "Use the public-safe current-product evidence and canonical retrieval report if live retrieval is unavailable.",
+      "success_criteria": "Current-product evidence validates against its schema and excludes raw prompt, answer, reference, and excerpt text.",
+      "validation_path": "demo/evaluation/current_product_ragas_evidence.json and demo/evaluation/canonical_retrieval_report.json",
+      "evidence_note": "Historical sanitized fixtures remain compatibility evidence rather than the current product result."
     },
     {
       "demo_id": "concept_to_visual_translation_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Translate threshold, recursion, and return into a practical browser visual system. Cover geometry, motion, color, runtime, interaction, constraints, and claim boundaries. Avoid spiritual, therapeutic, or authority claims. Keep it under 400 words.",
-      "expected_behavior": "Presenter shows abstract concept language translated into operational visual structure.",
-      "fallback_path": "Use the p5 artifact, prompt library, and claim-safety explanation.",
-      "success_criteria": "Concept language remains aesthetic/operational; p5 artifact renders nonblank through real p5 QA.",
+      "prompt": "Translate threshold, recursion, and return into a practical browser visual system covering geometry, motion, color, runtime, and interaction.",
+      "expected_behavior": "Abstract language becomes operational visual structure without spiritual or therapeutic authority claims.",
+      "fallback_path": "Use the committed p5.js artifact and prompt library.",
+      "success_criteria": "The output remains aesthetic and operational, with explicit browser constraints.",
       "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json and demo/demo_prompt_library.md",
-      "reviewer_talking_point": "The demo converts concept language into browser implementation guidance without authority claims."
+      "evidence_note": "Concept translation is creative guidance rather than cultural, religious, or psychological authority."
     },
     {
       "demo_id": "geometry_morphogenesis_visual_system_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Design a geometry/morphogenesis browser visual system using radial structure, recursive growth, reaction diffusion, branching, flow fields, and particles. Include runtime choice, preview strategy, source boundaries, compact artifact direction, and fallback. Keep it under 450 words.",
-      "expected_behavior": "Presenter shows generative system planning with geometry, computational growth, and practical runtime choices.",
-      "fallback_path": "Use the p5.js and GLSL golden QA records plus offline prompts if live generation or preview fails.",
-      "success_criteria": "Output remains implementation guidance with source boundaries and browser-runtime constraints.",
-      "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json and demo/demo_prompt_library.md",
-      "reviewer_talking_point": "This flow demonstrates rule-based visual systems and emergent form without unsupported authority claims."
+      "prompt": "Design a browser visual system using radial structure, recursive growth, reaction diffusion, branching, flow fields, and particles.",
+      "expected_behavior": "Generative-system planning with practical runtime and preview choices.",
+      "fallback_path": "Use the committed p5.js and GLSL artifacts and their QA records.",
+      "success_criteria": "The output remains implementation guidance with source and runtime boundaries.",
+      "validation_path": "demo/golden_artifacts/browser_full_runtime_qa_results.json",
+      "evidence_note": "Recorded artifact checks do not establish broad artistic quality or production performance."
     },
     {
       "demo_id": "installation_immersive_scene_planning_demo",
       "classification": "FULLY VALIDATED WITH ACCEPTED BOUNDARY",
-      "prompt": "Plan a browser-based installation or immersive scene for a gallery demo. Include concept, geometry, audience movement, runtimes, retrieval needs, preview plan, artifact package, evaluation checks, fallback, and handoff boundaries. Keep it under 450 words.",
-      "expected_behavior": "Presenter shows a project-bundle planning handoff with explicit local-demo and future-scope boundaries.",
-      "fallback_path": "Use the integrated Demo Mode list, offline dataset, launcher fallback, and evidence boundaries; do not claim live DCC/MCP, autonomous delivery, or public deployment.",
-      "success_criteria": "Planner output is bounded as project planning and handoff notes only.",
-      "validation_path": "demo/golden_demo_dataset.json and docs/V8_CAPSTONE_EVIDENCE_MATRIX.md",
-      "reviewer_talking_point": "This is local browser installation planning, not cloud deployment or external tool execution."
+      "prompt": "Plan a browser-based installation scene with concept, geometry, audience movement, runtimes, retrieval needs, artifacts, and continuation boundaries.",
+      "expected_behavior": "A structured project plan and browser-oriented artifact package.",
+      "fallback_path": "Use the committed scenario metadata and static asset launcher.",
+      "success_criteria": "The output remains planning and handoff material rather than cloud deployment or external-tool execution.",
+      "validation_path": "demo/golden_demo_dataset.json and docs/CAPSTONE_DEMO_SHOWCASE.md",
+      "evidence_note": "Professional creative tools remain continuation targets outside CCA execution."
     }
   ]
 }

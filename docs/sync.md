@@ -35,30 +35,19 @@ Optional:
 - `CCA_OPENAI_EMBEDDING_MODEL` (default: `text-embedding-3-small`)
 - `CCA_LOG_LEVEL` (default: `INFO`)
 
-## Approved Source IDs
+## Approved source inventory
 
-Three.js:
+The committed registry in
+`src/creative_coding_assistant/rag/sources.py` is the canonical source-ID and
+URL inventory. The in-product Knowledge Base surface and CLI validation read
+that registry directly; this page intentionally avoids a hand-maintained list
+that can drift as sources are added or retired.
 
-- `three_docs`
-- `three_manual`
-- `three_examples`
+Inspect the current command surface without fetching or mutating data:
 
-React Three Fiber:
-
-- `r3f_introduction`
-- `r3f_canvas_api`
-- `r3f_hooks_api`
-
-p5.js:
-
-- `p5_reference`
-- `p5_tutorials`
-- `p5_examples`
-
-GLSL:
-
-- `glsl_language_spec_460`
-- `glsl_es_language_spec_320`
+```bash
+.venv/bin/python scripts/sync_official_kb.py --help
+```
 
 ## Common Usage
 
@@ -73,8 +62,7 @@ Sync selected approved sources:
 ```bash
 .venv/bin/python scripts/sync_official_kb.py \
   --source-id three_docs \
-  --source-id r3f_canvas_api \
-  --source-id glsl_language_spec_460
+  --source-id p5_reference
 ```
 
 Continue after a source-level failure:

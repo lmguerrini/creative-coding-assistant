@@ -2,25 +2,25 @@
 
 > **Historical V8 prompt set.** These prompts support the archived eight-flow
 > demo material. The current in-app source of truth is
-> `clients/nextjs/src/lib/demo-mode.ts`; the current operator copy is
+> `clients/nextjs/src/lib/demo-mode.ts`; the current standalone set is
 > [V9.5 Exact Prompt Library](v9_5_exact_prompt_library.md).
 
-Use these prompts for the 10-minute demo, Q&A recovery, and offline fallback.
-They are operator assets, not product prompt-template mutations.
+These prompts support the static local launcher and offline fixture inspection.
+They are demo assets, not product prompt-template mutations.
 
 ## Primary Prompt
 
 **Luminous audio-reactive Three.js scene**
 
 ```text
-Create a luminous audio-reactive Three.js scene for a capstone demo:
+Create a luminous audio-reactive Three.js scene:
 concentric geometry, subtle bloom, FFT-driven motion accents, and a clear
 explanation of provider choice, execution mode, estimates, fallback, and
 escalation boundaries.
 ```
 
-Demo value: shows Case 5 as the main story, supported by Case 1 retrieval
-grounding and Case 6 advanced tool architecture.
+Coverage: creative-code generation, official-source grounding, browser audio,
+artifact inspection, and explicit runtime boundaries.
 
 Fallback: use `assets/preview_current.png` and `demo/golden_demo_dataset.json`
 if provider, retrieval, or preview access fails.
@@ -45,7 +45,7 @@ looks flat. What should I check first, and how should I explain the
 browser-audio constraints?
 ```
 
-Use for Q&A if asked how the assistant handles practical debugging.
+This prompt exercises practical browser-audio debugging.
 
 **Shader and post-processing pipeline**
 
@@ -57,10 +57,10 @@ and fallback implementation options.
 
 Use when asked about retrieval quality, runtime tradeoffs, or technical depth.
 
-**Offline showcase walkthrough**
+**Offline product walkthrough**
 
 ```text
-Walk through the prepared Creative Coding Assistant demo offline: problem,
+Walk through Creative Coding Assistant offline: problem,
 solution, data, evaluation, ethical considerations, fallback plan, challenges,
 and next steps.
 ```
@@ -102,7 +102,7 @@ preview plan, artifact package, evaluation checks, fallback route, and handoff
 boundaries.
 ```
 
-Use for installation planning and portfolio story questions.
+This prompt exercises structured installation planning and continuation.
 
 **Geometry and morphogenesis visual system**
 
@@ -113,10 +113,10 @@ aggregation, branching, flow fields, and particle trails. Include runtime
 selection, preview strategy, source boundaries, and a graceful fallback plan.
 ```
 
-Use when reviewers ask about generative structures, emergent form, and output
-quality.
+This prompt exercises generative structures, emergent form, and output-quality
+boundaries.
 
-**Project handoff and reviewer evidence plan**
+**Project continuation and evidence plan**
 
 ```text
 Plan a Creative Coding Assistant project handoff for a browser installation:
@@ -125,4 +125,4 @@ checks, fallback route, and handoff boundaries. Do not claim live DCC/MCP
 execution, autonomous delivery, or public deployment.
 ```
 
-Use for senior-reviewer questions about system direction and next steps.
+This prompt exercises advanced product-direction and continuation boundaries.

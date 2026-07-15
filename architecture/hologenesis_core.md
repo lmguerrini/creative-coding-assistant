@@ -54,7 +54,7 @@ The implementation lives in:
   and review notes.
 - Multi-domain creative synthesis across V8.1 through V8.6.
 - Creative project bundle outlines for project architecture, portfolio, README,
-  capstone outputs, pipeline, workflow, tool and tech stack recommendations,
+  public product outputs, pipeline, workflow, tool and tech stack recommendations,
   tradeoff analysis, creative research mode, and reference discovery planning.
 
 ## External Integration Audit

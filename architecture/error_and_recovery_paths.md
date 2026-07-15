@@ -103,7 +103,7 @@ flowchart TB
     preserved --> surfaces["Dashboard + Inspector<br/>truthful status"]:::evidence
 ```
 
-## What the reviewer should notice
+## Observable behavior
 
 - Invalid request, attachment, or safety input returns an HTTP 4xx response
   before the LangGraph workflow starts.
@@ -151,7 +151,7 @@ backend workflow evidence.
   route branches, and transition rules.
 - [Architecture Walkthrough](../docs/ARCHITECTURE_WALKTHROUGH.md) follows one
   request from browser validation through recording and evaluation boundaries.
-- [System Overview](../docs/SYSTEM_OVERVIEW.md) separates browser, backend,
-  persistence, provider, and evaluation responsibilities.
+- [System Architecture Overview](system_architecture_overview.md) separates
+  browser, backend, persistence, provider, and evaluation responsibilities.
 - [Troubleshooting](../docs/TROUBLESHOOTING.md) provides operator-facing
   recovery guidance.

@@ -35,5 +35,6 @@ Gunicorn with explicit production CORS configuration.
 ## Public And Private Separation
 
 Public architecture docs describe product behavior and operator expectations.
-Private engineering ledgers, audits, prompts, historical review material, and
-version-review drafts belong in `.runtime_pack/` and must remain ignored by Git.
+Private planning, audit, prompt, session, credential, and raw evaluation
+material is excluded from the tracked public tree and is not an architecture
+dependency.

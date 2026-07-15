@@ -2,7 +2,7 @@
 
 Creative Coding Assistant includes a local two-process workstation and a
 production WSGI packaging foundation. Current evidence supports the local
-review/demo target; it does not establish a hosted public deployment,
+single-user workstation; it does not establish a hosted public deployment,
 authentication, rate limiting, managed storage, backup, or operational service
 ownership.
 
@@ -20,14 +20,10 @@ explicit `CCA_CORS_ALLOWED_ORIGINS` value. The bridge refuses to run when
 `CCA_ENVIRONMENT=production` unless an operator passes the explicit
 `--allow-production-dev-server` override.
 
-## Current Local Review Target
+## Local workstation runtime
 
-The reviewed Capstone target is a local workstation demo, not a public
-deployment. The presenter runs the backend API on `127.0.0.1:8000` and the
-Next.js workstation on the local Next.js development server. Showcase upload
-and any release/deployment decision remain separate human actions.
-
-Local demo startup path:
+The supported public setup is a local workstation, not a hosted deployment.
+Start the API on `127.0.0.1:8000`:
 
 ```bash
 .venv/bin/python -m creative_coding_assistant.api.dev_server --host 127.0.0.1 --port 8000
@@ -40,28 +36,23 @@ cd clients/nextjs
 npm run dev
 ```
 
-Before the demo, verify:
+Verify health and readiness:
 
 ```bash
 curl --fail http://127.0.0.1:8000/api/health
 curl --fail http://127.0.0.1:8000/api/health/ready
 ```
 
-Then open the primary in-app demo target:
+Open the workstation:
 
 ```text
 http://127.0.0.1:3000
 ```
 
-Use **Demo Mode** inside Creative Coding Assistant to select one of the ten
-current scenarios. Four are the canonical browser showcase sequence:
-Polyrhythmic constellation, Recursive aurora garden, Kinetic orbit sculpture,
-and Fractal solar bloom. The selected scenario loads its prompt into the normal
-assistant composer and keeps input, runtime, expected artifact, validation, and
-fallback boundaries visible.
+Demo Mode loads committed scenarios into the normal assistant composer while
+preserving input, runtime, expected-artifact, and failure boundaries.
 
-Run the deterministic browser path from the repository when a local proof is
-needed:
+Run the deterministic browser validation path from the repository:
 
 ```bash
 npm run test:e2e --prefix clients/nextjs -- e2e/demo-showcase-smoke.spec.js
@@ -71,22 +62,10 @@ That gate proves the asserted workstation, artifact, interaction, preview,
 fullscreen, refinement, and persistence contracts with deterministic fixtures.
 It is not a configured-provider generation or human-quality result.
 
-Current fallback path:
-
-- Frontend or provider failure: show a preflight-approved product artifact or
-  the separately labelled deterministic browser fixture; do not imply a new
-  provider response.
-- Backend failure: use the [System Overview](SYSTEM_OVERVIEW.md) and current
-  [Capstone Demo and Showcase Guide](CAPSTONE_DEMO_SHOWCASE.md); do not imply a
-  live API response.
-- Retrieval failure: use
-  `demo/evaluation/canonical_retrieval_report.json` and state its date,
-  fingerprint, and local-selection boundary; do not invent current citations.
-- Preview failure: show source and the explicit code/export boundary rather
-  than calling the renderer successful.
-
-The retired V8 static launcher and eight-flow files remain historical evidence
-only and are not a current fallback authority.
+Provider, retrieval, backend, and preview failures remain distinct visible
+states. The [System Architecture Overview](../architecture/system_architecture_overview.md),
+[Product Demo Guide](CAPSTONE_DEMO_SHOWCASE.md), and
+[Troubleshooting](TROUBLESHOOTING.md) document their boundaries.
 
 ## Production Backend
 

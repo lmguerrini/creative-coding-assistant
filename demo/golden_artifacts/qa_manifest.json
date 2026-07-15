@@ -1,7 +1,6 @@
 {
   "schema_version": "v8.golden_artifact_qa.v1",
   "date": "2026-07-08",
-  "branch": "version-review/v8",
   "browser_render_qa_result": "demo/golden_artifacts/browser_full_runtime_qa_results.json",
   "fallback_browser_render_qa_result": "demo/golden_artifacts/browser_render_qa_results.json",
   "artifacts": [
@@ -13,8 +12,8 @@
       "syntax_check": "node --check",
       "browser_render_check": "rendered_nonblank via demo/golden_artifacts/browser_full_runtime_qa.html using p5 2.3.0 from temporary QA node_modules",
       "full_runtime_available": true,
-      "creative_quality": "strong",
-      "output_quality": "strong",
+      "creative_quality": "not_measured",
+      "output_quality": "runtime_check_only",
       "boundary": "Aesthetic geometry and growth-system composition only; no metaphysical, medical, religious, historical, or certification authority claim."
     },
     {
@@ -25,8 +24,8 @@
       "syntax_check": "node --check",
       "browser_render_check": "rendered_nonblank via demo/golden_artifacts/browser_full_runtime_qa.html using three 0.185.1 from temporary QA node_modules",
       "full_runtime_available": true,
-      "creative_quality": "strong",
-      "output_quality": "strong",
+      "creative_quality": "not_measured",
+      "output_quality": "runtime_check_only",
       "boundary": "Browser module requires caller-provided THREE, canvas, and optional audio element; no DCC/MCP execution claim."
     },
     {
@@ -37,8 +36,8 @@
       "syntax_check": "static shader structure check",
       "browser_render_check": "compiled, linked, drawn, and pixel-checked nonblank via demo/golden_artifacts/browser_full_runtime_qa.html WebGL harness",
       "full_runtime_available": true,
-      "creative_quality": "strong",
-      "output_quality": "strong",
+      "creative_quality": "not_measured",
+      "output_quality": "runtime_check_only",
       "boundary": "Fragment shader code only; host integration must provide uniforms and preview runtime."
     },
     {
@@ -49,8 +48,8 @@
       "syntax_check": "node --check",
       "browser_render_check": "rendered_nonblank via demo/golden_artifacts/browser_full_runtime_qa.html using hydra-synth 1.4.0 from temporary QA node_modules with detectAudio false",
       "full_runtime_available": true,
-      "creative_quality": "strong",
-      "output_quality": "strong",
+      "creative_quality": "not_measured",
+      "output_quality": "runtime_check_only",
       "boundary": "Validated only for the committed hydra-synth browser artifact path; no microphone, camera, DCC/MCP, autonomous immersive platform, or external execution claim."
     }
   ],

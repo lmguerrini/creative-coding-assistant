@@ -1,8 +1,7 @@
 # Domain and Knowledge Experience Contract
 
-This document describes the current workstation behavior. It takes precedence
-over historical QA fixtures or planning documents when they could be read as a
-claim about an active in-product preview.
+This document describes the current workstation behavior and the supported
+in-product preview contracts.
 
 ## Domain delivery
 
@@ -16,8 +15,8 @@ and one of three delivery kinds:
   fallback. Tone.js playback remains behind an explicit user-start control.
 - **Code/export:** source is produced for use or inspection outside that live
   preview contract. Hydra and React Three Fiber are code/export-only in the
-  current product. A client adapter or historical QA artifact is not a claim
-  that the active generation path has an in-product live preview.
+  current product. A client adapter alone is not a claim that the active
+  generation path has an in-product live preview.
 - **External-tool handoff:** a downloadable package contains a creative brief,
   system specification, parameter schema, implementation notes, validation
   checklist, and handoff boundaries. It does not start, control, or validate
@@ -38,8 +37,9 @@ the retrieval result for the current request:
 - **Indexed** counts and chunks are read from the local Chroma inventory.
 - **Last indexed** is the latest local-record timestamp. It does not prove an
   upstream page is current or unchanged.
-- The interface never starts an update. Refresh approved sources explicitly
-  from the project root with:
+- The interface exposes confirmed Smart Update plus advanced check, update,
+  rebuild, and validate actions. Mutating actions require selected source IDs
+  and explicit confirmation. The equivalent command-line refresh is:
 
   ```bash
   .venv/bin/python scripts/sync_official_kb.py --all
