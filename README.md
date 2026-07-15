@@ -21,7 +21,8 @@ engineering rigor. A request is validated and routed through a visible workflow,
 enriched with local memory and official documentation when appropriate, rendered
 into a structured prompt, sent to the configured model, converted into
 artifacts, and checked against a bounded preview contract before the result is
-presented.
+presented. The objective is not simply to generate code, but to help transform 
+artistic intent into technically grounded interactive experiences.
 
 ## Problem
 
@@ -289,11 +290,6 @@ Tone.js, retrieval, workflow selection, image input, exports, and failure
 recovery. Loading a scenario still uses the normal request path and is not
 evidence that a provider or runtime succeeded.
 
-When live preview is unavailable, recovery guidance may use the committed
-images in `assets/screenshots-archive/` as clearly labelled archived references.
-Those images are a manual offline fallback, not evidence of a current live
-render.
-
 ![Demo Mode selector for Tone.js, p5.js, Three.js, and GLSL workflows][screenshot-demo-mode]
 
 *Demo Mode prepares bounded creative-coding scenarios without bypassing the normal request path.*
@@ -405,7 +401,9 @@ current prompt renderer, configured generation, and RAGAS evaluation. A frozen,
 versioned seven-case public benchmark prevents test selection from drifting
 with each run. Full evaluation also records separate local Creative, Workflow,
 and Reliability snapshots; those are not additional generated answers and are
-not combined into a universal product score.
+not combined into a universal product score. The Dashboard always reports the 
+latest current-product evaluation produced by the versioned benchmark, 
+rather than historical fixtures or synthetic regression datasets.
 
 The five metrics are:
 
