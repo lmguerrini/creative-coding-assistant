@@ -35,6 +35,7 @@ describe("preview controller", () => {
       canReload: true,
       canRestart: true,
       isFullscreen: false,
+      isRuntimeRefreshing: false,
       isSessionOverridden: false,
       sessionLabel: "Success",
       indicators: expect.arrayContaining([
@@ -65,10 +66,36 @@ describe("preview controller", () => {
       canClear: false,
       canReload: true,
       isFullscreen: true,
+      isRuntimeRefreshing: false,
       isSessionOverridden: true,
       sessionLabel: "Cleared"
     });
   });
+
+  it.each(["reloading", "restarting"] as const)(
+    "keeps the runtime mounted while a %s session can settle",
+    (mode) => {
+      const snapshot = getLocalWorkspaceSnapshot();
+      const route = buildPreviewRendererRoute({
+        artifacts: snapshot.artifacts,
+        preview: snapshot.preview,
+        previewArtifactId: "source-sketch"
+      });
+
+      expect(
+        buildPreviewControllerModel({
+          isFullscreen: false,
+          preview: snapshot.preview,
+          route,
+          sessionOverride: createPreviewSessionOverride("source-sketch", mode)
+        })
+      ).toMatchObject({
+        isRuntimeRefreshing: true,
+        isSessionOverridden: true,
+        sessionLabel: mode === "reloading" ? "Reloading" : "Restarting"
+      });
+    }
+  );
 
   it("returns settled recovery sessions to the base preview controls", () => {
     const snapshot = getLocalWorkspaceSnapshot();
@@ -98,6 +125,7 @@ describe("preview controller", () => {
       })
     ).toMatchObject({
       canReload: true,
+      isRuntimeRefreshing: false,
       isSessionOverridden: false,
       sessionLabel: "Success"
     });

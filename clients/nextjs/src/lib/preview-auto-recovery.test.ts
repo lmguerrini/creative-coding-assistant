@@ -3,6 +3,7 @@ import type { PreviewRuntimeLifecycleState } from "./preview-runtime-adapters";
 import type { PreviewRuntimeSessionOverrideMode } from "./preview-controller";
 import {
   canArmPreviewAutoRecovery,
+  isPreviewAutoRecoveryRuntimeCurrent,
   isPreviewRuntimeAwaitingFirstFrame,
   previewAutoRecoveryReadinessBudgetMs
 } from "./preview-controller";
@@ -106,6 +107,27 @@ describe("preview auto recovery decision", () => {
     expect(isPreviewRuntimeAwaitingFirstFrame("ready")).toBe(false);
     expect(isPreviewRuntimeAwaitingFirstFrame("stopped")).toBe(false);
     expect(isPreviewRuntimeAwaitingFirstFrame("error")).toBe(false);
+  });
+
+  it("ignores a readiness deadline owned by an older sandbox mount", () => {
+    expect(
+      isPreviewAutoRecoveryRuntimeCurrent({
+        armedRuntimeId: "preview-runtime-a",
+        currentRuntimeId: "preview-runtime-a"
+      })
+    ).toBe(true);
+    expect(
+      isPreviewAutoRecoveryRuntimeCurrent({
+        armedRuntimeId: "preview-runtime-a",
+        currentRuntimeId: "preview-runtime-b"
+      })
+    ).toBe(false);
+    expect(
+      isPreviewAutoRecoveryRuntimeCurrent({
+        armedRuntimeId: null,
+        currentRuntimeId: "preview-runtime-b"
+      })
+    ).toBe(false);
   });
 
   it("1. reloads a newly opened preview stuck at Starting/Warming exactly once", () => {

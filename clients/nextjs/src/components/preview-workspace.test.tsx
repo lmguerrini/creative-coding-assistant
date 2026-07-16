@@ -6,6 +6,7 @@ import {
   type AssistantWorkspaceSnapshot
 } from "@/lib/assistant-client";
 import { buildPreviewControllerModel } from "@/lib/preview-controller";
+import type { PreviewRuntimeSessionOverride } from "@/lib/preview-controller";
 import { buildPreviewRendererRoute } from "@/lib/preview-renderers";
 import { buildPreviewRuntimeSource } from "@/lib/preview-runtime-adapters";
 import { PreviewWorkspace } from "./preview-workspace";
@@ -138,6 +139,35 @@ describe("PreviewWorkspace", () => {
     ).toHaveFocus();
   });
 
+  it("keeps a refreshing User Mode runtime mounted so reload can settle", () => {
+    const snapshot = createReadyPreviewSnapshot();
+    const sessionOverride: PreviewRuntimeSessionOverride = {
+      artifactId: snapshot.preview.sourceArtifactId,
+      mode: "reloading",
+      requestedAt: "2026-07-16T08:00:00.000Z"
+    };
+
+    render(
+      <PreviewWorkspaceHarness
+        sessionOverride={sessionOverride}
+        showDebugPanels={false}
+        snapshot={{
+          ...snapshot,
+          preview: {
+            ...snapshot.preview,
+            state: "generating",
+            status: "Reloading"
+          }
+        }}
+      />
+    );
+
+    expect(
+      screen.getByRole("group", { name: "p5.js live runtime" })
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Preview unavailable")).not.toBeInTheDocument();
+  });
+
   it("ignores sandbox keyboard boundaries outside fullscreen", () => {
     const onFullscreenChange = vi.fn();
     render(
@@ -167,11 +197,13 @@ describe("PreviewWorkspace", () => {
 function PreviewWorkspaceHarness({
   onFullscreenChange = () => undefined,
   onReload = () => undefined,
+  sessionOverride = null,
   showDebugPanels,
   snapshot
 }: {
   onFullscreenChange?: (isFullscreen: boolean) => void;
   onReload?: () => void;
+  sessionOverride?: PreviewRuntimeSessionOverride | null;
   showDebugPanels: boolean;
   snapshot: AssistantWorkspaceSnapshot;
 }) {
@@ -185,7 +217,7 @@ function PreviewWorkspaceHarness({
     isFullscreen,
     preview: snapshot.preview,
     route,
-    sessionOverride: null
+    sessionOverride
   });
   const runtimeSource = buildPreviewRuntimeSource({
     code: snapshot.code,

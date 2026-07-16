@@ -102,11 +102,23 @@ test.describe("Workstation resilience", () => {
 
     await submitCreativePrompt(page, "Force a recoverable stream failure.");
 
+    await expect(
+      page.getByRole("form", { name: "Creative request composer" })
+    ).toHaveAttribute("data-mode", "developer");
     await expect(page.getByRole("log", { name: "Conversation" })).toContainText(
-      "The live response could not complete."
+      "Live response error: The live response stopped before completion."
     );
     await expect(page.getByRole("log", { name: "Conversation" })).toContainText(
       "The workflow stopped before the requested output was ready."
+    );
+    const streamFailure = page.locator(".chatErrorCallout");
+    await expect(streamFailure).toHaveAttribute("data-recoverable", "true");
+    await expect(streamFailure).toContainText("Retry available");
+    await expect(streamFailure).toContainText("Send prompt again");
+
+    await setDisplayMode(page, "User");
+    await expect(page.getByRole("log", { name: "Conversation" })).toContainText(
+      "The live response could not complete."
     );
     await page.getByRole("textbox", { name: "Assistant prompt" }).fill("Retry after failure.");
     await expect(page.getByRole("button", { name: "Send prompt" })).toBeEnabled();
@@ -158,16 +170,23 @@ test.describe("Workstation resilience", () => {
       await expandInspector.click();
     }
     await page.getByRole("tab", { name: "Preview" }).click();
-    await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).toContainText(
-      "PARTIAL"
+    const previewPanel = page.getByRole("tabpanel", { exact: true, name: "Preview" });
+    await expect(previewPanel).toContainText("PARTIAL");
+    await expect(previewPanel).toContainText("USABLE");
+    await expect(previewPanel).toContainText(
+      "Open Code to inspect, copy, or download the component."
     );
-    await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).toContainText(
-      "Open Code to use the artifact, then regenerate the preview."
+    await expect(previewPanel).toContainText(
+      "Use a React project with its own React Three Fiber bundle to run it."
     );
-    await expect(page.getByRole("tabpanel", { exact: true, name: "Preview" })).toContainText(
-      "React Three Fiber export"
+    await expect(previewPanel).toContainText("React Three Fiber export");
+    await expect(previewPanel).toContainText(
+      "No internal R3F iframe or preview control is presented"
     );
-    await expect(page.locator('iframe[title*="React Three Fiber"]')).toHaveCount(0);
+    await expect(previewPanel.locator("iframe")).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: "Enter preview fullscreen" })
+    ).toHaveCount(0);
     consoleGate.assertClean();
   });
 
@@ -196,6 +215,19 @@ test.describe("Workstation resilience", () => {
     consoleGate.assertClean();
   });
 });
+
+async function setDisplayMode(page, targetMode) {
+  await page.getByRole("button", { exact: true, name: "Settings" }).click();
+  const settings = page.getByRole("dialog", { name: "Workspace settings" });
+  const displayMode = settings.getByRole("button", { name: "Display mode" });
+  const currentMode = (await displayMode.textContent())?.trim();
+  if (currentMode !== targetMode) {
+    await displayMode.click();
+  }
+  await expect(displayMode).toHaveText(targetMode);
+  await page.getByRole("button", { exact: true, name: "Settings" }).click();
+  await expect(settings).toHaveCount(0);
+}
 
 const delayedSessionPrompt = "Hold Session A until the session switch completes.";
 const delayedSessionAnswer = "Delayed Session A completion must remain isolated.";

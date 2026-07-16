@@ -35,6 +35,7 @@ export type PreviewControllerModel = {
   canRestart: boolean;
   indicators: PreviewRuntimeIndicator[];
   isFullscreen: boolean;
+  isRuntimeRefreshing: boolean;
   isSessionOverridden: boolean;
   sessionLabel: string;
 };
@@ -102,6 +103,8 @@ export function buildPreviewControllerModel({
     canRestart: preview.available,
     indicators,
     isFullscreen,
+    isRuntimeRefreshing:
+      sessionOverride?.mode === "reloading" || sessionOverride?.mode === "restarting",
     isSessionOverridden: hasActiveSessionOverride(sessionOverride),
     sessionLabel
   };
@@ -179,6 +182,22 @@ export function isPreviewRuntimeAwaitingFirstFrame(
   }
 
   return !settledPreviewRuntimeStates.has(runtimeState);
+}
+
+/**
+ * A readiness timer belongs to one concrete sandbox mount. Display-mode and
+ * fullscreen changes intentionally remount that sandbox without changing the
+ * artifact/version session key, so an older timer must never recover the newer
+ * mount while it is legitimately starting.
+ */
+export function isPreviewAutoRecoveryRuntimeCurrent({
+  armedRuntimeId,
+  currentRuntimeId
+}: {
+  armedRuntimeId: string | null;
+  currentRuntimeId: string | null;
+}): boolean {
+  return armedRuntimeId === currentRuntimeId;
 }
 
 /**

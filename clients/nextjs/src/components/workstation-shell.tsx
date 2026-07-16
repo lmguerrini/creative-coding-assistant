@@ -124,6 +124,7 @@ import {
   buildPreviewControllerModel,
   canArmPreviewAutoRecovery,
   createPreviewSessionOverride,
+  isPreviewAutoRecoveryRuntimeCurrent,
   isPreviewRuntimeAwaitingFirstFrame,
   previewAutoRecoveryReadinessBudgetMs,
   type PreviewControllerModel,
@@ -670,6 +671,7 @@ export function WorkstationShell({
   >(null);
   const previousPreviewRuntimeSessionKeyRef = useRef<string | null>(null);
   const previewAutoRecoveredIdentityRef = useRef<string | null>(null);
+  const previewRuntimeIdRef = useRef<string | null>(null);
   const previewRuntimeStateRef = useRef<PreviewRuntimeLifecycleState | null>(null);
   const handlePreviewStateReloadRef = useRef<() => void>(() => undefined);
   const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -1147,11 +1149,14 @@ export function WorkstationShell({
     }
 
     previousPreviewRuntimeSessionKeyRef.current = previewRuntimeSessionKey;
+    previewRuntimeIdRef.current = null;
+    previewRuntimeStateRef.current = null;
     setPreviewRuntimeLive(null);
   }, [previewRuntimeSessionKey]);
   // Mirror the latest observed runtime lifecycle state so the bounded recovery
   // timer can read it at fire time without re-arming on every diagnostics tick.
   useEffect(() => {
+    previewRuntimeIdRef.current = previewRuntimeLive?.runtimeId ?? null;
     previewRuntimeStateRef.current = previewRuntimeLive?.status.state ?? null;
   }, [previewRuntimeLive]);
   // Reusing the exact manual Reload path keeps the automatic recovery in lockstep
@@ -1182,9 +1187,19 @@ export function WorkstationShell({
       return undefined;
     }
 
+    const armedRuntimeId = previewRuntimeIdRef.current;
     const timeout = window.setTimeout(() => {
       if (
         previewAutoRecoveredIdentityRef.current === previewRuntimeRecoveryIdentity
+      ) {
+        return;
+      }
+
+      if (
+        !isPreviewAutoRecoveryRuntimeCurrent({
+          armedRuntimeId,
+          currentRuntimeId: previewRuntimeIdRef.current
+        })
       ) {
         return;
       }
@@ -1202,6 +1217,7 @@ export function WorkstationShell({
     isPreviewOpen,
     previewRuntimeIsPreviewable,
     previewRuntimeRecoveryIdentity,
+    previewRuntimeLive?.runtimeId,
     previewRuntimeSessionKey,
     previewSessionOverride
   ]);
@@ -2364,6 +2380,11 @@ export function WorkstationShell({
   function handlePreviewRuntimeDiagnostics(
     nextRuntimeLive: Omit<RuntimeConsoleLiveSnapshot, "updatedAt">
   ) {
+    // The recovery deadline can already be queued when a runtime status arrives.
+    // Mirror mount identity and lifecycle synchronously so that callback never
+    // races React's passive state/effect flush.
+    previewRuntimeIdRef.current = nextRuntimeLive.runtimeId;
+    previewRuntimeStateRef.current = nextRuntimeLive.status.state;
     setPreviewRuntimeLive({
       ...nextRuntimeLive,
       updatedAt: new Date().toISOString()

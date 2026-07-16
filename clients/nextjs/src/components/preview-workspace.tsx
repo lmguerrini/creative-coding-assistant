@@ -101,7 +101,10 @@ export function PreviewWorkspace({
   const fullscreenLayerRef = useRef<HTMLDivElement>(null);
   const onFullscreenToggleRef = useRef(onFullscreenToggle);
   const shouldRestoreFullscreenFocusRef = useRef(false);
-  const canOpenUserPreview = showDebugPanels || snapshot.preview.state === "ready";
+  const canOpenUserPreview =
+    showDebugPanels ||
+    snapshot.preview.state === "ready" ||
+    (controller.isRuntimeRefreshing && snapshot.preview.available);
   const isPreviewPanelOpen = snapshot.preview.active && canOpenUserPreview;
 
   useEffect(() => {
@@ -238,7 +241,7 @@ export function PreviewWorkspace({
     isPreviewPanelOpen && layoutSize === "visual" && !controller.isFullscreen;
   const panelStyle = controller.isFullscreen ? undefined : { height: panelHeight };
 
-  if (!showDebugPanels && snapshot.preview.state !== "ready") {
+  if (!showDebugPanels && !canOpenUserPreview) {
     return (
       <section className="previewZone" aria-label="Preview workspace">
         <section
