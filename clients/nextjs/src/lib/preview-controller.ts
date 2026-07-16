@@ -1,5 +1,6 @@
 import type { PreviewSummary } from "./assistant-client";
 import type { PreviewRendererRoute } from "./preview-renderers";
+import type { PreviewRuntimeLifecycleState } from "./preview-runtime-adapters";
 
 export type PreviewRuntimeSessionOverrideMode =
   | "restarting"
@@ -140,6 +141,84 @@ function formatPreviewSessionLabel(
     default:
       return "Ready";
   }
+}
+
+/**
+ * Bounded readiness budget for the one automatic preview recovery.
+ *
+ * A newly opened, valid preview sometimes mounts its sandbox iframe yet never
+ * advances past "starting" — the runtime stays black at Starting/Warming even
+ * though clicking the existing Reload control immediately renders it. There is
+ * no runtime-level warming/readiness timeout to reuse, so this is the smallest
+ * safe deadline that still comfortably outlasts a healthy cold start. That cold
+ * start is entirely local (no network): the sandbox iframe loads a static
+ * document, completes its postMessage handshake, and every route emits its first
+ * "running"/"ready" status synchronously after the user script runs — the
+ * heaviest one-time cost being Three.js r176 WebGL/context setup, still well
+ * under ~500 ms on normal hardware (the metrics publish cadence is 220 ms). This
+ * keeps a ≥2x margin over that worst case while roughly halving the visible
+ * black-preview delay: long enough not to race a runtime that is about to run,
+ * short enough to mirror the operator's own "it's stuck, reload it" reflex.
+ */
+export const previewAutoRecoveryReadinessBudgetMs = 1500;
+
+const settledPreviewRuntimeStates: ReadonlySet<PreviewRuntimeLifecycleState> =
+  new Set(["ready", "running", "stopped", "error"]);
+
+/**
+ * A runtime that never advanced past "starting"/"idle" (or has reported nothing
+ * yet) has not produced its first runnable frame. "ready" (for example Tone.js
+ * armed and awaiting explicit playback), "running", "stopped" and "error" are
+ * all explicit outcomes that must never be auto-reloaded.
+ */
+export function isPreviewRuntimeAwaitingFirstFrame(
+  runtimeState: PreviewRuntimeLifecycleState | null
+): boolean {
+  if (runtimeState === null) {
+    return true;
+  }
+
+  return !settledPreviewRuntimeStates.has(runtimeState);
+}
+
+/**
+ * Decide whether the current preview session is eligible to arm its single
+ * automatic recovery. This never decides to reload on its own — a bounded
+ * readiness timer must still confirm the runtime is still awaiting its first
+ * frame ({@link isPreviewRuntimeAwaitingFirstFrame}) before reusing the manual
+ * Reload path.
+ */
+export function canArmPreviewAutoRecovery({
+  consumedIdentity,
+  isPreviewable,
+  isOpen,
+  recoveryIdentity,
+  sessionOverrideMode
+}: {
+  consumedIdentity: string | null;
+  isPreviewable: boolean;
+  isOpen: boolean;
+  recoveryIdentity: string;
+  sessionOverrideMode: PreviewRuntimeSessionOverrideMode | null;
+}): boolean {
+  if (!isOpen || !isPreviewable) {
+    return false;
+  }
+
+  // At most one automatic recovery per artifact/version.
+  if (consumedIdentity === recoveryIdentity) {
+    return false;
+  }
+
+  // Never stack a recovery onto an in-flight override. An override only settles
+  // once the runtime actually reaches "running", so a manual or automatic
+  // reload that stays stuck keeps mode !== "settled" and can never trigger a
+  // second automatic reload — this is what makes a reload loop impossible.
+  if (sessionOverrideMode !== null && sessionOverrideMode !== "settled") {
+    return false;
+  }
+
+  return true;
 }
 
 function resolveSessionTone(

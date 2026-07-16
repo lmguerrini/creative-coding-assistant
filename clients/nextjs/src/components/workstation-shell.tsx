@@ -122,7 +122,10 @@ import {
 } from "@/lib/retrieval-runtime";
 import {
   buildPreviewControllerModel,
+  canArmPreviewAutoRecovery,
   createPreviewSessionOverride,
+  isPreviewRuntimeAwaitingFirstFrame,
+  previewAutoRecoveryReadinessBudgetMs,
   type PreviewControllerModel,
   type PreviewRuntimeSessionOverride
 } from "@/lib/preview-controller";
@@ -179,6 +182,7 @@ import {
   getExecutablePreviewRuntimeKind,
   type PreviewExecutableRuntimeKind,
   type PreviewRuntimeFrameSample,
+  type PreviewRuntimeLifecycleState,
   type PreviewRuntimeSource,
   type PreviewRuntimeStatus
 } from "@/lib/preview-runtime-adapters";
@@ -665,6 +669,9 @@ export function WorkstationShell({
     string | null
   >(null);
   const previousPreviewRuntimeSessionKeyRef = useRef<string | null>(null);
+  const previewAutoRecoveredIdentityRef = useRef<string | null>(null);
+  const previewRuntimeStateRef = useRef<PreviewRuntimeLifecycleState | null>(null);
+  const handlePreviewStateReloadRef = useRef<() => void>(() => undefined);
   const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const approvalCardRef = useRef<HTMLElement | null>(null);
   const approvalFocusOriginRef = useRef<HTMLElement | null>(null);
@@ -1106,6 +1113,14 @@ export function WorkstationShell({
   const previewRuntimeSessionKey =
     previewSessionOverride?.requestedAt ??
     `${previewArtifactId}:${interactiveSnapshot.preview.version}`;
+  // Reload/restart overrides change the session key (they carry a fresh
+  // requestedAt) but reuse the same underlying artifact/version. The recovery
+  // identity is deliberately override-independent so the one-recovery allowance
+  // is scoped to the artifact/version, not to each individual reload attempt.
+  const previewRuntimeRecoveryIdentity = `${previewArtifactId}:${interactiveSnapshot.preview.version}`;
+  const previewRuntimeIsPreviewable =
+    interactiveSnapshot.preview.available &&
+    interactiveSnapshot.preview.state === "ready";
   const previewController = useMemo(
     () =>
       buildPreviewControllerModel({
@@ -1134,6 +1149,62 @@ export function WorkstationShell({
     previousPreviewRuntimeSessionKeyRef.current = previewRuntimeSessionKey;
     setPreviewRuntimeLive(null);
   }, [previewRuntimeSessionKey]);
+  // Mirror the latest observed runtime lifecycle state so the bounded recovery
+  // timer can read it at fire time without re-arming on every diagnostics tick.
+  useEffect(() => {
+    previewRuntimeStateRef.current = previewRuntimeLive?.status.state ?? null;
+  }, [previewRuntimeLive]);
+  // Reusing the exact manual Reload path keeps the automatic recovery in lockstep
+  // with whatever the Reload button does, without adding it to timer deps.
+  useEffect(() => {
+    handlePreviewStateReloadRef.current = handlePreviewStateReload;
+  });
+  // Reset the one-recovery allowance whenever the previewed artifact changes, so
+  // a freshly selected artifact is entitled to its own single recovery.
+  useEffect(() => {
+    previewAutoRecoveredIdentityRef.current = null;
+  }, [previewArtifactId]);
+  // One bounded automatic recovery: if a newly opened, valid preview never
+  // advances past Starting/Warming within the readiness budget, reuse the proven
+  // manual Reload exactly once for this artifact/version. Runtimes that are
+  // Running/Nominal, armed (Tone.js "ready"), stopped, or explicitly failed are
+  // left untouched, and an in-flight override blocks re-arming — so no loop.
+  useEffect(() => {
+    if (
+      !canArmPreviewAutoRecovery({
+        consumedIdentity: previewAutoRecoveredIdentityRef.current,
+        isPreviewable: previewRuntimeIsPreviewable,
+        isOpen: isPreviewOpen,
+        recoveryIdentity: previewRuntimeRecoveryIdentity,
+        sessionOverrideMode: previewSessionOverride?.mode ?? null
+      })
+    ) {
+      return undefined;
+    }
+
+    const timeout = window.setTimeout(() => {
+      if (
+        previewAutoRecoveredIdentityRef.current === previewRuntimeRecoveryIdentity
+      ) {
+        return;
+      }
+
+      if (!isPreviewRuntimeAwaitingFirstFrame(previewRuntimeStateRef.current)) {
+        return;
+      }
+
+      previewAutoRecoveredIdentityRef.current = previewRuntimeRecoveryIdentity;
+      handlePreviewStateReloadRef.current();
+    }, previewAutoRecoveryReadinessBudgetMs);
+
+    return () => window.clearTimeout(timeout);
+  }, [
+    isPreviewOpen,
+    previewRuntimeIsPreviewable,
+    previewRuntimeRecoveryIdentity,
+    previewRuntimeSessionKey,
+    previewSessionOverride
+  ]);
   const persistenceRecord = useMemo(
     () =>
       createWorkspaceSessionRecord({
