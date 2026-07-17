@@ -6,9 +6,8 @@ combines a Next.js workstation, a Python API, a bounded LangGraph workflow,
 official-source retrieval, OpenAI generation and embeddings, local persistence,
 and browser-focused preview paths.
 
-![Creative Workspace with sessions, starter briefs, composer, and workflow inspector][screenshot-workspace]
+![Creative Coding Assistant — AI Creative Workstation][hero-poster]
 
-*The Creative Workspace keeps composing, session history, and inspectable workflow state in one view.*
 
 ## Purpose
 
@@ -178,9 +177,9 @@ browser-test dependencies.
 7. The browser hydrates the final response, revalidates the preview contract,
    runs supported code in an isolated surface, and records workspace state.
 
-![Advanced Dashboard overview of outcome, route, artifact, preview, runtime, and retrieval][screenshot-overview]
+![Creative Workspace with sessions, starter briefs, composer, and workflow inspector][screenshot-workspace]
 
-*The Dashboard overview keeps the current result and its strongest published evidence together.*
+*The Creative Workspace keeps composing, session history, and inspectable workflow state in one view.*
 
 ## Architecture overview
 
@@ -614,6 +613,7 @@ controls if the application becomes hosted. See [Future Work](docs/FUTURE_WORK.m
 | Planned improvements | [Future Work](docs/FUTURE_WORK.md) |
 
 
+[hero-poster]: assets/screenshots/creative-coding-assistant-poster.jpg
 [screenshot-workspace]: assets/screenshots/creative-workspace.jpg
 [screenshot-user-guide]: assets/screenshots/user-guide.jpg
 [screenshot-overview]: assets/screenshots/dashboard-overview.jpg
