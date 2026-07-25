@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "lucide-react": "0.468.0",
-    "next": "15.5.20",
+    "next": "15.5.22",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
@@ -38,6 +38,7 @@
   },
   "overrides": {
     "js-yaml": "4.3.0",
-    "postcss": "8.5.18"
+    "postcss": "8.5.18",
+    "sharp": "0.35.3"
   }
 }
