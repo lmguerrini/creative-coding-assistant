@@ -20,7 +20,7 @@ engineering rigor. A request is validated and routed through a visible workflow,
 enriched with local memory and official documentation when appropriate, rendered
 into a structured prompt, sent to the configured model, converted into
 artifacts, and checked against a bounded preview contract before the result is
-presented. The objective is not simply to generate code, but to help transform 
+presented. The objective is not simply to generate code, but to help transform
 artistic intent into technically grounded interactive experiences.
 
 ## Problem
@@ -620,7 +620,6 @@ controls if the application becomes hosted. See [Future Work](docs/FUTURE_WORK.m
 [hero-poster]: assets/screenshots/creative-coding-assistant-poster.jpg
 [screenshot-workspace]: assets/screenshots/creative-workspace.jpg
 [screenshot-user-guide]: assets/screenshots/user-guide.jpg
-[screenshot-overview]: assets/screenshots/dashboard-overview.jpg
 [screenshot-architecture]: assets/screenshots/dashboard-architecture.jpg
 [screenshot-demo-mode]: assets/screenshots/demo-mode.jpg
 [screenshot-knowledge-base]: assets/screenshots/dashboard-kb.jpg
